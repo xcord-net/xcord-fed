@@ -24,11 +24,6 @@ public sealed class Reaction
     public string Emoji { get; set; } = string.Empty;
 
     /// <summary>
-    /// Whether this is a super (animated burst) reaction (premium feature).
-    /// </summary>
-    public bool IsSuper { get; set; }
-
-    /// <summary>
     /// Timestamp when the reaction was added.
     /// </summary>
     public DateTimeOffset CreatedAt { get; set; }

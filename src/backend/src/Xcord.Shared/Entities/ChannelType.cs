@@ -23,10 +23,5 @@ public enum ChannelType
     /// <summary>
     /// Forum channel (post-based with threads).
     /// </summary>
-    Forum = 3,
-
-    /// <summary>
-    /// Stage channel (moderated voice with speakers/audience).
-    /// </summary>
-    Stage = 4
+    Forum = 3
 }

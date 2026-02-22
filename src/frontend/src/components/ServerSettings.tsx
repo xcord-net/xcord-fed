@@ -16,7 +16,6 @@ import ServerBoost from './ServerBoost';
 import ServerInsights from './ServerInsights';
 import InviteManager from './InviteManager';
 import AppDirectory from './AppDirectory';
-import Soundboard from './Soundboard';
 import OwnershipTransfer from './OwnershipTransfer';
 import WelcomeScreen from './WelcomeScreen';
 
@@ -26,7 +25,7 @@ interface ServerSettingsProps {
 }
 
 type NotificationLevel = 'AllMessages' | 'OnlyMentions' | 'Nothing';
-type SettingsTab = 'overview' | 'automod' | 'bans' | 'audit-log' | 'emoji' | 'stickers' | 'vanity-url' | 'templates' | 'boost' | 'insights' | 'invites' | 'app-directory' | 'soundboard' | 'welcome-screen';
+type SettingsTab = 'overview' | 'automod' | 'bans' | 'audit-log' | 'emoji' | 'stickers' | 'vanity-url' | 'templates' | 'boost' | 'insights' | 'invites' | 'app-directory' | 'welcome-screen';
 
 const NOTIFICATION_OPTIONS: { label: string; value: NotificationLevel }[] = [
   { label: 'All Messages', value: 'AllMessages' },
@@ -47,7 +46,6 @@ const TABS: { id: SettingsTab; label: string; ownerOnly?: boolean }[] = [
   { id: 'insights', label: 'Insights', ownerOnly: true },
   { id: 'invites', label: 'Invites', ownerOnly: true },
   { id: 'app-directory', label: 'App Directory' },
-  { id: 'soundboard', label: 'Soundboard' },
   { id: 'welcome-screen', label: 'Welcome Screen', ownerOnly: true },
 ];
 
@@ -385,11 +383,6 @@ export default function ServerSettings(props: ServerSettingsProps) {
               availableServerIds={[props.serverId]}
               serverNames={{ [props.serverId]: currentServer()?.name ?? props.serverId }}
             />
-          </Show>
-
-          {/* Soundboard tab */}
-          <Show when={activeTab() === 'soundboard'}>
-            <Soundboard serverId={props.serverId} />
           </Show>
 
           {/* Invites tab */}

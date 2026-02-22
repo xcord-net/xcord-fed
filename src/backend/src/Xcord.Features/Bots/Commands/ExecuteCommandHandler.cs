@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
-using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Bots.Commands;
 
@@ -14,8 +13,7 @@ public sealed record ExecuteCommandRequest(string? ArgsJson);
 public sealed record ExecuteCommandResponse(long CommandId, string Status);
 
 public sealed class ExecuteCommandHandler(
-    AppDbContext dbContext, IHttpContextAccessor httpContextAccessor,
-    IOutboxWriter outboxWriter)
+    AppDbContext dbContext, IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<ExecuteCommandCommand, Result<ExecuteCommandResponse>>
 {
     public async Task<Result<ExecuteCommandResponse>> Handle(ExecuteCommandCommand request, CancellationToken ct)
@@ -28,8 +26,8 @@ public sealed class ExecuteCommandHandler(
             .FirstOrDefaultAsync(c => c.Id == request.CommandId && c.ServerId == request.ServerId, ct);
         if (cmd == null) return Error.NotFound("COMMAND_NOT_FOUND", "Command not found");
 
-        await outboxWriter.WriteAsync(dbContext, "Bot_CommandExecuted",
-            new { cmd.BotTokenId, CommandId = cmd.Id, cmd.Name, UserId = userId, request.ArgsJson }, ct);
+        // TODO: Wire bot command dispatch when bot webhook delivery is implemented.
+        // Previously wrote to outbox as "Bot_CommandExecuted" but no consumer existed.
 
         return new ExecuteCommandResponse(cmd.Id, "dispatched");
     }

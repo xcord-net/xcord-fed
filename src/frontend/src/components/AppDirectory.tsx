@@ -147,7 +147,7 @@ export default function AppDirectory(props: AppDirectoryProps) {
     setInstallSuccess(null);
 
     try {
-      await api.post(`/api/v1/servers/${serverId}/bots/${bot.id}/install`, {});
+      await api.post(`/api/v1/app-directory/${bot.id}/install`, { serverId });
       setInstallSuccess(`${bot.name} was added to ${props.serverNames[serverId] ?? serverId}!`);
     } catch {
       setInstallError('Failed to add bot. Please try again.');

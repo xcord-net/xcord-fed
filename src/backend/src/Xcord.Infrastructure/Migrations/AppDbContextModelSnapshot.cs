@@ -513,56 +513,6 @@ namespace Xcord.Infrastructure.Migrations
                     b.ToTable("channel_permission_overrides", (string)null);
                 });
 
-            modelBuilder.Entity("Xcord.Entities.ConnectedAccount", b =>
-                {
-                    b.Property<long>("Id")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("AccessToken")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsVerified")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Provider")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("ProviderAccountId")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("ProviderUsername")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("RefreshToken")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
-
-                    b.Property<bool>("ShowOnProfile")
-                        .HasColumnType("boolean");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId", "Provider")
-                        .IsUnique();
-
-                    b.ToTable("connected_accounts", (string)null);
-                });
-
             modelBuilder.Entity("Xcord.Entities.Conversation", b =>
                 {
                     b.Property<long>("Id")
@@ -1384,86 +1334,6 @@ namespace Xcord.Infrastructure.Migrations
                     b.ToTable("outbox_events", (string)null);
                 });
 
-            modelBuilder.Entity("Xcord.Entities.OutgoingWebhook", b =>
-                {
-                    b.Property<long>("Id")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("EventTypes")
-                        .IsRequired()
-                        .HasColumnType("jsonb");
-
-                    b.Property<int>("FailureCount")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTimeOffset?>("LastFailureAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Secret")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<long>("ServerId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasMaxLength(2048)
-                        .HasColumnType("character varying(2048)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ServerId");
-
-                    b.ToTable("outgoing_webhooks", (string)null);
-                });
-
-            modelBuilder.Entity("Xcord.Entities.OutgoingWebhookDelivery", b =>
-                {
-                    b.Property<long>("Id")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset>("DeliveredAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("EventType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<long>("OutgoingWebhookId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Payload")
-                        .HasColumnType("jsonb");
-
-                    b.Property<string>("ResponseBody")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
-
-                    b.Property<int?>("StatusCode")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OutgoingWebhookId");
-
-                    b.ToTable("outgoing_webhook_deliveries", (string)null);
-                });
-
             modelBuilder.Entity("Xcord.Entities.PasswordResetToken", b =>
                 {
                     b.Property<long>("Id")
@@ -1585,55 +1455,6 @@ namespace Xcord.Infrastructure.Migrations
                     b.ToTable("poll_votes", (string)null);
                 });
 
-            modelBuilder.Entity("Xcord.Entities.ProfileDecoration", b =>
-                {
-                    b.Property<long>("Id")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("AvatarFrameUrl")
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
-
-                    b.Property<string>("BannerColor")
-                        .HasMaxLength(7)
-                        .HasColumnType("character varying(7)");
-
-                    b.Property<string>("BannerUrl")
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
-
-                    b.Property<string>("Bio")
-                        .HasMaxLength(190)
-                        .HasColumnType("character varying(190)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ProfileEffect")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("Pronouns")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("profile_decorations", (string)null);
-                });
-
             modelBuilder.Entity("Xcord.Entities.Reaction", b =>
                 {
                     b.Property<long>("MessageId")
@@ -1648,11 +1469,6 @@ namespace Xcord.Infrastructure.Migrations
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsSuper")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
 
                     b.HasKey("MessageId", "UserId", "Emoji");
 
@@ -1899,53 +1715,6 @@ namespace Xcord.Infrastructure.Migrations
                     b.HasIndex("ServerId", "Status");
 
                     b.ToTable("scheduled_events", (string)null);
-                });
-
-            modelBuilder.Entity("Xcord.Entities.ScheduledMessage", b =>
-                {
-                    b.Property<long>("Id")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("AuthorId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
-
-                    b.Property<long>("ConversationId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsSent")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("Metadata")
-                        .HasColumnType("jsonb");
-
-                    b.Property<DateTimeOffset>("ScheduledAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("SentAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AuthorId");
-
-                    b.HasIndex("ConversationId", "AuthorId");
-
-                    b.HasIndex("IsSent", "ScheduledAt");
-
-                    b.ToTable("scheduled_messages", (string)null);
                 });
 
             modelBuilder.Entity("Xcord.Entities.Server", b =>
@@ -2209,116 +1978,6 @@ namespace Xcord.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("slash_commands", (string)null);
-                });
-
-            modelBuilder.Entity("Xcord.Entities.SoundboardSound", b =>
-                {
-                    b.Property<long>("Id")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("AudioUrl")
-                        .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("DurationMs")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsDefault")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)");
-
-                    b.Property<string>("S3Key")
-                        .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
-
-                    b.Property<long>("ServerId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("UploadedByUserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ServerId");
-
-                    b.HasIndex("UploadedByUserId");
-
-                    b.ToTable("soundboard_sounds", (string)null);
-                });
-
-            modelBuilder.Entity("Xcord.Entities.StageSession", b =>
-                {
-                    b.Property<long>("Id")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("ChannelId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("EndedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset>("StartedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Topic")
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChannelId");
-
-                    b.ToTable("stage_sessions", (string)null);
-                });
-
-            modelBuilder.Entity("Xcord.Entities.StageSpeaker", b =>
-                {
-                    b.Property<long>("Id")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("RequestedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<long>("StageSessionId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("StageSessionId", "UserId")
-                        .IsUnique();
-
-                    b.ToTable("stage_speakers", (string)null);
                 });
 
             modelBuilder.Entity("Xcord.Entities.Sticker", b =>
@@ -3097,17 +2756,6 @@ namespace Xcord.Infrastructure.Migrations
                     b.Navigation("Channel");
                 });
 
-            modelBuilder.Entity("Xcord.Entities.ConnectedAccount", b =>
-                {
-                    b.HasOne("Xcord.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Xcord.Entities.CrosspostSubscription", b =>
                 {
                     b.HasOne("Xcord.Entities.Channel", "SourceChannel")
@@ -3490,28 +3138,6 @@ namespace Xcord.Infrastructure.Migrations
                     b.Navigation("OnboardingConfig");
                 });
 
-            modelBuilder.Entity("Xcord.Entities.OutgoingWebhook", b =>
-                {
-                    b.HasOne("Xcord.Entities.Server", "Server")
-                        .WithMany()
-                        .HasForeignKey("ServerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Server");
-                });
-
-            modelBuilder.Entity("Xcord.Entities.OutgoingWebhookDelivery", b =>
-                {
-                    b.HasOne("Xcord.Entities.OutgoingWebhook", "OutgoingWebhook")
-                        .WithMany("Deliveries")
-                        .HasForeignKey("OutgoingWebhookId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("OutgoingWebhook");
-                });
-
             modelBuilder.Entity("Xcord.Entities.PasswordResetToken", b =>
                 {
                     b.HasOne("Xcord.Entities.User", "User")
@@ -3560,17 +3186,6 @@ namespace Xcord.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("PollOption");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Xcord.Entities.ProfileDecoration", b =>
-                {
-                    b.HasOne("Xcord.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -3708,25 +3323,6 @@ namespace Xcord.Infrastructure.Migrations
                     b.Navigation("Server");
                 });
 
-            modelBuilder.Entity("Xcord.Entities.ScheduledMessage", b =>
-                {
-                    b.HasOne("Xcord.Entities.User", "Author")
-                        .WithMany()
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Xcord.Entities.Conversation", "Conversation")
-                        .WithMany()
-                        .HasForeignKey("ConversationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Author");
-
-                    b.Navigation("Conversation");
-                });
-
             modelBuilder.Entity("Xcord.Entities.Server", b =>
                 {
                     b.HasOne("Xcord.Entities.User", "Owner")
@@ -3819,55 +3415,6 @@ namespace Xcord.Infrastructure.Migrations
                     b.Navigation("BotToken");
 
                     b.Navigation("Server");
-                });
-
-            modelBuilder.Entity("Xcord.Entities.SoundboardSound", b =>
-                {
-                    b.HasOne("Xcord.Entities.Server", "Server")
-                        .WithMany()
-                        .HasForeignKey("ServerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Xcord.Entities.User", "UploadedByUser")
-                        .WithMany()
-                        .HasForeignKey("UploadedByUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Server");
-
-                    b.Navigation("UploadedByUser");
-                });
-
-            modelBuilder.Entity("Xcord.Entities.StageSession", b =>
-                {
-                    b.HasOne("Xcord.Entities.Channel", "Channel")
-                        .WithMany()
-                        .HasForeignKey("ChannelId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Channel");
-                });
-
-            modelBuilder.Entity("Xcord.Entities.StageSpeaker", b =>
-                {
-                    b.HasOne("Xcord.Entities.StageSession", "StageSession")
-                        .WithMany("Speakers")
-                        .HasForeignKey("StageSessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Xcord.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("StageSession");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Xcord.Entities.Sticker", b =>
@@ -4128,11 +3675,6 @@ namespace Xcord.Infrastructure.Migrations
                     b.Navigation("Prompts");
                 });
 
-            modelBuilder.Entity("Xcord.Entities.OutgoingWebhook", b =>
-                {
-                    b.Navigation("Deliveries");
-                });
-
             modelBuilder.Entity("Xcord.Entities.Poll", b =>
                 {
                     b.Navigation("Options");
@@ -4151,11 +3693,6 @@ namespace Xcord.Infrastructure.Migrations
             modelBuilder.Entity("Xcord.Entities.ServerMember", b =>
                 {
                     b.Navigation("MemberRoles");
-                });
-
-            modelBuilder.Entity("Xcord.Entities.StageSession", b =>
-                {
-                    b.Navigation("Speakers");
                 });
 
             modelBuilder.Entity("Xcord.Entities.StickerPack", b =>

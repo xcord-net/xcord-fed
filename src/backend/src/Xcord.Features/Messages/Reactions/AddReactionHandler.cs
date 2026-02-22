@@ -10,7 +10,7 @@ using Xcord.Infrastructure.Data;
 namespace Xcord.Features.Messages.Reactions;
 
 public sealed record AddReactionCommand(long ConversationId, long MessageId, string Emoji);
-public sealed record ReactionResponse(long MessageId, long UserId, string Emoji, bool IsSuper, DateTimeOffset CreatedAt);
+public sealed record ReactionResponse(long MessageId, long UserId, string Emoji, DateTimeOffset CreatedAt);
 
 public sealed class AddReactionHandler(
     AppDbContext dbContext, IHttpContextAccessor httpContextAccessor)
@@ -30,7 +30,7 @@ public sealed class AddReactionHandler(
             .FirstOrDefaultAsync(r => r.MessageId == request.MessageId && r.UserId == userId && r.Emoji == request.Emoji, ct);
 
         if (existing != null)
-            return new ReactionResponse(existing.MessageId, existing.UserId, existing.Emoji, existing.IsSuper, existing.CreatedAt);
+            return new ReactionResponse(existing.MessageId, existing.UserId, existing.Emoji, existing.CreatedAt);
 
         var now = DateTimeOffset.UtcNow;
         var reaction = new Reaction
@@ -38,13 +38,12 @@ public sealed class AddReactionHandler(
             MessageId = request.MessageId,
             UserId = userId,
             Emoji = request.Emoji,
-            IsSuper = false,
             CreatedAt = now
         };
         dbContext.Reactions.Add(reaction);
         await dbContext.SaveChangesAsync(ct);
 
-        return new ReactionResponse(reaction.MessageId, userId, reaction.Emoji, false, now);
+        return new ReactionResponse(reaction.MessageId, userId, reaction.Emoji, now);
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app) =>

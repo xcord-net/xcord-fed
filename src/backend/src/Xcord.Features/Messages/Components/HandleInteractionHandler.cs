@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
-using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Messages.Components;
 
@@ -14,8 +13,7 @@ public sealed record HandleInteractionRequest(string? Value);
 public sealed record InteractionResponse(long ComponentId, string Status);
 
 public sealed class HandleInteractionHandler(
-    AppDbContext dbContext, IHttpContextAccessor httpContextAccessor,
-    IOutboxWriter outboxWriter)
+    AppDbContext dbContext, IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<HandleInteractionCommand, Result<InteractionResponse>>
 {
     public async Task<Result<InteractionResponse>> Handle(HandleInteractionCommand request, CancellationToken ct)
@@ -29,8 +27,8 @@ public sealed class HandleInteractionHandler(
         if (component == null) return Error.NotFound("COMPONENT_NOT_FOUND", "Component not found");
         if (component.Disabled) return Error.Validation("COMPONENT_DISABLED", "This component is disabled");
 
-        await outboxWriter.WriteAsync(dbContext, "Bot_Interaction",
-            new { ComponentId = component.Id, component.CustomId, UserId = userId, request.Value }, ct);
+        // TODO: Wire bot interaction dispatch when bot webhook delivery is implemented.
+        // Previously wrote to outbox as "Bot_Interaction" but no consumer existed.
 
         return new InteractionResponse(component.Id, "dispatched");
     }

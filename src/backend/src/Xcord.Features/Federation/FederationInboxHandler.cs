@@ -57,8 +57,21 @@ public sealed class FederationInboxHandler(
 
         if (follows.Count == 0)
         {
+            // No active follows means this source isn't authorized to deliver here.
+            // TODO: Replace with proper federation token/HMAC verification when federation auth is implemented.
             return Error.NotFound("NO_FOLLOWS", "No active follows for this remote channel");
         }
+
+        // Batch dedup: collect all remote message IDs and query once per follow
+        var remoteMessageIds = request.Messages.Select(m => m.RemoteMessageId).ToList();
+        var followIds = follows.Select(f => f.Id).ToList();
+
+        var alreadyImportedSet = (await dbContext.FederationMessages
+            .Where(fm => followIds.Contains(fm.FederationFollowId)
+                      && remoteMessageIds.Contains(fm.RemoteMessageId))
+            .Select(fm => new { fm.FederationFollowId, fm.RemoteMessageId })
+            .ToListAsync(cancellationToken))
+            .ToHashSet();
 
         var accepted = 0;
         var rejected = 0;
@@ -69,16 +82,8 @@ public sealed class FederationInboxHandler(
             {
                 foreach (var follow in follows)
                 {
-                    // Check if already imported
-                    var alreadyImported = await dbContext.FederationMessages
-                        .AnyAsync(fm => fm.FederationFollowId == follow.Id
-                                     && fm.RemoteMessageId == message.RemoteMessageId,
-                            cancellationToken);
-
-                    if (alreadyImported)
-                    {
+                    if (alreadyImportedSet.Contains(new { FederationFollowId = follow.Id, RemoteMessageId = message.RemoteMessageId }))
                         continue;
-                    }
 
                     // Create local message copy
                     var localMessageId = snowflakeGenerator.NextId();

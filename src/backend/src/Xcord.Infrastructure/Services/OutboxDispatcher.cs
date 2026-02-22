@@ -179,19 +179,16 @@ public sealed class OutboxDispatcher : BackgroundService
 
         var now = DateTimeOffset.UtcNow;
 
-        // Query unprocessed events
-        // We'll filter for exponential backoff in-memory since it's complex to do in SQL
-        var allUnprocessed = await context.OutboxEvents
+        // Query unprocessed events with exponential backoff filter pushed to SQL.
+        // For first attempts (RetryCount == 0): always eligible.
+        // For retries: eligible when seconds since last attempt >= 2^RetryCount.
+        var events = await context.OutboxEvents
             .Where(e => e.ProcessedAt == null)
+            .Where(e => e.RetryCount == 0
+                     || (now - (e.LastAttemptAt ?? e.CreatedAt)).TotalSeconds >= Math.Pow(2, e.RetryCount))
             .OrderBy(e => e.CreatedAt)
-            .Take(_options.BatchSize * 2) // Fetch more since we'll filter in-memory
-            .ToListAsync(cancellationToken);
-
-        // Apply exponential backoff filter using LastAttemptAt (falls back to CreatedAt for first attempt)
-        var events = allUnprocessed
-            .Where(e => e.RetryCount == 0 || (now - (e.LastAttemptAt ?? e.CreatedAt)).TotalSeconds >= Math.Pow(2, e.RetryCount))
             .Take(_options.BatchSize)
-            .ToList();
+            .ToListAsync(cancellationToken);
 
         if (events.Count == 0)
         {

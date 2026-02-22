@@ -65,30 +65,22 @@ public sealed class AppDbContext : DbContext
 
     // New entities for sprint cards 176-200
     public DbSet<ServerTemplate> ServerTemplates => Set<ServerTemplate>();
-    public DbSet<StageSession> StageSessions => Set<StageSession>();
-    public DbSet<StageSpeaker> StageSpeakers => Set<StageSpeaker>();
-    public DbSet<SoundboardSound> SoundboardSounds => Set<SoundboardSound>();
     public DbSet<SlashCommand> SlashCommands => Set<SlashCommand>();
     public DbSet<MessageComponent> MessageComponents => Set<MessageComponent>();
     public DbSet<AppListing> AppListings => Set<AppListing>();
     public DbSet<AppReview> AppReviews => Set<AppReview>();
     public DbSet<UserActivity> UserActivities => Set<UserActivity>();
-    public DbSet<ConnectedAccount> ConnectedAccounts => Set<ConnectedAccount>();
     public DbSet<WelcomeScreen> WelcomeScreens => Set<WelcomeScreen>();
     public DbSet<WelcomeScreenChannel> WelcomeScreenChannels => Set<WelcomeScreenChannel>();
     public DbSet<OnboardingConfig> OnboardingConfigs => Set<OnboardingConfig>();
     public DbSet<OnboardingPrompt> OnboardingPrompts => Set<OnboardingPrompt>();
     public DbSet<OnboardingCompletion> OnboardingCompletions => Set<OnboardingCompletion>();
     public DbSet<ServerInsightSnapshot> ServerInsightSnapshots => Set<ServerInsightSnapshot>();
-    public DbSet<ProfileDecoration> ProfileDecorations => Set<ProfileDecoration>();
     public DbSet<ServerBoost> ServerBoosts => Set<ServerBoost>();
-    public DbSet<OutgoingWebhook> OutgoingWebhooks => Set<OutgoingWebhook>();
-    public DbSet<OutgoingWebhookDelivery> OutgoingWebhookDeliveries => Set<OutgoingWebhookDelivery>();
 
     // New entities for feature cards 193-198
     public DbSet<FederationFollow> FederationFollows => Set<FederationFollow>();
     public DbSet<FederationMessage> FederationMessages => Set<FederationMessage>();
-    public DbSet<ScheduledMessage> ScheduledMessages => Set<ScheduledMessage>();
     public DbSet<UserNote> UserNotes => Set<UserNote>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -22,11 +22,6 @@ public enum MessageType
     CallStarted = 14,
 
     /// <summary>
-    /// Voice message with audio recording attachment.
-    /// </summary>
-    VoiceMessage = 15,
-
-    /// <summary>
     /// System message posted when a member is kicked from the server.
     /// </summary>
     MemberKick = 16,

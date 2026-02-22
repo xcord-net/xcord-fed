@@ -18,8 +18,6 @@ import NotificationSettings from './NotificationSettings';
 import ChannelSettings from './ChannelSettings';
 import RoleManager from './RoleManager';
 import ScheduledEvents from './ScheduledEvents';
-import ConnectedAccounts from './ConnectedAccounts';
-import ProfileDecorations from './ProfileDecorations';
 import UserNotes from './UserNotes';
 import { useServers } from '../stores/server.store';
 import { useChannels } from '../stores/channel.store';
@@ -46,7 +44,7 @@ export default function Layout() {
   const [showSearch, setShowSearch] = createSignal(false);
   const [showPins, setShowPins] = createSignal(false);
   const [showThreads, setShowThreads] = createSignal(false);
-  const [showSettings, setShowSettings] = createSignal<'profile' | 'blocks' | 'notifications' | 'connections' | 'decorations' | 'notes' | null>(null);
+  const [showSettings, setShowSettings] = createSignal<'profile' | 'blocks' | 'notifications' | 'notes' | null>(null);
   const [showChannelSettings, setShowChannelSettings] = createSignal(false);
   const [showRoleManager, setShowRoleManager] = createSignal(false);
   const [showEvents, setShowEvents] = createSignal(false);
@@ -431,18 +429,6 @@ export default function Layout() {
                 Blocked Users
               </button>
               <button
-                class={`px-4 py-3 text-sm ${showSettings() === 'connections' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
-                onClick={() => setShowSettings('connections')}
-              >
-                Connected Accounts
-              </button>
-              <button
-                class={`px-4 py-3 text-sm ${showSettings() === 'decorations' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
-                onClick={() => setShowSettings('decorations')}
-              >
-                Profile Decorations
-              </button>
-              <button
                 class={`px-4 py-3 text-sm ${showSettings() === 'notes' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
                 onClick={() => setShowSettings('notes')}
               >
@@ -452,8 +438,6 @@ export default function Layout() {
             <Show when={showSettings() === 'profile'}><UserProfileEditor /></Show>
             <Show when={showSettings() === 'notifications'}><NotificationSettings /></Show>
             <Show when={showSettings() === 'blocks'}><BlockList /></Show>
-            <Show when={showSettings() === 'connections'}><ConnectedAccounts /></Show>
-            <Show when={showSettings() === 'decorations'}><ProfileDecorations /></Show>
             <Show when={showSettings() === 'notes'}><UserNotes /></Show>
           </div>
         </div>
