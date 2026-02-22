@@ -9,7 +9,7 @@ public static class AuthCookieHelper
         httpContext.Response.Cookies.Append("access_token", accessToken, new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
+            Secure = httpContext.Request.IsHttps,
             SameSite = SameSiteMode.Strict,
             Expires = DateTimeOffset.UtcNow.AddMinutes(expirationMinutes),
             Path = "/"
@@ -21,7 +21,7 @@ public static class AuthCookieHelper
         httpContext.Response.Cookies.Append("refresh_token", refreshToken, new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
+            Secure = httpContext.Request.IsHttps,
             SameSite = SameSiteMode.Strict,
             Expires = DateTimeOffset.UtcNow.AddDays(30),
             Path = "/"

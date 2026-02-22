@@ -7,6 +7,7 @@ public sealed class SecurityHeadersMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly HubOptions _hubOptions;
+
     private readonly bool _isDevelopment;
 
     public SecurityHeadersMiddleware(RequestDelegate next, IOptions<HubOptions> hubOptions, IWebHostEnvironment env)
@@ -38,14 +39,6 @@ public sealed class SecurityHeadersMiddleware
                 $"font-src 'self'; " +
                 $"frame-ancestors {frameAncestors}");
 
-            // HSTS (only in non-development to avoid poisoning local browser caches)
-            if (!_isDevelopment)
-            {
-                headers.Append(
-                    "Strict-Transport-Security",
-                    "max-age=31536000; includeSubDomains");
-            }
-
             // X-Content-Type-Options
             headers.Append(
                 "X-Content-Type-Options",
@@ -55,6 +48,14 @@ public sealed class SecurityHeadersMiddleware
             headers.Append(
                 "X-Frame-Options",
                 frameAncestors == "'none'" ? "DENY" : "SAMEORIGIN");
+
+            // HSTS (only in non-development to avoid poisoning local browser caches)
+            if (!_isDevelopment)
+            {
+                headers.Append(
+                    "Strict-Transport-Security",
+                    "max-age=31536000; includeSubDomains");
+            }
 
             // Referrer-Policy
             headers.Append(

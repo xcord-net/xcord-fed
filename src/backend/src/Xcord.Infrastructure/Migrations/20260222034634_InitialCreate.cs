@@ -2594,6 +2594,22 @@ namespace Xcord.Infrastructure.Migrations
                 principalTable: "servers",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
+
+            // pg_notify trigger for outbox — wakes OutboxDispatcher immediately on INSERT
+            migrationBuilder.Sql("""
+                CREATE OR REPLACE FUNCTION notify_outbox_event_inserted()
+                RETURNS trigger AS $$
+                BEGIN
+                    PERFORM pg_notify('outbox_event_inserted', '');
+                    RETURN NEW;
+                END;
+                $$ LANGUAGE plpgsql;
+
+                CREATE TRIGGER trg_outbox_event_inserted
+                AFTER INSERT ON outbox_events
+                FOR EACH ROW
+                EXECUTE FUNCTION notify_outbox_event_inserted();
+                """);
         }
 
         /// <inheritdoc />
