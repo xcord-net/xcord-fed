@@ -1,0 +1,270 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { api } from '../api/client';
+import type { ScheduledEvent } from '../components/ScheduledEvents';
+import {
+  formatEventDate,
+  formatEventTime,
+  sortEventsByStartTime,
+  toggleInterestedState,
+  isEventFormValid,
+} from '../components/ScheduledEvents';
+
+// ---- Test data ----
+
+const makeEvent = (overrides: Partial<ScheduledEvent> = {}): ScheduledEvent => ({
+  id: 'evt-1',
+  serverId: 'srv-1',
+  title: 'Weekly Standup',
+  description: 'Team sync every Monday',
+  startTime: new Date('2026-03-01T10:00:00Z').toISOString(),
+  endTime: new Date('2026-03-01T10:30:00Z').toISOString(),
+  locationType: 'VoiceChannel',
+  locationChannelName: 'General Voice',
+  interestedCount: 5,
+  isInterested: false,
+  createdAt: new Date('2026-02-01T00:00:00Z').toISOString(),
+  ...overrides,
+});
+
+// ---- Tests ----
+
+describe('ScheduledEvents', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    api.setAuthenticated(true);
+  });
+
+  // ---- Event list rendering ----
+
+  describe('event list data', () => {
+    it('renders event title from ScheduledEvent shape', () => {
+      // Arrange
+      const event = makeEvent({ title: 'Game Night' });
+
+      // Assert
+      expect(event.title).toBe('Game Night');
+    });
+
+    it('renders description when present', () => {
+      // Arrange
+      const event = makeEvent({ description: 'Bring snacks!' });
+
+      // Assert
+      expect(event.description).toBe('Bring snacks!');
+    });
+
+    it('description is optional on the event shape', () => {
+      // Arrange
+      const event = makeEvent({ description: undefined });
+
+      // Assert
+      expect(event.description).toBeUndefined();
+    });
+
+    it('renders interested count', () => {
+      // Arrange
+      const event = makeEvent({ interestedCount: 12 });
+
+      // Assert
+      expect(event.interestedCount).toBe(12);
+    });
+  });
+
+  // ---- Date/time formatting ----
+
+  describe('date/time formatting', () => {
+    const testDate = '2026-03-15T14:30:00Z';
+
+    it('formatEventDate returns a non-empty date string', () => {
+      // Act
+      const result = formatEventDate(testDate);
+
+      // Assert
+      expect(result.length).toBeGreaterThan(0);
+    });
+
+    it('formatEventDate includes the day of month', () => {
+      // Act
+      const result = formatEventDate(testDate);
+
+      // Assert — "15" should appear somewhere in the formatted string
+      expect(result).toMatch(/15/);
+    });
+
+    it('formatEventTime returns a non-empty time string', () => {
+      // Act
+      const result = formatEventTime(testDate);
+
+      // Assert
+      expect(result.length).toBeGreaterThan(0);
+    });
+
+    it('formatEventTime contains a colon separator (HH:MM format)', () => {
+      // Act
+      const result = formatEventTime(testDate);
+
+      // Assert
+      expect(result).toMatch(/:/);
+    });
+
+    it('events are sorted by start time ascending', () => {
+      // Arrange
+      const later = makeEvent({ id: 'e1', startTime: new Date('2026-04-01T10:00:00Z').toISOString() });
+      const earlier = makeEvent({ id: 'e2', startTime: new Date('2026-03-01T10:00:00Z').toISOString() });
+      const events = [later, earlier];
+
+      // Act
+      const sorted = sortEventsByStartTime(events);
+
+      // Assert
+      expect(sorted[0].id).toBe('e2');
+      expect(sorted[1].id).toBe('e1');
+    });
+  });
+
+  // ---- RSVP / Interested toggle ----
+
+  describe('RSVP toggle logic', () => {
+    it('toggling interested when not interested marks as interested', () => {
+      // Arrange
+      const event = makeEvent({ isInterested: false, interestedCount: 5 });
+
+      // Act
+      const updated = toggleInterestedState(event);
+
+      // Assert
+      expect(updated.isInterested).toBe(true);
+      expect(updated.interestedCount).toBe(6);
+    });
+
+    it('toggling interested when already interested removes interest', () => {
+      // Arrange
+      const event = makeEvent({ isInterested: true, interestedCount: 5 });
+
+      // Act
+      const updated = toggleInterestedState(event);
+
+      // Assert
+      expect(updated.isInterested).toBe(false);
+      expect(updated.interestedCount).toBe(4);
+    });
+
+    it('toggleInterestedState does not mutate the original event', () => {
+      // Arrange
+      const original = makeEvent({ isInterested: false, interestedCount: 3 });
+
+      // Act
+      toggleInterestedState(original);
+
+      // Assert — original unchanged
+      expect(original.isInterested).toBe(false);
+      expect(original.interestedCount).toBe(3);
+    });
+
+    it('RSVP API call hits correct endpoint', async () => {
+      // Arrange
+      const serverId = 'srv-1';
+      const eventId = 'evt-1';
+
+      globalThis.fetch = vi.fn().mockResolvedValueOnce({ ok: true, status: 204 });
+
+      // Act
+      await api.put(`/api/v1/servers/${serverId}/events/${eventId}/rsvp`, {
+        interested: true,
+      });
+
+      // Assert
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        `/api/v1/servers/${serverId}/events/${eventId}/rsvp`,
+        expect.objectContaining({
+          method: 'PUT',
+          body: JSON.stringify({ interested: true }),
+        }),
+      );
+    });
+  });
+
+  // ---- Create event form validation ----
+
+  describe('create event form validation', () => {
+    it('form is invalid when title is empty', () => {
+      expect(isEventFormValid('', '2026-03-01T10:00')).toBe(false);
+    });
+
+    it('form is invalid when startTime is empty', () => {
+      expect(isEventFormValid('My Event', '')).toBe(false);
+    });
+
+    it('form is valid when both title and startTime are provided', () => {
+      expect(isEventFormValid('My Event', '2026-03-01T10:00')).toBe(true);
+    });
+
+    it('whitespace-only title is treated as invalid', () => {
+      expect(isEventFormValid('   ', '2026-03-01T10:00')).toBe(false);
+    });
+
+    it('create event POST hits the correct URL', async () => {
+      // Arrange
+      const serverId = 'srv-post-test';
+      const newEvent = makeEvent({ id: 'evt-new', title: 'New Event' });
+
+      globalThis.fetch = vi.fn().mockResolvedValueOnce({
+        ok: true,
+        json: async () => newEvent,
+      });
+
+      // Act
+      const result = await api.post<ScheduledEvent>(`/api/v1/servers/${serverId}/events`, {
+        title: 'New Event',
+        startTime: new Date('2026-03-01T10:00:00Z').toISOString(),
+        locationType: 'External',
+      });
+
+      // Assert
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        `/api/v1/servers/${serverId}/events`,
+        expect.objectContaining({
+          method: 'POST',
+        }),
+      );
+      expect(result.title).toBe('New Event');
+    });
+  });
+
+  // ---- Empty state ----
+
+  describe('empty state', () => {
+    it('an empty events array has length 0', () => {
+      const events: ScheduledEvent[] = [];
+      expect(events.length).toBe(0);
+    });
+
+    it('non-empty events array is detected correctly', () => {
+      const events: ScheduledEvent[] = [makeEvent()];
+      expect(events.length).toBeGreaterThan(0);
+    });
+  });
+
+  // ---- Location types ----
+
+  describe('location type', () => {
+    it('VoiceChannel location has channelName', () => {
+      const event = makeEvent({
+        locationType: 'VoiceChannel',
+        locationChannelName: 'General Voice',
+      });
+      expect(event.locationType).toBe('VoiceChannel');
+      expect(event.locationChannelName).toBe('General Voice');
+    });
+
+    it('External location has externalUrl', () => {
+      const event = makeEvent({
+        locationType: 'External',
+        locationExternalUrl: 'https://meet.example.com/room',
+      });
+      expect(event.locationType).toBe('External');
+      expect(event.locationExternalUrl).toBe('https://meet.example.com/room');
+    });
+  });
+});

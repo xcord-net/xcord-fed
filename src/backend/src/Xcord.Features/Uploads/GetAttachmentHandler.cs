@@ -1,0 +1,107 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using Xcord.Features.Authorization;
+using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Services;
+
+namespace Xcord.Features.Uploads;
+
+public sealed record GetAttachmentCommand(
+    long AttachmentId
+);
+
+public sealed record GetAttachmentResponse(
+    long Id,
+    long? MessageId,
+    string FileName,
+    string ContentType,
+    long FileSize,
+    int? Width,
+    int? Height,
+    string DownloadUrl,
+    string? ThumbnailUrl,
+    DateTimeOffset CreatedAt
+);
+
+public sealed class GetAttachmentHandler(
+    AppDbContext dbContext,
+    IStorageService storageService,
+    IHttpContextAccessor httpContextAccessor)
+    : IRequestHandler<GetAttachmentCommand, Result<GetAttachmentResponse>>
+{
+    public async Task<Result<GetAttachmentResponse>> Handle(GetAttachmentCommand request, CancellationToken cancellationToken)
+    {
+        // Get current user ID from JWT claims
+        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
+        {
+            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        }
+
+        // Get attachment
+        var attachment = await dbContext.Attachments
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.Id == request.AttachmentId, cancellationToken);
+
+        if (attachment == null)
+        {
+            return Error.NotFound("ATTACHMENT_NOT_FOUND", "Attachment not found");
+        }
+
+        // Get message to verify permissions
+        var message = await dbContext.Messages
+            .AsNoTracking()
+            .FirstOrDefaultAsync(m => m.Id == attachment.MessageId, cancellationToken);
+
+        if (message == null)
+        {
+            return Error.NotFound("MESSAGE_NOT_FOUND", "Associated message not found");
+        }
+
+        // For now, simple permission check: user must be authenticated
+        // In a full implementation, you'd check channel/server permissions here
+
+        // Generate pre-signed download URL (1 hour expiry)
+        var downloadUrl = await storageService.GenerateDownloadUrlAsync(attachment.S3Key, TimeSpan.FromHours(1));
+
+        // Generate pre-signed thumbnail URL if a thumbnail has been generated.
+        // Empty string is a sentinel meaning "not applicable" (non-image attachment).
+        string? thumbnailUrl = null;
+        if (!string.IsNullOrEmpty(attachment.ThumbnailS3Key))
+        {
+            thumbnailUrl = await storageService.GenerateDownloadUrlAsync(attachment.ThumbnailS3Key, TimeSpan.FromHours(1));
+        }
+
+        return new GetAttachmentResponse(
+            Id: attachment.Id,
+            MessageId: attachment.MessageId,
+            FileName: attachment.FileName,
+            ContentType: attachment.ContentType,
+            FileSize: attachment.FileSize,
+            Width: attachment.Width,
+            Height: attachment.Height,
+            DownloadUrl: downloadUrl,
+            ThumbnailUrl: thumbnailUrl,
+            CreatedAt: attachment.CreatedAt
+        );
+    }
+
+    public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
+    {
+        return app.MapGet("/api/v1/attachments/{attachmentId}", async (
+            long attachmentId,
+            [FromServices] GetAttachmentHandler handler,
+            CancellationToken ct) =>
+        {
+            var command = new GetAttachmentCommand(attachmentId);
+            return await handler.ExecuteAsync(command, ct);
+        })
+        .RequireAnyAuthorization(Policies.User, Policies.Bot)
+        .WithName("GetAttachment")
+        .WithTags("Uploads");
+    }
+}

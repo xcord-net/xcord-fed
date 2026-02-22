@@ -1,0 +1,2 @@
+# This file ensures the empty Infrastructure project is tracked in git.
+# Infrastructure layer will contain EF Core, Redis, S3, and auth implementations.

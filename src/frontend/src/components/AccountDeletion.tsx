@@ -1,0 +1,170 @@
+import { createSignal, Show } from 'solid-js';
+import { api } from '../api/client';
+
+interface AccountDeletionProps {
+  scheduledDeletionAt?: string | null;
+  onDeletionScheduled?: (date: string) => void;
+  onDeletionCancelled?: () => void;
+}
+
+// ---- Pure helpers ----
+
+export function validateDeletionRequest(password: string): string {
+  if (!password.trim()) return 'Password is required';
+  return '';
+}
+
+export function formatDeletionDate(isoDate: string): string {
+  return new Date(isoDate).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+// ---- Component ----
+
+export default function AccountDeletion(props: AccountDeletionProps) {
+  const [showConfirmDialog, setShowConfirmDialog] = createSignal(false);
+  const [password, setPassword] = createSignal('');
+  const [error, setError] = createSignal('');
+  const [isLoading, setIsLoading] = createSignal(false);
+
+  const handleRequestDeletion = async () => {
+    const validationError = validateDeletionRequest(password());
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await api.post<{ scheduledDeletionAt: string }>(
+        '/api/v1/users/@me/delete',
+        { password: password() }
+      );
+      setShowConfirmDialog(false);
+      setPassword('');
+      props.onDeletionScheduled?.(response.scheduledDeletionAt);
+    } catch (err: unknown) {
+      const errObj = err as { error?: string };
+      setError(errObj?.error || 'Failed to schedule account deletion');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancelDeletion = async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      await api.post('/api/v1/users/@me/cancel-deletion');
+      props.onDeletionCancelled?.();
+    } catch (err: unknown) {
+      const errObj = err as { error?: string };
+      setError(errObj?.error || 'Failed to cancel account deletion');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div class="mt-6 border-t border-red-800 pt-6">
+      <h3 class="text-red-400 font-semibold text-sm uppercase tracking-wide mb-3">
+        Danger Zone
+      </h3>
+
+      <Show when={error()}>
+        <p class="text-red-400 text-sm mb-3">{error()}</p>
+      </Show>
+
+      <Show when={props.scheduledDeletionAt}>
+        <div class="bg-red-900/20 border border-red-700 rounded p-4 mb-4">
+          <p class="text-red-300 text-sm">
+            Your account is scheduled for deletion on{' '}
+            <strong>{formatDeletionDate(props.scheduledDeletionAt!)}</strong>.
+            You can cancel this request before that date.
+          </p>
+        </div>
+        <button
+          class="bg-xcord-bg-primary border border-red-600 text-red-400 px-4 py-2 rounded hover:bg-red-900/20 transition text-sm disabled:opacity-50"
+          onClick={handleCancelDeletion}
+          disabled={isLoading()}
+        >
+          {isLoading() ? 'Cancelling...' : 'Cancel Account Deletion'}
+        </button>
+      </Show>
+
+      <Show when={!props.scheduledDeletionAt}>
+        <p class="text-xcord-text-muted text-sm mb-3">
+          Deleting your account will remove all your data after a 14-day grace
+          period. You can cancel the deletion during this time.
+        </p>
+        <button
+          class="bg-red-700 text-white px-4 py-2 rounded hover:bg-red-600 transition text-sm disabled:opacity-50"
+          onClick={() => {
+            setError('');
+            setShowConfirmDialog(true);
+          }}
+          disabled={isLoading()}
+        >
+          Delete Account
+        </button>
+      </Show>
+
+      <Show when={showConfirmDialog()}>
+        <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div class="bg-xcord-bg-secondary rounded-lg p-6 w-full max-w-md shadow-xl">
+            <h3 class="text-white font-semibold text-lg mb-2">
+              Confirm Account Deletion
+            </h3>
+            <p class="text-xcord-text-muted text-sm mb-4">
+              Enter your password to confirm. Your account will be permanently
+              deleted after 14 days.
+            </p>
+
+            <Show when={error()}>
+              <p class="text-red-400 text-sm mb-3">{error()}</p>
+            </Show>
+
+            <div class="mb-4">
+              <label class="text-xs text-xcord-text-muted block mb-1">
+                Password
+              </label>
+              <input
+                type="password"
+                class="w-full bg-xcord-bg-primary text-white px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                value={password()}
+                onInput={(e) => setPassword(e.currentTarget.value)}
+                placeholder="Enter your password"
+              />
+            </div>
+
+            <div class="flex gap-3">
+              <button
+                class="flex-1 bg-red-700 text-white py-2 rounded hover:bg-red-600 transition disabled:opacity-50"
+                onClick={handleRequestDeletion}
+                disabled={isLoading()}
+              >
+                {isLoading() ? 'Scheduling...' : 'Delete My Account'}
+              </button>
+              <button
+                class="flex-1 bg-xcord-bg-primary text-xcord-text-primary py-2 rounded hover:bg-xcord-bg-secondary/80 transition"
+                onClick={() => {
+                  setShowConfirmDialog(false);
+                  setPassword('');
+                  setError('');
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </Show>
+    </div>
+  );
+}

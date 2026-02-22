@@ -1,0 +1,139 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
+using Xcord.Entities;
+using Xcord.Features.Authorization;
+using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Services;
+
+namespace Xcord.Features.Polls;
+
+public sealed record EndPollCommand(
+    long PollId
+);
+
+public sealed record EndPollResponse(
+    long PollId,
+    bool IsClosed
+);
+
+public sealed class EndPollHandler(
+    AppDbContext dbContext,
+    IPermissionService permissionService,
+    IHttpContextAccessor httpContextAccessor,
+    IOutboxWriter outboxWriter,
+    ILogger<EndPollHandler> logger)
+    : IRequestHandler<EndPollCommand, Result<EndPollResponse>>
+{
+    public async Task<Result<EndPollResponse>> Handle(EndPollCommand request, CancellationToken cancellationToken)
+    {
+        // Get current user ID from JWT claims
+        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
+        {
+            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        }
+
+        // Get poll with message
+        var poll = await dbContext.Polls
+            .Include(p => p.Message)
+                .ThenInclude(m => m.Conversation)
+            .FirstOrDefaultAsync(p => p.Id == request.PollId, cancellationToken);
+
+        if (poll == null)
+        {
+            return Error.NotFound("POLL_NOT_FOUND", "Poll not found");
+        }
+
+        if (poll.IsClosed)
+        {
+            return Error.Validation("POLL_ALREADY_CLOSED", "Poll is already closed");
+        }
+
+        // Verify user is the poll creator OR has ManageMessages permission
+        var isCreator = poll.Message.AuthorId == userId;
+        var hasManagePermission = false;
+
+        var conversation = poll.Message.Conversation;
+
+        if (conversation.Type == ConversationType.Channel)
+        {
+            var channel = await dbContext.Channels
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.ConversationId == conversation.Id, cancellationToken);
+
+            if (channel != null)
+            {
+                var channelPerms = await permissionService.GetChannelPermissions(userId, channel.Id);
+                hasManagePermission = (channelPerms & (long)Permission.ManageMessages) != 0;
+            }
+        }
+        else if (conversation.Type == ConversationType.Thread)
+        {
+            var thread = await dbContext.Threads
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.ConversationId == conversation.Id, cancellationToken);
+
+            if (thread != null)
+            {
+                var channelPerms = await permissionService.GetChannelPermissions(userId, thread.ChannelId);
+                hasManagePermission = (channelPerms & (long)Permission.ManageMessages) != 0;
+            }
+        }
+
+        if (!isCreator && !hasManagePermission)
+        {
+            return Error.Forbidden("INSUFFICIENT_PERMISSIONS", "You do not have permission to end this poll");
+        }
+
+        // Begin transaction
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        try
+        {
+            poll.IsClosed = true;
+
+            // Write outbox event
+            await outboxWriter.WriteAsync(dbContext, "Poll.Ended", new
+            {
+                PollId = poll.Id,
+                ConversationId = poll.Message.ConversationId
+            }, cancellationToken);
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            logger.LogInformation(
+                "User {UserId} ended poll {PollId}",
+                userId, request.PollId);
+
+            return new EndPollResponse(
+                PollId: poll.Id,
+                IsClosed: poll.IsClosed
+            );
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+    }
+
+    public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
+    {
+        return app.MapPost("/api/v1/polls/{pollId}/end", async (
+            long pollId,
+            IRequestHandler<EndPollCommand, Result<EndPollResponse>> handler,
+            CancellationToken ct) =>
+        {
+            var command = new EndPollCommand(PollId: pollId);
+            return await handler.ExecuteAsync(command, ct);
+        })
+        .RequireAnyAuthorization(Policies.User, Policies.Bot)
+        .WithName("EndPoll")
+        .WithTags("Polls");
+    }
+}

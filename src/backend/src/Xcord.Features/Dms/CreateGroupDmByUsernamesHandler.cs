@@ -1,0 +1,138 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
+using Xcord.Entities;
+using Xcord.Features.Authorization;
+using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Services;
+
+namespace Xcord.Features.Dms;
+
+public sealed record CreateGroupDmByUsernamesRequest(
+    string[] Usernames,
+    string? Name
+);
+
+public sealed class CreateGroupDmByUsernamesHandler(
+    AppDbContext dbContext,
+    SnowflakeIdGenerator snowflakeGenerator,
+    IHttpContextAccessor httpContextAccessor,
+    IOutboxWriter outboxWriter,
+    ILogger<CreateGroupDmByUsernamesHandler> logger)
+    : IRequestHandler<CreateGroupDmByUsernamesRequest, Result<CreateDmResponse>>
+{
+    public async Task<Result<CreateDmResponse>> Handle(
+        CreateGroupDmByUsernamesRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request.Usernames == null || request.Usernames.Length < 2)
+            return Error.Validation("VALIDATION_FAILED", "At least 2 usernames are required to create a group DM");
+
+        if (request.Usernames.Length > 9)
+            return Error.Validation("VALIDATION_FAILED", "Cannot add more than 9 other members to a group DM");
+
+        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var currentUserId))
+            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+
+        // Look up all recipients by username
+        var distinctUsernames = request.Usernames.Distinct().ToArray();
+        var recipients = await dbContext.Users
+            .Where(u => distinctUsernames.Contains(u.Username))
+            .ToListAsync(cancellationToken);
+
+        if (recipients.Count != distinctUsernames.Length)
+        {
+            var notFound = distinctUsernames.Where(u => recipients.All(r => r.Username != u)).ToArray();
+            return Error.NotFound("USER_NOT_FOUND", $"Users not found: {string.Join(", ", notFound)}");
+        }
+
+        var recipientIds = recipients.Select(r => r.Id).ToArray();
+        var allMemberIds = recipientIds.Append(currentUserId).Distinct().ToList();
+
+        var now = DateTimeOffset.UtcNow;
+
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            var conversationId = snowflakeGenerator.NextId();
+            var conversation = new Conversation
+            {
+                Id = conversationId,
+                Type = ConversationType.DmChannel
+            };
+            dbContext.Conversations.Add(conversation);
+
+            var dmChannelId = snowflakeGenerator.NextId();
+            var dmChannel = new DmChannel
+            {
+                Id = dmChannelId,
+                ConversationId = conversationId,
+                IsGroup = true,
+                Name = string.IsNullOrWhiteSpace(request.Name) ? null : request.Name.Trim(),
+                OwnerId = currentUserId
+            };
+            dbContext.DmChannels.Add(dmChannel);
+
+            foreach (var memberId in allMemberIds)
+            {
+                dbContext.DmChannelMembers.Add(new DmChannelMember
+                {
+                    UserId = memberId,
+                    DmChannelId = dmChannelId,
+                    JoinedAt = now
+                });
+            }
+
+            await outboxWriter.WriteAsync(dbContext, "Dm.Created", new
+            {
+                DmChannelId = dmChannelId,
+                ConversationId = conversationId,
+                MemberIds = allMemberIds.ToArray()
+            }, cancellationToken);
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            logger.LogInformation(
+                "User {UserId} created group DM {DmChannelId} with members: {MemberIds}",
+                currentUserId, dmChannelId, string.Join(", ", allMemberIds));
+
+            var allUsers = await dbContext.Users
+                .Where(u => allMemberIds.Contains(u.Id))
+                .ToListAsync(cancellationToken);
+
+            var members = allUsers
+                .Select(u => new DmMemberDto(u.Id, u.Username, u.DisplayName, u.AvatarUrl, now))
+                .ToArray();
+
+            return new CreateDmResponse(
+                dmChannelId,
+                conversationId,
+                true,
+                dmChannel.Name,
+                currentUserId,
+                members
+            );
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+    }
+
+    public static RouteHandlerBuilder Map(IEndpointRouteBuilder app) =>
+        app.MapPost("/api/v1/dms/group", async (
+            [FromBody] CreateGroupDmByUsernamesRequest request,
+            [FromServices] CreateGroupDmByUsernamesHandler handler,
+            CancellationToken ct) =>
+            await handler.ExecuteAsync(request, ct))
+            .RequireAnyAuthorization(Policies.User, Policies.Bot)
+            .WithName("CreateGroupDmByUsernames")
+            .WithTags("DMs");
+}

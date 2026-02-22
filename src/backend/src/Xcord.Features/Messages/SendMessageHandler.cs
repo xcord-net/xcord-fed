@@ -1,0 +1,395 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
+using Xcord.Entities;
+using Xcord.Features.Authorization;
+using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Services;
+
+namespace Xcord.Features.Messages;
+
+public sealed record SendMessageRequest(
+    long ConversationId,
+    string Content,
+    MessageType Type = MessageType.Default,
+    long? ReplyToId = null,
+    string[]? AttachmentIds = null
+);
+
+public sealed record SendMessageResponse(
+    long Id,
+    long ConversationId,
+    long? AuthorId,
+    string AuthorUsername,
+    string? AuthorAvatarUrl,
+    MessageType Type,
+    string Content,
+    string? Metadata,
+    long? ReplyToId,
+    bool IsPinned,
+    DateTimeOffset? EditedAt,
+    DateTimeOffset CreatedAt
+);
+
+public sealed class SendMessageHandler(
+    AppDbContext dbContext,
+    SnowflakeIdGenerator snowflakeGenerator,
+    IConversationResolver conversationResolver,
+    IPermissionService permissionService,
+    IMessageProcessor messageProcessor,
+    IHttpContextAccessor httpContextAccessor,
+    IOutboxWriter outboxWriter,
+    IAutomodActionExecutor automodActionExecutor,
+    ILogger<SendMessageHandler> logger)
+    : IRequestHandler<SendMessageRequest, Result<SendMessageResponse>>, IValidatable<SendMessageRequest>
+{
+    public Error? Validate(SendMessageRequest request)
+    {
+        var hasAttachments = request.AttachmentIds is { Length: > 0 };
+        if (string.IsNullOrWhiteSpace(request.Content) && !hasAttachments)
+            return Error.Validation("VALIDATION_FAILED", "Message content is required");
+
+        if (request.Content.Length > 4000)
+            return Error.Validation("VALIDATION_FAILED", "Message content must not exceed 4000 characters");
+
+        if (request.Type != MessageType.Default && request.Type != MessageType.PollCreated)
+            return Error.Validation("VALIDATION_FAILED", "Invalid message type for user messages");
+
+        return null;
+    }
+
+    public async Task<Result<SendMessageResponse>> Handle(SendMessageRequest request, CancellationToken cancellationToken)
+    {
+        // Get current user ID from JWT claims
+        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
+        {
+            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        }
+
+        // Resolve conversation (permissions checked below based on type)
+        var contextResult = await conversationResolver.ResolveAsync(
+            request.ConversationId, userId, null, cancellationToken);
+        if (contextResult.IsFailure) return contextResult.Error;
+        var context = contextResult.Value;
+
+        // Check permissions based on conversation type
+        if (context.Type == ConversationType.Channel)
+        {
+            var permissionResult = await permissionService.EnsureChannelPermission(
+                userId,
+                context.ChannelId,
+                Permission.SendMessages);
+
+            if (permissionResult.IsFailure)
+            {
+                return permissionResult.Error;
+            }
+        }
+        else if (context.Type == ConversationType.Thread)
+        {
+            // Check SendMessagesInThreads permission (locked thread check already done by resolver)
+            var permissionResult = await permissionService.EnsureChannelPermission(
+                userId,
+                context.ChannelId,
+                Permission.SendMessagesInThreads);
+
+            if (permissionResult.IsFailure)
+            {
+                return permissionResult.Error;
+            }
+        }
+        else if (context.Type != ConversationType.DmChannel)
+        {
+            return Error.Validation("UNSUPPORTED_CONVERSATION_TYPE", "Unsupported conversation type");
+        }
+
+        long serverId = context.ServerId;
+        long channelId = context.ChannelId;
+
+        // If replying, verify the reply target exists and is in the same conversation
+        if (request.ReplyToId.HasValue)
+        {
+            var replyToExists = await dbContext.Messages
+                .AsNoTracking()
+                .AnyAsync(m => m.Id == request.ReplyToId.Value && m.ConversationId == request.ConversationId, cancellationToken);
+
+            if (!replyToExists)
+            {
+                return Error.NotFound("REPLY_MESSAGE_NOT_FOUND", "Reply target message not found in this conversation");
+            }
+        }
+
+        var now = DateTimeOffset.UtcNow;
+
+        // Create message entity
+        var messageId = snowflakeGenerator.NextId();
+        var message = new Message
+        {
+            Id = messageId,
+            ConversationId = request.ConversationId,
+            AuthorId = userId,
+            Type = request.Type,
+            Content = request.Content,
+            ReplyToId = request.ReplyToId,
+            IsPinned = false,
+            CreatedAt = now
+        };
+
+        // Run through processing pipeline (skip for DM conversations and attachment-only messages
+        // where there is no content to sanitize, validate, or parse)
+        var deferredActions = new List<AutomodDeferredAction>();
+        var hasContent = !string.IsNullOrWhiteSpace(request.Content);
+        if (context.Type != ConversationType.DmChannel && hasContent)
+        {
+            // Get author's role IDs and bot status for automod
+            var authorRoleIds = await dbContext.MemberRoles
+                .AsNoTracking()
+                .Where(mr => mr.UserId == userId && mr.Role.ServerId == serverId)
+                .Select(mr => mr.RoleId)
+                .ToListAsync(cancellationToken);
+
+            var author = await dbContext.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+            var isBot = author?.IsBot ?? false;
+
+            var processingResult = await messageProcessor.ProcessAsync(message, serverId, channelId, authorRoleIds, isBot);
+            if (processingResult.IsFailure)
+            {
+                return processingResult.Error;
+            }
+
+            message = processingResult.Value.Message;
+            deferredActions = processingResult.Value.DeferredActions;
+        }
+
+        // Get author info for response (re-fetch if not already fetched above)
+        var authorForResponse = await dbContext.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+        if (authorForResponse == null)
+        {
+            return Error.NotFound("AUTHOR_NOT_FOUND", "Author not found");
+        }
+
+        // Begin transaction to persist message and mentions
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        try
+        {
+            dbContext.Messages.Add(message);
+
+            // Add mentions
+            foreach (var mention in message.Mentions)
+            {
+                dbContext.Mentions.Add(mention);
+            }
+
+            // If this is a thread conversation, update thread metadata
+            if (context.Type == ConversationType.Thread)
+            {
+                var thread = await dbContext.Threads
+                    .FirstOrDefaultAsync(t => t.ConversationId == request.ConversationId, cancellationToken);
+
+                if (thread != null)
+                {
+                    // Update LastActivityAt and increment MessageCount
+                    thread.LastActivityAt = DateTimeOffset.UtcNow;
+                    thread.MessageCount++;
+
+                    // Auto-join the author if not already a member
+                    var isThreadMember = await dbContext.ThreadMembers
+                        .AsNoTracking()
+                        .AnyAsync(tm => tm.UserId == userId && tm.ThreadId == thread.Id, cancellationToken);
+
+                    if (!isThreadMember)
+                    {
+                        var threadMember = new ThreadMember
+                        {
+                            UserId = userId,
+                            ThreadId = thread.Id,
+                            JoinedAt = DateTimeOffset.UtcNow
+                        };
+
+                        dbContext.ThreadMembers.Add(threadMember);
+                    }
+                }
+            }
+
+            // Bulk-increment UnreadCount for all users EXCEPT the author using a single UPDATE
+            // statement. ExecuteUpdateAsync performs one SQL UPDATE without loading rows into
+            // memory, avoiding per-member tracking overhead.
+            await dbContext.ReadStates
+                .Where(rs => rs.ConversationId == request.ConversationId && rs.UserId != userId)
+                .ExecuteUpdateAsync(s => s.SetProperty(rs => rs.UnreadCount, rs => rs.UnreadCount + 1), cancellationToken);
+
+            // If there are mentions, bulk-increment MentionCount for mentioned users
+            var mentionedUserIds = message.Mentions
+                .Where(m => m.MentionedUserId.HasValue)
+                .Select(m => m.MentionedUserId!.Value)
+                .Distinct()
+                .ToList();
+
+            if (mentionedUserIds.Any())
+            {
+                await dbContext.ReadStates
+                    .Where(rs => rs.ConversationId == request.ConversationId
+                        && mentionedUserIds.Contains(rs.UserId))
+                    .ExecuteUpdateAsync(s => s.SetProperty(rs => rs.MentionCount, rs => rs.MentionCount + 1), cancellationToken);
+            }
+
+            // Write outbox event for new message — include full message data so the
+            // client can render it immediately without a separate API fetch.
+            await outboxWriter.WriteAsync(dbContext, "Message.Created", new
+            {
+                conversationId = message.ConversationId,
+                id = message.Id,
+                authorId = message.AuthorId,
+                authorUsername = authorForResponse.Username,
+                authorAvatarUrl = authorForResponse.AvatarUrl,
+                type = message.Type.ToString(),
+                content = message.Content,
+                metadata = message.Metadata,
+                replyToId = message.ReplyToId,
+                isPinned = message.IsPinned,
+                editedAt = (DateTimeOffset?)null,
+                createdAt = message.CreatedAt
+            }, cancellationToken);
+
+            // Write Notify_UnreadUpdated outbox events for each non-author member
+            // so their sidebars update in real time.
+            var affectedReadStates = await dbContext.ReadStates
+                .Where(rs => rs.ConversationId == request.ConversationId && rs.UserId != userId)
+                .Select(rs => new { rs.UserId, rs.UnreadCount })
+                .ToListAsync(cancellationToken);
+
+            foreach (var rs in affectedReadStates)
+            {
+                await outboxWriter.WriteAsync(dbContext, "Notify.UnreadUpdated", new
+                {
+                    userId = rs.UserId,
+                    conversationId = request.ConversationId,
+                    count = rs.UnreadCount,
+                    lastMessageId = message.Id
+                }, cancellationToken);
+            }
+
+            // Flush message + mentions + outbox to DB so FKs are satisfied
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            // Link attachments to this message (must happen after SaveChanges
+            // because ExecuteUpdateAsync runs direct SQL that needs the message
+            // row to exist for the FK constraint on attachments.MessageId)
+            if (request.AttachmentIds is { Length: > 0 })
+            {
+                var parsedIds = request.AttachmentIds
+                    .Where(id => long.TryParse(id, out _))
+                    .Select(id => long.Parse(id))
+                    .ToArray();
+
+                if (parsedIds.Length > 0)
+                {
+                    await dbContext.Attachments
+                        .Where(a => parsedIds.Contains(a.Id)
+                            && a.IsConfirmed
+                            && a.MessageId == null
+                            && a.DeletedAt == null)
+                        .ExecuteUpdateAsync(s => s.SetProperty(a => a.MessageId, messageId), cancellationToken);
+                }
+            }
+            await transaction.CommitAsync(cancellationToken);
+
+            logger.LogInformation(
+                "User {UserId} sent message {MessageId} in conversation {ConversationId}",
+                userId, messageId, request.ConversationId);
+
+            // Execute deferred automod actions after commit
+            if (deferredActions.Any())
+            {
+                await automodActionExecutor.ExecuteDeferredActionsAsync(messageId, serverId, channelId, userId, deferredActions, cancellationToken);
+            }
+
+            return new SendMessageResponse(
+                Id: message.Id,
+                ConversationId: message.ConversationId,
+                AuthorId: message.AuthorId,
+                AuthorUsername: authorForResponse.Username,
+                AuthorAvatarUrl: authorForResponse.AvatarUrl,
+                Type: message.Type,
+                Content: message.Content,
+                Metadata: message.Metadata,
+                ReplyToId: message.ReplyToId,
+                IsPinned: message.IsPinned,
+                EditedAt: message.EditedAt,
+                CreatedAt: message.CreatedAt
+            );
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+    }
+
+    public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
+    {
+        return app.MapPost("/api/v1/conversations/{conversationId}/messages", async (
+            long conversationId,
+            [FromBody] SendMessageBodyRequest bodyRequest,
+            [FromServices] SendMessageHandler handler,
+            HttpContext httpContext,
+            CancellationToken ct) =>
+        {
+            var request = new SendMessageRequest(
+                ConversationId: conversationId,
+                Content: bodyRequest.Content,
+                Type: bodyRequest.Type ?? MessageType.Default,
+                ReplyToId: bodyRequest.ReplyToId,
+                AttachmentIds: bodyRequest.AttachmentIds
+            );
+
+            // Run validation (mirrors ExecuteAsync behaviour)
+            var validationError = handler.Validate(request);
+            if (validationError is not null)
+                return Results.Problem(
+                    statusCode: validationError.StatusCode,
+                    title: validationError.Code,
+                    detail: validationError.Message);
+
+            var result = await handler.Handle(request, ct);
+            return result.Match(
+                success => Results.Created(
+                    $"/api/v1/conversations/{conversationId}/messages/{success.Id}", success),
+                err =>
+                {
+                    if (err.StatusCode == 429 && err.Code == "SLOWMODE_RATE_LIMITED"
+                        && int.TryParse(err.Message, out var retryAfter))
+                    {
+                        httpContext.Response.Headers["Retry-After"] = retryAfter.ToString();
+                        return Results.Problem(
+                            statusCode: 429,
+                            title: err.Code,
+                            detail: $"Slowmode is enabled. Please wait {retryAfter} second(s) before sending another message.");
+                    }
+                    return Results.Problem(statusCode: err.StatusCode, title: err.Code, detail: err.Message);
+                });
+        })
+        .RequireAnyAuthorization(Policies.User, Policies.Bot)
+        .WithName("SendMessage")
+        .WithTags("Messages");
+    }
+}
+
+public sealed record SendMessageBodyRequest(
+    string Content,
+    MessageType? Type = null,
+    long? ReplyToId = null,
+    string[]? AttachmentIds = null
+);

@@ -1,0 +1,119 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
+using Xcord.Features.Authorization;
+using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Services;
+
+namespace Xcord.Features.Dms;
+
+public sealed record LeaveDmRequest(
+    long DmChannelId
+);
+
+public sealed class LeaveDmHandler(
+    AppDbContext dbContext,
+    IHttpContextAccessor httpContextAccessor,
+    IOutboxWriter outboxWriter,
+    ILogger<LeaveDmHandler> logger) : IRequestHandler<LeaveDmRequest, Result<bool>>
+{
+    public async Task<Result<bool>> Handle(LeaveDmRequest request, CancellationToken cancellationToken)
+    {
+        // Get current user ID from JWT claims
+        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var currentUserId))
+        {
+            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        }
+
+        // Get DM channel
+        var dmChannel = await dbContext.DmChannels
+            .Include(dm => dm.Members)
+            .FirstOrDefaultAsync(dm => dm.Id == request.DmChannelId, cancellationToken);
+
+        if (dmChannel == null)
+        {
+            return Error.NotFound("DM_NOT_FOUND", "DM channel not found");
+        }
+
+        // Find member to remove
+        var member = dmChannel.Members.FirstOrDefault(m => m.UserId == currentUserId);
+        if (member == null)
+        {
+            return Error.NotFound("NOT_MEMBER", "You are not a member of this DM channel");
+        }
+
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        try
+        {
+            // Remove current user from members
+            dbContext.DmChannelMembers.Remove(member);
+
+            // For group DMs: transfer ownership if leaving as owner
+            if (dmChannel.IsGroup && currentUserId == dmChannel.OwnerId)
+            {
+                var remainingMembers = dmChannel.Members
+                    .Where(m => m.UserId != currentUserId)
+                    .OrderBy(m => m.JoinedAt)
+                    .ToList();
+
+                if (remainingMembers.Count == 0)
+                {
+                    // No members left, soft-delete the DM channel
+                    dmChannel.DeletedAt = DateTimeOffset.UtcNow;
+                    logger.LogInformation(
+                        "Group DM {DmChannelId} soft-deleted (all members left)",
+                        request.DmChannelId);
+                }
+                else
+                {
+                    // Transfer ownership to oldest member
+                    dmChannel.OwnerId = remainingMembers[0].UserId;
+                    logger.LogInformation(
+                        "Group DM {DmChannelId} ownership transferred to user {NewOwnerId}",
+                        request.DmChannelId, dmChannel.OwnerId);
+                }
+            }
+
+            // Write outbox event
+            await outboxWriter.WriteAsync(dbContext, "Dm.MemberRemoved", new
+            {
+                DmChannelId = request.DmChannelId,
+                UserId = currentUserId,
+                RemovedBy = currentUserId
+            }, cancellationToken);
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            logger.LogInformation(
+                "User {UserId} left DM {DmChannelId}",
+                currentUserId, request.DmChannelId);
+
+            return true;
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+    }
+
+    public static RouteHandlerBuilder Map(IEndpointRouteBuilder app) =>
+        app.MapDelete("/api/v1/users/@me/dms/{dmChannelId:long}", async (
+            long dmChannelId,
+            [FromServices] LeaveDmHandler handler,
+            CancellationToken ct) =>
+        {
+            return await handler.ExecuteAsync(new LeaveDmRequest(dmChannelId), ct,
+                onSuccess: _ => Results.NoContent());
+        })
+        .RequireAnyAuthorization(Policies.User, Policies.Bot)
+        .WithName("LeaveDm")
+        .WithTags("DMs");
+}

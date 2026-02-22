@@ -1,0 +1,159 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using Xcord.Entities;
+using Xcord.Features.Authorization;
+using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Services;
+
+namespace Xcord.Features.Servers;
+
+public sealed record CreateInviteCommand(
+    long ServerId,
+    int? MaxUses,
+    DateTimeOffset? ExpiresAt
+);
+
+public sealed class CreateInviteHandler(
+    AppDbContext dbContext,
+    IHttpContextAccessor httpContextAccessor,
+    IPermissionService permissionService,
+    ILogger<CreateInviteHandler> logger)
+    : IRequestHandler<CreateInviteCommand, Result<InviteDto>>, IValidatable<CreateInviteCommand>
+{
+    public Error? Validate(CreateInviteCommand request)
+    {
+        if (request.MaxUses.HasValue && request.MaxUses.Value <= 0)
+        {
+            return Error.Validation("VALIDATION_ERROR", "Max uses must be greater than 0");
+        }
+
+        if (request.ExpiresAt.HasValue && request.ExpiresAt.Value <= DateTimeOffset.UtcNow)
+        {
+            return Error.Validation("VALIDATION_ERROR", "Expiration date must be in the future");
+        }
+
+        return null;
+    }
+
+    public async Task<Result<InviteDto>> Handle(CreateInviteCommand request, CancellationToken cancellationToken)
+    {
+        // Get current user ID from JWT claims
+        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
+        {
+            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        }
+
+        // Check if server exists
+        var server = await dbContext.Servers
+            .FirstOrDefaultAsync(s => s.Id == request.ServerId, cancellationToken);
+
+        if (server == null)
+        {
+            return Error.NotFound("SERVER_NOT_FOUND", "Server not found");
+        }
+
+        // Check if user is a member of the server
+        var isMember = await dbContext.ServerMembers
+            .AnyAsync(sm => sm.UserId == userId && sm.ServerId == request.ServerId, cancellationToken);
+
+        if (!isMember)
+        {
+            return Error.Forbidden("NOT_A_MEMBER", "You must be a member of this server to create invites");
+        }
+
+        // Check CreateInvite permission
+        var permResult = await permissionService.EnsureServerPermission(userId, request.ServerId, Permission.CreateInvite);
+        if (permResult.IsFailure)
+        {
+            return Error.Forbidden("MISSING_PERMISSION", "You do not have permission to create invites");
+        }
+
+        // Generate unique 8-character alphanumeric code
+        string code;
+        int attempts = 0;
+        do
+        {
+            code = GenerateInviteCode();
+            attempts++;
+
+            if (attempts > 10)
+            {
+                return Error.Failure("INVITE_CODE_GENERATION_FAILED", "Failed to generate unique invite code");
+            }
+        }
+        while (await dbContext.Invites.AnyAsync(i => i.Code == code, cancellationToken));
+
+        var now = DateTimeOffset.UtcNow;
+
+        var invite = new Invite
+        {
+            Code = code,
+            ServerId = request.ServerId,
+            CreatedByUserId = userId,
+            MaxUses = request.MaxUses,
+            Uses = 0,
+            ExpiresAt = request.ExpiresAt,
+            CreatedAt = now
+        };
+
+        dbContext.Invites.Add(invite);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation(
+            "User {UserId} created invite {Code} for server {ServerId}",
+            userId, code, request.ServerId);
+
+        return new InviteDto(
+            Code: invite.Code,
+            ServerId: invite.ServerId,
+            CreatedByUserId: invite.CreatedByUserId,
+            MaxUses: invite.MaxUses,
+            Uses: invite.Uses,
+            ExpiresAt: invite.ExpiresAt,
+            CreatedAt: invite.CreatedAt
+        );
+    }
+
+    /// <summary>
+    /// Generates a cryptographically secure 8-character alphanumeric invite code.
+    /// </summary>
+    private static string GenerateInviteCode()
+    {
+        const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+        var result = new char[8];
+
+        for (int i = 0; i < 8; i++)
+        {
+            result[i] = chars[RandomNumberGenerator.GetInt32(chars.Length)];
+        }
+
+        return new string(result);
+    }
+
+    public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
+    {
+        return app.MapPost("/api/v1/servers/{id:long}/invites", async (
+            long id,
+            CreateInviteRequest request,
+            IRequestHandler<CreateInviteCommand, Result<InviteDto>> handler,
+            CancellationToken ct) =>
+        {
+            var command = new CreateInviteCommand(
+                ServerId: id,
+                MaxUses: request.MaxUses,
+                ExpiresAt: request.ExpiresAt
+            );
+
+            return await handler.ExecuteAsync(command, ct);
+        })
+        .RequireAnyAuthorization(Policies.User, Policies.Bot)
+        .WithName("CreateInvite")
+        .WithTags("Servers", "Invites");
+    }
+}

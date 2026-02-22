@@ -1,0 +1,166 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
+using Xcord.Entities;
+using Xcord.Features.Authorization;
+using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Services;
+
+namespace Xcord.Features.Emoji;
+
+public sealed record CreateEmojiCommand(
+    long ServerId,
+    string Name,
+    string ImageUrl,
+    string S3Key,
+    bool IsAnimated
+);
+
+public sealed record CreateEmojiResponse(
+    long Id,
+    long ServerId,
+    string Name,
+    string ImageUrl,
+    bool IsAnimated,
+    long CreatorId,
+    DateTimeOffset CreatedAt
+);
+
+public sealed class CreateEmojiHandler(
+    AppDbContext dbContext,
+    SnowflakeIdGenerator snowflakeGenerator,
+    IHttpContextAccessor httpContextAccessor,
+    IPermissionService permissionService,
+    ILogger<CreateEmojiHandler> logger)
+    : IRequestHandler<CreateEmojiCommand, Result<CreateEmojiResponse>>
+{
+    public async Task<Result<CreateEmojiResponse>> Handle(CreateEmojiCommand request, CancellationToken cancellationToken)
+    {
+        // Get current user ID from JWT claims
+        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
+        {
+            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        }
+
+        // Verify server exists
+        var serverExists = await dbContext.Servers
+            .AsNoTracking()
+            .AnyAsync(s => s.Id == request.ServerId, cancellationToken);
+
+        if (!serverExists)
+        {
+            return Error.NotFound("SERVER_NOT_FOUND", "Server not found");
+        }
+
+        // Check ManageEmojis permission (or ManageStickers as fallback)
+        var permissionResult = await permissionService.EnsureServerPermission(
+            userId,
+            request.ServerId,
+            Permission.ManageEmojis);
+
+        if (permissionResult.IsFailure)
+        {
+            // Try ManageStickers as alternative
+            var altPermissionResult = await permissionService.EnsureServerPermission(
+                userId,
+                request.ServerId,
+                Permission.ManageStickers);
+
+            if (altPermissionResult.IsFailure)
+            {
+                return Error.Forbidden(
+                    "MISSING_PERMISSIONS",
+                    "You do not have permission to manage emojis");
+            }
+        }
+
+        // Check emoji name uniqueness within server
+        var nameExists = await dbContext.CustomEmojis
+            .AsNoTracking()
+            .AnyAsync(e => e.ServerId == request.ServerId && e.Name == request.Name, cancellationToken);
+
+        if (nameExists)
+        {
+            return Error.Conflict("EMOJI_NAME_EXISTS", "An emoji with this name already exists in this server");
+        }
+
+        // Check emoji limit (50 static + 50 animated per server)
+        var currentEmojiCount = await dbContext.CustomEmojis
+            .AsNoTracking()
+            .Where(e => e.ServerId == request.ServerId && e.IsAnimated == request.IsAnimated)
+            .CountAsync(cancellationToken);
+
+        if (currentEmojiCount >= 50)
+        {
+            var emojiType = request.IsAnimated ? "animated" : "static";
+            return Error.Validation(
+                "EMOJI_LIMIT_REACHED",
+                $"Server has reached the limit of 50 {emojiType} emojis");
+        }
+
+        // Create emoji
+        var now = DateTimeOffset.UtcNow;
+        var emoji = new CustomEmoji
+        {
+            Id = snowflakeGenerator.NextId(),
+            ServerId = request.ServerId,
+            Name = request.Name,
+            ImageUrl = request.ImageUrl,
+            S3Key = request.S3Key,
+            IsAnimated = request.IsAnimated,
+            CreatorId = userId,
+            CreatedAt = now
+        };
+
+        dbContext.CustomEmojis.Add(emoji);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation(
+            "User {UserId} created emoji {EmojiName} (ID: {EmojiId}) in server {ServerId}",
+            userId, emoji.Name, emoji.Id, request.ServerId);
+
+        return new CreateEmojiResponse(
+            Id: emoji.Id,
+            ServerId: emoji.ServerId,
+            Name: emoji.Name,
+            ImageUrl: emoji.ImageUrl,
+            IsAnimated: emoji.IsAnimated,
+            CreatorId: emoji.CreatorId,
+            CreatedAt: emoji.CreatedAt
+        );
+    }
+
+    public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
+    {
+        return app.MapPost("/api/v1/servers/{serverId}/emojis", async (
+            long serverId,
+            CreateEmojiRequest request,
+            IRequestHandler<CreateEmojiCommand, Result<CreateEmojiResponse>> handler,
+            CancellationToken ct) =>
+        {
+            var command = new CreateEmojiCommand(
+                ServerId: serverId,
+                Name: request.Name,
+                ImageUrl: request.ImageUrl,
+                S3Key: request.S3Key,
+                IsAnimated: request.IsAnimated
+            );
+
+            return await handler.ExecuteAsync(command, ct);
+        })
+        .RequireAnyAuthorization(Policies.User, Policies.Bot)
+        .WithName("CreateEmoji")
+        .WithTags("Emoji");
+    }
+}
+
+public sealed record CreateEmojiRequest(
+    string Name,
+    string ImageUrl,
+    string S3Key,
+    bool IsAnimated
+);

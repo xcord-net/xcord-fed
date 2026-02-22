@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  /* Xcord color tokens */
+  --color-xcord-bg-primary: #36393f;
+  --color-xcord-bg-secondary: #2f3136;
+  --color-xcord-bg-tertiary: #202225;
+  --color-xcord-text-primary: #dcddde;
+  --color-xcord-text-secondary: #b9bbbe;
+  --color-xcord-text-muted: #72767d;
+  --color-xcord-brand: #5865f2;
+  --color-xcord-brand-hover: #4752c4;
+  --color-xcord-border: #202225;
+}

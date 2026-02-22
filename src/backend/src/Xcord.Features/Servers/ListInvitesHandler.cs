@@ -1,0 +1,76 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using Xcord.Features.Authorization;
+using Xcord.Infrastructure.Data;
+
+namespace Xcord.Features.Servers;
+
+public sealed record ListInvitesQuery(long ServerId);
+
+public sealed class ListInvitesHandler(
+    AppDbContext dbContext,
+    IHttpContextAccessor httpContextAccessor)
+    : IRequestHandler<ListInvitesQuery, Result<List<InviteDto>>>
+{
+    public async Task<Result<List<InviteDto>>> Handle(ListInvitesQuery request, CancellationToken cancellationToken)
+    {
+        // Get current user ID from JWT claims
+        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
+        {
+            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        }
+
+        // Check if server exists
+        var serverExists = await dbContext.Servers
+            .AnyAsync(s => s.Id == request.ServerId, cancellationToken);
+
+        if (!serverExists)
+        {
+            return Error.NotFound("SERVER_NOT_FOUND", "Server not found");
+        }
+
+        // Check if user is a member of the server
+        var isMember = await dbContext.ServerMembers
+            .AnyAsync(sm => sm.UserId == userId && sm.ServerId == request.ServerId, cancellationToken);
+
+        if (!isMember)
+        {
+            return Error.Forbidden("NOT_A_MEMBER", "You must be a member of this server to view invites");
+        }
+
+        // Get all active invites for the server
+        var invites = await dbContext.Invites
+            .Where(i => i.ServerId == request.ServerId)
+            .Select(i => new InviteDto(
+                i.Code,
+                i.ServerId,
+                i.CreatedByUserId,
+                i.MaxUses,
+                i.Uses,
+                i.ExpiresAt,
+                i.CreatedAt
+            ))
+            .ToListAsync(cancellationToken);
+
+        return invites;
+    }
+
+    public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
+    {
+        return app.MapGet("/api/v1/servers/{id:long}/invites", async (
+            long id,
+            IRequestHandler<ListInvitesQuery, Result<List<InviteDto>>> handler,
+            CancellationToken ct) =>
+        {
+            var query = new ListInvitesQuery(id);
+            return await handler.ExecuteAsync(query, ct);
+        })
+        .RequireAnyAuthorization(Policies.User, Policies.Bot)
+        .WithName("ListInvites")
+        .WithTags("Servers", "Invites");
+    }
+}

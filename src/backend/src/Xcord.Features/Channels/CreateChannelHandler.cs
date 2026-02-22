@@ -1,0 +1,261 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
+using Xcord.Entities;
+using Xcord.Features.Authorization;
+using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Services;
+
+namespace Xcord.Features.Channels;
+
+public sealed record CreateChannelCommand(
+    long ServerId,
+    string Name,
+    ChannelType Type,
+    long? CategoryId = null,
+    string? Topic = null,
+    int Position = 0,
+    int? SlowModeSeconds = null,
+    bool IsNsfw = false,
+    ForumSort? DefaultSortOrder = null,
+    bool RequireTag = false,
+    int? DefaultAutoArchiveDuration = null
+);
+
+public sealed record CreateChannelResponse(
+    long Id,
+    long ConversationId,
+    long ServerId,
+    long? CategoryId,
+    string Name,
+    string? Topic,
+    ChannelType Type,
+    int Position,
+    int? SlowModeSeconds,
+    bool IsNsfw,
+    ForumSort? DefaultSortOrder,
+    bool RequireTag,
+    int? DefaultAutoArchiveDuration,
+    DateTimeOffset CreatedAt
+);
+
+public sealed record CreateChannelRequest(
+    string Name,
+    ChannelType Type,
+    long? CategoryId = null,
+    string? Topic = null,
+    int Position = 0,
+    int? SlowModeSeconds = null,
+    bool IsNsfw = false,
+    ForumSort? DefaultSortOrder = null,
+    bool RequireTag = false,
+    int? DefaultAutoArchiveDuration = null
+);
+
+public sealed class CreateChannelHandler(
+    AppDbContext dbContext,
+    SnowflakeIdGenerator snowflakeGenerator,
+    IPermissionService permissionService,
+    IHttpContextAccessor httpContextAccessor,
+    IOutboxWriter outboxWriter,
+    ILogger<CreateChannelHandler> logger)
+    : IRequestHandler<CreateChannelCommand, Result<CreateChannelResponse>>, IValidatable<CreateChannelCommand>
+{
+    public Error? Validate(CreateChannelCommand request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            return Error.Validation("VALIDATION_ERROR", "Channel name is required");
+        }
+
+        if (request.Name.Length > 100)
+        {
+            return Error.Validation("VALIDATION_ERROR", "Channel name must not exceed 100 characters");
+        }
+
+        if (request.Topic != null && request.Topic.Length > 1024)
+        {
+            return Error.Validation("VALIDATION_ERROR", "Channel topic must not exceed 1024 characters");
+        }
+
+        if (request.SlowModeSeconds.HasValue)
+        {
+            if (request.SlowModeSeconds.Value < 0)
+            {
+                return Error.Validation("VALIDATION_ERROR", "Slow mode seconds must be non-negative");
+            }
+
+            if (request.SlowModeSeconds.Value > 21600)
+            {
+                return Error.Validation("VALIDATION_ERROR", "Slow mode seconds must not exceed 21600 (6 hours)");
+            }
+        }
+
+        if (request.Position < 0)
+        {
+            return Error.Validation("VALIDATION_ERROR", "Position must be non-negative");
+        }
+
+        if (request.DefaultAutoArchiveDuration.HasValue)
+        {
+            var duration = request.DefaultAutoArchiveDuration.Value;
+            if (duration != 60 && duration != 1440 && duration != 4320 && duration != 10080)
+            {
+                return Error.Validation("VALIDATION_ERROR", "Auto archive duration must be 60, 1440, 4320, or 10080 minutes");
+            }
+        }
+
+        return null;
+    }
+
+    public async Task<Result<CreateChannelResponse>> Handle(CreateChannelCommand request, CancellationToken cancellationToken)
+    {
+        // Get current user ID from JWT claims
+        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
+        {
+            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        }
+
+        // Check if server exists
+        var serverExists = await dbContext.Servers
+            .AsNoTracking()
+            .AnyAsync(s => s.Id == request.ServerId, cancellationToken);
+
+        if (!serverExists)
+        {
+            return Error.NotFound("SERVER_NOT_FOUND", "Server not found");
+        }
+
+        // Check ManageChannels permission
+        var permissionResult = await permissionService.EnsureServerPermission(
+            userId,
+            request.ServerId,
+            Permission.ManageChannels);
+
+        if (permissionResult.IsFailure)
+        {
+            return permissionResult.Error;
+        }
+
+        // If category is specified, verify it exists and belongs to this server
+        if (request.CategoryId.HasValue)
+        {
+            var categoryExists = await dbContext.Categories
+                .AsNoTracking()
+                .AnyAsync(c => c.Id == request.CategoryId.Value && c.ServerId == request.ServerId, cancellationToken);
+
+            if (!categoryExists)
+            {
+                return Error.NotFound("CATEGORY_NOT_FOUND", "Category not found or does not belong to this server");
+            }
+        }
+
+        var now = DateTimeOffset.UtcNow;
+
+        // Create Conversation
+        var conversationId = snowflakeGenerator.NextId();
+        var conversation = new Conversation
+        {
+            Id = conversationId,
+            Type = ConversationType.Channel
+        };
+
+        dbContext.Conversations.Add(conversation);
+
+        // Create Channel
+        var channelId = snowflakeGenerator.NextId();
+        var channel = new Channel
+        {
+            Id = channelId,
+            ConversationId = conversationId,
+            ServerId = request.ServerId,
+            CategoryId = request.CategoryId,
+            Name = request.Name,
+            Topic = request.Topic,
+            Type = request.Type,
+            Position = request.Position,
+            SlowModeSeconds = request.SlowModeSeconds,
+            IsNsfw = request.IsNsfw,
+            DefaultSortOrder = request.DefaultSortOrder,
+            RequireTag = request.RequireTag,
+            DefaultAutoArchiveDuration = request.DefaultAutoArchiveDuration,
+            CreatedAt = now
+        };
+
+        dbContext.Channels.Add(channel);
+
+        // Write a Chat.ChannelCreated outbox event so all server members receive the new
+        // channel via SignalR and can update their sidebar without a page refresh.
+        await outboxWriter.WriteAsync(dbContext, "Chat.ChannelCreated", new
+        {
+            serverId = request.ServerId,
+            id = channel.Id,
+            conversationId = channel.ConversationId,
+            categoryId = channel.CategoryId,
+            name = channel.Name,
+            topic = channel.Topic,
+            type = channel.Type.ToString(),
+            position = channel.Position,
+            slowModeSeconds = channel.SlowModeSeconds,
+            isNsfw = channel.IsNsfw,
+            createdAt = channel.CreatedAt
+        }, cancellationToken);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation(
+            "User {UserId} created channel {ChannelName} (ID: {ChannelId}) in server {ServerId}",
+            userId, channel.Name, channelId, request.ServerId);
+
+        return new CreateChannelResponse(
+            Id: channel.Id,
+            ConversationId: channel.ConversationId,
+            ServerId: channel.ServerId,
+            CategoryId: channel.CategoryId,
+            Name: channel.Name,
+            Topic: channel.Topic,
+            Type: channel.Type,
+            Position: channel.Position,
+            SlowModeSeconds: channel.SlowModeSeconds,
+            IsNsfw: channel.IsNsfw,
+            DefaultSortOrder: channel.DefaultSortOrder,
+            RequireTag: channel.RequireTag,
+            DefaultAutoArchiveDuration: channel.DefaultAutoArchiveDuration,
+            CreatedAt: channel.CreatedAt
+        );
+    }
+
+    public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
+    {
+        return app.MapPost("/api/v1/servers/{serverId}/channels", async (
+            long serverId,
+            [FromBody] CreateChannelRequest request,
+            [FromServices] CreateChannelHandler handler,
+            CancellationToken ct) =>
+        {
+            var command = new CreateChannelCommand(
+                ServerId: serverId,
+                Name: request.Name,
+                Type: request.Type,
+                CategoryId: request.CategoryId,
+                Topic: request.Topic,
+                Position: request.Position,
+                SlowModeSeconds: request.SlowModeSeconds,
+                IsNsfw: request.IsNsfw,
+                DefaultSortOrder: request.DefaultSortOrder,
+                RequireTag: request.RequireTag,
+                DefaultAutoArchiveDuration: request.DefaultAutoArchiveDuration
+            );
+
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/channels/{success.Id}", success));
+        })
+        .RequireAnyAuthorization(Policies.User, Policies.Bot)
+        .WithName("CreateChannel")
+        .WithTags("Channels");
+    }
+}

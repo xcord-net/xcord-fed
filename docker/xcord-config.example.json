@@ -1,0 +1,61 @@
+{
+  "database": {
+    "connectionString": "Host=postgres;Port=5432;Database=xcord_instance1;Username=xcord;Password=REPLACE_WITH_SECURE_DB_PASSWORD"
+  },
+  "redis": {
+    "connectionString": "redis:6379",
+    "channelPrefix": "instance1:"
+  },
+  "jwt": {
+    "issuer": "https://instance1.example.com",
+    "audience": "https://instance1.example.com"
+  },
+  "storage": {
+    "endpoint": "http://minio:9000",
+    "accessKey": "REPLACE_WITH_MINIO_ACCESS_KEY",
+    "secretKey": "REPLACE_WITH_MINIO_SECRET_KEY",
+    "bucket": "xcord-instance1",
+    "useSsl": false
+  },
+  "livekit": {
+    "host": "ws://livekit:7880",
+    "apiKey": "REPLACE_WITH_LIVEKIT_API_KEY",
+    "apiSecret": "REPLACE_WITH_LIVEKIT_API_SECRET"
+  },
+  "cors": {
+    "allowedOrigins": ["https://instance1.example.com"]
+  },
+  "instance": {
+    "domain": "instance1.example.com"
+  },
+  "snowflake": {
+    "workerId": 1
+  },
+  "email": {
+    "smtpHost": "smtp.example.com",
+    "smtpPort": 587,
+    "smtpUsername": "noreply@example.com",
+    "smtpPassword": "REPLACE_WITH_SMTP_PASSWORD",
+    "fromAddress": "noreply@example.com",
+    "fromName": "Xcord",
+    "useSsl": true,
+    "devMode": false
+  },
+  "encryption": {
+    "encryptionKey": "your-32-byte-base64-encryption-key-here"
+  },
+  "rateLimiting": {
+    "maxRequests": 100,
+    "windowSeconds": 60
+  },
+  "gif": {
+    "provider": "tenor",
+    "apiKey": "your-tenor-api-key"
+  },
+  "outbox": {
+    "pollingIntervalMs": 1000,
+    "batchSize": 100,
+    "cleanupIntervalMinutes": 60,
+    "retentionHours": 24
+  }
+}
