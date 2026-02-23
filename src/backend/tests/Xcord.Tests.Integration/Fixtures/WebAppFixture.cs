@@ -95,7 +95,7 @@ public class WebAppFixture : IAsyncLifetime
         Client = _factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false,
-            HandleCookies = true,
+            HandleCookies = false,
         });
     }
 
