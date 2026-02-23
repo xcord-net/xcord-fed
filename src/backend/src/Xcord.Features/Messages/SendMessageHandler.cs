@@ -292,9 +292,9 @@ public sealed class SendMessageHandler(
                 var parsedIds = request.AttachmentIds
                     .Where(id => long.TryParse(id, out _))
                     .Select(id => long.Parse(id))
-                    .ToArray();
+                    .ToList();
 
-                if (parsedIds.Length > 0)
+                if (parsedIds.Count > 0)
                 {
                     await dbContext.Attachments
                         .Where(a => parsedIds.Contains(a.Id)

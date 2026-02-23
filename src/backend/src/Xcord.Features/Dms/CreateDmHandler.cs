@@ -47,12 +47,12 @@ public sealed class CreateDmHandler(
         }
 
         // Verify all recipient IDs exist
-        var allUserIds = request.RecipientIds.Append(currentUserId).Distinct().ToArray();
+        var allUserIds = request.RecipientIds.Append(currentUserId).Distinct().ToList();
         var users = await dbContext.Users
             .Where(u => allUserIds.Contains(u.Id))
             .ToListAsync(cancellationToken);
 
-        if (users.Count != allUserIds.Length)
+        if (users.Count != allUserIds.Count)
         {
             return Error.NotFound("USER_NOT_FOUND", "One or more recipient users not found");
         }

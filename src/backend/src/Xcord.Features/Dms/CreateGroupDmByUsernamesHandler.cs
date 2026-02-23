@@ -40,12 +40,12 @@ public sealed class CreateGroupDmByUsernamesHandler(
             return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
 
         // Look up all recipients by username
-        var distinctUsernames = request.Usernames.Distinct().ToArray();
+        var distinctUsernames = request.Usernames.Distinct().ToList();
         var recipients = await dbContext.Users
             .Where(u => distinctUsernames.Contains(u.Username))
             .ToListAsync(cancellationToken);
 
-        if (recipients.Count != distinctUsernames.Length)
+        if (recipients.Count != distinctUsernames.Count)
         {
             var notFound = distinctUsernames.Where(u => recipients.All(r => r.Username != u)).ToArray();
             return Error.NotFound("USER_NOT_FOUND", $"Users not found: {string.Join(", ", notFound)}");
