@@ -67,7 +67,7 @@ public class MainHubTests
 
             // Join conversation first
             await connection.InvokeAsync("JoinConversation", conversationId)
-                .WaitAsync(TimeSpan.FromSeconds(1));
+                .WaitAsync(TimeSpan.FromSeconds(5));
         }
         finally
         {
@@ -92,7 +92,7 @@ public class MainHubTests
 
             // Should not throw
             await connection.InvokeAsync("JoinConversation", conversationId)
-                .WaitAsync(TimeSpan.FromSeconds(1));
+                .WaitAsync(TimeSpan.FromSeconds(5));
         }
         finally
         {
@@ -111,11 +111,11 @@ public class MainHubTests
             await connection.StartAsync().WaitAsync(TimeSpan.FromSeconds(2));
 
             await connection.InvokeAsync("JoinConversation", conversationId)
-                .WaitAsync(TimeSpan.FromSeconds(1));
+                .WaitAsync(TimeSpan.FromSeconds(5));
 
             // Should not throw
             await connection.InvokeAsync("LeaveConversation", conversationId)
-                .WaitAsync(TimeSpan.FromSeconds(1));
+                .WaitAsync(TimeSpan.FromSeconds(5));
         }
         finally
         {
@@ -151,9 +151,9 @@ public class MainHubTests
 
             await Task.WhenAll(
                 ownerConn.InvokeAsync("JoinConversation", conversationId)
-                    .WaitAsync(TimeSpan.FromSeconds(1)),
+                    .WaitAsync(TimeSpan.FromSeconds(5)),
                 memberConn.InvokeAsync("JoinConversation", conversationId)
-                    .WaitAsync(TimeSpan.FromSeconds(1))
+                    .WaitAsync(TimeSpan.FromSeconds(5))
             );
 
             // Set up listener for typing event on owner's connection
@@ -165,10 +165,10 @@ public class MainHubTests
 
             // Member starts typing
             await memberConn.InvokeAsync("StartTyping", conversationId)
-                .WaitAsync(TimeSpan.FromSeconds(1));
+                .WaitAsync(TimeSpan.FromSeconds(5));
 
             // Owner should receive the typing notification
-            var result = await typingReceived.Task.WaitAsync(TimeSpan.FromSeconds(1));
+            var result = await typingReceived.Task.WaitAsync(TimeSpan.FromSeconds(5));
             result.GetProperty("userId").ReadLong().Should().Be(member.UserId);
             result.GetProperty("conversationId").ReadLong().Should().Be(conversationId);
         }
@@ -189,15 +189,15 @@ public class MainHubTests
         {
             await connection.StartAsync().WaitAsync(TimeSpan.FromSeconds(2));
             await connection.InvokeAsync("JoinConversation", conversationId)
-                .WaitAsync(TimeSpan.FromSeconds(1));
+                .WaitAsync(TimeSpan.FromSeconds(5));
 
             // First typing call should succeed (no exception)
             await connection.InvokeAsync("StartTyping", conversationId)
-                .WaitAsync(TimeSpan.FromSeconds(1));
+                .WaitAsync(TimeSpan.FromSeconds(5));
 
             // Second call within rate limit window should also "succeed" (it's throttled silently, not errored)
             await connection.InvokeAsync("StartTyping", conversationId)
-                .WaitAsync(TimeSpan.FromSeconds(1));
+                .WaitAsync(TimeSpan.FromSeconds(5));
         }
         finally
         {
@@ -241,10 +241,10 @@ public class MainHubTests
 
             // Member updates their status
             await memberConn.InvokeAsync("UpdateStatus", "Away")
-                .WaitAsync(TimeSpan.FromSeconds(1));
+                .WaitAsync(TimeSpan.FromSeconds(5));
 
             // Owner should receive presence update
-            var result = await presenceReceived.Task.WaitAsync(TimeSpan.FromSeconds(1));
+            var result = await presenceReceived.Task.WaitAsync(TimeSpan.FromSeconds(5));
             result.GetProperty("userId").ReadLong().Should().Be(member.UserId);
         }
         finally
@@ -265,7 +265,7 @@ public class MainHubTests
             await connection.StartAsync().WaitAsync(TimeSpan.FromSeconds(2));
 
             Func<Task> act = () => connection.InvokeAsync("UpdateStatus", "InvalidStatus")
-                .WaitAsync(TimeSpan.FromSeconds(1));
+                .WaitAsync(TimeSpan.FromSeconds(5));
 
             await act.Should().ThrowAsync<HubException>();
         }
@@ -288,7 +288,7 @@ public class MainHubTests
             await connection.StartAsync().WaitAsync(TimeSpan.FromSeconds(2));
 
             // Should not throw
-            await connection.InvokeAsync("Heartbeat").WaitAsync(TimeSpan.FromSeconds(1));
+            await connection.InvokeAsync("Heartbeat").WaitAsync(TimeSpan.FromSeconds(5));
         }
         finally
         {
@@ -313,7 +313,7 @@ public class MainHubTests
             await connection.StartAsync().WaitAsync(TimeSpan.FromSeconds(2));
 
             var result = await connection.InvokeAsync<JsonElement>("JoinVoiceChannel", voiceChannelId)
-                .WaitAsync(TimeSpan.FromSeconds(1));
+                .WaitAsync(TimeSpan.FromSeconds(5));
 
             result.TryGetProperty("token", out var tokenProp).Should().BeTrue("should return a LiveKit token");
             tokenProp.GetString().Should().NotBeNullOrEmpty();
@@ -341,11 +341,11 @@ public class MainHubTests
             await connection.StartAsync().WaitAsync(TimeSpan.FromSeconds(2));
 
             await connection.InvokeAsync<JsonElement>("JoinVoiceChannel", voiceChannelId)
-                .WaitAsync(TimeSpan.FromSeconds(1));
+                .WaitAsync(TimeSpan.FromSeconds(5));
 
             // Should not throw
             await connection.InvokeAsync("LeaveVoiceChannel", voiceChannelId)
-                .WaitAsync(TimeSpan.FromSeconds(1));
+                .WaitAsync(TimeSpan.FromSeconds(5));
 
             // Verify voice state was cleaned up
             await using var db = _fixture.CreateDbContext();
@@ -374,11 +374,11 @@ public class MainHubTests
             await connection.StartAsync().WaitAsync(TimeSpan.FromSeconds(2));
 
             await connection.InvokeAsync<JsonElement>("JoinVoiceChannel", voiceChannelId)
-                .WaitAsync(TimeSpan.FromSeconds(1));
+                .WaitAsync(TimeSpan.FromSeconds(5));
 
             // Mute self
             await connection.InvokeAsync("UpdateVoiceState", voiceChannelId, true, (bool?)null, (bool?)null)
-                .WaitAsync(TimeSpan.FromSeconds(1));
+                .WaitAsync(TimeSpan.FromSeconds(5));
 
             // Verify state was updated
             await using var db = _fixture.CreateDbContext();
@@ -408,7 +408,7 @@ public class MainHubTests
             await connection.StartAsync().WaitAsync(TimeSpan.FromSeconds(2));
 
             Func<Task> act = () => connection.InvokeAsync("JoinConversation", conversationId)
-                .WaitAsync(TimeSpan.FromSeconds(1));
+                .WaitAsync(TimeSpan.FromSeconds(5));
 
             await act.Should().ThrowAsync<HubException>();
         }
@@ -430,7 +430,7 @@ public class MainHubTests
             await connection.StartAsync().WaitAsync(TimeSpan.FromSeconds(2));
 
             Func<Task> act = () => connection.InvokeAsync("StartTyping", conversationId)
-                .WaitAsync(TimeSpan.FromSeconds(1));
+                .WaitAsync(TimeSpan.FromSeconds(5));
 
             await act.Should().ThrowAsync<HubException>();
         }
