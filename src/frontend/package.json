@@ -28,5 +28,8 @@
     "vite": "^6.0.0",
     "vite-plugin-solid": "^2.11.0",
     "vitest": "^1.6.1"
+  },
+  "overrides": {
+    "esbuild": ">=0.25.0"
   }
 }
