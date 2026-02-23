@@ -1,6 +1,6 @@
 # xcord-fed
 
-Federation instance module for [Xcord](https://github.com/xcord-net/xcord.net). Contains the chat client SPA, backend API, and instance admin panel.
+Federation instance module for [Xcord](https://github.com/xcord-net). Contains the chat client SPA, backend API, and instance admin panel.
 
 Each provisioned instance runs as an isolated Docker container from this module's image, with its own database, storage credentials, encryption keys, and JWT signing keys.
 
