@@ -8,7 +8,7 @@ using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Auth;
 
-public sealed class AuthMeHandler
+public sealed class AuthMeHandler : IEndpoint
 {
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
     {

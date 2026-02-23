@@ -13,7 +13,7 @@ namespace Xcord.Features.Uploads;
 /// Proxy endpoint: receives file data from the browser and uploads to S3.
 /// This avoids requiring the browser to have direct access to the S3/MinIO endpoint.
 /// </summary>
-public sealed class UploadDataHandler
+public sealed class UploadDataHandler : IEndpoint
 {
     private const long MaxFileSize = 25 * 1024 * 1024; // 25MB
 
