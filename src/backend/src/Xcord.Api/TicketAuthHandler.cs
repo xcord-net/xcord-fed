@@ -53,7 +53,7 @@ public class TicketAuthHandler : AuthenticationHandler<AuthenticationSchemeOptio
         await db.KeyDeleteAsync(ticketKey);
 
         // Parse userId
-        if (!long.TryParse(userIdString, out var userId))
+        if (!long.TryParse((string?)userIdString, out var userId))
         {
             Logger.LogError("Invalid userId format in ticket: {UserId}", userIdString);
             return AuthenticateResult.Fail("Invalid ticket data");
