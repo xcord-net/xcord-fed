@@ -182,7 +182,7 @@ export default function EmojiManager(props: EmojiManagerProps) {
   return (
     <div class="flex flex-col h-full bg-xcord-bg-secondary">
       <div class="px-4 py-3 border-b border-xcord-border">
-        <h2 class="text-white font-semibold">Custom Emojis</h2>
+        <h2 id="emoji-manager-heading" class="text-white font-semibold">Custom Emojis</h2>
       </div>
 
       {/* Upload form */}
@@ -209,6 +209,7 @@ export default function EmojiManager(props: EmojiManagerProps) {
           </div>
 
           <input
+            id="emoji-manager-name-input"
             type="text"
             placeholder="Emoji name (e.g. cool_face)"
             class="bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
@@ -222,6 +223,7 @@ export default function EmojiManager(props: EmojiManagerProps) {
           </Show>
 
           <button
+            id="emoji-manager-upload-btn"
             type="submit"
             disabled={isUploading()}
             class="bg-xcord-brand text-white px-4 py-1.5 rounded text-sm hover:bg-xcord-brand/80 disabled:opacity-50 self-start"
@@ -243,7 +245,7 @@ export default function EmojiManager(props: EmojiManagerProps) {
         </Show>
 
         <Show when={!isLoading() && emojis().length === 0}>
-          <div class="flex flex-col items-center justify-center h-32 text-xcord-text-muted">
+          <div id="emoji-manager-empty" class="flex flex-col items-center justify-center h-32 text-xcord-text-muted">
             <p class="text-lg font-semibold">No custom emojis</p>
             <p class="text-sm mt-1">Upload an emoji above to get started.</p>
           </div>

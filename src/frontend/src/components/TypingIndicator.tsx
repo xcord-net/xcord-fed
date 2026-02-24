@@ -21,7 +21,7 @@ export default function TypingIndicator(props: TypingIndicatorProps) {
 
   return (
     <Show when={typingUsers().length > 0}>
-      <div class="px-4 py-1 flex items-center space-x-2 bg-xcord-bg-secondary/50">
+      <div id="typing-indicator" class="px-4 py-1 flex items-center space-x-2 bg-xcord-bg-secondary/50">
         {/* Animated dots */}
         <span class="flex items-center space-x-0.5">
           <span class="w-1 h-1 bg-xcord-text-muted rounded-full animate-bounce [animation-delay:-0.3s]" />

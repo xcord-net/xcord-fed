@@ -107,7 +107,7 @@ export default function MemberList() {
   };
 
   return (
-    <div class="w-60 bg-xcord-bg-secondary flex flex-col">
+    <div id="member-list-panel" class="w-60 bg-xcord-bg-secondary flex flex-col">
       <div class="flex-1 overflow-y-auto px-4 py-4">
         {/* Loading skeleton while fetching members */}
         <Show when={memberStore.isLoading && memberStore.members.length === 0}>

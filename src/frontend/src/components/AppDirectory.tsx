@@ -323,6 +323,7 @@ export default function AppDirectory(props: AppDirectoryProps) {
         {/* Search + filter bar */}
         <div class="px-4 py-3 border-b border-xcord-bg-primary space-y-2 flex-shrink-0">
           <input
+            id="app-directory-search"
             type="search"
             class="w-full bg-xcord-bg-primary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
             placeholder="Search bots..."
@@ -369,7 +370,7 @@ export default function AppDirectory(props: AppDirectoryProps) {
 
         {/* Empty state */}
         <Show when={!isLoading() && displayedBots().length === 0}>
-          <div class="flex flex-col items-center justify-center flex-1 space-y-3">
+          <div id="app-directory-empty" class="flex flex-col items-center justify-center flex-1 space-y-3">
             <div class="text-4xl text-xcord-text-muted">🤖</div>
             <p class="text-xcord-text-muted text-sm">No bots found</p>
             <Show when={searchQuery() || selectedCategory()}>

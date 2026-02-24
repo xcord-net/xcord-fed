@@ -38,6 +38,7 @@ export default function BlockList() {
             class="flex-1 bg-xcord-bg-primary text-white px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
           />
           <button
+            id="block-user-submit"
             class="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700 disabled:opacity-50"
             disabled={!blockUsername().trim()}
             onClick={handleBlockUser}
@@ -46,7 +47,7 @@ export default function BlockList() {
           </button>
         </div>
         <Show when={blockMessage()}>
-          <p class={`text-sm mt-2 ${blockError() ? 'text-red-400' : 'text-green-400'}`}>
+          <p id="block-user-status" class={`text-sm mt-2 ${blockError() ? 'text-red-400' : 'text-green-400'}`}>
             {blockMessage()}
           </p>
         </Show>
@@ -60,14 +61,14 @@ export default function BlockList() {
         </Show>
 
         <Show when={!blockStore.isLoading && blockStore.blockedUsers.length === 0}>
-          <div class="flex items-center justify-center h-32">
+          <div id="blocked-users-empty" class="flex items-center justify-center h-32">
             <p class="text-xcord-text-muted">No blocked users</p>
           </div>
         </Show>
 
         <For each={blockStore.blockedUsers}>
           {(user) => (
-            <div class="px-4 py-3 flex items-center space-x-3 hover:bg-xcord-bg-primary/50 border-b border-xcord-border">
+            <div class="px-4 py-3 flex items-center space-x-3 hover:bg-xcord-bg-primary/50 border-b border-xcord-border" data-blocked-username={user.blockedUsername}>
               <div class="w-10 h-10 rounded-full bg-xcord-brand flex items-center justify-center text-white font-semibold">
                 <Show when={user.blockedAvatarUrl} fallback={user.blockedUsername.charAt(0).toUpperCase()}>
                   <img

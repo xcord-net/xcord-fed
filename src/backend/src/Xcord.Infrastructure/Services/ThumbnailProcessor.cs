@@ -17,7 +17,7 @@ public sealed class ThumbnailProcessor : BackgroundService
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger<ThumbnailProcessor> _logger;
 
-    private const int PollingIntervalSeconds = 5;
+    private const int PollingIntervalSeconds = 2;
     private const int BatchSize = 10;
     private const int ThumbnailMaxWidth = 400;
     private const int ThumbnailMaxHeight = 400;
@@ -35,9 +35,6 @@ public sealed class ThumbnailProcessor : BackgroundService
         _logger.LogInformation(
             "ThumbnailProcessor starting with polling interval {PollingIntervalSeconds} seconds",
             PollingIntervalSeconds);
-
-        // Brief startup delay to let the application fully initialise.
-        await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
 
         while (!stoppingToken.IsCancellationRequested)
         {

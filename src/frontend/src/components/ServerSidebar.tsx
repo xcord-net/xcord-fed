@@ -129,6 +129,7 @@ export default function ServerSidebar() {
       <Show when={profileStore.userProfile}>
         {(profile) => (
           <div
+            id="current-user-bar"
             class="mt-auto relative"
             aria-label={`Current user: ${profile().username}`}
             title={profile().displayName || profile().username}

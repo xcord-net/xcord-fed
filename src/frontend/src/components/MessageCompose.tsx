@@ -362,6 +362,7 @@ export default function MessageCompose(props: MessageComposeProps) {
         </button>
 
         <textarea
+          id="message-compose-textarea"
           ref={textareaRef}
           class="flex-1 bg-transparent text-xcord-text-primary placeholder-xcord-text-muted resize-none outline-none"
           placeholder="Message #channel-name"
@@ -375,6 +376,7 @@ export default function MessageCompose(props: MessageComposeProps) {
         {/* Slow mode countdown indicator */}
         <Show when={isSlowModeActive()}>
           <span
+            id="message-compose-slowmode"
             class="flex-shrink-0 text-xs text-xcord-text-muted font-medium whitespace-nowrap"
             aria-live="polite"
             aria-label={`Slow mode active. Wait ${slowModeCountdown()} seconds before sending again.`}
