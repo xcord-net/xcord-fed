@@ -49,9 +49,12 @@ public sealed class FriendshipConfiguration : IEntityTypeConfiguration<Friendshi
             .HasForeignKey(f => f.ReceiverId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Unique index on (SenderId, ReceiverId) to prevent duplicate friend requests
+        // Unique index on (SenderId, ReceiverId) to prevent duplicate friend requests.
+        // Filtered to non-deleted rows so a soft-deleted friendship doesn't block
+        // re-friending the same user.
         builder.HasIndex(f => new { f.SenderId, f.ReceiverId })
-            .IsUnique();
+            .IsUnique()
+            .HasFilter("\"DeletedAt\" IS NULL");
 
         // Soft delete query filter is applied globally in AppDbContext
     }

@@ -24,7 +24,8 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(32);
         builder.HasIndex(u => u.Username)
-            .IsUnique();
+            .IsUnique()
+            .HasFilter("\"DeletedAt\" IS NULL");
 
         // DisplayName (required, max 32)
         builder.Property(u => u.DisplayName)
@@ -41,7 +42,8 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasColumnType("bytea");
         builder.HasIndex(u => u.EmailHash)
-            .IsUnique();
+            .IsUnique()
+            .HasFilter("\"DeletedAt\" IS NULL");
 
         // PasswordHash (required, max 128, BCrypt)
         builder.Property(u => u.PasswordHash)

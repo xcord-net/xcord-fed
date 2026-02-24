@@ -44,7 +44,8 @@ public sealed class BanConfiguration : IEntityTypeConfiguration<Ban>
 
         // Indexes
         builder.HasIndex(b => new { b.ServerId, b.UserId })
-            .IsUnique();
+            .IsUnique()
+            .HasFilter("\"DeletedAt\" IS NULL");
 
         // Navigation properties
         builder.HasOne(b => b.User)

@@ -45,7 +45,8 @@ public sealed class FederationFollowConfiguration : IEntityTypeConfiguration<Fed
 
         // Unique: one follow per remote channel per local channel
         builder.HasIndex(f => new { f.LocalChannelId, f.RemoteInstanceUrl, f.RemoteChannelId })
-            .IsUnique();
+            .IsUnique()
+            .HasFilter("\"DeletedAt\" IS NULL");
 
         builder.HasIndex(f => f.LocalChannelId);
 

@@ -34,9 +34,10 @@ public sealed class UserNoteConfiguration : IEntityTypeConfiguration<UserNote>
 
         builder.Property(n => n.DeletedAt);
 
-        // One note per target user per author
+        // One note per target user per author (non-deleted)
         builder.HasIndex(n => new { n.AuthorId, n.TargetUserId })
-            .IsUnique();
+            .IsUnique()
+            .HasFilter("\"DeletedAt\" IS NULL");
 
         builder.HasOne(n => n.Author)
             .WithMany()
