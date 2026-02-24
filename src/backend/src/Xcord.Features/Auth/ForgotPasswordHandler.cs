@@ -24,6 +24,7 @@ public sealed class ForgotPasswordHandler(
     ILogger<ForgotPasswordHandler> logger,
     IOutboxWriter outboxWriter,
     IOptions<InstanceOptions> instanceOptions,
+    IHttpContextAccessor httpContextAccessor,
     IConnectionMultiplexer redis,
     IOptions<RedisOptions> redisOptions)
     : IRequestHandler<ForgotPasswordRequest, Result<bool>>, IValidatable<ForgotPasswordRequest>
@@ -87,8 +88,9 @@ public sealed class ForgotPasswordHandler(
             // Decrypt email for sending
             var decryptedEmail = encryptionService.Decrypt(user.Email);
 
-            // Build the reset URL using the instance domain
-            var resetUrl = BuildResetUrl(instanceOptions.Value.Domain, rawToken);
+            // Build the reset URL using the instance domain and current request scheme
+            var scheme = httpContextAccessor.HttpContext?.Request.Scheme ?? "https";
+            var resetUrl = BuildResetUrl(scheme, instanceOptions.Value.Domain, rawToken);
             var htmlBody = BuildResetEmailBody(user.DisplayName, resetUrl);
 
             // Queue password reset email via outbox
@@ -108,9 +110,9 @@ public sealed class ForgotPasswordHandler(
         return true;
     }
 
-    private static string BuildResetUrl(string domain, string token)
+    private static string BuildResetUrl(string scheme, string domain, string token)
     {
-        var baseUrl = $"https://{domain.TrimEnd('/')}";
+        var baseUrl = $"{scheme}://{domain.TrimEnd('/')}";
         return $"{baseUrl}/reset-password?token={HttpUtility.UrlEncode(token)}";
     }
 

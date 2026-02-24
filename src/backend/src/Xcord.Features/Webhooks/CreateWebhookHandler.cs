@@ -149,7 +149,8 @@ public sealed class CreateWebhookHandler(
             "User {UserId} created webhook {WebhookId} in channel {ChannelId}",
             userId, webhookId, request.ChannelId);
 
-        var webhookUrl = $"https://{_instanceDomain}/api/v1/webhooks/{webhookId}/{token}";
+        var scheme = httpContextAccessor.HttpContext?.Request.Scheme ?? "https";
+        var webhookUrl = $"{scheme}://{_instanceDomain}/api/v1/webhooks/{webhookId}/{token}";
 
         return new CreateWebhookResponse(
             Id: webhook.Id,

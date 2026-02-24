@@ -1,6 +1,7 @@
 using System.Text.Json;
 using BCrypt.Net;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -135,6 +136,9 @@ public sealed class ForgotPasswordHandlerTests : IAsyncLifetime
         var snowflake = new SnowflakeIdGenerator(8);
         var outboxWriter = new OutboxWriter(new SnowflakeIdGenerator(9));
 
+        var httpContext = new DefaultHttpContext { Request = { Scheme = "https" } };
+        var httpContextAccessor = new HttpContextAccessor { HttpContext = httpContext };
+
         return new ForgotPasswordHandler(
             db,
             enc,
@@ -142,6 +146,7 @@ public sealed class ForgotPasswordHandlerTests : IAsyncLifetime
             NullLogger<ForgotPasswordHandler>.Instance,
             outboxWriter,
             instanceOptions,
+            httpContextAccessor,
             _redisMultiplexer!,
             redisOptions);
     }
