@@ -42,6 +42,36 @@ public sealed class JoinByVanityHandler(
             };
             dbContext.ServerMembers.Add(member);
             server.MemberCount++;
+
+            // Create ReadState rows for all text/forum channels so the unread
+            // notification system can track messages the new member hasn't seen.
+            // Skip any that already exist (e.g. user rejoining after a ban).
+            var channelConversationIds = await dbContext.Channels
+                .AsNoTracking()
+                .Where(c => c.ServerId == server.Id && c.Type != ChannelType.Voice)
+                .Select(c => c.ConversationId)
+                .ToListAsync(ct);
+
+            var existingReadStateConversationIds = await dbContext.ReadStates
+                .AsNoTracking()
+                .Where(rs => rs.UserId == userId && channelConversationIds.Contains(rs.ConversationId))
+                .Select(rs => rs.ConversationId)
+                .ToHashSetAsync(ct);
+
+            foreach (var conversationId in channelConversationIds)
+            {
+                if (existingReadStateConversationIds.Contains(conversationId))
+                    continue;
+
+                dbContext.ReadStates.Add(new Xcord.Entities.ReadState
+                {
+                    UserId = userId,
+                    ConversationId = conversationId,
+                    UnreadCount = 0,
+                    MentionCount = 0
+                });
+            }
+
             await dbContext.SaveChangesAsync(ct);
         }
 

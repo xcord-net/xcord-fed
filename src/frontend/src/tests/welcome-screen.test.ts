@@ -19,14 +19,14 @@ const makeChannel = (overrides: Partial<WelcomeChannel> = {}): WelcomeChannel =>
   channelId: 'ch-1',
   channelName: 'general',
   description: 'Start here!',
-  emoji: '👋',
+  emojiName: '👋',
   ...overrides,
 });
 
 const makeConfig = (overrides: Partial<WelcomeScreenConfig> = {}): WelcomeScreenConfig => ({
-  enabled: true,
+  isEnabled: true,
   description: 'Welcome to our awesome community server!',
-  welcomeChannels: [
+  channels: [
     makeChannel({ channelId: 'ch-1', channelName: 'general', description: 'Start here!' }),
     makeChannel({ channelId: 'ch-2', channelName: 'announcements', description: 'Stay updated.' }),
   ],
@@ -45,30 +45,30 @@ describe('WelcomeScreen', () => {
   // ---- Config data shape ----
 
   describe('WelcomeScreenConfig shape', () => {
-    it('config has enabled flag, description, and channels', () => {
+    it('config has isEnabled flag, description, and channels', () => {
       // Arrange
       const config = makeConfig();
 
       // Assert
-      expect(config.enabled).toBe(true);
+      expect(config.isEnabled).toBe(true);
       expect(config.description).toBe('Welcome to our awesome community server!');
-      expect(Array.isArray(config.welcomeChannels)).toBe(true);
+      expect(Array.isArray(config.channels)).toBe(true);
     });
 
     it('config can be disabled', () => {
       // Arrange
-      const config = makeConfig({ enabled: false });
+      const config = makeConfig({ isEnabled: false });
 
       // Assert
-      expect(config.enabled).toBe(false);
+      expect(config.isEnabled).toBe(false);
     });
 
     it('welcome channels are optional (can be empty)', () => {
       // Arrange
-      const config = makeConfig({ welcomeChannels: [] });
+      const config = makeConfig({ channels: [] });
 
       // Assert
-      expect(config.welcomeChannels).toHaveLength(0);
+      expect(config.channels).toHaveLength(0);
     });
   });
 
@@ -169,9 +169,9 @@ describe('WelcomeScreen', () => {
       expect(error).toBe('Channel description must be 200 characters or fewer.');
     });
 
-    it('emoji is optional on a channel', () => {
+    it('emojiName is optional on a channel', () => {
       // Arrange
-      const ch = makeChannel({ emoji: undefined });
+      const ch = makeChannel({ emojiName: undefined });
 
       // Act
       const error = validateWelcomeChannel(ch);
@@ -213,7 +213,7 @@ describe('WelcomeScreen', () => {
 
     it('returns 0 for empty channels array', () => {
       // Arrange
-      const config = makeConfig({ welcomeChannels: [] });
+      const config = makeConfig({ channels: [] });
 
       // Act
       const count = welcomeChannelCount(config);
@@ -245,7 +245,7 @@ describe('WelcomeScreen', () => {
         `/api/v1/servers/${serverId}/welcome-screen`,
         expect.objectContaining({ method: 'GET' }),
       );
-      expect(result.enabled).toBe(true);
+      expect(result.isEnabled).toBe(true);
     });
   });
 
@@ -279,9 +279,9 @@ describe('WelcomeScreen', () => {
       expect(result.description).toBe('Updated description');
     });
 
-    it('saving with enabled=false disables the welcome screen', async () => {
+    it('saving with isEnabled=false disables the welcome screen', async () => {
       // Arrange
-      const payload = makeConfig({ enabled: false });
+      const payload = makeConfig({ isEnabled: false });
 
       globalThis.fetch = vi.fn().mockResolvedValueOnce({
         ok: true,
@@ -295,27 +295,27 @@ describe('WelcomeScreen', () => {
       );
 
       // Assert
-      expect(result.enabled).toBe(false);
+      expect(result.isEnabled).toBe(false);
     });
   });
 
-  // ---- Channel with emoji ----
+  // ---- Channel with emojiName ----
 
-  describe('welcome channel emoji', () => {
-    it('channel emoji is included in the channel shape', () => {
+  describe('welcome channel emojiName', () => {
+    it('channel emojiName is included in the channel shape', () => {
       // Arrange
-      const ch = makeChannel({ emoji: '🎮' });
+      const ch = makeChannel({ emojiName: '🎮' });
 
       // Assert
-      expect(ch.emoji).toBe('🎮');
+      expect(ch.emojiName).toBe('🎮');
     });
 
-    it('channel without emoji has undefined emoji', () => {
+    it('channel without emojiName has undefined emojiName', () => {
       // Arrange
-      const ch = makeChannel({ emoji: undefined });
+      const ch = makeChannel({ emojiName: undefined });
 
       // Assert
-      expect(ch.emoji).toBeUndefined();
+      expect(ch.emojiName).toBeUndefined();
     });
   });
 });

@@ -189,6 +189,28 @@ public sealed class CreateChannelHandler(
 
         dbContext.Channels.Add(channel);
 
+        // Create ReadState rows for all server members so the unread notification
+        // system can track messages in the new channel.
+        if (request.Type != ChannelType.Voice)
+        {
+            var memberUserIds = await dbContext.ServerMembers
+                .AsNoTracking()
+                .Where(sm => sm.ServerId == request.ServerId)
+                .Select(sm => sm.UserId)
+                .ToListAsync(cancellationToken);
+
+            foreach (var memberUserId in memberUserIds)
+            {
+                dbContext.ReadStates.Add(new Xcord.Entities.ReadState
+                {
+                    UserId = memberUserId,
+                    ConversationId = conversationId,
+                    UnreadCount = 0,
+                    MentionCount = 0
+                });
+            }
+        }
+
         // Write a Chat.ChannelCreated outbox event so all server members receive the new
         // channel via SignalR and can update their sidebar without a page refresh.
         await outboxWriter.WriteAsync(dbContext, "Chat.ChannelCreated", new

@@ -20,6 +20,51 @@ export function deriveEmojiName(fileName: string): string {
   return fileName.replace(/\.[^.]+$/, '').replace(/[^a-z0-9_]/gi, '_').toLowerCase();
 }
 
+// ---- Upload flow helpers ----
+
+interface RequestUploadResponse {
+  attachmentId: string;
+  uploadUrl: string;
+  downloadUrl: string;
+}
+
+/**
+ * Upload a file through the backend proxy and return the attachmentId.
+ * Flow:
+ *   1. POST /api/v1/uploads   → get { attachmentId, uploadUrl }
+ *   2. PUT  {uploadUrl}       → raw bytes
+ *   3. POST /api/v1/attachments/{attachmentId}/confirm
+ */
+async function uploadFileAndGetAttachmentId(file: File): Promise<string> {
+  // Step 1: request an upload slot
+  const requestResp = await api.post<RequestUploadResponse>('/api/v1/uploads', {
+    fileName: file.name,
+    contentType: file.type || 'image/png',
+    fileSize: file.size,
+  });
+
+  const { attachmentId, uploadUrl } = requestResp;
+
+  // Step 2: upload raw bytes to the proxy endpoint
+  const bytes = await file.arrayBuffer();
+  const putResp = await fetch(uploadUrl, {
+    method: 'PUT',
+    body: bytes,
+    headers: { 'Content-Type': file.type || 'image/png' },
+    credentials: 'include',
+  });
+
+  if (!putResp.ok) {
+    const errBody = await putResp.json().catch(() => ({ error: 'Upload failed' }));
+    throw errBody;
+  }
+
+  // Step 3: confirm the upload so IsConfirmed is set in the DB
+  await api.post(`/api/v1/attachments/${attachmentId}/confirm`, {});
+
+  return attachmentId;
+}
+
 // ---- Component ----
 
 export default function EmojiManager(props: EmojiManagerProps) {
@@ -39,8 +84,8 @@ export default function EmojiManager(props: EmojiManagerProps) {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await api.get<CustomEmoji[]>(`/api/v1/servers/${props.serverId}/emojis`);
-      setEmojis(result);
+      const result = await api.get<{ emojis: CustomEmoji[] }>(`/api/v1/servers/${props.serverId}/emojis`);
+      setEmojis(result.emojis ?? []);
     } catch (err: unknown) {
       const e = err as { error?: string };
       setError(e?.error ?? 'Failed to load emojis');
@@ -89,22 +134,19 @@ export default function EmojiManager(props: EmojiManagerProps) {
 
     setIsUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('name', name);
-      formData.append('image', file);
+      // Upload the file and get an attachmentId
+      const attachmentId = await uploadFileAndGetAttachmentId(file);
 
-      const response = await fetch(`/api/v1/servers/${props.serverId}/emojis`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
+      // Determine if animated (GIF)
+      const isAnimated = file.type === 'image/gif';
+
+      // Create the emoji record using the attachmentId
+      const newEmoji = await api.post<CustomEmoji>(`/api/v1/servers/${props.serverId}/emojis`, {
+        name,
+        attachmentId,
+        isAnimated,
       });
 
-      if (!response.ok) {
-        const errBody = await response.json().catch(() => ({ error: 'Upload failed' }));
-        throw errBody;
-      }
-
-      const newEmoji = await response.json() as CustomEmoji;
       setEmojis([...emojis(), newEmoji]);
 
       // Reset form
@@ -115,8 +157,8 @@ export default function EmojiManager(props: EmojiManagerProps) {
         setPreviewUrl(null);
       }
     } catch (err: unknown) {
-      const e = err as { error?: string };
-      setUploadError(e?.error ?? 'Failed to upload emoji');
+      const e = err as { error?: string; detail?: string; title?: string };
+      setUploadError(e?.detail ?? e?.error ?? e?.title ?? 'Failed to upload emoji');
     } finally {
       setIsUploading(false);
     }

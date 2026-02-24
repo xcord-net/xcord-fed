@@ -46,7 +46,7 @@ const TABS: { id: SettingsTab; label: string; ownerOnly?: boolean }[] = [
   { id: 'insights', label: 'Insights', ownerOnly: true },
   { id: 'invites', label: 'Invites', ownerOnly: true },
   { id: 'app-directory', label: 'App Directory' },
-  { id: 'welcome-screen', label: 'Welcome Screen', ownerOnly: true },
+  { id: 'welcome-screen', label: 'Welcome Screen' },
 ];
 
 export default function ServerSettings(props: ServerSettingsProps) {
@@ -392,7 +392,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
 
           {/* Welcome Screen tab */}
           <Show when={activeTab() === 'welcome-screen'}>
-            <WelcomeScreen serverId={props.serverId} isOwner={true} />
+            <WelcomeScreen serverId={props.serverId} isOwner={isOwner()} />
           </Show>
         </div>
       </div>

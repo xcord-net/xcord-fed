@@ -16,8 +16,7 @@ public sealed record CreateStickerCommand(
     long PackId,
     string Name,
     string? Tags,
-    string ImageUrl,
-    string S3Key
+    long AttachmentId
 );
 
 public sealed record CreateStickerResponse(
@@ -64,24 +63,9 @@ public sealed class CreateStickerHandler(
             return Error.Validation("VALIDATION_ERROR", "Tags must not exceed 200 characters");
         }
 
-        if (string.IsNullOrWhiteSpace(request.ImageUrl))
+        if (request.AttachmentId <= 0)
         {
-            return Error.Validation("VALIDATION_ERROR", "ImageUrl is required");
-        }
-
-        if (request.ImageUrl.Length > 512)
-        {
-            return Error.Validation("VALIDATION_ERROR", "ImageUrl must not exceed 512 characters");
-        }
-
-        if (string.IsNullOrWhiteSpace(request.S3Key))
-        {
-            return Error.Validation("VALIDATION_ERROR", "S3Key is required");
-        }
-
-        if (request.S3Key.Length > 512)
-        {
-            return Error.Validation("VALIDATION_ERROR", "S3Key must not exceed 512 characters");
+            return Error.Validation("VALIDATION_ERROR", "AttachmentId must be a valid snowflake");
         }
 
         return null;
@@ -138,6 +122,24 @@ public sealed class CreateStickerHandler(
             return Error.NotFound("STICKER_PACK_NOT_FOUND", "Sticker pack not found in this server");
         }
 
+        // Resolve the attachment to get S3 key and build a stable image URL.
+        var attachment = await dbContext.Attachments
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.Id == request.AttachmentId, cancellationToken);
+
+        if (attachment == null)
+        {
+            return Error.NotFound("ATTACHMENT_NOT_FOUND", "Attachment not found");
+        }
+
+        if (!attachment.IsConfirmed)
+        {
+            return Error.Validation("ATTACHMENT_NOT_CONFIRMED", "The image has not been uploaded yet");
+        }
+
+        // Use the proxy download endpoint so sticker URLs are stable (not time-limited presigned URLs).
+        var imageUrl = $"/api/v1/attachments/{attachment.Id}/download";
+
         // Create sticker
         var now = DateTimeOffset.UtcNow;
         var sticker = new Sticker
@@ -146,8 +148,8 @@ public sealed class CreateStickerHandler(
             StickerPackId = request.PackId,
             Name = request.Name,
             Tags = request.Tags,
-            ImageUrl = request.ImageUrl,
-            S3Key = request.S3Key,
+            ImageUrl = imageUrl,
+            S3Key = attachment.S3Key,
             CreatedAt = now
         };
 
@@ -182,8 +184,7 @@ public sealed class CreateStickerHandler(
                 PackId: packId,
                 Name: request.Name,
                 Tags: request.Tags,
-                ImageUrl: request.ImageUrl,
-                S3Key: request.S3Key
+                AttachmentId: request.AttachmentId
             );
 
             return await handler.ExecuteAsync(command, ct);
@@ -197,6 +198,5 @@ public sealed class CreateStickerHandler(
 public sealed record CreateStickerRequest(
     string Name,
     string? Tags,
-    string ImageUrl,
-    string S3Key
+    long AttachmentId
 );

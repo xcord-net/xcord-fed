@@ -99,6 +99,25 @@ public static class ServiceCollectionExtensions
 
         // SignalR with Redis backplane
         services.AddSignalR(options => options.EnableDetailedErrors = builder.Environment.IsDevelopment())
+            .AddJsonProtocol(options =>
+            {
+                // Snowflake IDs exceed JavaScript's Number.MAX_SAFE_INTEGER, so
+                // the HTTP API uses SnowflakeJsonConverter to serialize them as strings.
+                // SignalR must do the same:
+                //   WriteAsString  — server-sent events write longs as "12345" so JS
+                //                    doesn't lose precision on Snowflake IDs.
+                //   AllowReadingFromString — hub methods accept longs that the frontend
+                //                           sends as JSON strings.
+                options.PayloadSerializerOptions.NumberHandling =
+                    System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString
+                    | System.Text.Json.Serialization.JsonNumberHandling.WriteAsString;
+
+                // Serialize enums as camelCase strings ("online", "idle", "dnd")
+                // matching the frontend PresenceStatus type and the HTTP API convention.
+                options.PayloadSerializerOptions.Converters.Add(
+                    new System.Text.Json.Serialization.JsonStringEnumConverter(
+                        System.Text.Json.JsonNamingPolicy.CamelCase));
+            })
             .AddStackExchangeRedis(redisOpts.ConnectionString, options =>
                 options.Configuration.ChannelPrefix = RedisChannel.Literal(redisOpts.ChannelPrefix));
         services.AddSingleton<Microsoft.AspNetCore.SignalR.IHubFilter, HubRateLimitFilter>();

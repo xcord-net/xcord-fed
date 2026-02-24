@@ -363,16 +363,36 @@ public sealed class PermissionService : IPermissionService
     /// <inheritdoc />
     public async Task InvalidateRoleMembersPermissionsAsync(long roleId, long serverId, CancellationToken cancellationToken = default)
     {
-        // Find every user who currently holds this role in the server.
-        // We must do this before the role assignment rows are deleted so that
-        // DeleteRoleHandler can call this before SaveChanges, but AssignRoleHandler/
-        // RemoveRoleHandler call it after — the role membership rows still exist when
-        // UpdateRoleHandler triggers this. For DeleteRole we query before soft-delete.
-        var affectedUserIds = await _dbContext.MemberRoles
+        // Check if this is the @everyone role. The @everyone role applies to ALL server
+        // members implicitly — its membership is NOT tracked in MemberRoles. If we only
+        // query MemberRoles we'd find zero affected users and skip cache invalidation.
+        var isEveryoneRole = await _dbContext.Roles
             .AsNoTracking()
-            .Where(mr => mr.RoleId == roleId && mr.ServerId == serverId)
-            .Select(mr => mr.UserId)
-            .ToListAsync(cancellationToken);
+            .AnyAsync(r => r.Id == roleId && r.IsEveryone, cancellationToken);
+
+        List<long> affectedUserIds;
+        if (isEveryoneRole)
+        {
+            // @everyone applies to ALL server members — invalidate everyone
+            affectedUserIds = await _dbContext.ServerMembers
+                .AsNoTracking()
+                .Where(sm => sm.ServerId == serverId)
+                .Select(sm => sm.UserId)
+                .ToListAsync(cancellationToken);
+        }
+        else
+        {
+            // Find every user who currently holds this role in the server.
+            // We must do this before the role assignment rows are deleted so that
+            // DeleteRoleHandler can call this before SaveChanges, but AssignRoleHandler/
+            // RemoveRoleHandler call it after — the role membership rows still exist when
+            // UpdateRoleHandler triggers this. For DeleteRole we query before soft-delete.
+            affectedUserIds = await _dbContext.MemberRoles
+                .AsNoTracking()
+                .Where(mr => mr.RoleId == roleId && mr.ServerId == serverId)
+                .Select(mr => mr.UserId)
+                .ToListAsync(cancellationToken);
+        }
 
         foreach (var uid in affectedUserIds)
         {

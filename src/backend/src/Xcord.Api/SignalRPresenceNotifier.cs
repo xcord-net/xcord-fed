@@ -23,7 +23,7 @@ public sealed class SignalRPresenceNotifier : IPresenceNotifier
         var payload = new
         {
             userId,
-            status = status.ToString(),
+            status = status.ToString().ToLowerInvariant(),
             lastSeen = DateTimeOffset.UtcNow
         };
 

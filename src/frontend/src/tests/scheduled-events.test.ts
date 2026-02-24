@@ -14,12 +14,12 @@ import {
 const makeEvent = (overrides: Partial<ScheduledEvent> = {}): ScheduledEvent => ({
   id: 'evt-1',
   serverId: 'srv-1',
-  title: 'Weekly Standup',
+  name: 'Weekly Standup',
   description: 'Team sync every Monday',
-  startTime: new Date('2026-03-01T10:00:00Z').toISOString(),
-  endTime: new Date('2026-03-01T10:30:00Z').toISOString(),
-  locationType: 'VoiceChannel',
-  locationChannelName: 'General Voice',
+  scheduledStartTime: new Date('2026-03-01T10:00:00Z').toISOString(),
+  scheduledEndTime: new Date('2026-03-01T10:30:00Z').toISOString(),
+  channelId: '123',
+  status: 'Scheduled',
   interestedCount: 5,
   isInterested: false,
   createdAt: new Date('2026-02-01T00:00:00Z').toISOString(),
@@ -38,12 +38,12 @@ describe('ScheduledEvents', () => {
   // ---- Event list rendering ----
 
   describe('event list data', () => {
-    it('renders event title from ScheduledEvent shape', () => {
+    it('renders event name from ScheduledEvent shape', () => {
       // Arrange
-      const event = makeEvent({ title: 'Game Night' });
+      const event = makeEvent({ name: 'Game Night' });
 
       // Assert
-      expect(event.title).toBe('Game Night');
+      expect(event.name).toBe('Game Night');
     });
 
     it('renders description when present', () => {
@@ -110,8 +110,8 @@ describe('ScheduledEvents', () => {
 
     it('events are sorted by start time ascending', () => {
       // Arrange
-      const later = makeEvent({ id: 'e1', startTime: new Date('2026-04-01T10:00:00Z').toISOString() });
-      const earlier = makeEvent({ id: 'e2', startTime: new Date('2026-03-01T10:00:00Z').toISOString() });
+      const later = makeEvent({ id: 'e1', scheduledStartTime: new Date('2026-04-01T10:00:00Z').toISOString() });
+      const earlier = makeEvent({ id: 'e2', scheduledStartTime: new Date('2026-03-01T10:00:00Z').toISOString() });
       const events = [later, earlier];
 
       // Act
@@ -207,7 +207,7 @@ describe('ScheduledEvents', () => {
     it('create event POST hits the correct URL', async () => {
       // Arrange
       const serverId = 'srv-post-test';
-      const newEvent = makeEvent({ id: 'evt-new', title: 'New Event' });
+      const newEvent = makeEvent({ id: 'evt-new', name: 'New Event' });
 
       globalThis.fetch = vi.fn().mockResolvedValueOnce({
         ok: true,
@@ -216,9 +216,8 @@ describe('ScheduledEvents', () => {
 
       // Act
       const result = await api.post<ScheduledEvent>(`/api/v1/servers/${serverId}/events`, {
-        title: 'New Event',
-        startTime: new Date('2026-03-01T10:00:00Z').toISOString(),
-        locationType: 'External',
+        name: 'New Event',
+        scheduledStartTime: new Date('2026-03-01T10:00:00Z').toISOString(),
       });
 
       // Assert
@@ -228,7 +227,7 @@ describe('ScheduledEvents', () => {
           method: 'POST',
         }),
       );
-      expect(result.title).toBe('New Event');
+      expect(result.name).toBe('New Event');
     });
   });
 
@@ -249,22 +248,20 @@ describe('ScheduledEvents', () => {
   // ---- Location types ----
 
   describe('location type', () => {
-    it('VoiceChannel location has channelName', () => {
+    it('voice channel event has channelId', () => {
       const event = makeEvent({
-        locationType: 'VoiceChannel',
-        locationChannelName: 'General Voice',
+        channelId: '456',
+        location: undefined,
       });
-      expect(event.locationType).toBe('VoiceChannel');
-      expect(event.locationChannelName).toBe('General Voice');
+      expect(event.channelId).toBe('456');
     });
 
-    it('External location has externalUrl', () => {
+    it('external event has location URL', () => {
       const event = makeEvent({
-        locationType: 'External',
-        locationExternalUrl: 'https://meet.example.com/room',
+        channelId: undefined,
+        location: 'https://meet.example.com/room',
       });
-      expect(event.locationType).toBe('External');
-      expect(event.locationExternalUrl).toBe('https://meet.example.com/room');
+      expect(event.location).toBe('https://meet.example.com/room');
     });
   });
 });

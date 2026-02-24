@@ -19,6 +19,8 @@ import ChannelSettings from './ChannelSettings';
 import RoleManager from './RoleManager';
 import ScheduledEvents from './ScheduledEvents';
 import UserNotes from './UserNotes';
+import ConnectedAccounts from './ConnectedAccounts';
+import ProfileDecorations from './ProfileDecorations';
 import { useServers } from '../stores/server.store';
 import { useChannels } from '../stores/channel.store';
 import { useMembers } from '../stores/member.store';
@@ -44,7 +46,7 @@ export default function Layout() {
   const [showSearch, setShowSearch] = createSignal(false);
   const [showPins, setShowPins] = createSignal(false);
   const [showThreads, setShowThreads] = createSignal(false);
-  const [showSettings, setShowSettings] = createSignal<'profile' | 'blocks' | 'notifications' | 'notes' | null>(null);
+  const [showSettings, setShowSettings] = createSignal<'profile' | 'blocks' | 'notifications' | 'notes' | 'connected-accounts' | 'profile-decorations' | null>(null);
   const [showChannelSettings, setShowChannelSettings] = createSignal(false);
   const [showRoleManager, setShowRoleManager] = createSignal(false);
   const [showEvents, setShowEvents] = createSignal(false);
@@ -173,8 +175,15 @@ export default function Layout() {
 
   const conversationId = () => currentChannel()?.conversationId;
 
+  /** True when the current channel's conversation has been successfully joined on the SignalR hub. */
+  const conversationJoined = () => {
+    const convId = conversationId();
+    if (!convId) return false;
+    return signalR.currentConversations.has(convId);
+  };
+
   return (
-    <div class="h-screen flex bg-xcord-bg-primary text-xcord-text-primary">
+    <div class="h-screen flex bg-xcord-bg-primary text-xcord-text-primary" data-signalr-connected={String(signalR.isConnected)} data-signalr-conversation-joined={String(conversationJoined())}>
       {/* Server sidebar */}
       <ServerSidebar />
 
@@ -434,11 +443,25 @@ export default function Layout() {
               >
                 User Notes
               </button>
+              <button
+                class={`px-4 py-3 text-sm ${showSettings() === 'connected-accounts' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
+                onClick={() => setShowSettings('connected-accounts')}
+              >
+                Connected Accounts
+              </button>
+              <button
+                class={`px-4 py-3 text-sm ${showSettings() === 'profile-decorations' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
+                onClick={() => setShowSettings('profile-decorations')}
+              >
+                Profile Decorations
+              </button>
             </div>
             <Show when={showSettings() === 'profile'}><UserProfileEditor /></Show>
             <Show when={showSettings() === 'notifications'}><NotificationSettings /></Show>
             <Show when={showSettings() === 'blocks'}><BlockList /></Show>
             <Show when={showSettings() === 'notes'}><UserNotes /></Show>
+            <Show when={showSettings() === 'connected-accounts'}><ConnectedAccounts /></Show>
+            <Show when={showSettings() === 'profile-decorations'}><ProfileDecorations /></Show>
           </div>
         </div>
       </Show>

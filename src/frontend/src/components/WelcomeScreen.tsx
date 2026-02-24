@@ -5,15 +5,16 @@ import { api } from '../api/client';
 
 export interface WelcomeChannel {
   channelId: string;
-  channelName: string;
+  channelName?: string;
   description: string;
-  emoji?: string;
+  emojiName?: string;
+  position?: number;
 }
 
 export interface WelcomeScreenConfig {
-  enabled: boolean;
+  isEnabled: boolean;
   description: string;
-  welcomeChannels: WelcomeChannel[];
+  channels: WelcomeChannel[];
 }
 
 interface WelcomeScreenProps {
@@ -39,7 +40,7 @@ export function validateWelcomeChannel(channel: WelcomeChannel): string | null {
 }
 
 export function welcomeChannelCount(config: WelcomeScreenConfig): number {
-  return config.welcomeChannels.length;
+  return config.channels.length;
 }
 
 // ---- Component ----
@@ -81,10 +82,10 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
 
   const startEditing = () => {
     const current = config();
-    setEditEnabled(current?.enabled ?? false);
+    setEditEnabled(current?.isEnabled ?? false);
     setEditDescription(current?.description ?? '');
     setEditChannels(
-      current?.welcomeChannels.map((ch) => ({ ...ch })) ?? [],
+      current?.channels.map((ch) => ({ ...ch })) ?? [],
     );
     setDescError(null);
     setSubmitError(null);
@@ -94,7 +95,7 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
   const handleAddChannel = () => {
     setEditChannels((prev) => [
       ...prev,
-      { channelId: '', channelName: '', description: '', emoji: '' },
+      { channelId: '', channelName: '', description: '', emojiName: '', position: prev.length },
     ]);
   };
 
@@ -136,20 +137,31 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
     setIsSaving(true);
     setSubmitError(null);
     try {
+      const channelNamesById = Object.fromEntries(
+        editChannels().map((ch) => [ch.channelId.trim(), ch.channelName?.trim() || ''])
+      );
       const updated = await api.put<WelcomeScreenConfig>(
         `/api/v1/servers/${props.serverId}/welcome-screen`,
         {
-          enabled: editEnabled(),
+          isEnabled: editEnabled(),
           description: editDescription().trim(),
-          welcomeChannels: editChannels().map((ch) => ({
+          channels: editChannels().map((ch, index) => ({
             channelId: ch.channelId.trim(),
-            channelName: ch.channelName.trim(),
             description: ch.description.trim(),
-            emoji: ch.emoji?.trim() || undefined,
+            emojiName: ch.emojiName?.trim() || undefined,
+            position: ch.position ?? index,
           })),
         },
       );
-      setConfig(updated);
+      // Merge locally-entered channelNames back (backend doesn't store them)
+      const mergedConfig: WelcomeScreenConfig = {
+        ...updated,
+        channels: (updated.channels ?? []).map((ch) => ({
+          ...ch,
+          channelName: channelNamesById[String(ch.channelId)] || undefined,
+        })),
+      };
+      setConfig(mergedConfig);
       setIsEditing(false);
       setSuccessMessage('Welcome screen saved.');
       setTimeout(() => setSuccessMessage(null), 3000);
@@ -204,12 +216,12 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
                 <div class="flex items-center gap-2">
                   <span
                     class={`text-xs font-semibold px-2 py-0.5 rounded ${
-                      config()!.enabled
+                      config()!.isEnabled
                         ? 'bg-green-500/20 text-green-400'
                         : 'bg-xcord-bg-tertiary text-xcord-text-muted'
                     }`}
                   >
-                    {config()!.enabled ? 'Enabled' : 'Disabled'}
+                    {config()!.isEnabled ? 'Enabled' : 'Disabled'}
                   </span>
                 </div>
 
@@ -224,21 +236,21 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
                   </p>
                 </div>
 
-                <Show when={config()!.welcomeChannels.length > 0}>
+                <Show when={config()!.channels.length > 0}>
                   <div>
                     <p class="text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-2">
                       Recommended Channels ({welcomeChannelCount(config()!)})
                     </p>
                     <div class="space-y-2">
-                      <For each={config()!.welcomeChannels}>
+                      <For each={config()!.channels}>
                         {(ch) => (
                           <div class="flex items-start gap-2 bg-xcord-bg-primary rounded px-3 py-2">
-                            <Show when={ch.emoji}>
-                              <span class="text-lg flex-shrink-0">{ch.emoji}</span>
+                            <Show when={ch.emojiName}>
+                              <span class="text-lg flex-shrink-0">{ch.emojiName}</span>
                             </Show>
                             <div class="flex-1 min-w-0">
                               <p class="text-xcord-text-primary text-sm font-medium">
-                                #{ch.channelName}
+                                #{ch.channelName || ch.channelId}
                               </p>
                               <p class="text-xcord-text-muted text-xs mt-0.5">{ch.description}</p>
                             </div>
@@ -249,7 +261,7 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
                   </div>
                 </Show>
 
-                <Show when={config()!.welcomeChannels.length === 0}>
+                <Show when={config()!.channels.length === 0}>
                   <p class="text-xcord-text-muted text-sm">No recommended channels configured.</p>
                 </Show>
               </div>
@@ -358,7 +370,7 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
                           type="text"
                           class="bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
                           placeholder="Channel name"
-                          value={ch.channelName}
+                          value={ch.channelName ?? ''}
                           onInput={(e) => handleChannelField(index(), 'channelName', e.currentTarget.value)}
                           aria-label={`Channel ${index() + 1} name`}
                         />
@@ -376,8 +388,8 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
                           type="text"
                           class="bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
                           placeholder="Emoji (optional)"
-                          value={ch.emoji ?? ''}
-                          onInput={(e) => handleChannelField(index(), 'emoji', e.currentTarget.value)}
+                          value={ch.emojiName ?? ''}
+                          onInput={(e) => handleChannelField(index(), 'emojiName', e.currentTarget.value)}
                           aria-label={`Channel ${index() + 1} emoji`}
                         />
                       </div>

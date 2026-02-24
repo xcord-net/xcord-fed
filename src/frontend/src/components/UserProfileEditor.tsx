@@ -159,6 +159,8 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
               <TwoFactorSetup />
               <AccountDeletion
                 scheduledDeletionAt={profileStore.userProfile!.scheduledDeletionAt ?? null}
+                onDeletionScheduled={(_date) => profileStore.loadUserProfile()}
+                onDeletionCancelled={() => profileStore.loadUserProfile()}
               />
             </div>
           </div>

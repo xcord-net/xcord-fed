@@ -98,6 +98,36 @@ public sealed class JoinByInviteHandler(
 
         dbContext.ServerMembers.Add(serverMember);
 
+        // Create ReadState rows for all text/forum channels in the server so the
+        // unread notification system can track messages the new member hasn't seen.
+        // Skip any that already exist (e.g. user rejoining after a ban — ReadState rows
+        // are not deleted when a member is banned, so they may still be present).
+        var channelConversationIds = await dbContext.Channels
+            .AsNoTracking()
+            .Where(c => c.ServerId == invite.ServerId && c.Type != ChannelType.Voice)
+            .Select(c => c.ConversationId)
+            .ToListAsync(cancellationToken);
+
+        var existingReadStateConversationIds = await dbContext.ReadStates
+            .AsNoTracking()
+            .Where(rs => rs.UserId == userId && channelConversationIds.Contains(rs.ConversationId))
+            .Select(rs => rs.ConversationId)
+            .ToHashSetAsync(cancellationToken);
+
+        foreach (var conversationId in channelConversationIds)
+        {
+            if (existingReadStateConversationIds.Contains(conversationId))
+                continue;
+
+            dbContext.ReadStates.Add(new Xcord.Entities.ReadState
+            {
+                UserId = userId,
+                ConversationId = conversationId,
+                UnreadCount = 0,
+                MentionCount = 0
+            });
+        }
+
         // Increment invite uses
         invite.Uses++;
 

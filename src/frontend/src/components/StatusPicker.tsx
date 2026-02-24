@@ -1,7 +1,7 @@
 import { createSignal, For, Show } from 'solid-js';
-import { api } from '../api/client';
 import { usePresence } from '../stores/presence.store';
 import { useAuth } from '../stores/auth.store';
+import { useSignalR } from '../stores/signalr.store';
 import type { PresenceStatus } from '../types/presence';
 import { statusColorMap } from './PresenceDot';
 
@@ -17,6 +17,7 @@ export default function StatusPicker() {
   const [isSaving, setIsSaving] = createSignal(false);
   const presence = usePresence();
   const auth = useAuth();
+  const signalR = useSignalR();
 
   const currentStatus = () => {
     const userId = auth.user?.id;
@@ -27,7 +28,7 @@ export default function StatusPicker() {
   async function selectStatus(status: PresenceStatus) {
     setIsSaving(true);
     try {
-      await api.put('/api/v1/users/@me/presence', { status, activity: null });
+      await signalR.updatePresence(status);
       const userId = auth.user?.id;
       if (userId) {
         presence.updatePresence(userId, status);

@@ -6,17 +6,17 @@ import { api } from '../api/client';
 export interface ScheduledEvent {
   id: string;
   serverId: string;
-  title: string;
+  name: string;
   description?: string;
-  startTime: string;
-  endTime?: string;
-  locationType: 'VoiceChannel' | 'External';
-  locationChannelId?: string;
-  locationChannelName?: string;
-  locationExternalUrl?: string;
+  channelId?: string;
+  location?: string;
+  scheduledStartTime: string;
+  scheduledEndTime?: string;
+  status: string;
   interestedCount: number;
-  isInterested: boolean;
   createdAt: string;
+  // Client-only state (not returned by API)
+  isInterested?: boolean;
 }
 
 interface ScheduledEventsProps {
@@ -74,7 +74,7 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
       const data = await api.get<ScheduledEvent[]>(`/api/v1/servers/${serverId}/events`);
       // Sort by start time ascending
       const sorted = [...data].sort(
-        (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+        (a, b) => new Date(a.scheduledStartTime).getTime() - new Date(b.scheduledStartTime).getTime(),
       );
       setEvents(sorted);
     } catch {
@@ -133,17 +133,16 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
     setSubmitError(null);
     try {
       const payload: Record<string, unknown> = {
-        title: titleVal,
+        name: titleVal,
         description: formDescription().trim() || undefined,
-        startTime: new Date(formStartTime()).toISOString(),
-        endTime: formEndTime() ? new Date(formEndTime()).toISOString() : undefined,
-        locationType: formLocationType(),
+        scheduledStartTime: new Date(formStartTime()).toISOString(),
+        scheduledEndTime: formEndTime() ? new Date(formEndTime()).toISOString() : undefined,
       };
 
       if (formLocationType() === 'VoiceChannel') {
-        payload.locationChannelId = formLocationChannelId().trim() || undefined;
+        payload.channelId = formLocationChannelId().trim() || undefined;
       } else {
-        payload.locationExternalUrl = formLocationExternalUrl().trim() || undefined;
+        payload.location = formLocationExternalUrl().trim() || undefined;
       }
 
       const newEvent = await api.post<ScheduledEvent>(
@@ -154,7 +153,7 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
       setEvents((prev) => {
         const updated = [...prev, newEvent];
         return updated.sort(
-          (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+          (a, b) => new Date(a.scheduledStartTime).getTime() - new Date(b.scheduledStartTime).getTime(),
         );
       });
 
@@ -358,40 +357,38 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
                 <div class="px-4 py-4">
                   <div class="flex items-start justify-between gap-3">
                     <div class="flex-1 min-w-0">
-                      {/* Event title */}
-                      <h3 class="text-xcord-text-primary font-semibold text-sm">{event.title}</h3>
+                      {/* Event name */}
+                      <h3 class="text-xcord-text-primary font-semibold text-sm">{event.name}</h3>
 
                       {/* Date and time */}
                       <div class="flex items-center gap-2 mt-1">
                         <span class="text-xcord-text-muted text-xs">📅</span>
                         <span class="text-xcord-text-muted text-xs">
-                          {formatEventDate(event.startTime)} at {formatEventTime(event.startTime)}
+                          {formatEventDate(event.scheduledStartTime)} at {formatEventTime(event.scheduledStartTime)}
                         </span>
-                        <Show when={event.endTime}>
+                        <Show when={event.scheduledEndTime}>
                           <span class="text-xcord-text-muted text-xs">
-                            — {formatEventTime(event.endTime!)}
+                            — {formatEventTime(event.scheduledEndTime!)}
                           </span>
                         </Show>
                       </div>
 
                       {/* Location */}
                       <div class="flex items-center gap-2 mt-0.5">
-                        <Show when={event.locationType === 'VoiceChannel'}>
+                        <Show when={event.channelId}>
                           <span class="text-xcord-text-muted text-xs">🔊</span>
-                          <span class="text-xcord-text-muted text-xs">
-                            {event.locationChannelName ?? 'Voice Channel'}
-                          </span>
+                          <span class="text-xcord-text-muted text-xs">Voice Channel</span>
                         </Show>
-                        <Show when={event.locationType === 'External' && event.locationExternalUrl}>
+                        <Show when={!event.channelId && event.location}>
                           <span class="text-xcord-text-muted text-xs">🔗</span>
                           <a
-                            href={event.locationExternalUrl}
+                            href={event.location}
                             target="_blank"
                             rel="noreferrer"
                             class="text-xcord-brand text-xs hover:underline truncate"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            {event.locationExternalUrl}
+                            {event.location}
                           </a>
                         </Show>
                       </div>
@@ -434,7 +431,7 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
 
 export function sortEventsByStartTime(events: ScheduledEvent[]): ScheduledEvent[] {
   return [...events].sort(
-    (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+    (a, b) => new Date(a.scheduledStartTime).getTime() - new Date(b.scheduledStartTime).getTime(),
   );
 }
 

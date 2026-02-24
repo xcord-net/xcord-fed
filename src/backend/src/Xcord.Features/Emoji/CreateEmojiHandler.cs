@@ -14,8 +14,7 @@ namespace Xcord.Features.Emoji;
 public sealed record CreateEmojiCommand(
     long ServerId,
     string Name,
-    string ImageUrl,
-    string S3Key,
+    long AttachmentId,
     bool IsAnimated
 );
 
@@ -78,6 +77,24 @@ public sealed class CreateEmojiHandler(
             }
         }
 
+        // Resolve the attachment to get S3 key and build a stable image URL.
+        var attachment = await dbContext.Attachments
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.Id == request.AttachmentId, cancellationToken);
+
+        if (attachment == null)
+        {
+            return Error.NotFound("ATTACHMENT_NOT_FOUND", "Attachment not found");
+        }
+
+        if (!attachment.IsConfirmed)
+        {
+            return Error.Validation("ATTACHMENT_NOT_CONFIRMED", "The image has not been uploaded yet");
+        }
+
+        // Use the proxy download endpoint so emoji URLs are stable (not time-limited presigned URLs).
+        var imageUrl = $"/api/v1/attachments/{attachment.Id}/download";
+
         // Check emoji name uniqueness within server
         var nameExists = await dbContext.CustomEmojis
             .AsNoTracking()
@@ -109,8 +126,8 @@ public sealed class CreateEmojiHandler(
             Id = snowflakeGenerator.NextId(),
             ServerId = request.ServerId,
             Name = request.Name,
-            ImageUrl = request.ImageUrl,
-            S3Key = request.S3Key,
+            ImageUrl = imageUrl,
+            S3Key = attachment.S3Key,
             IsAnimated = request.IsAnimated,
             CreatorId = userId,
             CreatedAt = now
@@ -121,7 +138,7 @@ public sealed class CreateEmojiHandler(
 
         logger.LogInformation(
             "User {UserId} created emoji {EmojiName} (ID: {EmojiId}) in server {ServerId}",
-            userId, emoji.Name, emoji.Id, request.ServerId);
+            userId, emoji.Name, emoji.Id, emoji.ServerId);
 
         return new CreateEmojiResponse(
             Id: emoji.Id,
@@ -145,8 +162,7 @@ public sealed class CreateEmojiHandler(
             var command = new CreateEmojiCommand(
                 ServerId: serverId,
                 Name: request.Name,
-                ImageUrl: request.ImageUrl,
-                S3Key: request.S3Key,
+                AttachmentId: request.AttachmentId,
                 IsAnimated: request.IsAnimated
             );
 
@@ -160,7 +176,6 @@ public sealed class CreateEmojiHandler(
 
 public sealed record CreateEmojiRequest(
     string Name,
-    string ImageUrl,
-    string S3Key,
+    long AttachmentId,
     bool IsAnimated
 );

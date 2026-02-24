@@ -108,6 +108,9 @@ interface MessageListProps {
   conversationId: string;
 }
 
+// ManageMessages permission bit (must match backend Permission.ManageMessages = 1L << 7)
+const MANAGE_MESSAGES_BIT = 128n;
+
 export default function MessageList(props: MessageListProps) {
   const messageStore = useMessages();
   const pinStore = usePins();
@@ -120,6 +123,7 @@ export default function MessageList(props: MessageListProps) {
   let scrollContainer: HTMLDivElement | undefined;
   const [isAtBottom, setIsAtBottom] = createSignal(true);
   const [reactionPickerMessageId, setReactionPickerMessageId] = createSignal<string | null>(null);
+  const [myPermissions, setMyPermissions] = createSignal<bigint>(0n);
 
   const currentUserId = () => authStore.user?.id;
 
@@ -130,9 +134,33 @@ export default function MessageList(props: MessageListProps) {
     return server?.ownerId === currentUserId();
   };
 
-  const canDeleteMessage = (msg: Message) => {
-    return msg.authorId === currentUserId() || isServerOwner();
+  const hasManageMessages = () => {
+    return (myPermissions() & MANAGE_MESSAGES_BIT) !== 0n;
   };
+
+  const canDeleteMessage = (msg: Message) => {
+    return msg.authorId === currentUserId() || isServerOwner() || hasManageMessages();
+  };
+
+  // Fetch my effective permissions for the current channel whenever channelId changes.
+  // The backend serializes long values as JSON strings (SnowflakeJsonConverter),
+  // so Permissions comes back as a string like "128". Use BigInt to handle it safely.
+  createEffect(() => {
+    const channelId = params.channelId;
+    if (!channelId) {
+      setMyPermissions(0n);
+      return;
+    }
+    api.get<{ permissions: string | number }>(`/api/v1/channels/${channelId}/my-permissions`)
+      .then((data) => {
+        try {
+          setMyPermissions(BigInt(data.permissions));
+        } catch {
+          setMyPermissions(0n);
+        }
+      })
+      .catch(() => setMyPermissions(0n));
+  });
 
   // Re-fetch messages whenever the conversation changes
   createEffect(() => {
@@ -323,6 +351,7 @@ export default function MessageList(props: MessageListProps) {
                             <Show when={reactionPickerMessageId() === message().id}>
                               <div class="absolute right-0 top-full mt-1 z-50">
                                 <EmojiPicker
+                                  serverId={params.serverId}
                                   onSelect={async (emoji) => {
                                     setReactionPickerMessageId(null);
                                     try {
@@ -437,6 +466,7 @@ export default function MessageList(props: MessageListProps) {
                                 reactions={message().reactions!}
                                 messageId={message().id}
                                 conversationId={props.conversationId}
+                                serverId={params.serverId}
                               />
                             </Show>
                           </div>
@@ -502,6 +532,7 @@ export default function MessageList(props: MessageListProps) {
                                 reactions={message().reactions!}
                                 messageId={message().id}
                                 conversationId={props.conversationId}
+                                serverId={params.serverId}
                               />
                             </Show>
                           </div>

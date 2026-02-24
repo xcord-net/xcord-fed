@@ -138,9 +138,9 @@ export default function NotificationSettings() {
               </p>
 
               <div class="space-y-2">
-                <Show when={notifStore.settings!.mentionKeywords.length > 0}>
+                <Show when={(notifStore.settings!.mentionKeywords ?? []).length > 0}>
                   <div class="flex flex-wrap gap-2">
-                    {notifStore.settings!.mentionKeywords.map((keyword) => (
+                    {(notifStore.settings!.mentionKeywords ?? []).map((keyword) => (
                       <span class="bg-xcord-bg-primary text-xcord-text-primary px-2 py-1 rounded text-sm">
                         {keyword}
                       </span>
@@ -154,7 +154,7 @@ export default function NotificationSettings() {
                   class="w-full bg-xcord-bg-primary text-white px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-xcord-brand"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                      const keywords = [...notifStore.settings!.mentionKeywords, e.currentTarget.value.trim()];
+                      const keywords = [...(notifStore.settings!.mentionKeywords ?? []), e.currentTarget.value.trim()];
                       notifStore.updateSettings({ mentionKeywords: keywords });
                       e.currentTarget.value = '';
                     }

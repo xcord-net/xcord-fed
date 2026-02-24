@@ -30,7 +30,28 @@ export function useNotifications() {
     async loadSettings(): Promise<void> {
       store.setIsLoading(true);
       try {
-        const settings = await api.get<NotificationSettings>('/api/v1/users/@me/notification-settings');
+        // GET /api/v1/users/@me/notification-settings returns an array of
+        // NotificationSettingDto rows. Synthesise a NotificationSettings
+        // object with safe defaults so the UI never accesses undefined fields.
+        const _raw = await api.get<unknown>('/api/v1/users/@me/notification-settings');
+        const settings: NotificationSettings = {
+          userId: '',
+          muteAll: false,
+          allowDirectMessages: true,
+          allowFriendRequests: true,
+          showOnlineStatus: true,
+          mutedServerIds: [],
+          mutedChannelIds: [],
+          mentionKeywords: [],
+        };
+        // If the backend ever returns the full object shape, merge it in.
+        if (_raw && typeof _raw === 'object' && !Array.isArray(_raw)) {
+          Object.assign(settings, _raw);
+        }
+        // Ensure arrays are never undefined (defensive against API shape changes).
+        settings.mutedServerIds ??= [];
+        settings.mutedChannelIds ??= [];
+        settings.mentionKeywords ??= [];
         store.setSettings(settings);
       } finally {
         store.setIsLoading(false);
@@ -93,7 +114,8 @@ export function useNotifications() {
 
     /** Load all server-level notification overrides for the current user. */
     async loadServerOverrides(): Promise<void> {
-      const overrides = await api.get<NotificationSettingDto[]>('/api/v1/users/@me/notification-settings');
+      const raw = await api.get<NotificationSettingDto[] | unknown>('/api/v1/users/@me/notification-settings');
+      const overrides = Array.isArray(raw) ? raw as NotificationSettingDto[] : [];
       // Filter to only server-level settings (serverId set, channelId null)
       const serverLevel = overrides.filter((o) => o.serverId !== null && o.channelId === null);
       store.setServerOverrides(serverLevel);

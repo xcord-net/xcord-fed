@@ -13,6 +13,9 @@ function normalizeMessage(m: Message): Message {
     id: String(m.id),
     conversationId: String(m.conversationId),
     authorId: m.authorId ? String(m.authorId) : '',
+    // Guard against null/undefined content from incomplete SignalR payloads
+    // (system messages dispatched by backend handlers like BanMemberHandler).
+    content: m.content ?? '',
     replyToId: m.replyToId ? String(m.replyToId) : undefined,
     type: typeof m.type === 'number'
       ? (messageTypeMap[m.type as unknown as number] ?? 'Default')

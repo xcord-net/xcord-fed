@@ -297,6 +297,8 @@ export function useSignalR() {
     get connection() { return store.connection(); },
     get isConnected() { return store.isConnected(); },
     get isConnecting() { return store.isConnecting(); },
+    /** Set of conversation IDs currently joined on the SignalR hub. */
+    get currentConversations() { return store.currentConversations(); },
     /** Non-null when the server sent System_ShuttingDown. Cleared on reset/reconnect. */
     get suspensionReason() { return store.suspensionReason(); },
 

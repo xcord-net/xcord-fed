@@ -26,6 +26,50 @@ export interface ServerTemplate {
   createdAt: string;
 }
 
+// The backend returns channelData and roleData as JSON strings.
+// This interface matches the raw API response shape.
+interface RawServerTemplateResponse {
+  id: string;
+  name: string;
+  description?: string;
+  sourceServerId?: string;
+  channelData?: string;
+  roleData?: string;
+  channels?: TemplateChannel[];
+  roles?: TemplateRole[];
+  usageCount: number;
+  createdAt: string;
+}
+
+function normalizeTemplate(raw: RawServerTemplateResponse): ServerTemplate {
+  let channels: TemplateChannel[] = [];
+  let roles: TemplateRole[] = [];
+
+  // If backend sent channelData/roleData as JSON strings, parse them
+  if (typeof raw.channelData === 'string' && raw.channelData) {
+    try { channels = JSON.parse(raw.channelData); } catch { channels = []; }
+  } else if (Array.isArray(raw.channels)) {
+    channels = raw.channels;
+  }
+
+  if (typeof raw.roleData === 'string' && raw.roleData) {
+    try { roles = JSON.parse(raw.roleData); } catch { roles = []; }
+  } else if (Array.isArray(raw.roles)) {
+    roles = raw.roles;
+  }
+
+  return {
+    id: String(raw.id),
+    name: raw.name,
+    description: raw.description,
+    sourceServerId: raw.sourceServerId ? String(raw.sourceServerId) : undefined,
+    channels,
+    roles,
+    usageCount: raw.usageCount ?? 0,
+    createdAt: raw.createdAt,
+  };
+}
+
 interface ServerTemplatesProps {
   serverId: string;
   isOwner?: boolean;
@@ -70,8 +114,8 @@ export default function ServerTemplates(props: ServerTemplatesProps) {
   const loadTemplates = async () => {
     setIsLoading(true);
     try {
-      const data = await api.get<ServerTemplate[]>('/api/v1/server-templates');
-      setTemplates(data);
+      const data = await api.get<RawServerTemplateResponse[]>('/api/v1/server-templates');
+      setTemplates(data.map(normalizeTemplate));
     } catch {
       setTemplates([]);
     } finally {
@@ -96,14 +140,14 @@ export default function ServerTemplates(props: ServerTemplatesProps) {
     setIsSubmitting(true);
     setSubmitError(null);
     try {
-      const newTemplate = await api.post<ServerTemplate>(
+      const rawTemplate = await api.post<RawServerTemplateResponse>(
         `/api/v1/servers/${props.serverId}/templates`,
         {
           name: formName().trim(),
           description: formDescription().trim() || undefined,
         },
       );
-      setTemplates((prev) => [...prev, newTemplate]);
+      setTemplates((prev) => [...prev, normalizeTemplate(rawTemplate)]);
       setFormName('');
       setFormDescription('');
       setShowSaveForm(false);

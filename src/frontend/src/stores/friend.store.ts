@@ -40,6 +40,7 @@ const store = createRoot(() => {
 function friendshipToFriend(dto: FriendshipDto, myUserId: string): Friend {
   const isReceiver = dto.senderId === myUserId;
   return {
+    friendshipId: dto.id,
     userId: isReceiver ? dto.receiverId : dto.senderId,
     username: isReceiver ? dto.receiverUsername : dto.senderUsername,
     displayName: isReceiver ? dto.receiverDisplayName : dto.senderDisplayName,
@@ -130,13 +131,11 @@ export function useFriends() {
     },
 
     async removeFriend(userId: string): Promise<void> {
-      // Find the friendship ID for this friend
       const allFriends = store.friends();
       const friend = allFriends.find((f) => f.userId === userId);
       if (friend) {
-        // We need the friendship ID, but Friend type doesn't have it
-        // Use the userId to find and delete via the friends endpoint
-        await api.delete(`/api/v1/users/@me/friends/${userId}`);
+        // The backend DELETE endpoint takes the friendship ID, not the user ID.
+        await api.delete(`/api/v1/users/@me/friends/${friend.friendshipId}`);
         store.setFriends(allFriends.filter((f) => f.userId !== userId));
       }
     },

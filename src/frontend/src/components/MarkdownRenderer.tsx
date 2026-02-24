@@ -20,11 +20,34 @@ type RenderedToken =
   | { type: 'mention_here' };
 
 /**
+ * Decode HTML entities produced by the backend's HtmlEncoder.Default.Encode().
+ * The backend HTML-encodes message content for XSS prevention, so the frontend
+ * must decode before parsing markdown syntax (especially newlines for code blocks
+ * and angle brackets for mention patterns like <@userId>).
+ */
+function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&#xA;/g, '\n')
+    .replace(/&#xD;/g, '\r')
+    .replace(/&#x9;/g, '\t')
+    .replace(/&#x2B;/g, '+')
+    .replace(/&#x27;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
+}
+
+/**
  * Parse markdown content into a flat array of tokens.
  * Handles: bold, italic, strikethrough, code block, inline code, blockquote,
  * spoiler, links, and mention patterns (@everyone, @here, <@id>, <@&id>).
+ *
+ * The input content is HTML-encoded by the backend (HtmlEncoder.Default.Encode),
+ * so we decode HTML entities first before parsing markdown syntax.
  */
 export function parseMarkdown(content: string): RenderedToken[] {
+  const decoded = decodeHtmlEntities(content);
   const tokens: RenderedToken[] = [];
 
   // Process the full content line by line first to handle blockquotes and code blocks
@@ -140,7 +163,7 @@ export function parseMarkdown(content: string): RenderedToken[] {
   };
 
   // Split into lines to handle blockquotes and code blocks
-  const lines = content.split('\n');
+  const lines = decoded.split('\n');
   let i = 0;
 
   while (i < lines.length) {
@@ -275,7 +298,9 @@ function renderToken(token: RenderedToken) {
 }
 
 export default function MarkdownRenderer(props: MarkdownRendererProps) {
-  const tokens = () => parseMarkdown(props.content);
+  // Guard against null/undefined content (e.g. system messages dispatched via
+  // SignalR with an incomplete payload).  An empty string renders nothing safely.
+  const tokens = () => parseMarkdown(props.content ?? '');
 
   return (
     <span class="break-words">

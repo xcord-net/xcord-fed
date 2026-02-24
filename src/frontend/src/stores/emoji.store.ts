@@ -34,8 +34,8 @@ export function useEmojis() {
     async loadCustomEmojis(serverId: string): Promise<void> {
       store.setIsLoading(true);
       try {
-        const emojis = await api.get<CustomEmoji[]>(`/api/v1/servers/${serverId}/emojis`);
-        store.setCustomEmojis(emojis);
+        const result = await api.get<{ emojis: CustomEmoji[] }>(`/api/v1/servers/${serverId}/emojis`);
+        store.setCustomEmojis(result.emojis ?? []);
       } finally {
         store.setIsLoading(false);
       }

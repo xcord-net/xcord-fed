@@ -116,7 +116,8 @@ public sealed class CreateServerHandler(
             Permissions = (long)(Permission.ViewChannels | Permission.SendMessages |
                                 Permission.EmbedLinks | Permission.AttachFiles |
                                 Permission.ReadMessageHistory | Permission.AddReactions |
-                                Permission.Connect | Permission.Speak),
+                                Permission.Connect | Permission.Speak |
+                                Permission.CreatePublicThreads | Permission.SendMessagesInThreads),
             Position = 0,
             IsEveryone = true,
             CreatedAt = now
@@ -168,6 +169,16 @@ public sealed class CreateServerHandler(
         };
 
         dbContext.Channels.Add(generalChannel);
+
+        // Create ReadState for the server owner so the unread notification
+        // system can track messages in the initial channel.
+        dbContext.ReadStates.Add(new Xcord.Entities.ReadState
+        {
+            UserId = userId,
+            ConversationId = generalConversationId,
+            UnreadCount = 0,
+            MentionCount = 0
+        });
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

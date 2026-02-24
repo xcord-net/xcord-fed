@@ -9,6 +9,7 @@ interface ReactionDisplayProps {
   reactions: MessageReaction[];
   messageId: string;
   conversationId: string;
+  serverId?: string;
 }
 
 export default function ReactionDisplay(props: ReactionDisplayProps) {
@@ -96,7 +97,7 @@ export default function ReactionDisplay(props: ReactionDisplayProps) {
             class="absolute bottom-full left-0 mb-1 z-50"
             onMouseLeave={() => setShowPicker(false)}
           >
-            <EmojiPicker onSelect={handlePickerSelect} />
+            <EmojiPicker serverId={props.serverId} onSelect={handlePickerSelect} />
           </div>
         </Show>
       </div>

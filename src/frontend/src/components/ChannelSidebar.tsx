@@ -273,6 +273,8 @@ export default function ChannelSidebar() {
                   channelStore.selectChannel(channel.id);
                   setFocusedChannelId(channel.id);
                   if (channel.type === 'Voice') voiceStore.joinVoice(channel.id);
+                  const serverId = serverStore.selectedServerId;
+                  if (serverId) navigate(`/channels/${serverId}/${channel.id}`);
                 }}
                 onFocus={() => setFocusedChannelId(channel.id)}
               >
@@ -336,6 +338,8 @@ export default function ChannelSidebar() {
                               channelStore.selectChannel(channel.id);
                               setFocusedChannelId(channel.id);
                               if (channel.type === 'Voice') voiceStore.joinVoice(channel.id);
+                              const serverId = serverStore.selectedServerId;
+                              if (serverId) navigate(`/channels/${serverId}/${channel.id}`);
                             }}
                             onFocus={() => setFocusedChannelId(channel.id)}
                           >

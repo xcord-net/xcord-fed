@@ -59,7 +59,68 @@ export function validateStickerName(name: string): string | null {
   return null;
 }
 
+// ---- API types ----
+
+interface StickerDto {
+  id: string;
+  name: string;
+  tags?: string;
+  imageUrl: string;
+  createdAt: string;
+}
+
+interface StickerPackDto {
+  id: string;
+  serverId: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  stickers: StickerDto[];
+}
+
+interface RequestUploadResponse {
+  attachmentId: string;
+  uploadUrl: string;
+  downloadUrl: string;
+}
+
+/**
+ * Upload a file through the backend proxy and return the attachmentId.
+ * Flow:
+ *   1. POST /api/v1/uploads   → get { attachmentId, uploadUrl }
+ *   2. PUT  {uploadUrl}       → raw bytes
+ *   3. POST /api/v1/attachments/{attachmentId}/confirm
+ */
+async function uploadFileAndGetAttachmentId(file: File): Promise<string> {
+  const requestResp = await api.post<RequestUploadResponse>('/api/v1/uploads', {
+    fileName: file.name,
+    contentType: file.type || 'image/png',
+    fileSize: file.size,
+  });
+
+  const { attachmentId, uploadUrl } = requestResp;
+
+  const bytes = await file.arrayBuffer();
+  const putResp = await fetch(uploadUrl, {
+    method: 'PUT',
+    body: bytes,
+    headers: { 'Content-Type': file.type || 'image/png' },
+    credentials: 'include',
+  });
+
+  if (!putResp.ok) {
+    const errBody = await putResp.json().catch(() => ({ error: 'Upload failed' }));
+    throw errBody;
+  }
+
+  await api.post(`/api/v1/attachments/${attachmentId}/confirm`, {});
+
+  return attachmentId;
+}
+
 export default function StickerPicker(props: StickerPickerProps) {
+  // Internal pack ID tracking — we create/use a single "Default" pack per server.
+  const [defaultPackId, setDefaultPackId] = createSignal<string | null>(null);
   const [stickers, setStickers] = createSignal<Sticker[]>([]);
   const [isLoading, setIsLoading] = createSignal(false);
   const [isUploading, setIsUploading] = createSignal(false);
@@ -79,8 +140,23 @@ export default function StickerPicker(props: StickerPickerProps) {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await api.get<Sticker[]>(`/api/v1/servers/${props.serverId}/stickers`);
-      setStickers(result);
+      const packs = await api.get<StickerPackDto[]>(`/api/v1/servers/${props.serverId}/sticker-packs`);
+      // Store the first pack's ID for sticker creation (or create one later)
+      if (packs.length > 0) {
+        setDefaultPackId(String(packs[0].id));
+      }
+      // Flatten all stickers from all packs into a single list
+      const allStickers: Sticker[] = packs.flatMap((pack) =>
+        (pack.stickers ?? []).map((s) => ({
+          id: String(s.id),
+          serverId: String(pack.serverId),
+          name: s.name,
+          imageUrl: s.imageUrl,
+          tags: s.tags ? s.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
+          createdAt: s.createdAt,
+        }))
+      );
+      setStickers(allStickers);
     } catch (err: unknown) {
       const e = err as { error?: string };
       setError(e?.error ?? 'Failed to load stickers');
@@ -106,6 +182,22 @@ export default function StickerPicker(props: StickerPickerProps) {
     }
   }
 
+  async function ensureDefaultPack(): Promise<string> {
+    // If we already have a pack ID cached, use it
+    const existing = defaultPackId();
+    if (existing) return existing;
+
+    // Create a default sticker pack for this server
+    const pack = await api.post<StickerPackDto>(`/api/v1/servers/${props.serverId}/sticker-packs`, {
+      name: 'Default',
+      description: 'Default sticker pack',
+    });
+
+    const packId = String(pack.id);
+    setDefaultPackId(packId);
+    return packId;
+  }
+
   async function handleUpload(e: Event) {
     e.preventDefault();
     setUploadError(null);
@@ -118,31 +210,38 @@ export default function StickerPicker(props: StickerPickerProps) {
 
     setIsUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('name', uploadName().trim());
-      formData.append('description', uploadDescription().trim());
-      formData.append(
-        'tags',
-        uploadTags()
-          .split(',')
-          .map((t) => t.trim())
-          .filter(Boolean)
-          .join(','),
+      // Upload the file and get an attachmentId
+      const attachmentId = await uploadFileAndGetAttachmentId(file);
+
+      // Ensure we have a sticker pack to add to
+      const packId = await ensureDefaultPack();
+
+      // Build tags string
+      const tagsStr = uploadTags()
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean)
+        .join(',') || undefined;
+
+      // Create the sticker record
+      const stickerResp = await api.post<{ id: string; name: string; tags?: string; imageUrl: string; createdAt: string }>(
+        `/api/v1/servers/${props.serverId}/sticker-packs/${packId}/stickers`,
+        {
+          name: uploadName().trim(),
+          tags: tagsStr ?? null,
+          attachmentId,
+        }
       );
-      formData.append('image', file);
 
-      const response = await fetch(`/api/v1/servers/${props.serverId}/stickers`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
+      const newSticker: Sticker = {
+        id: String(stickerResp.id),
+        serverId: props.serverId,
+        name: stickerResp.name,
+        imageUrl: stickerResp.imageUrl,
+        tags: stickerResp.tags ? stickerResp.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
+        createdAt: stickerResp.createdAt,
+      };
 
-      if (!response.ok) {
-        const errBody = await response.json().catch(() => ({ error: 'Upload failed' }));
-        throw errBody;
-      }
-
-      const newSticker = (await response.json()) as Sticker;
       setStickers([...stickers(), newSticker]);
 
       // Reset form
@@ -152,8 +251,8 @@ export default function StickerPicker(props: StickerPickerProps) {
       setUploadFile(null);
       setShowUpload(false);
     } catch (err: unknown) {
-      const e = err as { error?: string };
-      setUploadError(e?.error ?? 'Failed to upload sticker');
+      const e = err as { error?: string; detail?: string; title?: string };
+      setUploadError(e?.detail ?? e?.error ?? e?.title ?? 'Failed to upload sticker');
     } finally {
       setIsUploading(false);
     }
