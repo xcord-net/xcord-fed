@@ -34,7 +34,7 @@ export function useChannels() {
     async fetchChannels(serverId: string): Promise<void> {
       store.setIsLoading(true);
       try {
-        const response = await api.get<{ channels: Channel[] }>(
+        const response = await api.get<{ channels: Channel[]; categories: Category[] }>(
           `/api/v1/servers/${serverId}/channels`
         );
         const channelTypeMap: Record<number, Channel['type']> = { 0: 'Text', 1: 'Voice', 3: 'Forum' };
@@ -45,6 +45,11 @@ export function useChannels() {
           conversationId: String(c.conversationId),
           categoryId: c.categoryId ? String(c.categoryId) : undefined,
           type: typeof c.type === 'number' ? (channelTypeMap[c.type as unknown as number] ?? 'Text') : c.type,
+        })));
+        store.setCategories((response.categories ?? []).map(cat => ({
+          ...cat,
+          id: String(cat.id),
+          serverId: String(cat.serverId),
         })));
       } finally {
         store.setIsLoading(false);
@@ -60,7 +65,12 @@ export function useChannels() {
         conversationId: String(channel.conversationId),
         categoryId: channel.categoryId ? String(channel.categoryId) : undefined,
       };
-      store.setChannels([...store.channels(), normalized]);
+      // Guard against duplicates — the SignalR Chat_ChannelCreated broadcast may
+      // have already added this channel to the store while the HTTP response was
+      // in flight.
+      if (!store.channels().some((c) => c.id === normalized.id)) {
+        store.setChannels([...store.channels(), normalized]);
+      }
       return normalized;
     },
 

@@ -12,7 +12,7 @@ namespace Xcord.Features.Users;
 public sealed record GetUserProfileRequest;
 
 public sealed record UserProfileDto(
-    long Id,
+    long UserId,
     string Username,
     string DisplayName,
     string? Bio,
@@ -41,7 +41,7 @@ public sealed class GetUserProfileHandler(
         }
 
         return new UserProfileDto(
-            Id: user.Id,
+            UserId: user.Id,
             Username: user.Username,
             DisplayName: user.DisplayName,
             Bio: user.Bio,

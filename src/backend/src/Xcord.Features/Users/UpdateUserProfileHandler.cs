@@ -62,7 +62,7 @@ public sealed class UpdateUserProfileHandler(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return new UserProfileDto(
-            Id: user.Id,
+            UserId: user.Id,
             Username: user.Username,
             DisplayName: user.DisplayName,
             Bio: user.Bio,

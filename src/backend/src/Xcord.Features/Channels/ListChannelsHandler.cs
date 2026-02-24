@@ -13,7 +13,16 @@ namespace Xcord.Features.Channels;
 public sealed record ListChannelsCommand(long ServerId);
 
 public sealed record ListChannelsResponse(
-    List<ChannelDto> Channels
+    List<ChannelDto> Channels,
+    List<CategoryDto> Categories
+);
+
+public sealed record CategoryDto(
+    long Id,
+    long ServerId,
+    string Name,
+    int Position,
+    DateTimeOffset CreatedAt
 );
 
 public sealed record ChannelDto(
@@ -97,10 +106,24 @@ public sealed class ListChannelsHandler(
             ))
             .ToListAsync(cancellationToken);
 
+        // Get all categories for this server
+        var categories = await dbContext.Categories
+            .AsNoTracking()
+            .Where(cat => cat.ServerId == request.ServerId)
+            .OrderBy(cat => cat.Position)
+            .Select(cat => new CategoryDto(
+                cat.Id,
+                cat.ServerId,
+                cat.Name,
+                cat.Position,
+                cat.CreatedAt
+            ))
+            .ToListAsync(cancellationToken);
+
         // Admins and server owners see all channels regardless of ViewChannel overrides
         if (isAdmin)
         {
-            return new ListChannelsResponse(Channels: allChannels);
+            return new ListChannelsResponse(Channels: allChannels, Categories: categories);
         }
 
         // For regular members, filter out channels where they lack ViewChannel permission
@@ -114,7 +137,7 @@ public sealed class ListChannelsHandler(
             }
         }
 
-        return new ListChannelsResponse(Channels: visibleChannels);
+        return new ListChannelsResponse(Channels: visibleChannels, Categories: categories);
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
