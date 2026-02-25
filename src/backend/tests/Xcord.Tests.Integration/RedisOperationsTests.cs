@@ -34,11 +34,11 @@ public class RedisOperationsTests
         using var redis = _fixture.CreateRedisConnection();
         var db = redis.GetDatabase();
 
-        await db.StringSetAsync("test:expiring", "temporary", TimeSpan.FromMilliseconds(100));
+        await db.StringSetAsync("test:expiring", "temporary", TimeSpan.FromSeconds(2));
         var valueBefore = await db.StringGetAsync("test:expiring");
         valueBefore.HasValue.Should().BeTrue();
 
-        await Task.Delay(200);
+        await Task.Delay(3000);
         var valueAfter = await db.StringGetAsync("test:expiring");
         valueAfter.HasValue.Should().BeFalse();
     }
