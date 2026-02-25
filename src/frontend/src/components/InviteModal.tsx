@@ -1,6 +1,6 @@
 import { createSignal, onMount } from 'solid-js';
 import { api } from '../api/client';
-import { createFocusTrap } from '../hooks/createFocusTrap';
+import Modal from './ui/Modal';
 
 interface InviteModalProps {
   serverId: string;
@@ -54,10 +54,7 @@ export default function InviteModal(props: InviteModalProps) {
   const [expiryValue, setExpiryValue] = createSignal<string | undefined>('24h');
   const [maxUsesValue, setMaxUsesValue] = createSignal<number | undefined>(undefined);
 
-  let dialogRef!: HTMLDivElement;
   let copyTimeoutId: ReturnType<typeof setTimeout> | undefined;
-
-  createFocusTrap(() => dialogRef, { onEscape: () => props.onClose() });
 
   const createInvite = async () => {
     setLoading(true);
@@ -106,18 +103,8 @@ export default function InviteModal(props: InviteModalProps) {
   };
 
   return (
-    <div
-      class="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
-      onClick={(e) => { if (e.target === e.currentTarget) props.onClose(); }}
-    >
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Invite People"
-        class="bg-xcord-bg-secondary rounded-lg shadow-xl w-full max-w-md p-6"
-      >
-        <h2 class="text-xl font-bold text-xcord-text-primary mb-1">Invite People</h2>
+    <Modal open={true} onClose={props.onClose} title="Invite People" size="md">
+      <div class="p-6">
         <p class="text-xcord-text-secondary text-sm mb-4">Share this link to invite people to your server.</p>
 
         {/* Expiry and max uses options */}
@@ -172,7 +159,7 @@ export default function InviteModal(props: InviteModalProps) {
               readonly
               value={loading() ? 'Generating...' : (inviteLink() || (error() ? 'Failed to generate' : ''))}
               aria-label="Invite link"
-              class="flex-1 bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:outline-none select-all cursor-text"
+              class="flex-1 bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand select-all cursor-text"
               onClick={(e) => e.currentTarget.select()}
             />
             <button
@@ -189,7 +176,7 @@ export default function InviteModal(props: InviteModalProps) {
 
         {/* Error */}
         {error() && (
-          <p role="alert" class="text-red-400 text-sm mb-4">{error()}</p>
+          <div role="alert" class="mb-4 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">{error()}</div>
         )}
 
         {/* Actions */}
@@ -211,6 +198,6 @@ export default function InviteModal(props: InviteModalProps) {
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

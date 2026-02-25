@@ -35,7 +35,7 @@ export default function BlockList() {
             placeholder="Enter a username to block"
             value={blockUsername()}
             onInput={(e) => setBlockUsername(e.currentTarget.value)}
-            class="flex-1 bg-xcord-bg-primary text-white px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+            class="flex-1 bg-xcord-bg-primary text-white px-3 py-1.5 rounded text-sm border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
           />
           <button
             id="block-user-submit"
@@ -87,7 +87,7 @@ export default function BlockList() {
               </div>
 
               <button
-                class="bg-xcord-brand text-white px-3 py-1 rounded hover:bg-xcord-brand/80"
+                class="bg-xcord-brand text-white px-3 py-1 rounded hover:bg-xcord-brand-hover"
                 onClick={() => blockStore.unblockUser(user.blockedId)}
               >
                 Unblock

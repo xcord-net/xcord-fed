@@ -8,6 +8,8 @@ import type { Channel } from '../types/channel';
 import InviteModal from './InviteModal';
 import ServerSettings from './ServerSettings';
 import VoicePanel from './VoicePanel';
+import Modal from './ui/Modal';
+import Menu from './ui/Menu';
 
 
 export default function ChannelSidebar() {
@@ -20,9 +22,11 @@ export default function ChannelSidebar() {
   const [showInviteModal, setShowInviteModal] = createSignal(false);
   const [showServerSettings, setShowServerSettings] = createSignal(false);
   const [showServerMenu, setShowServerMenu] = createSignal(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = createSignal(false);
   const [showCreateChannel, setShowCreateChannel] = createSignal(false);
   const [newChannelName, setNewChannelName] = createSignal('');
   const [newChannelType, setNewChannelType] = createSignal<'Text' | 'Voice' | 'Forum'>('Text');
+  let menuButtonRef!: HTMLButtonElement;
 
   const currentServer = createMemo(() =>
     serverStore.servers.find((s) => s.id === serverStore.selectedServerId)
@@ -122,6 +126,7 @@ export default function ChannelSidebar() {
         <h2 class="font-semibold text-white truncate flex-1">{currentServer()?.name || 'Select a server'}</h2>
         <Show when={serverStore.selectedServerId}>
           <button
+            ref={menuButtonRef}
             type="button"
             aria-label="Server options"
             aria-haspopup="menu"
@@ -137,52 +142,41 @@ export default function ChannelSidebar() {
         </Show>
 
         {/* Server dropdown menu */}
-        <Show when={showServerMenu()}>
-          <div
-            class="absolute top-12 left-0 right-0 mx-2 bg-xcord-bg-tertiary rounded shadow-lg z-30 py-1 border border-xcord-border"
-            role="menu"
+        <Menu
+          open={showServerMenu()}
+          onClose={() => setShowServerMenu(false)}
+          anchorRef={menuButtonRef}
+          placement="bottom-start"
+        >
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setShowServerSettings(true); setShowServerMenu(false); }}
+            class="w-full px-3 py-2 text-left text-sm text-xcord-text-primary hover:bg-xcord-bg-primary hover:text-white transition-colors"
           >
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => { setShowServerSettings(true); setShowServerMenu(false); }}
-              class="w-full px-3 py-2 text-left text-sm text-xcord-text-primary hover:bg-xcord-brand hover:text-white transition-colors"
-            >
-              Server Settings
-            </button>
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => { setShowInviteModal(true); setShowServerMenu(false); }}
-              class="w-full px-3 py-2 text-left text-sm text-xcord-text-primary hover:bg-xcord-brand hover:text-white transition-colors"
-            >
-              Invite People
-            </button>
-            <div class="border-t border-xcord-border my-1" />
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                setShowServerMenu(false);
-                if (confirm('Are you sure you want to leave this server?')) {
-                  const sid = serverStore.selectedServerId;
-                  if (sid) {
-                    serverStore.leaveServer(sid).then(() => navigate('/channels/me'));
-                  }
-                }
-              }}
-              class="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-red-600 hover:text-white transition-colors"
-            >
-              Leave Server
-            </button>
-          </div>
-          {/* Click outside overlay to close menu */}
-          <div
-            class="fixed inset-0 z-20"
-            onClick={() => setShowServerMenu(false)}
-            aria-hidden="true"
-          />
-        </Show>
+            Server Settings
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setShowInviteModal(true); setShowServerMenu(false); }}
+            class="w-full px-3 py-2 text-left text-sm text-xcord-text-primary hover:bg-xcord-bg-primary hover:text-white transition-colors"
+          >
+            Invite People
+          </button>
+          <div class="border-t border-xcord-border my-1" />
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setShowServerMenu(false);
+              setShowLeaveConfirm(true);
+            }}
+            class="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-red-600 hover:text-white transition-colors"
+          >
+            Leave Server
+          </button>
+        </Menu>
       </div>
 
       {/* Create channel section */}
@@ -205,11 +199,11 @@ export default function ChannelSidebar() {
                   placeholder="channel-name"
                   value={newChannelName()}
                   onInput={(e) => setNewChannelName(e.currentTarget.value)}
-                  class="flex-1 bg-xcord-bg-primary text-white px-2 py-1 rounded text-xs focus:outline-none focus:ring-1 focus:ring-xcord-brand"
+                  class="flex-1 bg-xcord-bg-primary text-white px-2 py-1 rounded text-xs border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
                   onKeyPress={(e) => { if (e.key === 'Enter') handleCreateChannel(); }}
                 />
                 <button
-                  class="bg-xcord-brand text-white px-2 py-1 rounded text-xs hover:bg-xcord-brand/80"
+                  class="bg-xcord-brand text-white px-2 py-1 rounded text-xs hover:bg-xcord-brand-hover"
                   onClick={handleCreateChannel}
                 >
                   Create
@@ -390,6 +384,35 @@ export default function ChannelSidebar() {
           onClose={() => setShowServerSettings(false)}
         />
       </Show>
+
+      {/* Leave server confirmation */}
+      <Modal open={showLeaveConfirm()} onClose={() => setShowLeaveConfirm(false)} title="Leave Server" size="sm" role="alertdialog">
+        <div class="p-6">
+          <p class="text-xcord-text-secondary text-sm mb-6">Are you sure you want to leave this server?</p>
+          <div class="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setShowLeaveConfirm(false)}
+              class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowLeaveConfirm(false);
+                const sid = serverStore.selectedServerId;
+                if (sid) {
+                  serverStore.leaveServer(sid).then(() => navigate('/channels/me'));
+                }
+              }}
+              class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
+            >
+              Leave Server
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

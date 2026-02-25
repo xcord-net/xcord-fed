@@ -12,3 +12,14 @@
   --color-xcord-brand-hover: #4752c4;
   --color-xcord-border: #202225;
 }
+
+/*
+ * Z-index scale (use Tailwind utilities: z-10, z-30, z-40, z-50, z-60, z-70)
+ *
+ *   z-10  — toolbar / sticky headers
+ *   z-30  — dropdowns
+ *   z-40  — click-outside overlays (behind menus / modals)
+ *   z-50  — modals / dialogs
+ *   z-60  — popovers / menus rendered above modals
+ *   z-70  — toasts / notifications (always on top)
+ */

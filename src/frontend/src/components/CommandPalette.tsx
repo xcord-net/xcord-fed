@@ -197,7 +197,7 @@ export default function CommandPalette(props: CommandPaletteProps) {
                     </label>
                     <input
                       type="text"
-                      class="w-full bg-xcord-bg-primary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
+                      class="w-full bg-xcord-bg-primary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
                       placeholder={param.required ? `Required` : `Optional`}
                       value={args()[param.name] ?? ''}
                       onInput={(e) => handleArgInput(param.name, e.currentTarget.value)}
@@ -213,7 +213,7 @@ export default function CommandPalette(props: CommandPaletteProps) {
 
             <div class="flex gap-2">
               <button
-                class="px-3 py-1.5 bg-xcord-brand text-white text-sm rounded hover:bg-xcord-brand/80 transition-colors"
+                class="px-3 py-1.5 bg-xcord-brand text-white text-sm rounded hover:bg-xcord-brand-hover transition-colors"
                 onClick={handleSubmitArgs}
               >
                 Send Command

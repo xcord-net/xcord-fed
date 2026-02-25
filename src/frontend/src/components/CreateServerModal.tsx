@@ -2,7 +2,7 @@ import { createSignal } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
 import { useServers } from '../stores/server.store';
 import { useChannels } from '../stores/channel.store';
-import { createFocusTrap } from '../hooks/createFocusTrap';
+import Modal from './ui/Modal';
 
 interface CreateServerModalProps {
   onClose: () => void;
@@ -15,10 +15,6 @@ export default function CreateServerModal(props: CreateServerModalProps) {
   const serverStore = useServers();
   const channelStore = useChannels();
   const navigate = useNavigate();
-
-  let dialogRef!: HTMLDivElement;
-
-  createFocusTrap(() => dialogRef, { onEscape: () => props.onClose() });
 
   const handleCreate = async (e: Event) => {
     e.preventDefault();
@@ -39,18 +35,8 @@ export default function CreateServerModal(props: CreateServerModalProps) {
   };
 
   return (
-    <div
-      class="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
-      onClick={(e) => { if (e.target === e.currentTarget) props.onClose(); }}
-    >
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Create a Server"
-        class="bg-xcord-bg-secondary rounded-lg shadow-xl w-full max-w-md p-6"
-      >
-        <h2 class="text-xl font-bold text-xcord-text-primary mb-4">Create a Server</h2>
+    <Modal open={true} onClose={props.onClose} title="Create a Server" size="md">
+      <div class="p-6">
         <form onSubmit={handleCreate}>
           <div class="mb-4">
             <label for="server-name" class="block text-xcord-text-secondary text-sm font-medium mb-2">
@@ -66,13 +52,13 @@ export default function CreateServerModal(props: CreateServerModalProps) {
             />
           </div>
           {error() && (
-            <p role="alert" class="text-red-400 text-sm mb-4">{error()}</p>
+            <div role="alert" class="mb-4 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">{error()}</div>
           )}
           <div class="flex justify-end space-x-3">
             <button
               type="button"
               onClick={() => props.onClose()}
-              class="px-4 py-2 text-xcord-text-secondary hover:text-xcord-text-primary transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none rounded"
+              class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
             >
               Cancel
             </button>
@@ -86,6 +72,6 @@ export default function CreateServerModal(props: CreateServerModalProps) {
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   );
 }

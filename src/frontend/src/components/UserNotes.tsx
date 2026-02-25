@@ -125,7 +125,7 @@ export default function UserNotes() {
           />
           <button
             id="user-notes-find-btn"
-            class="bg-xcord-brand text-white px-3 py-2 rounded text-sm font-medium hover:bg-xcord-brand/80 transition-colors disabled:opacity-50"
+            class="bg-xcord-brand text-white px-3 py-2 rounded text-sm font-medium hover:bg-xcord-brand-hover transition-colors disabled:opacity-50"
             onClick={lookupUser}
             disabled={isLooking() || !searchUsername().trim()}
           >
@@ -172,7 +172,7 @@ export default function UserNotes() {
             <div class="flex items-center gap-2 mt-2">
               <button
                 id="user-notes-save-btn"
-                class="bg-xcord-brand text-white px-4 py-1.5 rounded text-sm font-medium hover:bg-xcord-brand/80 transition-colors disabled:opacity-50"
+                class="bg-xcord-brand text-white px-4 py-1.5 rounded text-sm font-medium hover:bg-xcord-brand-hover transition-colors disabled:opacity-50"
                 onClick={saveNote}
                 disabled={isSaving() || !noteContent().trim()}
               >

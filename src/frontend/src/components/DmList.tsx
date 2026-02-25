@@ -164,7 +164,7 @@ export default function DmList() {
               class="flex-1 bg-xcord-bg-primary text-white px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
             />
             <button
-              class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand/80 disabled:opacity-50"
+              class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand-hover disabled:opacity-50"
               disabled={!dmUsername().trim()}
               onClick={handleCreateDm}
             >
@@ -199,7 +199,7 @@ export default function DmList() {
               />
               <button
                 id="group-dm-add-member-btn"
-                class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand/80 disabled:opacity-50"
+                class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand-hover disabled:opacity-50"
                 disabled={!groupMemberInput().trim()}
                 onClick={handleAddGroupMember}
               >
@@ -226,7 +226,7 @@ export default function DmList() {
             </Show>
             <button
               id="create-group-dm-btn"
-              class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand/80 disabled:opacity-50"
+              class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand-hover disabled:opacity-50"
               disabled={groupMembers().length < 2}
               onClick={handleCreateGroup}
             >
@@ -264,7 +264,7 @@ export default function DmList() {
               />
               <button
                 id="group-add-member-btn"
-                class="bg-xcord-brand text-white px-2 py-1 rounded text-xs hover:bg-xcord-brand/80 disabled:opacity-50"
+                class="bg-xcord-brand text-white px-2 py-1 rounded text-xs hover:bg-xcord-brand-hover disabled:opacity-50"
                 disabled={!addMemberInput().trim()}
                 onClick={() => handleAddMemberToGroup(group().id, addMemberInput())}
               >

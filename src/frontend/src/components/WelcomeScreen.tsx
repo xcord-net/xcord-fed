@@ -406,7 +406,7 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
 
               <div class="flex gap-2 pt-1">
                 <button
-                  class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handleSave}
                   disabled={isSaving()}
                   aria-label="Save Welcome Screen"

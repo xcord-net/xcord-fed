@@ -1,5 +1,6 @@
 import { For, Show, createSignal, onMount } from 'solid-js';
 import { api } from '../api/client';
+import Modal from './ui/Modal';
 
 interface Role {
   id: string;
@@ -72,7 +73,7 @@ export default function RoleManager(props: RoleManagerProps) {
   const [isCreating, setIsCreating] = createSignal(false);
 
   // Delete confirmation
-  const [confirmDeleteId, setConfirmDeleteId] = createSignal<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = createSignal(false);
   const [isDeleting, setIsDeleting] = createSignal(false);
 
   const selectedRole = () => roles().find((r) => r.id === selectedRoleId());
@@ -156,11 +157,9 @@ export default function RoleManager(props: RoleManagerProps) {
       if (selectedRoleId() === roleId) {
         setSelectedRoleId(null);
       }
-      setConfirmDeleteId(null);
     } catch (err: unknown) {
       const e = err as { detail?: string; error?: string; message?: string };
       setError(e?.detail ?? e?.error ?? e?.message ?? 'Failed to delete role.');
-      setConfirmDeleteId(null);
     } finally {
       setIsDeleting(false);
     }
@@ -275,37 +274,13 @@ export default function RoleManager(props: RoleManagerProps) {
                   <h3 class="text-white font-semibold">Edit Role</h3>
 
                   {/* Delete button */}
-                  <Show
-                    when={confirmDeleteId() === selectedRoleId()}
-                    fallback={
-                      <button
-                        type="button"
-                        onClick={() => setConfirmDeleteId(selectedRoleId())}
-                        class="text-red-400 hover:text-red-300 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none rounded"
-                      >
-                        Delete Role
-                      </button>
-                    }
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    class="text-red-400 hover:text-red-300 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none rounded"
                   >
-                    <div class="flex items-center gap-2">
-                      <span class="text-xcord-text-muted text-xs">Delete role?</span>
-                      <button
-                        type="button"
-                        onClick={() => setConfirmDeleteId(null)}
-                        class="text-xcord-text-muted hover:text-white text-xs rounded"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        disabled={isDeleting()}
-                        onClick={() => handleDeleteRole(selectedRoleId()!)}
-                        class="px-2 py-0.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded disabled:opacity-50"
-                      >
-                        {isDeleting() ? 'Deleting...' : 'Confirm'}
-                      </button>
-                    </div>
-                  </Show>
+                    Delete Role
+                  </button>
                 </div>
 
                 {/* Role name */}
@@ -366,7 +341,7 @@ export default function RoleManager(props: RoleManagerProps) {
                         if (/^#[0-9a-fA-F]{0,6}$/.test(val)) setEditColor(val);
                       }}
                       aria-label="Hex color value"
-                      class="w-28 bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-1.5 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none font-mono"
+                      class="w-28 bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-1.5 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand font-mono"
                     />
                   </div>
                 </div>
@@ -423,12 +398,44 @@ export default function RoleManager(props: RoleManagerProps) {
 
           {/* Empty state */}
           <Show when={!selectedRole() && !showCreateForm()}>
-            <div class="flex flex-col items-center justify-center h-48 text-xcord-text-muted">
-              <p class="text-sm">Select a role to edit, or create a new one.</p>
+            <div class="flex flex-col items-center justify-center py-8 text-center">
+              <p class="text-xcord-text-muted text-sm">Select a role to edit, or create a new one.</p>
             </div>
           </Show>
         </div>
       </div>
+
+      <Modal
+        open={showDeleteConfirm()}
+        onClose={() => setShowDeleteConfirm(false)}
+        title="Delete Role"
+        size="sm"
+        role="alertdialog"
+      >
+        <div class="p-6">
+          <p class="text-xcord-text-secondary text-sm mb-4">
+            Are you sure you want to delete the role "{selectedRole()?.name}"? Members with this role will lose its permissions.
+          </p>
+          <div class="flex justify-end gap-3">
+            <button
+              class="px-4 py-2 text-sm text-xcord-text-primary bg-xcord-bg-primary hover:bg-xcord-bg-tertiary rounded transition-colors"
+              onClick={() => setShowDeleteConfirm(false)}
+            >
+              Cancel
+            </button>
+            <button
+              class="px-4 py-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded transition-colors disabled:opacity-50"
+              disabled={isDeleting()}
+              onClick={() => {
+                handleDeleteRole(selectedRoleId()!);
+                setShowDeleteConfirm(false);
+              }}
+            >
+              {isDeleting() ? 'Deleting...' : 'Delete'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

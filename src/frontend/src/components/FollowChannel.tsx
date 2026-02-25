@@ -1,5 +1,6 @@
 import { createSignal, createEffect, For, Show } from 'solid-js';
 import { api } from '../api/client';
+import Modal from './ui/Modal';
 
 interface Channel {
   id: string;
@@ -120,7 +121,7 @@ export default function FollowChannel(props: FollowChannelProps) {
             Channel Followers
           </h3>
           <button
-            class="bg-xcord-brand text-white px-3 py-1 rounded text-sm hover:bg-xcord-brand/80 transition"
+            class="bg-xcord-brand text-white px-3 py-1 rounded text-sm hover:bg-xcord-brand-hover transition"
             onClick={handleOpenFollowDialog}
           >
             Follow in another channel
@@ -128,13 +129,13 @@ export default function FollowChannel(props: FollowChannelProps) {
         </div>
 
         <Show when={error()}>
-          <p class="text-red-400 text-sm mb-3">{error()}</p>
+          <div class="mb-3 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">{error()}</div>
         </Show>
 
         <Show when={follows().length === 0}>
-          <p class="text-xcord-text-muted text-sm">
-            No channels are following {props.channelName} yet.
-          </p>
+          <div class="flex flex-col items-center justify-center py-8 text-center">
+            <p class="text-xcord-text-muted text-sm">No channels are following {props.channelName} yet.</p>
+          </div>
         </Show>
 
         <div class="space-y-2">
@@ -162,59 +163,59 @@ export default function FollowChannel(props: FollowChannelProps) {
         </div>
 
         {/* Follow dialog */}
-        <Show when={showFollowDialog()}>
-          <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div class="bg-xcord-bg-secondary rounded-lg p-6 w-full max-w-md shadow-xl">
-              <h3 class="text-white font-semibold text-lg mb-2">
-                Follow #{props.channelName}
-              </h3>
-              <p class="text-xcord-text-muted text-sm mb-4">
-                Select a channel in this server to receive crossposted messages.
-              </p>
+        <Modal
+          open={showFollowDialog()}
+          onClose={() => { setShowFollowDialog(false); setError(''); }}
+          title={"Follow #" + props.channelName}
+          size="md"
+        >
+          <div class="p-6">
+            <p class="text-xcord-text-muted text-sm mb-4">
+              Select a channel in this server to receive crossposted messages.
+            </p>
 
-              <Show when={error()}>
-                <p class="text-red-400 text-sm mb-3">{error()}</p>
-              </Show>
+            <Show when={error()}>
+              <div class="mb-3 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">{error()}</div>
+            </Show>
 
-              <div class="mb-4">
-                <label class="text-xs text-xcord-text-muted block mb-1">
-                  Target Channel
-                </label>
-                <select
-                  class="w-full bg-xcord-bg-primary text-white px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-xcord-brand"
-                  value={selectedChannelId()}
-                  onChange={(e) => setSelectedChannelId(e.currentTarget.value)}
-                >
-                  <option value="">Select a channel...</option>
-                  <For each={channels()}>
-                    {(channel) => (
-                      <option value={channel.id}>#{channel.name}</option>
-                    )}
-                  </For>
-                </select>
-              </div>
+            <div class="mb-4">
+              <label class="text-xs text-xcord-text-muted block mb-1">
+                Target Channel
+              </label>
+              <select
+                class="w-full bg-xcord-bg-primary text-xcord-text-primary px-3 py-2 rounded text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+                value={selectedChannelId()}
+                onChange={(e) => setSelectedChannelId(e.currentTarget.value)}
+              >
+                <option value="">Select a channel...</option>
+                <For each={channels()}>
+                  {(channel) => (
+                    <option value={channel.id}>#{channel.name}</option>
+                  )}
+                </For>
+              </select>
+            </div>
 
-              <div class="flex gap-3">
-                <button
-                  class="flex-1 bg-xcord-brand text-white py-2 rounded hover:bg-xcord-brand/80 transition disabled:opacity-50"
-                  onClick={handleFollow}
-                  disabled={isLoading() || !selectedChannelId()}
-                >
-                  {isLoading() ? 'Following...' : 'Follow Channel'}
-                </button>
-                <button
-                  class="flex-1 bg-xcord-bg-primary text-xcord-text-primary py-2 rounded hover:bg-xcord-bg-primary/80 transition"
-                  onClick={() => {
-                    setShowFollowDialog(false);
-                    setError('');
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
+            <div class="flex gap-3">
+              <button
+                class="flex-1 bg-xcord-brand text-white py-2 rounded hover:bg-xcord-brand-hover transition disabled:opacity-50"
+                onClick={handleFollow}
+                disabled={isLoading() || !selectedChannelId()}
+              >
+                {isLoading() ? 'Following...' : 'Follow Channel'}
+              </button>
+              <button
+                class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+                onClick={() => {
+                  setShowFollowDialog(false);
+                  setError('');
+                }}
+              >
+                Cancel
+              </button>
             </div>
           </div>
-        </Show>
+        </Modal>
       </div>
     </Show>
   );

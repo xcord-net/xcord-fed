@@ -1,0 +1,241 @@
+import { Show, createEffect, onCleanup, splitProps } from 'solid-js';
+import type { JSX } from 'solid-js';
+
+// Whether the user has requested reduced motion at the OS level.
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+type Placement = 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end';
+
+interface MenuProps {
+  open: boolean;
+  onClose: () => void;
+  anchorRef?: HTMLElement;
+  position?: { x: number; y: number };
+  placement?: Placement;
+  children: JSX.Element;
+}
+
+/** Returns all [role="menuitem"] elements within the given container. */
+function getMenuItems(container: HTMLElement): HTMLElement[] {
+  return Array.from(container.querySelectorAll<HTMLElement>('[role="menuitem"]')).filter(
+    (el) => !el.hasAttribute('disabled') && getComputedStyle(el).display !== 'none',
+  );
+}
+
+/**
+ * Menu — a reusable dropdown / context-menu component.
+ *
+ * Dropdown mode: pass `anchorRef` to position relative to a trigger element.
+ * Context-menu mode: pass `position` (mouse coordinates) to position at a
+ * specific point on the page.
+ *
+ * Keyboard navigation:
+ *   ArrowDown / ArrowUp — moves focus between menu items
+ *   Home / End           — jumps to first / last item
+ *   Enter / Space        — activates the focused item
+ *   Escape               — closes the menu
+ *
+ * Usage:
+ *   <Menu open={isOpen()} onClose={() => setIsOpen(false)} anchorRef={buttonRef}>
+ *     <button role="menuitem" onClick={...}>Option 1</button>
+ *   </Menu>
+ */
+export default function Menu(props: MenuProps) {
+  const [local, _rest] = splitProps(props, [
+    'open',
+    'onClose',
+    'anchorRef',
+    'position',
+    'placement',
+    'children',
+  ]);
+
+  let menuEl!: HTMLDivElement;
+
+  // Position the menu relative to the anchor or pointer position, clamped to
+  // the viewport so it never overflows.
+  createEffect(() => {
+    if (!local.open) return;
+
+    // Run positioning after the element has rendered.
+    requestAnimationFrame(() => {
+      if (!menuEl) return;
+
+      const menuWidth = menuEl.offsetWidth;
+      const menuHeight = menuEl.offsetHeight;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const MARGIN = 8; // minimum gap from viewport edge
+
+      let top = 0;
+      let left = 0;
+
+      if (local.anchorRef) {
+        const anchor = local.anchorRef.getBoundingClientRect();
+        const placement: Placement = local.placement ?? 'bottom-start';
+
+        // Vertical
+        if (placement.startsWith('bottom')) {
+          top = anchor.bottom + window.scrollY;
+          // Flip to top if overflows bottom
+          if (anchor.bottom + menuHeight > vh - MARGIN) {
+            top = anchor.top + window.scrollY - menuHeight;
+          }
+        } else {
+          top = anchor.top + window.scrollY - menuHeight;
+          // Flip to bottom if overflows top
+          if (anchor.top - menuHeight < MARGIN) {
+            top = anchor.bottom + window.scrollY;
+          }
+        }
+
+        // Horizontal
+        if (placement.endsWith('start')) {
+          left = anchor.left + window.scrollX;
+          if (left + menuWidth > vw - MARGIN) {
+            left = anchor.right + window.scrollX - menuWidth;
+          }
+        } else {
+          left = anchor.right + window.scrollX - menuWidth;
+          if (left < MARGIN) {
+            left = anchor.left + window.scrollX;
+          }
+        }
+      } else if (local.position) {
+        top = local.position.y + window.scrollY;
+        left = local.position.x + window.scrollX;
+
+        // Clamp right edge
+        if (left + menuWidth > vw - MARGIN) {
+          left = vw - menuWidth - MARGIN + window.scrollX;
+        }
+        // Clamp bottom edge
+        if (top + menuHeight > vh - MARGIN + window.scrollY) {
+          top = local.position.y + window.scrollY - menuHeight;
+        }
+      }
+
+      // Ensure we never go off the left/top
+      left = Math.max(MARGIN + window.scrollX, left);
+      top = Math.max(MARGIN + window.scrollY, top);
+
+      menuEl.style.top = `${top}px`;
+      menuEl.style.left = `${left}px`;
+    });
+  });
+
+  // Entrance animation — scale from 95% + fade over 150ms.
+  createEffect(() => {
+    if (!local.open) return;
+    if (prefersReducedMotion()) return;
+
+    requestAnimationFrame(() => {
+      if (!menuEl) return;
+      menuEl.style.opacity = '0';
+      menuEl.style.transform = 'scale(0.95)';
+      requestAnimationFrame(() => {
+        menuEl.style.opacity = '';
+        menuEl.style.transform = '';
+      });
+    });
+  });
+
+  // Focus the first menu item when the menu opens.
+  createEffect(() => {
+    if (!local.open) return;
+    requestAnimationFrame(() => {
+      if (!menuEl) return;
+      const items = getMenuItems(menuEl);
+      if (items.length > 0) items[0].focus();
+    });
+  });
+
+  // Keyboard navigation + Escape handling.
+  createEffect(() => {
+    if (!local.open) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!menuEl) return;
+      const items = getMenuItems(menuEl);
+      const focused = document.activeElement as HTMLElement | null;
+      const currentIndex = focused ? items.indexOf(focused) : -1;
+
+      switch (e.key) {
+        case 'Escape':
+          e.preventDefault();
+          local.onClose();
+          break;
+
+        case 'ArrowDown':
+          e.preventDefault();
+          if (items.length === 0) break;
+          if (currentIndex < items.length - 1) {
+            items[currentIndex + 1].focus();
+          } else {
+            items[0].focus();
+          }
+          break;
+
+        case 'ArrowUp':
+          e.preventDefault();
+          if (items.length === 0) break;
+          if (currentIndex > 0) {
+            items[currentIndex - 1].focus();
+          } else {
+            items[items.length - 1].focus();
+          }
+          break;
+
+        case 'Home':
+          e.preventDefault();
+          if (items.length > 0) items[0].focus();
+          break;
+
+        case 'End':
+          e.preventDefault();
+          if (items.length > 0) items[items.length - 1].focus();
+          break;
+
+        case 'Enter':
+        case ' ':
+          // Let the browser handle activation of the focused element naturally,
+          // but only if focus is already on a menu item.
+          if (focused && items.includes(focused)) {
+            // Space needs preventDefault to avoid page scroll; Enter is fine.
+            if (e.key === ' ') e.preventDefault();
+            focused.click();
+          }
+          break;
+
+        default:
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    onCleanup(() => document.removeEventListener('keydown', handleKeyDown));
+  });
+
+  return (
+    <Show when={local.open}>
+      {/* Click-outside overlay — transparent, covers the whole viewport */}
+      <div
+        class="fixed inset-0 z-40"
+        aria-hidden="true"
+        onClick={() => local.onClose()}
+      />
+
+      {/* Menu container — positioned absolutely via JS */}
+      <div
+        ref={menuEl}
+        role="menu"
+        class="fixed z-60 min-w-[10rem] bg-xcord-bg-tertiary border border-xcord-border rounded-lg shadow-lg py-1 transition-all duration-150 origin-top-left"
+        style={{ top: '0px', left: '0px' }}
+      >
+        {local.children}
+      </div>
+    </Show>
+  );
+}

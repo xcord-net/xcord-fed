@@ -31,13 +31,13 @@ export default function SearchPanel() {
           <input
             type="text"
             placeholder="Search messages..."
-            class="flex-1 bg-xcord-bg-primary text-white px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+            class="flex-1 bg-xcord-bg-primary text-white px-3 py-2 rounded border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
             value={query()}
             onInput={(e) => setQuery(e.currentTarget.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
           />
           <button
-            class="bg-xcord-brand text-white px-4 py-2 rounded hover:bg-xcord-brand/80 transition"
+            class="bg-xcord-brand text-white px-4 py-2 rounded hover:bg-xcord-brand-hover transition"
             onClick={handleSearch}
           >
             Search

@@ -1,5 +1,6 @@
-import { createSignal, createEffect, For, Show } from 'solid-js';
+import { createSignal, For, Show } from 'solid-js';
 import { api } from '../api/client';
+import Modal from './ui/Modal';
 
 interface Member {
   userId: string;
@@ -121,113 +122,102 @@ export default function OwnershipTransfer(props: OwnershipTransferProps) {
         </button>
 
         {/* Step 1: Select Member */}
-        <Show when={step() === 'select-member'}>
-          <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div class="bg-xcord-bg-secondary rounded-lg p-6 w-full max-w-md shadow-xl">
-              <h3 class="text-white font-semibold text-lg mb-4">
-                Select New Owner
-              </h3>
+        <Modal open={step() === 'select-member'} onClose={handleClose} title="Select New Owner" size="md">
+          <div class="p-6">
+            <Show when={error()}>
+              <div class="mb-3 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">{error()}</div>
+            </Show>
 
-              <Show when={error()}>
-                <p class="text-red-400 text-sm mb-3">{error()}</p>
-              </Show>
+            <Show when={isLoading()}>
+              <p class="text-xcord-text-muted text-sm">Loading members...</p>
+            </Show>
 
-              <Show when={isLoading()}>
-                <p class="text-xcord-text-muted text-sm">Loading members...</p>
-              </Show>
+            <Show when={!isLoading()}>
+              <div class="space-y-2 max-h-64 overflow-y-auto mb-4">
+                <For each={members()}>
+                  {(member) => (
+                    <button
+                      class="w-full flex items-center gap-3 p-3 rounded bg-xcord-bg-primary hover:bg-xcord-bg-primary/80 transition text-left"
+                      onClick={() => handleSelectMember(member)}
+                    >
+                      <div class="w-8 h-8 rounded-full bg-xcord-brand flex items-center justify-center text-white text-sm font-semibold">
+                        {(member.displayName || member.username).charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p class="text-white text-sm font-medium">
+                          {member.displayName || member.username}
+                        </p>
+                        <p class="text-xcord-text-muted text-xs">
+                          @{member.username}
+                        </p>
+                      </div>
+                    </button>
+                  )}
+                </For>
+                <Show when={members().length === 0}>
+                  <div class="flex flex-col items-center justify-center py-8 text-center">
+                    <p class="text-xcord-text-muted text-sm">No other members to transfer to.</p>
+                  </div>
+                </Show>
+              </div>
+            </Show>
 
-              <Show when={!isLoading()}>
-                <div class="space-y-2 max-h-64 overflow-y-auto mb-4">
-                  <For each={members()}>
-                    {(member) => (
-                      <button
-                        class="w-full flex items-center gap-3 p-3 rounded bg-xcord-bg-primary hover:bg-xcord-bg-primary/80 transition text-left"
-                        onClick={() => handleSelectMember(member)}
-                      >
-                        <div class="w-8 h-8 rounded-full bg-xcord-brand flex items-center justify-center text-white text-sm font-semibold">
-                          {(member.displayName || member.username).charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <p class="text-white text-sm font-medium">
-                            {member.displayName || member.username}
-                          </p>
-                          <p class="text-xcord-text-muted text-xs">
-                            @{member.username}
-                          </p>
-                        </div>
-                      </button>
-                    )}
-                  </For>
-                  <Show when={members().length === 0}>
-                    <p class="text-xcord-text-muted text-sm text-center py-4">
-                      No other members to transfer to.
-                    </p>
-                  </Show>
-                </div>
-              </Show>
+            <button
+              class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+              onClick={handleClose}
+            >
+              Cancel
+            </button>
+          </div>
+        </Modal>
 
+        {/* Step 2: Confirm with server name */}
+        <Modal open={step() === 'confirm-name'} onClose={handleClose} title="Confirm Ownership Transfer" size="md">
+          <div class="p-6">
+            <p class="text-xcord-text-muted text-sm mb-4">
+              You are about to transfer ownership of this server to{' '}
+              <strong class="text-white">
+                {selectedMember()?.displayName || selectedMember()?.username}
+              </strong>
+              . Type the server name{' '}
+              <strong class="text-white">{props.serverName}</strong> to
+              confirm.
+            </p>
+
+            <Show when={error()}>
+              <div class="mb-3 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">{error()}</div>
+            </Show>
+
+            <div class="mb-4">
+              <label class="text-xs text-xcord-text-muted block mb-1">
+                Server Name
+              </label>
+              <input
+                type="text"
+                class="w-full bg-xcord-bg-primary text-xcord-text-primary px-3 py-2 rounded text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+                value={serverNameInput()}
+                onInput={(e) => setServerNameInput(e.currentTarget.value)}
+                placeholder={props.serverName}
+              />
+            </div>
+
+            <div class="flex gap-3">
               <button
-                class="w-full bg-xcord-bg-primary text-xcord-text-muted py-2 rounded hover:bg-xcord-bg-primary/80 transition text-sm"
+                class="flex-1 bg-xcord-brand text-white py-2 rounded hover:bg-xcord-brand-hover transition disabled:opacity-50"
+                onClick={handleConfirmTransfer}
+                disabled={isLoading() || serverNameInput().trim() !== props.serverName}
+              >
+                {isLoading() ? 'Transferring...' : 'Confirm Transfer'}
+              </button>
+              <button
+                class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
                 onClick={handleClose}
               >
                 Cancel
               </button>
             </div>
           </div>
-        </Show>
-
-        {/* Step 2: Confirm with server name */}
-        <Show when={step() === 'confirm-name'}>
-          <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div class="bg-xcord-bg-secondary rounded-lg p-6 w-full max-w-md shadow-xl">
-              <h3 class="text-white font-semibold text-lg mb-2">
-                Confirm Ownership Transfer
-              </h3>
-              <p class="text-xcord-text-muted text-sm mb-4">
-                You are about to transfer ownership of this server to{' '}
-                <strong class="text-white">
-                  {selectedMember()?.displayName || selectedMember()?.username}
-                </strong>
-                . Type the server name{' '}
-                <strong class="text-white">{props.serverName}</strong> to
-                confirm.
-              </p>
-
-              <Show when={error()}>
-                <p class="text-red-400 text-sm mb-3">{error()}</p>
-              </Show>
-
-              <div class="mb-4">
-                <label class="text-xs text-xcord-text-muted block mb-1">
-                  Server Name
-                </label>
-                <input
-                  type="text"
-                  class="w-full bg-xcord-bg-primary text-white px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-xcord-brand"
-                  value={serverNameInput()}
-                  onInput={(e) => setServerNameInput(e.currentTarget.value)}
-                  placeholder={props.serverName}
-                />
-              </div>
-
-              <div class="flex gap-3">
-                <button
-                  class="flex-1 bg-xcord-brand text-white py-2 rounded hover:bg-xcord-brand/80 transition disabled:opacity-50"
-                  onClick={handleConfirmTransfer}
-                  disabled={isLoading() || serverNameInput().trim() !== props.serverName}
-                >
-                  {isLoading() ? 'Transferring...' : 'Confirm Transfer'}
-                </button>
-                <button
-                  class="flex-1 bg-xcord-bg-primary text-xcord-text-primary py-2 rounded hover:bg-xcord-bg-primary/80 transition"
-                  onClick={handleClose}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </Show>
+        </Modal>
       </div>
     </Show>
   );

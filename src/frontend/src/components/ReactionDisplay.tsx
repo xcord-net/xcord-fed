@@ -85,19 +85,18 @@ export default function ReactionDisplay(props: ReactionDisplayProps) {
       {/* Add reaction button */}
       <div class="relative">
         <button
-          class="flex items-center justify-center w-7 h-6 rounded-full bg-xcord-bg-tertiary hover:bg-xcord-bg-secondary border border-xcord-border text-xcord-text-muted hover:text-xcord-text-primary transition-colors text-sm"
+          class="flex items-center justify-center w-7 h-7 rounded-full bg-xcord-bg-tertiary hover:bg-xcord-bg-secondary border border-xcord-border text-xcord-text-muted hover:text-xcord-text-primary transition-colors text-sm"
           onClick={() => setShowPicker(!showPicker())}
           title="Add reaction"
+          aria-label="Add reaction"
         >
           +
         </button>
 
         <Show when={showPicker()}>
-          <div
-            class="absolute bottom-full left-0 mb-1 z-50"
-            onMouseLeave={() => setShowPicker(false)}
-          >
-            <EmojiPicker serverId={props.serverId} onSelect={handlePickerSelect} />
+          <div class="fixed inset-0 z-40" aria-hidden="true" onClick={() => setShowPicker(false)} />
+          <div class="absolute bottom-full left-0 mb-1 z-50">
+            <EmojiPicker serverId={props.serverId} onSelect={handlePickerSelect} onClose={() => setShowPicker(false)} />
           </div>
         </Show>
       </div>

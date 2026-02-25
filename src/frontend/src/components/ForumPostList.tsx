@@ -108,7 +108,7 @@ export default function ForumPostList(props: ForumPostListProps) {
       <div class="px-4 py-3 border-b border-xcord-bg-tertiary flex items-center justify-between flex-shrink-0">
         <h2 class="text-xcord-text-primary font-semibold">Forum Posts</h2>
         <button
-          class="bg-xcord-brand text-white px-3 py-1.5 rounded hover:bg-xcord-brand/80 transition-colors text-sm"
+          class="bg-xcord-brand text-white px-3 py-1.5 rounded hover:bg-xcord-brand-hover transition-colors text-sm"
           onClick={() => setShowCreateForm(true)}
           aria-label="New Post"
         >
@@ -127,7 +127,7 @@ export default function ForumPostList(props: ForumPostListProps) {
             </label>
             <input
               type="text"
-              class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
+              class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
               placeholder="Post title..."
               value={title()}
               onInput={(e) => setTitle(e.currentTarget.value)}
@@ -139,7 +139,7 @@ export default function ForumPostList(props: ForumPostListProps) {
               Content
             </label>
             <textarea
-              class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xcord-brand resize-none"
+              class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand resize-none"
               placeholder="Write your post content..."
               rows={4}
               value={content()}
@@ -154,7 +154,7 @@ export default function ForumPostList(props: ForumPostListProps) {
             <div class="flex gap-2 mb-2">
               <input
                 type="text"
-                class="flex-1 bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
+                class="flex-1 bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
                 placeholder="Add a tag and press Enter..."
                 value={tagInput()}
                 onInput={(e) => setTagInput(e.currentTarget.value)}
@@ -199,7 +199,7 @@ export default function ForumPostList(props: ForumPostListProps) {
 
           <div class="flex gap-2">
             <button
-              class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleCreatePost}
               disabled={isSubmitting() || !title().trim() || !content().trim()}
             >

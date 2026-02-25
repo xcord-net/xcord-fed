@@ -13,6 +13,7 @@ import ReactionDisplay from './ReactionDisplay';
 import EmojiPicker from './EmojiPicker';
 import PollDisplay from './PollDisplay';
 import type { Poll } from './PollDisplay';
+import Modal from './ui/Modal';
 import type { Message, MessageAttachment } from '../types/message';
 
 /** Renders the attachment list for a message, showing image thumbnails and file links. */
@@ -123,6 +124,7 @@ export default function MessageList(props: MessageListProps) {
   let scrollContainer: HTMLDivElement | undefined;
   const [isAtBottom, setIsAtBottom] = createSignal(true);
   const [reactionPickerMessageId, setReactionPickerMessageId] = createSignal<string | null>(null);
+  const [deleteConfirmMessageId, setDeleteConfirmMessageId] = createSignal<string | null>(null);
   const [myPermissions, setMyPermissions] = createSignal<bigint>(0n);
 
   const currentUserId = () => authStore.user?.id;
@@ -303,15 +305,16 @@ export default function MessageList(props: MessageListProps) {
                       class={`group/msg relative ${grouped() ? 'pl-14 hover:bg-xcord-bg-primary/30' : 'hover:bg-xcord-bg-primary/30'}`}
                     >
                       {/* Hover action bar — uses CSS group-hover for visibility to survive virtualizer DOM re-creation */}
-                      <div class={`absolute right-2 top-0 bg-xcord-bg-tertiary rounded shadow-lg border border-xcord-border z-10 ${
+                      <div role="toolbar" aria-label="Message actions" class={`absolute right-2 top-0 bg-xcord-bg-tertiary rounded shadow-lg border border-xcord-border z-10 ${
                         messageStore.editingMessageId
                           ? 'hidden'
                           : reactionPickerMessageId() === message().id
                             ? 'flex'
-                            : 'hidden group-hover/msg:flex'
+                            : 'hidden group-hover/msg:flex group-focus-within/msg:flex'
                       }`}>
                           <button
                             title="Reply"
+                            aria-label="Reply"
                             class="px-2 py-1 text-xs text-xcord-text-muted hover:text-white hover:bg-xcord-bg-primary rounded"
                           >
                             &#8617;
@@ -319,6 +322,7 @@ export default function MessageList(props: MessageListProps) {
                           <Show when={message().authorId === currentUserId()}>
                             <button
                               title="Edit"
+                              aria-label="Edit"
                               class="px-2 py-1 text-xs text-xcord-text-muted hover:text-white hover:bg-xcord-bg-primary rounded"
                               onClick={() => messageStore.startEditing(message().id, message().content)}
                             >
@@ -328,12 +332,9 @@ export default function MessageList(props: MessageListProps) {
                           <Show when={canDeleteMessage(message())}>
                             <button
                               title="Delete"
+                              aria-label="Delete"
                               class="px-2 py-1 text-xs text-xcord-text-muted hover:text-red-400 hover:bg-xcord-bg-primary rounded"
-                              onClick={() => {
-                                if (confirm('Delete this message?')) {
-                                  messageStore.deleteMessage(props.conversationId, message().id);
-                                }
-                              }}
+                              onClick={() => setDeleteConfirmMessageId(message().id)}
                             >
                               &#128465;
                             </button>
@@ -341,6 +342,7 @@ export default function MessageList(props: MessageListProps) {
                           <div class="relative">
                             <button
                               title="Add reaction"
+                              aria-label="Add reaction"
                               class="px-2 py-1 text-xs text-xcord-text-muted hover:text-white hover:bg-xcord-bg-primary rounded"
                               onClick={() => setReactionPickerMessageId(
                                 reactionPickerMessageId() === message().id ? null : message().id
@@ -365,12 +367,14 @@ export default function MessageList(props: MessageListProps) {
                                       console.error('Failed to add reaction', e);
                                     }
                                   }}
+                                  onClose={() => setReactionPickerMessageId(null)}
                                 />
                               </div>
                             </Show>
                           </div>
                           <button
                             title="Pin"
+                            aria-label="Pin message"
                             class="px-2 py-1 text-xs text-xcord-text-muted hover:text-yellow-400 hover:bg-xcord-bg-primary rounded"
                             onClick={() => {
                               if (message().isPinned) {
@@ -385,6 +389,7 @@ export default function MessageList(props: MessageListProps) {
                           <Show when={params.channelId}>
                             <button
                               title="Create Thread"
+                              aria-label="Start thread"
                               class="px-2 py-1 text-xs text-xcord-text-muted hover:text-white hover:bg-xcord-bg-primary rounded"
                               onClick={() => {
                                 setCreateThreadMessageId(message().id);
@@ -411,7 +416,7 @@ export default function MessageList(props: MessageListProps) {
                               }}
                             />
                             <button
-                              class="px-3 py-1 text-xs bg-xcord-brand text-white rounded hover:bg-xcord-brand/80"
+                              class="px-3 py-1 text-xs bg-xcord-brand text-white rounded hover:bg-xcord-brand-hover"
                               onClick={async () => {
                                 const name = threadNameInput().trim();
                                 if (!name) return;
@@ -546,6 +551,36 @@ export default function MessageList(props: MessageListProps) {
           </For>
         </div>
       </Show>
+
+      <Modal
+        open={deleteConfirmMessageId() !== null}
+        onClose={() => setDeleteConfirmMessageId(null)}
+        title="Delete Message"
+        size="sm"
+        role="alertdialog"
+      >
+        <div class="p-6">
+          <p class="text-xcord-text-secondary text-sm mb-4">Are you sure you want to delete this message? This cannot be undone.</p>
+          <div class="flex justify-end gap-3">
+            <button
+              class="px-4 py-2 text-sm text-xcord-text-primary bg-xcord-bg-primary hover:bg-xcord-bg-tertiary rounded transition-colors"
+              onClick={() => setDeleteConfirmMessageId(null)}
+            >
+              Cancel
+            </button>
+            <button
+              class="px-4 py-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded transition-colors"
+              onClick={() => {
+                const id = deleteConfirmMessageId();
+                if (id) messageStore.deleteMessage(props.conversationId, id);
+                setDeleteConfirmMessageId(null);
+              }}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

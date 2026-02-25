@@ -2,6 +2,7 @@ import { For, Show, createSignal, onMount } from 'solid-js';
 import { api } from '../api/client';
 import { useChannels } from '../stores/channel.store';
 import ChannelPermissions from './ChannelPermissions';
+import Modal from './ui/Modal';
 
 interface ChannelSettingsProps {
   serverId: string;
@@ -39,6 +40,7 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
   const [successMsg, setSuccessMsg] = createSignal('');
   const [errorMsg, setErrorMsg] = createSignal('');
   const [activeTab, setActiveTab] = createSignal<'overview' | 'permissions'>('overview');
+  const [showDeleteConfirm, setShowDeleteConfirm] = createSignal(false);
 
   onMount(() => {
     const channel = currentChannel();
@@ -79,17 +81,8 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
   };
 
   return (
-    <div
-      class="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
-      onClick={(e) => { if (e.target === e.currentTarget) props.onClose(); }}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Channel Settings"
-        class="bg-xcord-bg-secondary rounded-lg shadow-xl w-full max-w-xl max-h-[90vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <>
+      <Modal open={true} onClose={props.onClose} aria-label="Channel Settings" size="lg">
         {/* Header */}
         <div class="flex items-center justify-between px-6 py-4 border-b border-xcord-border">
           <div>
@@ -136,13 +129,12 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
         </div>
 
         {/* Body */}
-        <div class="flex-1 overflow-y-auto">
-          <Show when={activeTab() === 'permissions'}>
-            <div class="h-[500px]">
-              <ChannelPermissions serverId={props.serverId} channelId={props.channelId} />
-            </div>
-          </Show>
-          <Show when={activeTab() === 'overview'}>
+        <Show when={activeTab() === 'permissions'}>
+          <div class="h-[500px]">
+            <ChannelPermissions serverId={props.serverId} channelId={props.channelId} />
+          </div>
+        </Show>
+        <Show when={activeTab() === 'overview'}>
           <form onSubmit={handleSave}>
             {/* Overview section */}
             <section class="px-6 py-5 border-b border-xcord-border">
@@ -246,13 +238,7 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
               <button
                 type="button"
                 class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
-                onClick={() => {
-                  if (confirm('Are you sure you want to delete this channel? This cannot be undone.')) {
-                    channelStore.deleteChannel(props.channelId).then(() => {
-                      props.onClose();
-                    });
-                  }
-                }}
+                onClick={() => setShowDeleteConfirm(true)}
               >
                 Delete Channel
               </button>
@@ -275,7 +261,7 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
               <button
                 type="button"
                 onClick={props.onClose}
-                class="px-4 py-2 text-sm text-xcord-text-muted hover:text-white rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+                class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
               >
                 Cancel
               </button>
@@ -288,9 +274,31 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
               </button>
             </div>
           </form>
-          </Show>
+        </Show>
+      </Modal>
+
+      {/* Delete channel confirmation */}
+      <Modal open={showDeleteConfirm()} onClose={() => setShowDeleteConfirm(false)} title="Delete Channel" size="sm" role="alertdialog">
+        <div class="p-6">
+          <p class="text-xcord-text-secondary text-sm mb-6">Are you sure you want to delete this channel? This cannot be undone.</p>
+          <div class="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(false)}
+              class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => { channelStore.deleteChannel(props.channelId).then(() => props.onClose()); }}
+              class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
+            >
+              Delete Channel
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
+      </Modal>
+    </>
   );
 }

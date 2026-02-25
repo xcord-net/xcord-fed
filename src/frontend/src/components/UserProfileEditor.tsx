@@ -118,7 +118,7 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
                     <label class="text-xs text-xcord-text-muted block mb-1">Display Name</label>
                     <input
                       type="text"
-                      class="w-full bg-xcord-bg-primary text-white px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+                      class="w-full bg-xcord-bg-primary text-white px-3 py-2 rounded border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
                       value={displayName() || profileStore.userProfile!.displayName}
                       onInput={(e) => setDisplayName(e.currentTarget.value)}
                     />
@@ -128,7 +128,7 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
                     <label class="text-xs text-xcord-text-muted block mb-1">Pronouns</label>
                     <input
                       type="text"
-                      class="w-full bg-xcord-bg-primary text-white px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+                      class="w-full bg-xcord-bg-primary text-white px-3 py-2 rounded border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
                       value={pronouns() || profileStore.userProfile!.pronouns || ''}
                       onInput={(e) => setPronouns(e.currentTarget.value)}
                       placeholder="e.g., they/them"
@@ -138,7 +138,7 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
                   <div>
                     <label class="text-xs text-xcord-text-muted block mb-1">Bio</label>
                     <textarea
-                      class="w-full bg-xcord-bg-primary text-white px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-xcord-brand resize-none"
+                      class="w-full bg-xcord-bg-primary text-white px-3 py-2 rounded border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand resize-none"
                       rows={4}
                       value={bio() || profileStore.userProfile!.bio || ''}
                       onInput={(e) => setBio(e.currentTarget.value)}
@@ -147,7 +147,7 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
                   </div>
 
                   <button
-                    class="w-full bg-xcord-brand text-white py-2 rounded hover:bg-xcord-brand/80 transition"
+                    class="w-full bg-xcord-brand text-white py-2 rounded hover:bg-xcord-brand-hover transition"
                     onClick={handleSaveUserProfile}
                   >
                     Save Changes
@@ -183,7 +183,7 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
                   <label class="text-xs text-xcord-text-muted block mb-1">Server Nickname</label>
                   <input
                     type="text"
-                    class="w-full bg-xcord-bg-primary text-white px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+                    class="w-full bg-xcord-bg-primary text-white px-3 py-2 rounded border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
                     value={nickname() || profileStore.getServerProfile(props.serverId!)?.nickname || ''}
                     onInput={(e) => setNickname(e.currentTarget.value)}
                     placeholder="Enter server nickname..."
@@ -191,7 +191,7 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
                 </div>
 
                 <button
-                  class="w-full bg-xcord-brand text-white py-2 rounded hover:bg-xcord-brand/80 transition"
+                  class="w-full bg-xcord-brand text-white py-2 rounded hover:bg-xcord-brand-hover transition"
                   onClick={handleSaveServerProfile}
                 >
                   Save Changes

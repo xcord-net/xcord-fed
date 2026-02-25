@@ -181,7 +181,7 @@ export default function ProfileDecorations() {
 
           {/* Save button */}
           <button
-            class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand/80 transition-colors disabled:opacity-50"
+            class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50"
             onClick={handleSave}
             disabled={isSaving()}
             aria-label="Save decorations"

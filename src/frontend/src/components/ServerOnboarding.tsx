@@ -394,7 +394,7 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
 
                 <Show when={currentStep() !== 'channels'}>
                   <button
-                    class="px-5 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="px-5 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleNext}
                     disabled={currentStep() === 'rules' && !canProceedFromRules()}
                     aria-label="Next step"
@@ -405,7 +405,7 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
 
                 <Show when={currentStep() === 'channels'}>
                   <button
-                    class="px-5 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="px-5 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleComplete}
                     disabled={isSubmitting()}
                     aria-label="Complete onboarding"

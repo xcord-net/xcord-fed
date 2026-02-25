@@ -1,5 +1,6 @@
 import { createSignal, Show } from 'solid-js';
 import { api } from '../api/client';
+import Modal from './ui/Modal';
 
 interface AccountDeletionProps {
   scheduledDeletionAt?: string | null;
@@ -78,7 +79,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
       </h3>
 
       <Show when={error()}>
-        <p class="text-red-400 text-sm mb-3">{error()}</p>
+        <div class="mb-3 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">{error()}</div>
       </Show>
 
       <Show when={props.scheduledDeletionAt}>
@@ -104,7 +105,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
           period. You can cancel the deletion during this time.
         </p>
         <button
-          class="bg-red-700 text-white px-4 py-2 rounded hover:bg-red-600 transition text-sm disabled:opacity-50"
+          class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition text-sm disabled:opacity-50"
           onClick={() => {
             setError('');
             setShowConfirmDialog(true);
@@ -115,56 +116,57 @@ export default function AccountDeletion(props: AccountDeletionProps) {
         </button>
       </Show>
 
-      <Show when={showConfirmDialog()}>
-        <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div class="bg-xcord-bg-secondary rounded-lg p-6 w-full max-w-md shadow-xl">
-            <h3 class="text-white font-semibold text-lg mb-2">
-              Confirm Account Deletion
-            </h3>
-            <p class="text-xcord-text-muted text-sm mb-4">
-              Enter your password to confirm. Your account will be permanently
-              deleted after 14 days.
-            </p>
+      <Modal
+        open={showConfirmDialog()}
+        onClose={() => { setShowConfirmDialog(false); setPassword(''); setError(''); }}
+        title="Confirm Account Deletion"
+        size="md"
+        role="alertdialog"
+      >
+        <div class="p-6">
+          <p class="text-xcord-text-muted text-sm mb-4">
+            Enter your password to confirm. Your account will be permanently
+            deleted after 14 days.
+          </p>
 
-            <Show when={error()}>
-              <p class="text-red-400 text-sm mb-3">{error()}</p>
-            </Show>
+          <Show when={error()}>
+            <div class="mb-3 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">{error()}</div>
+          </Show>
 
-            <div class="mb-4">
-              <label class="text-xs text-xcord-text-muted block mb-1">
-                Password
-              </label>
-              <input
-                type="password"
-                class="w-full bg-xcord-bg-primary text-white px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                value={password()}
-                onInput={(e) => setPassword(e.currentTarget.value)}
-                placeholder="Enter your password"
-              />
-            </div>
+          <div class="mb-4">
+            <label class="text-xs text-xcord-text-muted block mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              class="w-full bg-xcord-bg-primary text-xcord-text-primary px-3 py-2 rounded text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+              value={password()}
+              onInput={(e) => setPassword(e.currentTarget.value)}
+              placeholder="Enter your password"
+            />
+          </div>
 
-            <div class="flex gap-3">
-              <button
-                class="flex-1 bg-red-700 text-white py-2 rounded hover:bg-red-600 transition disabled:opacity-50"
-                onClick={handleRequestDeletion}
-                disabled={isLoading()}
-              >
-                {isLoading() ? 'Scheduling...' : 'Delete My Account'}
-              </button>
-              <button
-                class="flex-1 bg-xcord-bg-primary text-xcord-text-primary py-2 rounded hover:bg-xcord-bg-secondary/80 transition"
-                onClick={() => {
-                  setShowConfirmDialog(false);
-                  setPassword('');
-                  setError('');
-                }}
-              >
-                Cancel
-              </button>
-            </div>
+          <div class="flex gap-3">
+            <button
+              class="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-700 transition disabled:opacity-50"
+              onClick={handleRequestDeletion}
+              disabled={isLoading()}
+            >
+              {isLoading() ? 'Scheduling...' : 'Delete My Account'}
+            </button>
+            <button
+              class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+              onClick={() => {
+                setShowConfirmDialog(false);
+                setPassword('');
+                setError('');
+              }}
+            >
+              Cancel
+            </button>
           </div>
         </div>
-      </Show>
+      </Modal>
     </div>
   );
 }

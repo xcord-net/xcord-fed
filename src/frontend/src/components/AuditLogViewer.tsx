@@ -131,13 +131,13 @@ export default function AuditLogViewer(props: AuditLogViewerProps) {
           <input
             type="text"
             placeholder="Filter by user (username or ID)..."
-            class="bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+            class="bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
             value={userFilter()}
             onInput={(e) => setUserFilter(e.currentTarget.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') applyFilters(); }}
           />
           <button
-            class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand/80 self-end"
+            class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand-hover self-end"
             onClick={() => applyFilters()}
           >
             Apply Filters

@@ -65,7 +65,7 @@ interface MessageComponentsProps {
 export function buttonStyleClasses(style: ButtonStyle): string {
   switch (style) {
     case 'Primary':
-      return 'bg-xcord-brand text-white hover:bg-xcord-brand/80';
+      return 'bg-xcord-brand text-white hover:bg-xcord-brand-hover';
     case 'Secondary':
       return 'bg-xcord-bg-tertiary text-xcord-text-primary hover:bg-xcord-bg-primary';
     case 'Success':
@@ -211,7 +211,7 @@ function ComponentSelectMenu(props: {
 
       <Show when={isMulti() && selected().length >= minValues()}>
         <button
-          class="px-3 py-1.5 bg-xcord-brand text-white text-sm rounded hover:bg-xcord-brand/80 transition-colors disabled:opacity-50"
+          class="px-3 py-1.5 bg-xcord-brand text-white text-sm rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50"
           disabled={loading()}
           onClick={() => submitInteraction(selected())}
         >

@@ -21,6 +21,7 @@ import ScheduledEvents from './ScheduledEvents';
 import UserNotes from './UserNotes';
 import ConnectedAccounts from './ConnectedAccounts';
 import ProfileDecorations from './ProfileDecorations';
+import Modal from './ui/Modal';
 import { useServers } from '../stores/server.store';
 import { useChannels } from '../stores/channel.store';
 import { useMembers } from '../stores/member.store';
@@ -408,63 +409,54 @@ export default function Layout() {
       </Show>
 
       {/* Settings modal */}
-      <Show when={showSettings()}>
-        <div
-          class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
-          onClick={() => setShowSettings(null)}
-        >
-          <div
-            id="settings-modal-panel"
-            class="bg-xcord-bg-secondary rounded-lg w-[600px] max-h-[80vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+      <Modal open={showSettings() !== null} onClose={() => setShowSettings(null)} aria-label="User Settings" size="lg">
+        <div id="settings-modal-panel">
+        <div class="flex border-b border-xcord-border">
+          <button
+            class={`px-4 py-3 text-sm ${showSettings() === 'profile' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
+            onClick={() => setShowSettings('profile')}
           >
-            <div class="flex border-b border-xcord-border">
-              <button
-                class={`px-4 py-3 text-sm ${showSettings() === 'profile' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
-                onClick={() => setShowSettings('profile')}
-              >
-                Profile
-              </button>
-              <button
-                class={`px-4 py-3 text-sm ${showSettings() === 'notifications' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
-                onClick={() => setShowSettings('notifications')}
-              >
-                Notifications
-              </button>
-              <button
-                class={`px-4 py-3 text-sm ${showSettings() === 'blocks' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
-                onClick={() => setShowSettings('blocks')}
-              >
-                Blocked Users
-              </button>
-              <button
-                class={`px-4 py-3 text-sm ${showSettings() === 'notes' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
-                onClick={() => setShowSettings('notes')}
-              >
-                User Notes
-              </button>
-              <button
-                class={`px-4 py-3 text-sm ${showSettings() === 'connected-accounts' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
-                onClick={() => setShowSettings('connected-accounts')}
-              >
-                Connected Accounts
-              </button>
-              <button
-                class={`px-4 py-3 text-sm ${showSettings() === 'profile-decorations' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
-                onClick={() => setShowSettings('profile-decorations')}
-              >
-                Profile Decorations
-              </button>
-            </div>
-            <Show when={showSettings() === 'profile'}><UserProfileEditor /></Show>
-            <Show when={showSettings() === 'notifications'}><NotificationSettings /></Show>
-            <Show when={showSettings() === 'blocks'}><BlockList /></Show>
-            <Show when={showSettings() === 'notes'}><UserNotes /></Show>
-            <Show when={showSettings() === 'connected-accounts'}><ConnectedAccounts /></Show>
-            <Show when={showSettings() === 'profile-decorations'}><ProfileDecorations /></Show>
-          </div>
+            Profile
+          </button>
+          <button
+            class={`px-4 py-3 text-sm ${showSettings() === 'notifications' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
+            onClick={() => setShowSettings('notifications')}
+          >
+            Notifications
+          </button>
+          <button
+            class={`px-4 py-3 text-sm ${showSettings() === 'blocks' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
+            onClick={() => setShowSettings('blocks')}
+          >
+            Blocked Users
+          </button>
+          <button
+            class={`px-4 py-3 text-sm ${showSettings() === 'notes' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
+            onClick={() => setShowSettings('notes')}
+          >
+            User Notes
+          </button>
+          <button
+            class={`px-4 py-3 text-sm ${showSettings() === 'connected-accounts' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
+            onClick={() => setShowSettings('connected-accounts')}
+          >
+            Connected Accounts
+          </button>
+          <button
+            class={`px-4 py-3 text-sm ${showSettings() === 'profile-decorations' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
+            onClick={() => setShowSettings('profile-decorations')}
+          >
+            Profile Decorations
+          </button>
         </div>
-      </Show>
+        <Show when={showSettings() === 'profile'}><UserProfileEditor /></Show>
+        <Show when={showSettings() === 'notifications'}><NotificationSettings /></Show>
+        <Show when={showSettings() === 'blocks'}><BlockList /></Show>
+        <Show when={showSettings() === 'notes'}><UserNotes /></Show>
+        <Show when={showSettings() === 'connected-accounts'}><ConnectedAccounts /></Show>
+        <Show when={showSettings() === 'profile-decorations'}><ProfileDecorations /></Show>
+        </div>
+      </Modal>
 
       {/* Channel Settings modal */}
       <Show when={showChannelSettings() && channelStore.selectedChannelId && serverStore.selectedServerId}>
@@ -476,19 +468,11 @@ export default function Layout() {
       </Show>
 
       {/* Role Manager modal */}
-      <Show when={showRoleManager() && serverStore.selectedServerId}>
-        <div
-          class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
-          onClick={() => setShowRoleManager(false)}
-        >
-          <div
-            class="bg-xcord-bg-secondary rounded-lg w-[720px] h-[600px] overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <RoleManager serverId={serverStore.selectedServerId!} />
-          </div>
+      <Modal open={showRoleManager() && !!serverStore.selectedServerId} onClose={() => setShowRoleManager(false)} aria-label="Role Manager" size="xl">
+        <div class="h-[600px]">
+          <RoleManager serverId={serverStore.selectedServerId!} />
         </div>
-      </Show>
+      </Modal>
     </div>
   );
 }

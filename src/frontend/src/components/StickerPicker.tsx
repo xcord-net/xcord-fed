@@ -280,7 +280,7 @@ export default function StickerPicker(props: StickerPickerProps) {
         <h2 class="text-white font-semibold">Stickers</h2>
         <Show when={props.canManage}>
           <button
-            class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand/80 transition-colors"
+            class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand-hover transition-colors"
             onClick={() => setShowUpload(!showUpload())}
           >
             {showUpload() ? 'Cancel' : 'Upload Sticker'}
@@ -330,7 +330,7 @@ export default function StickerPicker(props: StickerPickerProps) {
             <button
               type="submit"
               disabled={isUploading()}
-              class="bg-xcord-brand text-white px-4 py-1.5 rounded text-sm hover:bg-xcord-brand/80 disabled:opacity-50 transition-colors"
+              class="bg-xcord-brand text-white px-4 py-1.5 rounded text-sm hover:bg-xcord-brand-hover disabled:opacity-50 transition-colors"
             >
               {isUploading() ? 'Uploading...' : 'Upload Sticker'}
             </button>

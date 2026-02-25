@@ -1,5 +1,6 @@
 import { For, Show, createSignal } from 'solid-js';
 import { api } from '../api/client';
+import Modal from './ui/Modal';
 
 // ---- Types ----
 
@@ -77,6 +78,7 @@ function votePercentage(option: PollOption, totalVotes: number): number {
 export default function PollDisplay(props: PollDisplayProps) {
   const [isVoting, setIsVoting] = createSignal(false);
   const [isEndingPoll, setIsEndingPoll] = createSignal(false);
+  const [showEndConfirm, setShowEndConfirm] = createSignal(false);
   const [localPoll, setLocalPoll] = createSignal<Poll>(props.poll);
 
   // Keep in sync if parent passes a new poll (e.g. after SignalR update)
@@ -94,9 +96,13 @@ export default function PollDisplay(props: PollDisplayProps) {
   const hasVotedForOption = (optionId: string) =>
     poll().userVotedOptionIds.includes(optionId);
 
-  const handleEndPoll = async () => {
+  const handleEndPoll = () => {
     if (isClosed() || isEndingPoll()) return;
-    if (!confirm('End this poll? Voting will be disabled.')) return;
+    setShowEndConfirm(true);
+  };
+
+  const confirmEndPoll = async () => {
+    setShowEndConfirm(false);
     setIsEndingPoll(true);
     try {
       await api.post(`/api/v1/polls/${props.pollId}/end`, {});
@@ -260,6 +266,33 @@ export default function PollDisplay(props: PollDisplayProps) {
           </Show>
         </div>
       </div>
+
+      <Modal
+        open={showEndConfirm()}
+        onClose={() => setShowEndConfirm(false)}
+        title="End Poll"
+        size="sm"
+        role="alertdialog"
+      >
+        <div class="p-6">
+          <p class="text-xcord-text-secondary text-sm mb-4">End this poll? Voting will be disabled and no further votes can be cast.</p>
+          <div class="flex justify-end gap-3">
+            <button
+              class="px-4 py-2 text-sm text-xcord-text-primary bg-xcord-bg-primary hover:bg-xcord-bg-tertiary rounded transition-colors"
+              onClick={() => setShowEndConfirm(false)}
+            >
+              Cancel
+            </button>
+            <button
+              class="px-4 py-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded transition-colors disabled:opacity-50"
+              disabled={isEndingPoll()}
+              onClick={confirmEndPoll}
+            >
+              End Poll
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -425,7 +458,7 @@ export function CreatePollForm(props: CreatePollFormProps) {
 
       <div class="flex gap-2">
         <button
-          class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand/80 transition-colors"
+          class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors"
           onClick={handleSubmit}
         >
           Add Poll

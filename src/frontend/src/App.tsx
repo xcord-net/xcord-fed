@@ -52,9 +52,9 @@ export default function App() {
     <ErrorBoundary fallback={AppErrorFallback}>
       {/* Suspension overlay — shown when the server sends System_ShuttingDown */}
       <Show when={signalR.suspensionReason !== null}>
-        <div class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-xcord-bg-primary/95 text-xcord-text-primary gap-4">
+        <div role="alert" aria-live="assertive" aria-label="Server suspended" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-xcord-bg-primary/95 text-xcord-text-primary gap-4">
           <div class="flex flex-col items-center gap-3 max-w-md text-center px-6">
-            <svg class="w-16 h-16 text-xcord-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg aria-hidden="true" class="w-16 h-16 text-xcord-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
             </svg>
             <p class="text-xl font-semibold">Server Suspended</p>

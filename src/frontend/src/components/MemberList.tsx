@@ -4,6 +4,8 @@ import { useServers } from '../stores/server.store';
 import { useAuth } from '../stores/auth.store';
 import { api } from '../api/client';
 import PresenceDot from './PresenceDot';
+import Modal from './ui/Modal';
+import Menu from './ui/Menu';
 
 interface ServerRole {
   id: string;
@@ -22,6 +24,8 @@ export default function MemberList() {
   const [showRoleAssignment, setShowRoleAssignment] = createSignal(false);
   const [serverRoles, setServerRoles] = createSignal<ServerRole[]>([]);
   const [roleAssignmentLoading, setRoleAssignmentLoading] = createSignal(false);
+  const [showBanConfirm, setShowBanConfirm] = createSignal(false);
+  const [pendingBanUserId, setPendingBanUserId] = createSignal<string | null>(null);
 
   // Only the server owner can ban members from the member list context menu.
   // (Moderators with the BanMembers permission would require a full permission
@@ -55,13 +59,19 @@ export default function MemberList() {
     setContextMenuPos({ x: e.clientX, y: e.clientY });
   };
 
-  const handleBan = async (userId: string) => {
-    const serverId = serverStore.selectedServerId;
-    if (!serverId) return;
+  const handleBan = (userId: string) => {
     setContextMenuUserId(null);
-    if (confirm('Are you sure you want to ban this member?')) {
-      await memberStore.banMember(serverId, userId);
-    }
+    setPendingBanUserId(userId);
+    setShowBanConfirm(true);
+  };
+
+  const confirmBan = async () => {
+    const serverId = serverStore.selectedServerId;
+    const userId = pendingBanUserId();
+    if (!serverId || !userId) return;
+    setShowBanConfirm(false);
+    setPendingBanUserId(null);
+    await memberStore.banMember(serverId, userId);
   };
 
   const openRoleAssignment = async () => {
@@ -175,68 +185,83 @@ export default function MemberList() {
       </div>
 
       {/* Context menu */}
-      <Show when={contextMenuUserId()}>
-        {/* Click-outside overlay */}
-        <div
-          class="fixed inset-0 z-40"
-          onClick={() => { setContextMenuUserId(null); setShowRoleAssignment(false); }}
-          aria-hidden="true"
-        />
-        <div
-          class="fixed z-50 bg-xcord-bg-tertiary rounded shadow-lg border border-xcord-border py-1 min-w-[180px]"
-          style={{ left: `${contextMenuPos().x}px`, top: `${contextMenuPos().y}px` }}
-          role="menu"
-        >
-          <Show when={canBan()}>
-            <button
-              type="button"
-              role="menuitem"
-              class="w-full px-3 py-2 text-left text-sm text-xcord-text-secondary hover:bg-xcord-bg-primary hover:text-white transition-colors"
-              onClick={() => openRoleAssignment()}
-            >
-              Manage Roles
-            </button>
-            <button
-              type="button"
-              role="menuitem"
-              class="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-red-600 hover:text-white transition-colors"
-              onClick={() => handleBan(contextMenuUserId()!)}
-            >
-              Ban
-            </button>
-          </Show>
+      <Menu
+        open={contextMenuUserId() !== null}
+        onClose={() => { setContextMenuUserId(null); setShowRoleAssignment(false); }}
+        position={contextMenuPos()}
+      >
+        <Show when={canBan()}>
+          <button
+            type="button"
+            role="menuitem"
+            class="w-full px-3 py-2 text-left text-sm text-xcord-text-secondary hover:bg-xcord-bg-primary hover:text-white transition-colors"
+            onClick={() => openRoleAssignment()}
+          >
+            Manage Roles
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            class="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-red-600 hover:text-white transition-colors"
+            onClick={() => handleBan(contextMenuUserId()!)}
+          >
+            Ban
+          </button>
+        </Show>
 
-          {/* Role assignment panel */}
-          <Show when={showRoleAssignment()}>
-            <div class="border-t border-xcord-border mt-1 pt-1 px-2 pb-2" aria-label="Assign roles">
-              <p class="text-xs font-semibold text-xcord-text-muted uppercase tracking-wide px-1 py-1">Roles</p>
-              <Show when={roleAssignmentLoading() && serverRoles().length === 0}>
-                <p class="text-xs text-xcord-text-muted px-1 py-1">Loading...</p>
-              </Show>
-              <For each={serverRoles().filter((r) => r.name !== '@everyone' && r.name !== 'everyone')}>
-                {(role) => (
-                  <label class="flex items-center gap-2 px-1 py-1.5 rounded hover:bg-xcord-bg-primary cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={memberHasRole(role.id)}
-                      disabled={roleAssignmentLoading()}
-                      onChange={() => toggleMemberRole(role.id)}
-                      class="w-3.5 h-3.5 rounded border-xcord-border bg-xcord-bg-tertiary text-xcord-brand cursor-pointer"
-                      aria-label={`Role: ${role.name}`}
-                    />
-                    <span
-                      class="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                      style={{ 'background-color': role.color || '#5865f2' }}
-                      aria-hidden="true"
-                    />
-                    <span class="text-sm text-xcord-text-secondary">{role.name}</span>
-                  </label>
-                )}
-              </For>
-            </div>
-          </Show>
+        {/* Role assignment panel */}
+        <Show when={showRoleAssignment()}>
+          <div class="border-t border-xcord-border mt-1 pt-1 px-2 pb-2 max-h-64 overflow-y-auto" aria-label="Assign roles">
+            <p class="text-xs font-semibold text-xcord-text-muted uppercase tracking-wide px-1 py-1">Roles</p>
+            <Show when={roleAssignmentLoading() && serverRoles().length === 0}>
+              <p class="text-xs text-xcord-text-muted px-1 py-1">Loading...</p>
+            </Show>
+            <For each={serverRoles().filter((r) => r.name !== '@everyone' && r.name !== 'everyone')}>
+              {(role) => (
+                <label class="flex items-center gap-2 px-1 py-1.5 rounded hover:bg-xcord-bg-primary cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={memberHasRole(role.id)}
+                    disabled={roleAssignmentLoading()}
+                    onChange={() => toggleMemberRole(role.id)}
+                    class="w-3.5 h-3.5 rounded border-xcord-border bg-xcord-bg-tertiary text-xcord-brand cursor-pointer"
+                    aria-label={`Role: ${role.name}`}
+                  />
+                  <span
+                    class="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    style={{ 'background-color': role.color || '#5865f2' }}
+                    aria-hidden="true"
+                  />
+                  <span class="text-sm text-xcord-text-secondary">{role.name}</span>
+                </label>
+              )}
+            </For>
+          </div>
+        </Show>
+      </Menu>
+
+      {/* Ban confirmation */}
+      <Modal open={showBanConfirm()} onClose={() => { setShowBanConfirm(false); setPendingBanUserId(null); }} title="Ban Member" size="sm" role="alertdialog">
+        <div class="p-6">
+          <p class="text-xcord-text-secondary text-sm mb-6">Are you sure you want to ban this member?</p>
+          <div class="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => { setShowBanConfirm(false); setPendingBanUserId(null); }}
+              class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={confirmBan}
+              class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
+            >
+              Ban Member
+            </button>
+          </div>
         </div>
-      </Show>
+      </Modal>
     </div>
   );
 }

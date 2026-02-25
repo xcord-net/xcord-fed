@@ -225,7 +225,7 @@ export default function ThreadPanel(props: ThreadPanelProps) {
                 when={isMember()}
                 fallback={
                   <button
-                    class="text-xs px-2 py-1 bg-xcord-brand text-white rounded hover:bg-xcord-brand/80 transition-colors"
+                    class="text-xs px-2 py-1 bg-xcord-brand text-white rounded hover:bg-xcord-brand-hover transition-colors"
                     onClick={handleJoin}
                   >
                     Join Thread

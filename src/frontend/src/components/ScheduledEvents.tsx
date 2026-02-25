@@ -193,7 +193,7 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
       <div class="px-4 py-3 border-b border-xcord-bg-tertiary flex items-center justify-between flex-shrink-0">
         <h2 class="text-xcord-text-primary font-semibold">Scheduled Events</h2>
         <button
-          class="bg-xcord-brand text-white px-3 py-1.5 rounded hover:bg-xcord-brand/80 transition-colors text-sm"
+          class="bg-xcord-brand text-white px-3 py-1.5 rounded hover:bg-xcord-brand-hover transition-colors text-sm"
           onClick={() => setShowCreateForm(true)}
         >
           + Create Event
@@ -313,7 +313,7 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
 
           <div class="flex gap-2 pt-1">
             <button
-              class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleCreateEvent}
               disabled={isSubmitting() || !isFormValid()}
             >
@@ -410,7 +410,7 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
                     <button
                       class={`flex-shrink-0 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                         event.isInterested
-                          ? 'bg-xcord-brand text-white hover:bg-xcord-brand/80'
+                          ? 'bg-xcord-brand text-white hover:bg-xcord-brand-hover'
                           : 'bg-xcord-bg-tertiary text-xcord-text-muted hover:bg-xcord-bg-primary hover:text-xcord-text-primary'
                       }`}
                       onClick={() => toggleInterested(event)}

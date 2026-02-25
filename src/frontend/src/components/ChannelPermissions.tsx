@@ -252,7 +252,7 @@ export default function ChannelPermissions(props: ChannelPermissionsProps) {
                       Discard
                     </button>
                     <button
-                      class="text-xs px-3 py-1.5 rounded bg-xcord-brand text-white hover:bg-xcord-brand/80 disabled:opacity-50 transition-colors"
+                      class="text-xs px-3 py-1.5 rounded bg-xcord-brand text-white hover:bg-xcord-brand-hover disabled:opacity-50 transition-colors"
                       onClick={handleSave}
                       disabled={isSaving()}
                     >

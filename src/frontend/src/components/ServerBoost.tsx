@@ -323,7 +323,7 @@ export default function ServerBoost(props: ServerBoostProps) {
               </p>
               <div class="flex gap-2 justify-center">
                 <button
-                  class="px-4 py-1.5 bg-xcord-brand text-white rounded text-sm font-medium hover:bg-xcord-brand/80 transition-colors"
+                  class="px-4 py-1.5 bg-xcord-brand text-white rounded text-sm font-medium hover:bg-xcord-brand-hover transition-colors"
                   onClick={handleBoost}
                   aria-label="Confirm boost"
                 >
@@ -342,7 +342,7 @@ export default function ServerBoost(props: ServerBoostProps) {
 
           <Show when={!showConfirm()}>
             <button
-              class="w-full bg-xcord-brand text-white py-2 rounded font-medium text-sm hover:bg-xcord-brand/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class="w-full bg-xcord-brand text-white py-2 rounded font-medium text-sm hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => setShowConfirm(true)}
               disabled={isBoosting()}
               aria-label="Boost Server"

@@ -212,7 +212,7 @@ export default function EmojiManager(props: EmojiManagerProps) {
             id="emoji-manager-name-input"
             type="text"
             placeholder="Emoji name (e.g. cool_face)"
-            class="bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+            class="bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
             value={emojiName()}
             onInput={(e) => setEmojiName(e.currentTarget.value)}
             maxLength={32}
@@ -226,7 +226,7 @@ export default function EmojiManager(props: EmojiManagerProps) {
             id="emoji-manager-upload-btn"
             type="submit"
             disabled={isUploading()}
-            class="bg-xcord-brand text-white px-4 py-1.5 rounded text-sm hover:bg-xcord-brand/80 disabled:opacity-50 self-start"
+            class="bg-xcord-brand text-white px-4 py-1.5 rounded text-sm hover:bg-xcord-brand-hover disabled:opacity-50 self-start"
           >
             {isUploading() ? 'Uploading...' : 'Upload Emoji'}
           </button>

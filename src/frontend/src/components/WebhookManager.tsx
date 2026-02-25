@@ -171,7 +171,7 @@ export default function WebhookManager(props: WebhookManagerProps) {
       <div class="px-4 py-3 border-b border-xcord-border flex items-center justify-between">
         <h2 class="text-white font-semibold">Outgoing Webhooks</h2>
         <button
-          class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand/80 transition-colors"
+          class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand-hover transition-colors"
           onClick={() => setShowForm(!showForm())}
         >
           {showForm() ? 'Cancel' : 'Add Webhook'}
@@ -222,7 +222,7 @@ export default function WebhookManager(props: WebhookManagerProps) {
             <button
               type="submit"
               disabled={isSaving()}
-              class="bg-xcord-brand text-white px-4 py-2 rounded text-sm hover:bg-xcord-brand/80 disabled:opacity-50 transition-colors"
+              class="bg-xcord-brand text-white px-4 py-2 rounded text-sm hover:bg-xcord-brand-hover disabled:opacity-50 transition-colors"
             >
               {isSaving() ? 'Creating...' : 'Create Webhook'}
             </button>

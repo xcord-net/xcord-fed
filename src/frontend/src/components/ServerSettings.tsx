@@ -18,6 +18,7 @@ import InviteManager from './InviteManager';
 import AppDirectory from './AppDirectory';
 import OwnershipTransfer from './OwnershipTransfer';
 import WelcomeScreen from './WelcomeScreen';
+import Modal from './ui/Modal';
 
 interface ServerSettingsProps {
   serverId: string;
@@ -72,6 +73,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
   const [isSaving, setIsSaving] = createSignal(false);
   const [successMsg, setSuccessMsg] = createSignal('');
   const [errorMsg, setErrorMsg] = createSignal('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = createSignal(false);
 
   onMount(async () => {
     // Ensure servers are loaded so isOwner() resolves correctly before
@@ -113,17 +115,8 @@ export default function ServerSettings(props: ServerSettingsProps) {
   };
 
   return (
-    <div
-      class="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
-      onClick={(e) => { if (e.target === e.currentTarget) props.onClose(); }}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Server Settings"
-        class="bg-xcord-bg-secondary rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <>
+      <Modal open={true} onClose={props.onClose} aria-label="Server Settings" size="xl">
         {/* Header */}
         <div class="flex items-center justify-between px-6 py-4 border-b border-xcord-border">
           <h2 class="text-xl font-bold text-white">Server Settings</h2>
@@ -157,245 +150,264 @@ export default function ServerSettings(props: ServerSettingsProps) {
         </div>
 
         {/* Body */}
-        <div class="flex-1 overflow-y-auto">
-          {/* Overview tab */}
-          <Show when={activeTab() === 'overview'}>
-            <form onSubmit={handleSave}>
-              {/* Overview section */}
-              <section class="px-6 py-5 border-b border-xcord-border">
-                <h3 class="text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-4">Overview</h3>
+        {/* Overview tab */}
+        <Show when={activeTab() === 'overview'}>
+          <form onSubmit={handleSave}>
+            {/* Overview section */}
+            <section class="px-6 py-5 border-b border-xcord-border">
+              <h3 class="text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-4">Overview</h3>
 
-                {/* Server icon placeholder */}
-                <div class="flex items-center gap-4 mb-5">
-                  <div
-                    class="w-20 h-20 rounded-full bg-xcord-brand flex items-center justify-center text-white text-2xl font-bold select-none flex-shrink-0"
-                    aria-label="Server icon"
-                  >
-                    {name() ? name().charAt(0).toUpperCase() : '?'}
-                  </div>
-                  <div>
-                    <p class="text-white font-medium">{name() || currentServer()?.name}</p>
-                    <p class="text-xcord-text-muted text-sm mt-0.5">Icon upload coming soon</p>
-                  </div>
-                </div>
-
-                {/* Server name */}
-                <div class="mb-4">
-                  <label for="server-name" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
-                    Server Name <span class="text-red-400">*</span>
-                  </label>
-                  <input
-                    id="server-name"
-                    type="text"
-                    required
-                    maxlength="100"
-                    value={name()}
-                    onInput={(e) => setName(e.currentTarget.value)}
-                    class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
-                    placeholder="My Awesome Server"
-                  />
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label for="server-description" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
-                    Description
-                  </label>
-                  <textarea
-                    id="server-description"
-                    rows="3"
-                    maxlength="1000"
-                    value={description()}
-                    onInput={(e) => setDescription(e.currentTarget.value)}
-                    class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand resize-none"
-                    placeholder="Tell people what your server is about..."
-                  />
-                </div>
-              </section>
-
-              {/* System Messages section */}
-              <section class="px-6 py-5 border-b border-xcord-border">
-                <h3 class="text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-4">System Messages</h3>
-
-                <div>
-                  <label for="system-channel" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
-                    System Messages Channel
-                  </label>
-                  <select
-                    id="system-channel"
-                    value={systemChannelId()}
-                    onChange={(e) => setSystemChannelId(e.currentTarget.value)}
-                    class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
-                  >
-                    <option value="">None</option>
-                    <For each={textChannels()}>
-                      {(channel: Channel) => (
-                        <option value={channel.id}>#{channel.name}</option>
-                      )}
-                    </For>
-                  </select>
-                  <p class="text-xcord-text-muted text-xs mt-1">
-                    Channel where join/leave and server boost messages are sent.
-                  </p>
-                </div>
-              </section>
-
-              {/* Default Notifications section */}
-              <section class="px-6 py-5 border-b border-xcord-border">
-                <h3 class="text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-4">Default Notification Settings</h3>
-
-                <div>
-                  <label for="default-notifications" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
-                    Default Notification Level
-                  </label>
-                  <select
-                    id="default-notifications"
-                    value={defaultNotifications()}
-                    onChange={(e) => setDefaultNotifications(e.currentTarget.value as NotificationLevel)}
-                    class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
-                  >
-                    <For each={NOTIFICATION_OPTIONS}>
-                      {(opt) => (
-                        <option value={opt.value}>{opt.label}</option>
-                      )}
-                    </For>
-                  </select>
-                  <p class="text-xcord-text-muted text-xs mt-1">
-                    Controls what notifications members receive by default.
-                  </p>
-                </div>
-              </section>
-
-              {/* Status messages */}
-              <Show when={successMsg()}>
-                <div role="status" class="mx-6 mb-4 mt-4 px-4 py-2 bg-green-500/20 border border-green-500/30 rounded text-green-400 text-sm">
-                  {successMsg()}
-                </div>
-              </Show>
-              <Show when={errorMsg()}>
-                <div role="alert" class="mx-6 mb-4 mt-4 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">
-                  {errorMsg()}
-                </div>
-              </Show>
-
-              {/* Footer actions */}
-              <div class="px-6 py-5 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={props.onClose}
-                  class="px-4 py-2 text-sm text-xcord-text-muted hover:text-white rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+              {/* Server icon placeholder */}
+              <div class="flex items-center gap-4 mb-5">
+                <div
+                  class="w-20 h-20 rounded-full bg-xcord-brand flex items-center justify-center text-white text-2xl font-bold select-none flex-shrink-0"
+                  aria-label="Server icon"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving()}
-                  class="px-5 py-2 bg-xcord-brand hover:bg-xcord-brand-hover text-white text-sm font-medium rounded transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
-                >
-                  {isSaving() ? 'Saving...' : 'Save Changes'}
-                </button>
+                  {name() ? name().charAt(0).toUpperCase() : '?'}
+                </div>
+                <div>
+                  <p class="text-white font-medium">{name() || currentServer()?.name}</p>
+                  <p class="text-xcord-text-muted text-sm mt-0.5">Icon upload coming soon</p>
+                </div>
               </div>
-            </form>
 
-            {/* Danger Zone */}
-            <Show when={isOwner()}>
-              <section class="px-6 py-5 border-t border-xcord-border">
-                <h3 class="text-xs font-semibold text-red-400 uppercase tracking-wide mb-4">Danger Zone</h3>
-                <Show when={auth.user?.id && currentServer()?.ownerId}>
-                  <OwnershipTransfer
-                    serverId={props.serverId}
-                    serverName={currentServer()?.name ?? ''}
-                    currentUserId={auth.user!.id}
-                    ownerId={currentServer()!.ownerId}
-                    onTransferred={(newOwnerId) => {
-                      serverStore.updateServer(props.serverId, { ownerId: newOwnerId });
-                    }}
-                  />
-                </Show>
-                <button
-                  type="button"
-                  class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
-                  onClick={() => {
-                    if (confirm('Are you sure you want to delete this server? This cannot be undone.')) {
-                      serverStore.deleteServer(props.serverId).then(() => {
-                        props.onClose();
-                        navigate('/channels/me');
-                      });
-                    }
-                  }}
+              {/* Server name */}
+              <div class="mb-4">
+                <label for="server-name" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
+                  Server Name <span class="text-red-400">*</span>
+                </label>
+                <input
+                  id="server-name"
+                  type="text"
+                  required
+                  maxlength="100"
+                  value={name()}
+                  onInput={(e) => setName(e.currentTarget.value)}
+                  class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+                  placeholder="My Awesome Server"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label for="server-description" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
+                  Description
+                </label>
+                <textarea
+                  id="server-description"
+                  rows="3"
+                  maxlength="1000"
+                  value={description()}
+                  onInput={(e) => setDescription(e.currentTarget.value)}
+                  class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand resize-none"
+                  placeholder="Tell people what your server is about..."
+                />
+              </div>
+            </section>
+
+            {/* System Messages section */}
+            <section class="px-6 py-5 border-b border-xcord-border">
+              <h3 class="text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-4">System Messages</h3>
+
+              <div>
+                <label for="system-channel" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
+                  System Messages Channel
+                </label>
+                <select
+                  id="system-channel"
+                  value={systemChannelId()}
+                  onChange={(e) => setSystemChannelId(e.currentTarget.value)}
+                  class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
                 >
-                  Delete Server
-                </button>
-              </section>
+                  <option value="">None</option>
+                  <For each={textChannels()}>
+                    {(channel: Channel) => (
+                      <option value={channel.id}>#{channel.name}</option>
+                    )}
+                  </For>
+                </select>
+                <p class="text-xcord-text-muted text-xs mt-1">
+                  Channel where join/leave and server boost messages are sent.
+                </p>
+              </div>
+            </section>
+
+            {/* Default Notifications section */}
+            <section class="px-6 py-5 border-b border-xcord-border">
+              <h3 class="text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-4">Default Notification Settings</h3>
+
+              <div>
+                <label for="default-notifications" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
+                  Default Notification Level
+                </label>
+                <select
+                  id="default-notifications"
+                  value={defaultNotifications()}
+                  onChange={(e) => setDefaultNotifications(e.currentTarget.value as NotificationLevel)}
+                  class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+                >
+                  <For each={NOTIFICATION_OPTIONS}>
+                    {(opt) => (
+                      <option value={opt.value}>{opt.label}</option>
+                    )}
+                  </For>
+                </select>
+                <p class="text-xcord-text-muted text-xs mt-1">
+                  Controls what notifications members receive by default.
+                </p>
+              </div>
+            </section>
+
+            {/* Status messages */}
+            <Show when={successMsg()}>
+              <div role="status" class="mx-6 mb-4 mt-4 px-4 py-2 bg-green-500/20 border border-green-500/30 rounded text-green-400 text-sm">
+                {successMsg()}
+              </div>
             </Show>
-          </Show>
+            <Show when={errorMsg()}>
+              <div role="alert" class="mx-6 mb-4 mt-4 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">
+                {errorMsg()}
+              </div>
+            </Show>
 
-          {/* Automod tab */}
-          <Show when={activeTab() === 'automod'}>
-            <AutomodManager serverId={props.serverId} />
-          </Show>
-
-          {/* Bans tab */}
-          <Show when={activeTab() === 'bans'}>
-            <BanManager serverId={props.serverId} />
-          </Show>
-
-          {/* Audit Log tab */}
-          <Show when={activeTab() === 'audit-log'}>
-            <AuditLogViewer serverId={props.serverId} />
-          </Show>
-
-          {/* Emoji tab */}
-          <Show when={activeTab() === 'emoji'}>
-            <EmojiManager serverId={props.serverId} />
-          </Show>
-
-          {/* Stickers tab */}
-          <Show when={activeTab() === 'stickers'}>
-            <StickerPicker serverId={props.serverId} canManage={true} />
-          </Show>
-
-          {/* Vanity URL tab */}
-          <Show when={activeTab() === 'vanity-url'}>
-            <div class="px-6 py-5">
-              <VanityInvite serverId={props.serverId} isOwner={true} />
+            {/* Footer actions */}
+            <div class="px-6 py-5 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={props.onClose}
+                class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSaving()}
+                class="px-5 py-2 bg-xcord-brand hover:bg-xcord-brand-hover text-white text-sm font-medium rounded transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+              >
+                {isSaving() ? 'Saving...' : 'Save Changes'}
+              </button>
             </div>
-          </Show>
+          </form>
 
-          {/* Templates tab */}
-          <Show when={activeTab() === 'templates'}>
-            <ServerTemplates serverId={props.serverId} isOwner={true} />
+          {/* Danger Zone */}
+          <Show when={isOwner()}>
+            <section class="px-6 py-5 border-t border-xcord-border">
+              <h3 class="text-xs font-semibold text-red-400 uppercase tracking-wide mb-4">Danger Zone</h3>
+              <Show when={auth.user?.id && currentServer()?.ownerId}>
+                <OwnershipTransfer
+                  serverId={props.serverId}
+                  serverName={currentServer()?.name ?? ''}
+                  currentUserId={auth.user!.id}
+                  ownerId={currentServer()!.ownerId}
+                  onTransferred={(newOwnerId) => {
+                    serverStore.updateServer(props.serverId, { ownerId: newOwnerId });
+                  }}
+                />
+              </Show>
+              <button
+                type="button"
+                class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                Delete Server
+              </button>
+            </section>
           </Show>
+        </Show>
 
-          {/* Boost tab */}
-          <Show when={activeTab() === 'boost'}>
-            <ServerBoost serverId={props.serverId} />
-          </Show>
+        {/* Automod tab */}
+        <Show when={activeTab() === 'automod'}>
+          <AutomodManager serverId={props.serverId} />
+        </Show>
 
-          {/* Insights tab */}
-          <Show when={activeTab() === 'insights'}>
-            <ServerInsights serverId={props.serverId} />
-          </Show>
+        {/* Bans tab */}
+        <Show when={activeTab() === 'bans'}>
+          <BanManager serverId={props.serverId} />
+        </Show>
 
-          {/* App Directory tab */}
-          <Show when={activeTab() === 'app-directory'}>
-            <AppDirectory
-              availableServerIds={[props.serverId]}
-              serverNames={{ [props.serverId]: currentServer()?.name ?? props.serverId }}
-            />
-          </Show>
+        {/* Audit Log tab */}
+        <Show when={activeTab() === 'audit-log'}>
+          <AuditLogViewer serverId={props.serverId} />
+        </Show>
 
-          {/* Invites tab */}
-          <Show when={activeTab() === 'invites'}>
-            <InviteManager serverId={props.serverId} />
-          </Show>
+        {/* Emoji tab */}
+        <Show when={activeTab() === 'emoji'}>
+          <EmojiManager serverId={props.serverId} />
+        </Show>
 
-          {/* Welcome Screen tab */}
-          <Show when={activeTab() === 'welcome-screen'}>
-            <WelcomeScreen serverId={props.serverId} isOwner={isOwner()} />
-          </Show>
+        {/* Stickers tab */}
+        <Show when={activeTab() === 'stickers'}>
+          <StickerPicker serverId={props.serverId} canManage={true} />
+        </Show>
+
+        {/* Vanity URL tab */}
+        <Show when={activeTab() === 'vanity-url'}>
+          <div class="px-6 py-5">
+            <VanityInvite serverId={props.serverId} isOwner={true} />
+          </div>
+        </Show>
+
+        {/* Templates tab */}
+        <Show when={activeTab() === 'templates'}>
+          <ServerTemplates serverId={props.serverId} isOwner={true} />
+        </Show>
+
+        {/* Boost tab */}
+        <Show when={activeTab() === 'boost'}>
+          <ServerBoost serverId={props.serverId} />
+        </Show>
+
+        {/* Insights tab */}
+        <Show when={activeTab() === 'insights'}>
+          <ServerInsights serverId={props.serverId} />
+        </Show>
+
+        {/* App Directory tab */}
+        <Show when={activeTab() === 'app-directory'}>
+          <AppDirectory
+            availableServerIds={[props.serverId]}
+            serverNames={{ [props.serverId]: currentServer()?.name ?? props.serverId }}
+          />
+        </Show>
+
+        {/* Invites tab */}
+        <Show when={activeTab() === 'invites'}>
+          <InviteManager serverId={props.serverId} />
+        </Show>
+
+        {/* Welcome Screen tab */}
+        <Show when={activeTab() === 'welcome-screen'}>
+          <WelcomeScreen serverId={props.serverId} isOwner={isOwner()} />
+        </Show>
+      </Modal>
+
+      {/* Delete server confirmation */}
+      <Modal open={showDeleteConfirm()} onClose={() => setShowDeleteConfirm(false)} title="Delete Server" size="sm" role="alertdialog">
+        <div class="p-6">
+          <p class="text-xcord-text-secondary text-sm mb-6">Are you sure you want to delete this server? This cannot be undone.</p>
+          <div class="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(false)}
+              class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                serverStore.deleteServer(props.serverId).then(() => {
+                  props.onClose();
+                  navigate('/channels/me');
+                });
+              }}
+              class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
+            >
+              Delete Server
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
+      </Modal>
+    </>
   );
 }

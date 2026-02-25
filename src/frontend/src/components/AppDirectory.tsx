@@ -305,7 +305,7 @@ export default function AppDirectory(props: AppDirectoryProps) {
                 </Show>
 
                 <button
-                  class="w-full px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="w-full px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={installing() || !installTargetServerId()}
                   onClick={handleInstall}
                   aria-label={`Add ${bot().name} to server`}

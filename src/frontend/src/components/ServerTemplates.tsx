@@ -212,7 +212,7 @@ export default function ServerTemplates(props: ServerTemplatesProps) {
         <h2 class="text-xcord-text-primary font-semibold">Server Templates</h2>
         <Show when={props.isOwner}>
           <button
-            class="bg-xcord-brand text-white px-3 py-1.5 rounded hover:bg-xcord-brand/80 transition-colors text-sm"
+            class="bg-xcord-brand text-white px-3 py-1.5 rounded hover:bg-xcord-brand-hover transition-colors text-sm"
             onClick={() => {
               setShowSaveForm(true);
               setShowCreateForm(false);
@@ -273,7 +273,7 @@ export default function ServerTemplates(props: ServerTemplatesProps) {
 
           <div class="flex gap-2">
             <button
-              class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleSaveTemplate}
               disabled={isSubmitting()}
               aria-label="Save Template"
@@ -337,7 +337,7 @@ export default function ServerTemplates(props: ServerTemplatesProps) {
 
           <div class="flex gap-2">
             <button
-              class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleCreateFromTemplate}
               disabled={isSubmitting() || !newServerName().trim()}
               aria-label="Create Server"

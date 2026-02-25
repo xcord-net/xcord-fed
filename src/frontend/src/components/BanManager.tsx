@@ -95,7 +95,7 @@ export default function BanManager(props: BanManagerProps) {
         <input
           type="text"
           placeholder="Search banned users..."
-          class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+          class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
           value={searchQuery()}
           onInput={(e) => { setSearchQuery(e.currentTarget.value); setPage(1); }}
         />
