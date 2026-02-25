@@ -162,6 +162,7 @@ public static class ServiceCollectionExtensions
             .Get<SnowflakeOptions>() ?? throw new InvalidOperationException("Snowflake configuration is required");
 
         services.AddSingleton(new SnowflakeIdGenerator(snowflakeOpts.WorkerId));
+        services.AddSingleton<IKekProvider, FileKekProvider>();
         services.AddSingleton<EncryptionKeyHolder>();
         services.AddSingleton<IEncryptionService>(sp =>
             new PgCryptoEncryptionService(sp.GetRequiredService<EncryptionKeyHolder>().Key));

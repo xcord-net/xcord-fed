@@ -54,7 +54,9 @@ if [ -n "${XCORD_CONFIG_INLINE:-}" ]; then
             DevMode: (.email.devMode // false)
         },
         Encryption: {
-            EncryptionKey: (.encryption.encryptionKey // "")
+            EncryptionKey: (.encryption.encryptionKey // ""),
+            Kek: (.encryption.kek // ""),
+            KekFile: (.encryption.kekFile // "")
         },
         RateLimiting: {
             MaxRequests: (.rateLimiting.maxRequests // 100),
@@ -128,7 +130,9 @@ elif [ -f "$CONFIG_PATH" ]; then
             DevMode: (.email.devMode // false)
         },
         Encryption: {
-            EncryptionKey: (.encryption.encryptionKey // "")
+            EncryptionKey: (.encryption.encryptionKey // ""),
+            Kek: (.encryption.kek // ""),
+            KekFile: (.encryption.kekFile // "")
         },
         RateLimiting: {
             MaxRequests: (.rateLimiting.maxRequests // 100),
