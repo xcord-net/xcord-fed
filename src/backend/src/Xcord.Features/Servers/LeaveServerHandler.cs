@@ -101,6 +101,13 @@ public sealed class LeaveServerHandler(
             }
         }
 
+        // Write Member.Left outbox event (used by outgoing webhooks)
+        await outboxWriter.WriteAsync(dbContext, "Member.Left", new
+        {
+            ServerId = request.ServerId,
+            UserId = userId
+        }, cancellationToken);
+
         await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(

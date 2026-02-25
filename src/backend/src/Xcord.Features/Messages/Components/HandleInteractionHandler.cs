@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Messages.Components;
 
@@ -13,7 +14,9 @@ public sealed record HandleInteractionRequest(string? Value);
 public sealed record InteractionResponse(long ComponentId, string Status);
 
 public sealed class HandleInteractionHandler(
-    AppDbContext dbContext, IHttpContextAccessor httpContextAccessor)
+    AppDbContext dbContext,
+    IHttpContextAccessor httpContextAccessor,
+    IOutboxWriter outboxWriter)
     : IRequestHandler<HandleInteractionCommand, Result<InteractionResponse>>
 {
     public async Task<Result<InteractionResponse>> Handle(HandleInteractionCommand request, CancellationToken ct)
@@ -23,12 +26,38 @@ public sealed class HandleInteractionHandler(
             return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
 
         var component = await dbContext.MessageComponents.AsNoTracking()
+            .Include(c => c.Message)
             .FirstOrDefaultAsync(c => c.Id == request.ComponentId, ct);
         if (component == null) return Error.NotFound("COMPONENT_NOT_FOUND", "Component not found");
         if (component.Disabled) return Error.Validation("COMPONENT_DISABLED", "This component is disabled");
 
-        // TODO: Wire bot interaction dispatch when bot webhook delivery is implemented.
-        // Previously wrote to outbox as "Bot_Interaction" but no consumer existed.
+        // Resolve the BotToken for the message author so the dispatcher can find the endpoint URL.
+        long? botTokenId = null;
+        if (component.Message.AuthorId.HasValue)
+        {
+            var botToken = await dbContext.BotTokens.AsNoTracking()
+                .Where(bt => bt.UserId == component.Message.AuthorId.Value && !bt.IsRevoked)
+                .OrderByDescending(bt => bt.CreatedAt)
+                .Select(bt => new { bt.Id })
+                .FirstOrDefaultAsync(ct);
+            botTokenId = botToken?.Id;
+        }
+
+        // Write interaction event to outbox for delivery to the bot's endpoint.
+        await outboxWriter.WriteAsync(dbContext, "Bot_Interaction", new
+        {
+            botTokenId,
+            componentId = component.Id,
+            componentType = component.ComponentType.ToString(),
+            customId = component.CustomId,
+            messageId = component.MessageId,
+            conversationId = component.Message.ConversationId,
+            userId,
+            value = request.Value,
+            timestamp = DateTimeOffset.UtcNow
+        }, ct);
+
+        await dbContext.SaveChangesAsync(ct);
 
         return new InteractionResponse(component.Id, "dispatched");
     }

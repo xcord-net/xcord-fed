@@ -54,6 +54,14 @@ public sealed class BotTokenConfiguration : IEntityTypeConfiguration<BotToken>
         // LastUsedAt (optional)
         builder.Property(bt => bt.LastUsedAt);
 
+        // InteractionEndpointUrl (optional, max 2048)
+        builder.Property(bt => bt.InteractionEndpointUrl)
+            .HasMaxLength(2048);
+
+        // InteractionSigningKey (optional, bytea — encrypted at rest)
+        builder.Property(bt => bt.InteractionSigningKey)
+            .HasColumnType("bytea");
+
         // Soft delete (DeletedAt, implements ISoftDeletable)
         builder.Property(bt => bt.DeletedAt);
 

@@ -88,6 +88,13 @@ public sealed class AppDbContext : DbContext
     public DbSet<MemberSubscription> MemberSubscriptions => Set<MemberSubscription>();
     public DbSet<ServerBillingConfig> ServerBillingConfigs => Set<ServerBillingConfig>();
 
+    // Outgoing webhooks
+    public DbSet<OutgoingWebhook> OutgoingWebhooks => Set<OutgoingWebhook>();
+    public DbSet<OutgoingWebhookDelivery> OutgoingWebhookDeliveries => Set<OutgoingWebhookDelivery>();
+
+    // Scheduled messages
+    public DbSet<ScheduledMessage> ScheduledMessages => Set<ScheduledMessage>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

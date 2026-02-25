@@ -59,6 +59,16 @@ public static class ServiceCollectionExtensions
         services.AddProblemDetails();
         services.AddHttpContextAccessor();
         services.AddHttpClient();
+        services.AddHttpClient("OutgoingWebhooks", client =>
+        {
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("Xcord-Webhook/1.0");
+            client.Timeout = TimeSpan.FromSeconds(20);
+        });
+        services.AddHttpClient("BotInteraction", client =>
+        {
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("Xcord-BotInteraction/1.0");
+            client.Timeout = TimeSpan.FromSeconds(10);
+        });
 
         // Request handlers (auto-discovery)
         services.AddRequestHandlers(typeof(FeaturesAssemblyMarker).Assembly);
@@ -190,6 +200,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITimeoutService, TimeoutService>();
         services.AddSingleton<IEventDispatcher, SignalREventDispatcher>();
         services.AddSingleton<ISystemBroadcaster, SignalRSystemBroadcaster>();
+        services.AddSingleton<BotInteractionForwarder>();
         services.AddSingleton<SsrfSafeHttpClient>();
         services.AddSingleton<OpenGraphParser>();
         services.AddScoped<IMemberBillingService, MemberBillingService>();
@@ -208,6 +219,10 @@ public static class ServiceCollectionExtensions
         services.AddHostedService<EventNotifier>();
         services.AddHostedService<PollCloser>();
         services.AddHostedService<CallTimeoutService>();
+        services.AddHostedService<OutgoingWebhookEventProcessor>();
+        services.AddHostedService<OutgoingWebhookDeliveryService>();
+        services.AddHostedService<OutgoingWebhookDeliveryCleanup>();
+        services.AddHostedService<ScheduledMessageDispatcher>();
     }
 
     private static void AddGifService(IServiceCollection services, IConfiguration config)

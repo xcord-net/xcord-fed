@@ -52,6 +52,19 @@ public sealed class BotToken : ISoftDeletable
     public DateTimeOffset? LastUsedAt { get; set; }
 
     /// <summary>
+    /// Webhook URL to POST interaction events to (slash commands, button clicks, select menus).
+    /// Null means the bot does not use webhook delivery (it polls instead).
+    /// Max 2048 characters.
+    /// </summary>
+    public string? InteractionEndpointUrl { get; set; }
+
+    /// <summary>
+    /// HMAC-SHA256 signing key for interaction payloads, encrypted at rest via IEncryptionService.
+    /// Null when InteractionEndpointUrl is not configured.
+    /// </summary>
+    public byte[]? InteractionSigningKey { get; set; }
+
+    /// <summary>
     /// Soft delete timestamp (implements ISoftDeletable).
     /// </summary>
     public DateTimeOffset? DeletedAt { get; set; }

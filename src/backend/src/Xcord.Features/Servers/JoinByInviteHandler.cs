@@ -175,6 +175,13 @@ public sealed class JoinByInviteHandler(
             }
         }
 
+        // Write Member.Joined outbox event (used by outgoing webhooks)
+        await outboxWriter.WriteAsync(dbContext, "Member.Joined", new
+        {
+            ServerId = invite.ServerId,
+            UserId = userId
+        }, cancellationToken);
+
         await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(

@@ -6,21 +6,25 @@ namespace Xcord.Api;
 
 /// <summary>
 /// Implementation of IEventDispatcher that dispatches events via SignalR.
+/// Bot_* events are forwarded to the bot's configured interaction endpoint.
 /// </summary>
 public class SignalREventDispatcher : IEventDispatcher
 {
     private readonly IHubContext<MainHub> _hubContext;
     private readonly ILogger<SignalREventDispatcher> _logger;
     private readonly IEmailService? _emailService;
+    private readonly BotInteractionForwarder? _botInteractionForwarder;
 
     public SignalREventDispatcher(
         IHubContext<MainHub> hubContext,
         ILogger<SignalREventDispatcher> logger,
-        IEmailService? emailService = null)
+        IEmailService? emailService = null,
+        BotInteractionForwarder? botInteractionForwarder = null)
     {
         _hubContext = hubContext;
         _logger = logger;
         _emailService = emailService;
+        _botInteractionForwarder = botInteractionForwarder;
     }
 
     public async Task DispatchAsync(string eventType, string payload)
@@ -31,6 +35,21 @@ public class SignalREventDispatcher : IEventDispatcher
         if (eventType.StartsWith("Email."))
         {
             await DispatchEmailEventAsync(eventType, payload);
+            return;
+        }
+
+        // Handle Bot interaction events — forward to the bot's webhook endpoint.
+        // These are not dispatched via SignalR; they are HTTP POSTs to an external URL.
+        if (eventType.StartsWith("Bot_"))
+        {
+            if (_botInteractionForwarder != null)
+            {
+                await _botInteractionForwarder.ForwardAsync(eventType, payload, CancellationToken.None);
+            }
+            else
+            {
+                _logger.LogWarning("Bot event {EventType} received but BotInteractionForwarder is not registered", eventType);
+            }
             return;
         }
 

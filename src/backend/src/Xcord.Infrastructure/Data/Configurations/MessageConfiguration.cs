@@ -54,9 +54,9 @@ public sealed class MessageConfiguration : IEntityTypeConfiguration<Message>
             .IsRequired()
             .HasMaxLength(4000);
 
-        // Metadata (jsonb column type)
+        // Metadata (stored as text — only serialized/deserialized in C#, no JSONB operators used)
         builder.Property(m => m.Metadata)
-            .HasColumnType("jsonb");
+            .HasColumnType("text");
 
         // ReplyToId (nullable, self-reference with SetNull)
         builder.Property(m => m.ReplyToId);
