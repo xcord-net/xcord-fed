@@ -50,7 +50,6 @@ export const TIER_PERKS: TierPerks[] = [
     requiredBoosts: 2,
     perks: [
       '50 custom emoji slots',
-      '128 kbps audio quality',
       'Custom server invite background',
       '8 MB upload limit',
     ],
@@ -61,7 +60,6 @@ export const TIER_PERKS: TierPerks[] = [
     requiredBoosts: 7,
     perks: [
       '100 custom emoji slots',
-      '256 kbps audio quality',
       'Custom server banner',
       '50 MB upload limit',
       'Server discovery eligible',
@@ -73,7 +71,6 @@ export const TIER_PERKS: TierPerks[] = [
     requiredBoosts: 14,
     perks: [
       '250 custom emoji slots',
-      '384 kbps audio quality',
       'Custom vanity invite URL',
       '100 MB upload limit',
       'Animated server icon',

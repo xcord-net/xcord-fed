@@ -4,10 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Channels;
@@ -62,6 +64,7 @@ public sealed class CreateChannelHandler(
     IPermissionService permissionService,
     IHttpContextAccessor httpContextAccessor,
     IOutboxWriter outboxWriter,
+    IOptions<TierOptions> tierOptions,
     ILogger<CreateChannelHandler> logger)
     : IRequestHandler<CreateChannelCommand, Result<CreateChannelResponse>>, IValidatable<CreateChannelCommand>
 {
@@ -119,6 +122,12 @@ public sealed class CreateChannelHandler(
         if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
         {
             return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        }
+
+        // Tier gating: reject voice channel creation when feature is disabled
+        if (request.Type == ChannelType.Voice && !tierOptions.Value.CanUseVoiceChannels)
+        {
+            return Error.Forbidden("FEATURE_DISABLED", "Voice channels are not available on your current plan");
         }
 
         // Check if server exists

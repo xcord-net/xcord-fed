@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Options;
 
 namespace Xcord.Features.Servers;
 
@@ -22,6 +24,7 @@ public sealed class CreateServerHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     IHttpContextAccessor httpContextAccessor,
+    IOptions<TierOptions> tierOptions,
     ILogger<CreateServerHandler> logger)
     : IRequestHandler<CreateServerCommand, Result<CreateServerResponse>>, IValidatable<CreateServerCommand>
 {
@@ -69,11 +72,18 @@ public sealed class CreateServerHandler(
             return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
         }
 
-        var ownedServerCount = await dbContext.Servers
-            .CountAsync(s => s.OwnerId == userId, cancellationToken);
+        // Tier gating: enforce server capacity limit (0 = unlimited)
+        var maxServers = tierOptions.Value.MaxServers;
+        if (maxServers > 0)
+        {
+            var serverCount = await dbContext.Servers
+                .CountAsync(s => s.DeletedAt == null, cancellationToken);
 
-        if (ownedServerCount >= 1)
-            return Error.Conflict("SERVER_LIMIT_REACHED", "You can only create one server on the free plan");
+            if (serverCount >= maxServers)
+            {
+                return Error.Forbidden("CAPACITY_EXCEEDED", "This instance has reached its maximum server capacity");
+            }
+        }
 
         var now = DateTimeOffset.UtcNow;
 

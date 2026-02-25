@@ -153,7 +153,13 @@ public static class ServiceCollectionExtensions
         Bind<EmailOptions>(EmailOptions.SectionName);
         Bind<OutboxOptions>(OutboxOptions.SectionName);
 
+        // Tier options default to permissive when not provided (standalone instances)
+        services.AddOptions<TierOptions>().Bind(config.GetSection(TierOptions.SectionName));
+
         services.AddOptions<EncryptionOptions>().Bind(config.GetSection(EncryptionOptions.SectionName));
+
+        // Member billing (Stripe Connect for per-server subscriptions)
+        services.AddOptions<MemberBillingOptions>().Bind(config.GetSection(MemberBillingOptions.SectionName));
     }
 
     private static void AddCoreServices(IServiceCollection services, IConfiguration config)
@@ -186,6 +192,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ISystemBroadcaster, SignalRSystemBroadcaster>();
         services.AddSingleton<SsrfSafeHttpClient>();
         services.AddSingleton<OpenGraphParser>();
+        services.AddScoped<IMemberBillingService, MemberBillingService>();
+        services.AddScoped<Xcord.Features.Billing.MemberBillingWebhookHandler>();
     }
 
     private static void AddBackgroundServices(IServiceCollection services)

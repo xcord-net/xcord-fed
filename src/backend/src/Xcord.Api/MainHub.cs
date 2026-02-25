@@ -26,6 +26,7 @@ public class MainHub : Hub
     private readonly IPresenceService _presenceService;
     private readonly IPresenceNotifier _presenceNotifier;
     private readonly LiveKitOptions _options;
+    private readonly TierOptions _tierOptions;
 
     public MainHub(
         IServiceScopeFactory serviceScopeFactory,
@@ -33,6 +34,7 @@ public class MainHub : Hub
         IOptions<RedisOptions> redisOptions,
         IOptions<InstanceOptions> instanceOptions,
         IOptions<LiveKitOptions> liveKitOptions,
+        IOptions<TierOptions> tierOptions,
         ILogger<MainHub> logger,
         IPresenceService presenceService,
         IPresenceNotifier presenceNotifier)
@@ -42,6 +44,7 @@ public class MainHub : Hub
         _channelPrefix = redisOptions.Value.ChannelPrefix;
         _instanceDomain = instanceOptions.Value.Domain;
         _options = liveKitOptions.Value;
+        _tierOptions = tierOptions.Value;
         _logger = logger;
         _presenceService = presenceService;
         _presenceNotifier = presenceNotifier;
@@ -398,6 +401,12 @@ public class MainHub : Hub
             throw new HubException("Unauthorized");
         }
 
+        // Tier gating: reject voice join when feature is disabled
+        if (!_tierOptions.CanUseVoiceChannels)
+        {
+            throw new HubException("Voice channels are not available on your current plan");
+        }
+
         _logger.LogInformation("User {UserId} attempting to join voice channel {ChannelId}", userId, channelId);
 
         using var scope = _serviceScopeFactory.CreateScope();
@@ -414,6 +423,17 @@ public class MainHub : Hub
         if (permissionResult.IsFailure)
         {
             throw new HubException("Forbidden");
+        }
+
+        // Concurrency check: count instance-wide voice participants (excluding this user's existing state)
+        if (_tierOptions.MaxVoiceConcurrency > 0)
+        {
+            var currentVoiceCount = await context.VoiceStates
+                .CountAsync(vs => vs.UserId != userId.Value);
+            if (currentVoiceCount >= _tierOptions.MaxVoiceConcurrency)
+            {
+                throw new HubException("Voice participant limit reached — upgrade your plan for more concurrent participants");
+            }
         }
 
         // If user is already in a voice channel, leave it first
@@ -447,13 +467,14 @@ public class MainHub : Hub
         var roomName = $"{_instanceDomain}:voice:{channelId}";
 
         // Generate LiveKit token (30 min TTL)
+        // Audio publish is always allowed in voice channels; video publish requires Video tier
         var token = liveKitService.GenerateToken(
             userId: userId.Value,
             roomName: roomName,
             canPublish: true,
             canSubscribe: true,
             canPublishData: true,
-            canScreenShare: canScreenShare,
+            canScreenShare: canScreenShare && _tierOptions.CanUseVideoChannels,
             ttl: TimeSpan.FromMinutes(30));
 
         // Create VoiceState entity
@@ -496,7 +517,17 @@ public class MainHub : Hub
         {
             token,
             roomName,
-            livekitUrl = _options.Host
+            livekitUrl = _options.Host,
+            qualityConfig = new
+            {
+                maxAudioBitrateKbps = _tierOptions.MaxAudioBitrateKbps,
+                maxVideoBitrateKbps = _tierOptions.MaxVideoBitrateKbps,
+                maxVideoWidth = _tierOptions.MaxVideoWidth,
+                maxVideoHeight = _tierOptions.MaxVideoHeight,
+                maxVideoFps = _tierOptions.MaxVideoFps,
+                maxScreenShareBitrateKbps = _tierOptions.MaxScreenShareBitrateKbps,
+                enableSimulcast = _tierOptions.CanUseSimulcast
+            }
         };
     }
 
@@ -661,7 +692,17 @@ public class MainHub : Hub
         {
             token,
             roomName,
-            livekitUrl = _options.Host
+            livekitUrl = _options.Host,
+            qualityConfig = new
+            {
+                maxAudioBitrateKbps = _tierOptions.MaxAudioBitrateKbps,
+                maxVideoBitrateKbps = _tierOptions.MaxVideoBitrateKbps,
+                maxVideoWidth = _tierOptions.MaxVideoWidth,
+                maxVideoHeight = _tierOptions.MaxVideoHeight,
+                maxVideoFps = _tierOptions.MaxVideoFps,
+                maxScreenShareBitrateKbps = _tierOptions.MaxScreenShareBitrateKbps,
+                enableSimulcast = _tierOptions.CanUseSimulcast
+            }
         };
     }
 
@@ -697,6 +738,17 @@ public class MainHub : Hub
         if (permissionResult.IsFailure)
         {
             throw new HubException("Forbidden: Missing ShareScreen permission");
+        }
+
+        // Video concurrency check: count instance-wide active streams
+        if (_tierOptions.MaxVideoConcurrency > 0)
+        {
+            var activeStreamCount = await context.VoiceStates
+                .CountAsync(vs => vs.IsStreaming);
+            if (activeStreamCount >= _tierOptions.MaxVideoConcurrency)
+            {
+                throw new HubException("Video stream limit reached — upgrade your plan for more concurrent streams");
+            }
         }
 
         // Set IsStreaming to true

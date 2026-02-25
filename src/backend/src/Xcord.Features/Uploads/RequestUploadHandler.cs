@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Uploads;
@@ -28,7 +30,8 @@ public sealed record RequestUploadResponse(
 public sealed class RequestUploadHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeIdGenerator,
-    IHttpContextAccessor httpContextAccessor)
+    IHttpContextAccessor httpContextAccessor,
+    IOptions<TierOptions> tierOptions)
     : IRequestHandler<RequestUploadCommand, Result<RequestUploadResponse>>, IValidatable<RequestUploadCommand>
 {
     private static readonly HashSet<string> AllowedContentTypes = new(StringComparer.OrdinalIgnoreCase)
@@ -120,6 +123,23 @@ public sealed class RequestUploadHandler(
             if (message.AuthorId != userId)
             {
                 return Error.Forbidden("NOT_MESSAGE_AUTHOR", "Only the message author can attach files");
+            }
+        }
+
+        // Storage quota check: reject if adding this file would exceed the instance limit
+        var maxStorageMb = tierOptions.Value.MaxStorageMb;
+        if (maxStorageMb > 0)
+        {
+            var currentUsageBytes = await dbContext.Attachments
+                .Where(a => a.IsConfirmed)
+                .SumAsync(a => a.FileSize, cancellationToken);
+
+            var maxStorageBytes = (long)maxStorageMb * 1024 * 1024;
+            if (currentUsageBytes + request.FileSize > maxStorageBytes)
+            {
+                var usedMb = currentUsageBytes / (1024 * 1024);
+                return Error.Validation("STORAGE_QUOTA_EXCEEDED",
+                    $"Storage quota exceeded. {usedMb}/{maxStorageMb} MB used.");
             }
         }
 

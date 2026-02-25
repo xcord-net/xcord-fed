@@ -78,6 +78,31 @@ if [ -n "${XCORD_CONFIG_INLINE:-}" ]; then
             GatewayApiUrl: (.hub.gatewayApiUrl // ""),
             BootstrapToken: (.hub.bootstrapToken // ""),
             Origin: (.hub.origin // "")
+        },
+        Tier: {
+            CanUseVoiceChannels: (.tier.canUseVoiceChannels // true),
+            CanUseVideoChannels: (.tier.canUseVideoChannels // true),
+            CanCreateBots: (.tier.canCreateBots // true),
+            CanUseWebhooks: (.tier.canUseWebhooks // true),
+            CanUseCustomEmoji: (.tier.canUseCustomEmoji // true),
+            CanUseThreads: (.tier.canUseThreads // true),
+            CanUseForumChannels: (.tier.canUseForumChannels // true),
+            CanUseScheduledEvents: (.tier.canUseScheduledEvents // true),
+            CanUseHdVideo: (.tier.canUseHdVideo // false),
+            CanUseSimulcast: (.tier.canUseSimulcast // false),
+            CanUseRecording: (.tier.canUseRecording // false),
+            MaxUsers: (.tier.maxUsers // 0),
+            MaxServers: (.tier.maxServers // 0),
+            MaxStorageMb: (.tier.maxStorageMb // 0),
+            MaxRateLimit: (.tier.maxRateLimit // 0),
+            MaxVoiceConcurrency: (.tier.maxVoiceConcurrency // 0),
+            MaxVideoConcurrency: (.tier.maxVideoConcurrency // 0),
+            MaxAudioBitrateKbps: (.tier.maxAudioBitrateKbps // 0),
+            MaxVideoBitrateKbps: (.tier.maxVideoBitrateKbps // 0),
+            MaxVideoWidth: (.tier.maxVideoWidth // 0),
+            MaxVideoHeight: (.tier.maxVideoHeight // 0),
+            MaxVideoFps: (.tier.maxVideoFps // 0),
+            MaxScreenShareBitrateKbps: (.tier.maxScreenShareBitrateKbps // 0)
         }
     }' > "$APPSETTINGS_PATH"
     echo "Configuration generated at $APPSETTINGS_PATH"
@@ -154,6 +179,31 @@ elif [ -f "$CONFIG_PATH" ]; then
             GatewayApiUrl: (.hub.gatewayApiUrl // ""),
             BootstrapToken: (.hub.bootstrapToken // ""),
             Origin: (.hub.origin // "")
+        },
+        Tier: {
+            CanUseVoiceChannels: (.tier.canUseVoiceChannels // true),
+            CanUseVideoChannels: (.tier.canUseVideoChannels // true),
+            CanCreateBots: (.tier.canCreateBots // true),
+            CanUseWebhooks: (.tier.canUseWebhooks // true),
+            CanUseCustomEmoji: (.tier.canUseCustomEmoji // true),
+            CanUseThreads: (.tier.canUseThreads // true),
+            CanUseForumChannels: (.tier.canUseForumChannels // true),
+            CanUseScheduledEvents: (.tier.canUseScheduledEvents // true),
+            CanUseHdVideo: (.tier.canUseHdVideo // false),
+            CanUseSimulcast: (.tier.canUseSimulcast // false),
+            CanUseRecording: (.tier.canUseRecording // false),
+            MaxUsers: (.tier.maxUsers // 0),
+            MaxServers: (.tier.maxServers // 0),
+            MaxStorageMb: (.tier.maxStorageMb // 0),
+            MaxRateLimit: (.tier.maxRateLimit // 0),
+            MaxVoiceConcurrency: (.tier.maxVoiceConcurrency // 0),
+            MaxVideoConcurrency: (.tier.maxVideoConcurrency // 0),
+            MaxAudioBitrateKbps: (.tier.maxAudioBitrateKbps // 0),
+            MaxVideoBitrateKbps: (.tier.maxVideoBitrateKbps // 0),
+            MaxVideoWidth: (.tier.maxVideoWidth // 0),
+            MaxVideoHeight: (.tier.maxVideoHeight // 0),
+            MaxVideoFps: (.tier.maxVideoFps // 0),
+            MaxScreenShareBitrateKbps: (.tier.maxScreenShareBitrateKbps // 0)
         }
     }' "$CONFIG_PATH" > "$APPSETTINGS_PATH"
 

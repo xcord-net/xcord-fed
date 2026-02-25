@@ -30,10 +30,12 @@ public sealed partial class RegisterHandler(
     SnowflakeIdGenerator snowflakeGenerator,
     ILogger<RegisterHandler> logger,
     IOutboxWriter outboxWriter,
-    IOptions<EmailOptions> emailOptions)
+    IOptions<EmailOptions> emailOptions,
+    IOptions<TierOptions> tierOptions)
     : IRequestHandler<RegisterRequest, Result<RegisterResponse>>, IValidatable<RegisterRequest>
 {
     private readonly EmailOptions _emailOptions = emailOptions.Value;
+    private readonly TierOptions _tierOptions = tierOptions.Value;
 
     public Error? Validate(RegisterRequest request)
     {
@@ -69,6 +71,18 @@ public sealed partial class RegisterHandler(
 
     public async Task<Result<RegisterResponse>> Handle(RegisterRequest request, CancellationToken cancellationToken)
     {
+        // Tier gating: enforce user capacity limit (0 = unlimited)
+        if (_tierOptions.MaxUsers > 0)
+        {
+            var activeUserCount = await dbContext.Users
+                .CountAsync(u => u.DeletedAt == null, cancellationToken);
+
+            if (activeUserCount >= _tierOptions.MaxUsers)
+            {
+                return Error.Forbidden("CAPACITY_EXCEEDED", "This instance has reached its maximum user capacity");
+            }
+        }
+
         // Check if username already exists
         var usernameExists = await dbContext.Users
             .AnyAsync(u => u.Username == request.Username, cancellationToken);

@@ -83,6 +83,11 @@ public sealed class AppDbContext : DbContext
     public DbSet<FederationMessage> FederationMessages => Set<FederationMessage>();
     public DbSet<UserNote> UserNotes => Set<UserNote>();
 
+    // Member subscription billing
+    public DbSet<MemberSubscriptionTier> MemberSubscriptionTiers => Set<MemberSubscriptionTier>();
+    public DbSet<MemberSubscription> MemberSubscriptions => Set<MemberSubscription>();
+    public DbSet<ServerBillingConfig> ServerBillingConfigs => Set<ServerBillingConfig>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

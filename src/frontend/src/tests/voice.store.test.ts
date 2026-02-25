@@ -8,6 +8,15 @@ function makeMockConnection(overrides?: Partial<{ token: string; livekitUrl: str
       token: overrides?.token ?? 'mock-token',
       roomName: 'mock-room',
       livekitUrl: overrides?.livekitUrl ?? 'ws://livekit.test:7880',
+      qualityConfig: {
+        maxAudioBitrateKbps: 0,
+        maxVideoBitrateKbps: 0,
+        maxVideoWidth: 0,
+        maxVideoHeight: 0,
+        maxVideoFps: 0,
+        maxScreenShareBitrateKbps: 0,
+        enableSimulcast: false,
+      },
     }),
     state: 'Connected',
   } as unknown as import('@microsoft/signalr').HubConnection;
@@ -60,6 +69,10 @@ vi.mock('livekit-client', () => {
       Disconnected: 'disconnected',
       Reconnecting: 'reconnecting',
     },
+    VideoPresets: {
+      h720: { encoding: { maxBitrate: 1_500_000, maxFramerate: 30 } },
+      h1080: { encoding: { maxBitrate: 4_000_000, maxFramerate: 30 } },
+    },
   };
 });
 
@@ -70,9 +83,8 @@ describe('voice.store', () => {
     // Reset SignalR connection
     voice.setSignalRConnection(null);
     // Clear mock call history so each test starts with a clean slate.
-    // NOTE: do NOT reset lastMockRoomInstance — the store reuses the same Room
-    // instance across calls (module-level singleton), so once set it stays valid
-    // for the lifetime of the test suite.
+    // NOTE: do NOT reset lastMockRoomInstance — the mock factory updates it
+    // each time a new Room is created, and tests can inspect the latest instance.
     vi.clearAllMocks();
   });
 
@@ -111,16 +123,14 @@ describe('voice.store', () => {
       voice.setSignalRConnection(makeMockConnection({ token: 'token-1', livekitUrl: 'ws://lk:7880' }));
       await voice.joinVoice('channel-1');
 
-      // Capture room and reset mock call counts.
-      const room = lastMockRoomInstance!;
-      room.connect.mockClear();
-
-      // Second join with a different token (room is already created).
+      // Second join with a different token — the store recreates the Room
+      // with quality config each time, so we check the NEW room instance.
       voice.setSignalRConnection(makeMockConnection({ token: 'token-2', livekitUrl: 'ws://lk:7880' }));
       await voice.joinVoice('channel-2');
 
-      expect(room.connect).toHaveBeenCalledOnce();
-      expect(room.connect).toHaveBeenCalledWith('ws://lk:7880', 'token-2');
+      const newRoom = lastMockRoomInstance!;
+      expect(newRoom.connect).toHaveBeenCalledOnce();
+      expect(newRoom.connect).toHaveBeenCalledWith('ws://lk:7880', 'token-2');
     });
   });
 

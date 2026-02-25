@@ -9,14 +9,26 @@ import {
   RemoteParticipant,
   Participant,
   ConnectionState,
+  VideoPresets,
 } from 'livekit-client';
 import type { HubConnection } from '@microsoft/signalr';
 import type { VoiceParticipant } from '../types/voice';
+
+interface QualityConfig {
+  maxAudioBitrateKbps: number;
+  maxVideoBitrateKbps: number;
+  maxVideoWidth: number;
+  maxVideoHeight: number;
+  maxVideoFps: number;
+  maxScreenShareBitrateKbps: number;
+  enableSimulcast: boolean;
+}
 
 interface JoinVoiceResponse {
   token: string;
   roomName: string;
   livekitUrl: string;
+  qualityConfig: QualityConfig;
 }
 
 const store = createRoot(() => {
@@ -55,11 +67,37 @@ let serverSideJoined = false;
 // When set, RoomEvent.Disconnected is allowed to clear the state.
 let intentionalLeave = false;
 
-function getRoom(): Room {
+function getRoom(qualityConfig?: QualityConfig): Room {
   if (!livekitRoom) {
+    const publishDefaults: Record<string, unknown> = {};
+
+    if (qualityConfig) {
+      if (qualityConfig.maxAudioBitrateKbps > 0) {
+        publishDefaults.audioBitrate = qualityConfig.maxAudioBitrateKbps * 1000;
+      }
+      if (qualityConfig.maxVideoBitrateKbps > 0) {
+        publishDefaults.videoEncoding = {
+          maxBitrate: qualityConfig.maxVideoBitrateKbps * 1000,
+          maxFramerate: qualityConfig.maxVideoFps || 30,
+        };
+      }
+      if (qualityConfig.maxScreenShareBitrateKbps > 0) {
+        publishDefaults.screenShareEncoding = {
+          maxBitrate: qualityConfig.maxScreenShareBitrateKbps * 1000,
+          maxFramerate: qualityConfig.maxVideoFps || 30,
+        };
+      }
+      publishDefaults.simulcast = qualityConfig.enableSimulcast;
+
+      if (qualityConfig.maxVideoWidth > 0 && qualityConfig.maxVideoHeight > 0) {
+        publishDefaults.videoCodec = 'vp8';
+      }
+    }
+
     livekitRoom = new Room({
       adaptiveStream: true,
       dynacast: true,
+      publishDefaults: Object.keys(publishDefaults).length > 0 ? publishDefaults : undefined,
     });
     attachRoomEventHandlers(livekitRoom);
   }
@@ -236,14 +274,18 @@ export function useVoice() {
       // Server-side join succeeded — VoicePanel stays visible from this point.
       // Attempt to connect to LiveKit; a LiveKit failure is non-fatal.
       try {
-        const room = getRoom();
-
-        // Disconnect from any previous room before joining a new one.
-        if (room.state !== ConnectionState.Disconnected) {
+        // Recreate the room when quality config is provided so publish defaults
+        // reflect the server-supplied tier limits.
+        if (livekitRoom) {
           intentionalLeave = true;
-          await room.disconnect();
+          if (livekitRoom.state !== ConnectionState.Disconnected) {
+            await livekitRoom.disconnect();
+          }
+          livekitRoom = null;
           intentionalLeave = false;
         }
+
+        const room = getRoom(serverJoinResult.qualityConfig);
 
         await room.connect(serverJoinResult.livekitUrl, serverJoinResult.token);
 
