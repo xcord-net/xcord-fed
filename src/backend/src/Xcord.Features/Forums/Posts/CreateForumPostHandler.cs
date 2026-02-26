@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 
 using Xcord.Entities;
 using Xcord.Features.Authorization;
@@ -35,18 +34,16 @@ public sealed class CreateForumPostHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     IPermissionService permissionService,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     IOutboxWriter outboxWriter,
     ILogger<CreateForumPostHandler> logger)
     : IRequestHandler<CreateForumPostCommand, Result<CreateForumPostResponse>>
 {
     public async Task<Result<CreateForumPostResponse>> Handle(CreateForumPostCommand request, CancellationToken cancellationToken)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         var channel = await dbContext.Channels
             .AsNoTracking()

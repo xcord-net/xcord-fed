@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
+using Xcord.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 
 using Xcord.Entities;
 using Xcord.Features.Authorization;
@@ -39,16 +39,14 @@ public sealed record ForumPostDto(
 
 public sealed class ListForumPostsHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor)
+    ICurrentUserService currentUserService)
     : IRequestHandler<ListForumPostsCommand, Result<ListForumPostsResponse>>
 {
     public async Task<Result<ListForumPostsResponse>> Handle(ListForumPostsCommand request, CancellationToken cancellationToken)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         var channel = await dbContext.Channels
             .AsNoTracking()

@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
-using System.Security.Claims;
 using System.Security.Cryptography;
+using Xcord.Infrastructure.Services;
 
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Options;
@@ -42,15 +42,14 @@ public sealed class GetWsTicketHandler(
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
     {
         return app.MapPost("/api/v1/auth/ws-ticket", async (
-                HttpContext httpContext,
+                [FromServices] ICurrentUserService currentUserService,
                 [FromServices] GetWsTicketHandler handler,
                 CancellationToken ct) =>
             {
-                var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (userIdClaim == null || !long.TryParse(userIdClaim, out var userId))
-                {
-                    return Results.Unauthorized();
-                }
+                var userIdResult = currentUserService.GetCurrentUserId();
+                if (userIdResult.IsFailure)
+                    return Results.Problem(statusCode: userIdResult.Error.StatusCode, title: userIdResult.Error.Code, detail: userIdResult.Error.Message);
+                var userId = userIdResult.Value;
 
                 return await handler.ExecuteAsync(new GetWsTicketRequest(userId), ct, success => Results.Ok(new { ticket = success }));
             })

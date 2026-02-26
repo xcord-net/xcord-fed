@@ -5,11 +5,11 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Options;
+using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Notifications;
 
@@ -35,7 +35,7 @@ public sealed record UpdateNotificationSettingResponse(
 
 public sealed class UpdateNotificationSettingHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     SnowflakeIdGenerator snowflakeIdGenerator,
     IConnectionMultiplexer redis,
     IOptions<RedisOptions> redisOptions) : IRequestHandler<UpdateNotificationSettingRequest, Result<UpdateNotificationSettingResponse>>
@@ -44,12 +44,9 @@ public sealed class UpdateNotificationSettingHandler(
 
     public async Task<Result<UpdateNotificationSettingResponse>> Handle(UpdateNotificationSettingRequest request, CancellationToken cancellationToken)
     {
-        // Get current user ID from JWT claims
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         // Validate that server/channel exist if provided
         if (request.ServerId.HasValue)

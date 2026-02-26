@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using System.Security.Claims;
 using System.Text.RegularExpressions;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
@@ -30,7 +29,7 @@ public sealed record RequestUploadResponse(
 public sealed class RequestUploadHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeIdGenerator,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     IOptions<TierOptions> tierOptions)
     : IRequestHandler<RequestUploadCommand, Result<RequestUploadResponse>>, IValidatable<RequestUploadCommand>
 {
@@ -88,12 +87,9 @@ public sealed class RequestUploadHandler(
 
     public async Task<Result<RequestUploadResponse>> Handle(RequestUploadCommand request, CancellationToken cancellationToken)
     {
-        // Get current user ID from JWT claims
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         // Validate content type against allowlist
         if (!AllowedContentTypes.Contains(request.ContentType))

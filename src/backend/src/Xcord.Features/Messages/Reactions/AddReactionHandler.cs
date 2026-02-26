@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Messages.Reactions;
 
@@ -13,14 +13,14 @@ public sealed record AddReactionCommand(long ConversationId, long MessageId, str
 public sealed record ReactionResponse(long MessageId, long UserId, string Emoji, DateTimeOffset CreatedAt);
 
 public sealed class AddReactionHandler(
-    AppDbContext dbContext, IHttpContextAccessor httpContextAccessor)
+    AppDbContext dbContext, ICurrentUserService currentUserService)
     : IRequestHandler<AddReactionCommand, Result<ReactionResponse>>
 {
     public async Task<Result<ReactionResponse>> Handle(AddReactionCommand request, CancellationToken ct)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         var message = await dbContext.Messages.AsNoTracking()
             .FirstOrDefaultAsync(m => m.Id == request.MessageId && m.ConversationId == request.ConversationId, ct);

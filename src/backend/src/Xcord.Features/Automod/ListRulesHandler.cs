@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Automod;
 
@@ -21,17 +20,14 @@ public sealed record ListRulesResponse(
 public sealed class ListRulesHandler(
     AppDbContext dbContext,
     IPermissionService permissionService,
-    IHttpContextAccessor httpContextAccessor)
+    ICurrentUserService currentUserService)
     : IRequestHandler<ListRulesQuery, Result<ListRulesResponse>>
 {
     public async Task<Result<ListRulesResponse>> Handle(ListRulesQuery request, CancellationToken cancellationToken)
     {
-        // Get current user ID from JWT claims
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         // Verify server exists
         var serverExists = await dbContext.Servers

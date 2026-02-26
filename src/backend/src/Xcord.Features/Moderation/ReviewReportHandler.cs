@@ -1,13 +1,12 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Moderation;
 
@@ -27,7 +26,7 @@ public sealed record ReviewReportResponse(
 
 public sealed class ReviewReportHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     IPermissionService permissionService,
     SnowflakeIdGenerator snowflakeGenerator,
     ILogger<ReviewReportHandler> logger)
@@ -60,12 +59,9 @@ public sealed class ReviewReportHandler(
 
     public async Task<Result<ReviewReportResponse>> Handle(ReviewReportCommand request, CancellationToken cancellationToken)
     {
-        // Get current user ID from JWT claims
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var reviewerId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var reviewerId = userIdResult.Value;
 
         // Check if user has ManageReports permission
         var permissionResult = await permissionService.EnsureServerPermission(

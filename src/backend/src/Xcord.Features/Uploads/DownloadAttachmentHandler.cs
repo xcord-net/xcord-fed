@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
@@ -22,14 +21,12 @@ public sealed class DownloadAttachmentHandler : IEndpoint
             long attachmentId,
             AppDbContext dbContext,
             IStorageService storageService,
-            HttpContext httpContext,
+            ICurrentUserService currentUserService,
             CancellationToken ct) =>
         {
-            var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out _))
-            {
+            var userIdResult = currentUserService.GetCurrentUserId();
+            if (userIdResult.IsFailure)
                 return Results.Json(new { error = "UNAUTHORIZED", message = "User is not authenticated" }, statusCode: 401);
-            }
 
             var attachment = await dbContext.Attachments
                 .AsNoTracking()

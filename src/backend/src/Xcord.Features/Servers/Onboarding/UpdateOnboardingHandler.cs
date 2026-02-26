@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Servers.Onboarding;
 
@@ -15,14 +14,14 @@ public sealed record UpdateOnboardingRequest(bool IsEnabled, string? DefaultChan
 
 public sealed class UpdateOnboardingHandler(
     AppDbContext dbContext, SnowflakeIdGenerator snowflakeGenerator,
-    IHttpContextAccessor httpContextAccessor, IPermissionService permissionService)
+    ICurrentUserService currentUserService, IPermissionService permissionService)
     : IRequestHandler<UpdateOnboardingCommand, Result<OnboardingResponse>>
 {
     public async Task<Result<OnboardingResponse>> Handle(UpdateOnboardingCommand request, CancellationToken ct)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         var perm = await permissionService.EnsureServerPermission(userId, request.ServerId, Permission.ManageServer);
         if (perm.IsFailure) return Error.Forbidden("MISSING_PERMISSIONS", "You do not have permission");

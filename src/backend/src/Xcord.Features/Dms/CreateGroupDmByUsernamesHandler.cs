@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
@@ -20,7 +19,7 @@ public sealed record CreateGroupDmByUsernamesRequest(
 public sealed class CreateGroupDmByUsernamesHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     IOutboxWriter outboxWriter,
     ILogger<CreateGroupDmByUsernamesHandler> logger)
     : IRequestHandler<CreateGroupDmByUsernamesRequest, Result<CreateDmResponse>>
@@ -35,9 +34,9 @@ public sealed class CreateGroupDmByUsernamesHandler(
         if (request.Usernames.Length > 9)
             return Error.Validation("VALIDATION_FAILED", "Cannot add more than 9 other members to a group DM");
 
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var currentUserId))
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var currentUserId = userIdResult.Value;
 
         // Look up all recipients by username
         var distinctUsernames = request.Usernames.Distinct().ToList();

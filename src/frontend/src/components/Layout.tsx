@@ -1,4 +1,4 @@
-import { Show, createEffect, createSignal, onMount } from 'solid-js';
+import { Show, createEffect, onMount } from 'solid-js';
 import { useParams, useNavigate } from '@solidjs/router';
 import ServerSidebar from './ServerSidebar';
 import ChannelSidebar from './ChannelSidebar';
@@ -29,8 +29,7 @@ import { useMessages } from '../stores/message.store';
 import { useDms } from '../stores/dm.store';
 import { useSignalR } from '../stores/signalr.store';
 import { useUnread } from '../stores/unread.store';
-import { useForums } from '../stores/forum.store';
-import type { ForumPost } from '../types/forum';
+import { useModals } from '../stores/modal.store';
 
 export default function Layout() {
   const params = useParams<{ serverId?: string; channelId?: string }>();
@@ -43,15 +42,7 @@ export default function Layout() {
   const signalR = useSignalR();
 
   const unreadStore = useUnread();
-  const forumStore = useForums();
-  const [showSearch, setShowSearch] = createSignal(false);
-  const [showPins, setShowPins] = createSignal(false);
-  const [showThreads, setShowThreads] = createSignal(false);
-  const [showSettings, setShowSettings] = createSignal<'profile' | 'blocks' | 'notifications' | 'notes' | 'connected-accounts' | 'profile-decorations' | null>(null);
-  const [showChannelSettings, setShowChannelSettings] = createSignal(false);
-  const [showRoleManager, setShowRoleManager] = createSignal(false);
-  const [showEvents, setShowEvents] = createSignal(false);
-  const [selectedForumPost, setSelectedForumPost] = createSignal<ForumPost | null>(null);
+  const modals = useModals();
 
   // Load servers, DMs, and connect to SignalR on mount
   onMount(() => {
@@ -113,7 +104,7 @@ export default function Layout() {
     if (channelId && channelId !== prevChannelId) {
       prevChannelId = channelId;
       channelStore.selectChannel(channelId);
-      setSelectedForumPost(null);
+      modals.selectForumPost(null);
     }
   });
 
@@ -259,53 +250,53 @@ export default function Layout() {
                   <div class="ml-auto flex items-center space-x-2">
                     <button
                       title="Search"
-                      class={`px-2 py-1 text-sm rounded transition ${showSearch() ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
-                      onClick={() => setShowSearch(!showSearch())}
+                      class={`px-2 py-1 text-sm rounded transition ${modals.showSearch ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
+                      onClick={() => modals.toggleSearch()}
                     >
                       &#128269;
                     </button>
                     <button
                       title="Pinned Messages"
-                      class={`px-2 py-1 text-sm rounded transition ${showPins() ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
-                      onClick={() => setShowPins(!showPins())}
+                      class={`px-2 py-1 text-sm rounded transition ${modals.showPins ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
+                      onClick={() => modals.togglePins()}
                     >
                       &#128204;
                     </button>
                     <button
                       title="Threads"
-                      class={`px-2 py-1 text-sm rounded transition ${showThreads() ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
-                      onClick={() => setShowThreads(!showThreads())}
+                      class={`px-2 py-1 text-sm rounded transition ${modals.showThreads ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
+                      onClick={() => modals.toggleThreads()}
                     >
                       &#35;&#xFE0F;&#8203;
                     </button>
                     <button
                       title="Channel Settings"
                       aria-label="Channel Settings"
-                      class={`px-2 py-1 text-sm rounded transition ${showChannelSettings() ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
-                      onClick={() => setShowChannelSettings(!showChannelSettings())}
+                      class={`px-2 py-1 text-sm rounded transition ${modals.showChannelSettings ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
+                      onClick={() => modals.toggleChannelSettings()}
                     >
                       &#9965;
                     </button>
                     <button
                       title="Roles"
                       aria-label="Role Manager"
-                      class={`px-2 py-1 text-sm rounded transition ${showRoleManager() ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
-                      onClick={() => setShowRoleManager(!showRoleManager())}
+                      class={`px-2 py-1 text-sm rounded transition ${modals.showRoleManager ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
+                      onClick={() => modals.toggleRoleManager()}
                     >
                       &#127775;
                     </button>
                     <button
                       title="Scheduled Events"
                       aria-label="Scheduled Events"
-                      class={`px-2 py-1 text-sm rounded transition ${showEvents() ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
-                      onClick={() => setShowEvents(!showEvents())}
+                      class={`px-2 py-1 text-sm rounded transition ${modals.showEvents ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
+                      onClick={() => modals.toggleEvents()}
                     >
                       &#128197;
                     </button>
                     <button
                       title="Settings"
-                      class={`px-2 py-1 text-sm rounded transition ${showSettings() ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
-                      onClick={() => setShowSettings(showSettings() ? null : 'profile')}
+                      class={`px-2 py-1 text-sm rounded transition ${modals.showSettings ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
+                      onClick={() => modals.toggleSettings()}
                     >
                       &#9881;&#65039;
                     </button>
@@ -317,21 +308,21 @@ export default function Layout() {
                   {/* Messages area */}
                   <div class="flex-1 flex flex-col min-w-0">
                     <Show when={currentChannel()?.type === 'Forum'}>
-                      <Show when={!selectedForumPost()}>
+                      <Show when={!modals.selectedForumPost}>
                         <ForumPostList
                           serverId={params.serverId!}
                           channelId={params.channelId!}
-                          onSelectPost={(post) => setSelectedForumPost(post)}
+                          onSelectPost={(post) => modals.selectForumPost(post)}
                         />
                       </Show>
-                      <Show when={selectedForumPost()}>
+                      <Show when={modals.selectedForumPost}>
                         {(post) => (
                           <div class="flex flex-col h-full min-h-0">
                             {/* Thread header with back button */}
                             <div class="h-12 px-4 flex items-center border-b border-xcord-border shadow-sm bg-xcord-bg-primary flex-shrink-0">
                               <button
                                 class="text-xcord-brand hover:underline text-sm mr-3"
-                                onClick={() => setSelectedForumPost(null)}
+                                onClick={() => modals.selectForumPost(null)}
                                 aria-label="Back to forum posts"
                               >
                                 &larr; Back
@@ -376,22 +367,22 @@ export default function Layout() {
                   </div>
 
                   {/* Right-side panels */}
-                  <Show when={showSearch()}>
+                  <Show when={modals.showSearch}>
                     <div class="w-80 border-l border-xcord-border bg-xcord-bg-secondary overflow-y-auto">
                       <SearchPanel />
                     </div>
                   </Show>
-                  <Show when={showPins() && conversationId()}>
+                  <Show when={modals.showPins && conversationId()}>
                     <div class="w-80 border-l border-xcord-border bg-xcord-bg-secondary overflow-y-auto">
                       <PinList conversationId={conversationId()!} />
                     </div>
                   </Show>
-                  <Show when={showThreads()}>
+                  <Show when={modals.showThreads}>
                     <div class="w-80 border-l border-xcord-border bg-xcord-bg-secondary overflow-y-auto">
                       <ThreadPanel channelId={params.channelId || ''} />
                     </div>
                   </Show>
-                  <Show when={showEvents() && serverStore.selectedServerId}>
+                  <Show when={modals.showEvents && serverStore.selectedServerId}>
                     <div class="w-80 border-l border-xcord-border bg-xcord-bg-secondary overflow-y-auto">
                       <ScheduledEvents serverId={serverStore.selectedServerId!} />
                     </div>
@@ -409,66 +400,66 @@ export default function Layout() {
       </Show>
 
       {/* Settings modal */}
-      <Modal open={showSettings() !== null} onClose={() => setShowSettings(null)} aria-label="User Settings" size="lg">
+      <Modal open={modals.showSettings !== null} onClose={() => modals.closeSettings()} aria-label="User Settings" size="lg">
         <div id="settings-modal-panel">
         <div class="flex border-b border-xcord-border">
           <button
-            class={`px-4 py-3 text-sm ${showSettings() === 'profile' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
-            onClick={() => setShowSettings('profile')}
+            class={`px-4 py-3 text-sm ${modals.showSettings === 'profile' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
+            onClick={() => modals.openSettings('profile')}
           >
             Profile
           </button>
           <button
-            class={`px-4 py-3 text-sm ${showSettings() === 'notifications' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
-            onClick={() => setShowSettings('notifications')}
+            class={`px-4 py-3 text-sm ${modals.showSettings === 'notifications' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
+            onClick={() => modals.openSettings('notifications')}
           >
             Notifications
           </button>
           <button
-            class={`px-4 py-3 text-sm ${showSettings() === 'blocks' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
-            onClick={() => setShowSettings('blocks')}
+            class={`px-4 py-3 text-sm ${modals.showSettings === 'blocks' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
+            onClick={() => modals.openSettings('blocks')}
           >
             Blocked Users
           </button>
           <button
-            class={`px-4 py-3 text-sm ${showSettings() === 'notes' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
-            onClick={() => setShowSettings('notes')}
+            class={`px-4 py-3 text-sm ${modals.showSettings === 'notes' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
+            onClick={() => modals.openSettings('notes')}
           >
             User Notes
           </button>
           <button
-            class={`px-4 py-3 text-sm ${showSettings() === 'connected-accounts' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
-            onClick={() => setShowSettings('connected-accounts')}
+            class={`px-4 py-3 text-sm ${modals.showSettings === 'connected-accounts' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
+            onClick={() => modals.openSettings('connected-accounts')}
           >
             Connected Accounts
           </button>
           <button
-            class={`px-4 py-3 text-sm ${showSettings() === 'profile-decorations' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
-            onClick={() => setShowSettings('profile-decorations')}
+            class={`px-4 py-3 text-sm ${modals.showSettings === 'profile-decorations' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
+            onClick={() => modals.openSettings('profile-decorations')}
           >
             Profile Decorations
           </button>
         </div>
-        <Show when={showSettings() === 'profile'}><UserProfileEditor /></Show>
-        <Show when={showSettings() === 'notifications'}><NotificationSettings /></Show>
-        <Show when={showSettings() === 'blocks'}><BlockList /></Show>
-        <Show when={showSettings() === 'notes'}><UserNotes /></Show>
-        <Show when={showSettings() === 'connected-accounts'}><ConnectedAccounts /></Show>
-        <Show when={showSettings() === 'profile-decorations'}><ProfileDecorations /></Show>
+        <Show when={modals.showSettings === 'profile'}><UserProfileEditor /></Show>
+        <Show when={modals.showSettings === 'notifications'}><NotificationSettings /></Show>
+        <Show when={modals.showSettings === 'blocks'}><BlockList /></Show>
+        <Show when={modals.showSettings === 'notes'}><UserNotes /></Show>
+        <Show when={modals.showSettings === 'connected-accounts'}><ConnectedAccounts /></Show>
+        <Show when={modals.showSettings === 'profile-decorations'}><ProfileDecorations /></Show>
         </div>
       </Modal>
 
       {/* Channel Settings modal */}
-      <Show when={showChannelSettings() && channelStore.selectedChannelId && serverStore.selectedServerId}>
+      <Show when={modals.showChannelSettings && channelStore.selectedChannelId && serverStore.selectedServerId}>
         <ChannelSettings
           serverId={serverStore.selectedServerId!}
           channelId={channelStore.selectedChannelId!}
-          onClose={() => setShowChannelSettings(false)}
+          onClose={() => modals.closeChannelSettings()}
         />
       </Show>
 
       {/* Role Manager modal */}
-      <Modal open={showRoleManager() && !!serverStore.selectedServerId} onClose={() => setShowRoleManager(false)} aria-label="Role Manager" size="xl">
+      <Modal open={modals.showRoleManager && !!serverStore.selectedServerId} onClose={() => modals.closeRoleManager()} aria-label="Role Manager" size="xl">
         <div class="h-[600px]">
           <RoleManager serverId={serverStore.selectedServerId!} />
         </div>

@@ -1,7 +1,5 @@
-using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +10,7 @@ using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
 using IEncryptionService = Xcord.Infrastructure.Services.IEncryptionService;
+using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Billing;
 
@@ -26,7 +25,7 @@ public sealed record SubscribeResponse(
 public sealed class SubscribeHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     IOptions<MemberBillingOptions> billingOptions,
     IOptions<InstanceOptions> instanceOptions,
     IMemberBillingService billingService,
@@ -36,9 +35,9 @@ public sealed class SubscribeHandler(
     public async Task<Result<SubscribeResponse>> Handle(
         SubscribeCommand request, CancellationToken cancellationToken)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         var server = await dbContext.Servers
             .AsNoTracking()

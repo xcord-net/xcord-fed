@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Servers.Boosts;
 
@@ -16,14 +15,14 @@ public sealed record BoosterInfo(long UserId, DateTimeOffset StartedAt);
 
 public sealed class BoostServerHandler(
     AppDbContext dbContext, SnowflakeIdGenerator snowflakeGenerator,
-    IHttpContextAccessor httpContextAccessor)
+    ICurrentUserService currentUserService)
     : IRequestHandler<BoostServerCommand, Result<BoostResponse>>
 {
     public async Task<Result<BoostResponse>> Handle(BoostServerCommand request, CancellationToken ct)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         var server = await dbContext.Servers.FirstOrDefaultAsync(s => s.Id == request.ServerId, ct);
         if (server == null) return Error.NotFound("SERVER_NOT_FOUND", "Server not found");

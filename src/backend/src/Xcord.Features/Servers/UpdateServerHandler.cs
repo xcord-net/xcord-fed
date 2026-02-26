@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Servers;
 
@@ -20,7 +20,7 @@ public sealed record UpdateServerCommand(
 
 public sealed class UpdateServerHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     ILogger<UpdateServerHandler> logger)
     : IRequestHandler<UpdateServerCommand, Result<ServerDto>>, IValidatable<UpdateServerCommand>
 {
@@ -56,12 +56,9 @@ public sealed class UpdateServerHandler(
 
     public async Task<Result<ServerDto>> Handle(UpdateServerCommand request, CancellationToken cancellationToken)
     {
-        // Get current user ID from JWT claims
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         // Check if server exists
         var server = await dbContext.Servers

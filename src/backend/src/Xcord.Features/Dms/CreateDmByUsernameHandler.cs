@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Dms;
 
@@ -25,7 +25,7 @@ public sealed record CreateDmByUsernameResponse(
 
 public sealed class CreateDmByUsernameHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     IRequestHandler<CreateDmRequest, Result<CreateDmResponse>> createDmHandler)
     : IRequestHandler<CreateDmByUsernameRequest, Result<CreateDmByUsernameResponse>>
 {
@@ -36,9 +36,9 @@ public sealed class CreateDmByUsernameHandler(
         if (string.IsNullOrWhiteSpace(request.Username))
             return Error.Validation("USERNAME_REQUIRED", "Username is required");
 
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var currentUserId))
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var currentUserId = userIdResult.Value;
 
         // Look up recipient by username
         var recipient = await dbContext.Users

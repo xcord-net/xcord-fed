@@ -1,13 +1,12 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Moderation;
 
@@ -23,19 +22,16 @@ public sealed record UnbanMemberResponse(
 public sealed class UnbanMemberHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     IPermissionService permissionService,
     ILogger<UnbanMemberHandler> logger)
     : IRequestHandler<UnbanMemberCommand, Result<UnbanMemberResponse>>
 {
     public async Task<Result<UnbanMemberResponse>> Handle(UnbanMemberCommand request, CancellationToken cancellationToken)
     {
-        // Get current user ID from JWT claims
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var moderatorId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var moderatorId = userIdResult.Value;
 
         // Check if moderator has BanMembers permission
         var permissionResult = await permissionService.EnsureServerPermission(

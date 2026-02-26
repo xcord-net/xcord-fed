@@ -1,14 +1,13 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 using System.Text.Json;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Webhooks;
 
@@ -22,7 +21,7 @@ public sealed record UpdateOutgoingWebhookCommand(
 
 public sealed class UpdateOutgoingWebhookHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     IPermissionService permissionService,
     ILogger<UpdateOutgoingWebhookHandler> logger)
     : IRequestHandler<UpdateOutgoingWebhookCommand, Result<OutgoingWebhookDto>>,
@@ -67,9 +66,9 @@ public sealed class UpdateOutgoingWebhookHandler(
         UpdateOutgoingWebhookCommand request,
         CancellationToken cancellationToken)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         // Verify server exists
         var serverExists = await dbContext.Servers

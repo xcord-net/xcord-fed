@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 using System.Security.Cryptography;
+using Xcord.Infrastructure.Services;
 
 using Xcord.Entities;
 using Xcord.Features.Authorization;
@@ -70,15 +70,14 @@ public sealed class TwoFactorEnableHandler(
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
     {
         return app.MapPost("/api/v1/auth/2fa/enable", async (
-                HttpContext httpContext,
+                [FromServices] ICurrentUserService currentUserService,
                 [FromServices] TwoFactorEnableHandler handler,
                 CancellationToken ct) =>
             {
-                var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (userIdClaim == null || !long.TryParse(userIdClaim, out var userId))
-                {
-                    return Results.Unauthorized();
-                }
+                var userIdResult = currentUserService.GetCurrentUserId();
+                if (userIdResult.IsFailure)
+                    return Results.Problem(statusCode: userIdResult.Error.StatusCode, title: userIdResult.Error.Code, detail: userIdResult.Error.Message);
+                var userId = userIdResult.Value;
 
                 var command = new TwoFactorEnableRequest(userId);
                 return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());

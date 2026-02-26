@@ -3,6 +3,7 @@ import { api } from '../api/client';
 import { useChannels } from '../stores/channel.store';
 import ChannelPermissions from './ChannelPermissions';
 import Modal from './ui/Modal';
+import { getErrorMessage } from '../utils/errors';
 
 interface ChannelSettingsProps {
   serverId: string;
@@ -73,8 +74,7 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
       });
       setSuccessMsg('Channel settings saved successfully.');
     } catch (err: unknown) {
-      const e = err as { detail?: string; error?: string; message?: string };
-      setErrorMsg(e?.detail ?? e?.error ?? e?.message ?? 'Failed to save channel settings.');
+      setErrorMsg(getErrorMessage(err, 'Failed to save channel settings.'));
     } finally {
       setIsSaving(false);
     }

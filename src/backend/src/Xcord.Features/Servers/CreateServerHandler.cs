@@ -1,14 +1,14 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Options;
+using Xcord.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Servers;
 
@@ -23,7 +23,7 @@ public sealed record CreateServerCommand(
 public sealed class CreateServerHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     IOptions<TierOptions> tierOptions,
     ILogger<CreateServerHandler> logger)
     : IRequestHandler<CreateServerCommand, Result<CreateServerResponse>>, IValidatable<CreateServerCommand>
@@ -65,12 +65,9 @@ public sealed class CreateServerHandler(
 
     public async Task<Result<CreateServerResponse>> Handle(CreateServerCommand request, CancellationToken cancellationToken)
     {
-        // Get current user ID from JWT claims
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         // Tier gating: enforce server capacity limit (0 = unlimited)
         var maxServers = tierOptions.Value.MaxServers;

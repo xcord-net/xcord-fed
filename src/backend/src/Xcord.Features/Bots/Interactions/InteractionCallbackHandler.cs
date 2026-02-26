@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
-using System.Security.Claims;
 using System.Text.Json;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
@@ -55,7 +54,7 @@ public sealed class InteractionCallbackHandler(
     AppDbContext dbContext,
     IConnectionMultiplexer redis,
     IOptions<RedisOptions> redisOptions,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     IOutboxWriter outboxWriter,
     SnowflakeIdGenerator snowflakeGenerator)
     : IRequestHandler<InteractionCallbackCommand, Result<InteractionCallbackResponse>>
@@ -72,9 +71,9 @@ public sealed class InteractionCallbackHandler(
     public async Task<Result<InteractionCallbackResponse>> Handle(InteractionCallbackCommand request, CancellationToken ct)
     {
         // Authenticate the bot calling this endpoint.
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var botUserId))
-            return Error.Forbidden("UNAUTHORIZED", "Bot is not authenticated");
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var botUserId = userIdResult.Value;
 
         // Retrieve the pending interaction from Redis.
         var db = redis.GetDatabase();

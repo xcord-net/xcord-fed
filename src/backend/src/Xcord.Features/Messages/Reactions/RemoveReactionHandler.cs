@@ -3,23 +3,23 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Messages.Reactions;
 
 public sealed record RemoveReactionCommand(long ConversationId, long MessageId, string Emoji);
 
 public sealed class RemoveReactionHandler(
-    AppDbContext dbContext, IHttpContextAccessor httpContextAccessor)
+    AppDbContext dbContext, ICurrentUserService currentUserService)
     : IRequestHandler<RemoveReactionCommand, Result<bool>>
 {
     public async Task<Result<bool>> Handle(RemoveReactionCommand request, CancellationToken ct)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         var reaction = await dbContext.Reactions
             .FirstOrDefaultAsync(r => r.MessageId == request.MessageId && r.UserId == userId && r.Emoji == request.Emoji, ct);

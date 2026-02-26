@@ -2,11 +2,6 @@ import { createSignal, createRoot } from 'solid-js';
 import { api } from '../api/client';
 import type { Message } from '../types/message';
 
-const messageTypeMap: Record<number, string> = {
-  0: 'Default', 1: 'Reply', 2: 'System', 3: 'Join', 4: 'Leave',
-  5: 'Pin', 6: 'ChannelNameChange', 7: 'ChannelTopicChange',
-};
-
 function normalizeMessage(m: Message): Message {
   return {
     ...m,
@@ -17,9 +12,6 @@ function normalizeMessage(m: Message): Message {
     // (system messages dispatched by backend handlers like BanMemberHandler).
     content: m.content ?? '',
     replyToId: m.replyToId ? String(m.replyToId) : undefined,
-    type: typeof m.type === 'number'
-      ? (messageTypeMap[m.type as unknown as number] ?? 'Default')
-      : m.type,
     pollId: m.pollId ? String(m.pollId) : undefined,
   };
 }

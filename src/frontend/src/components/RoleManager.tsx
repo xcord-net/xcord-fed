@@ -1,6 +1,7 @@
 import { For, Show, createSignal, onMount } from 'solid-js';
 import { api } from '../api/client';
 import Modal from './ui/Modal';
+import { getErrorMessage } from '../utils/errors';
 
 interface Role {
   id: string;
@@ -85,8 +86,7 @@ export default function RoleManager(props: RoleManagerProps) {
       const result = await api.get<Role[]>(`/api/v1/servers/${props.serverId}/roles`);
       setRoles(result.map((r) => ({ ...r, id: String(r.id) })));
     } catch (err: unknown) {
-      const e = err as { error?: string; detail?: string; message?: string };
-      setError(e?.detail ?? e?.error ?? e?.message ?? 'Failed to load roles.');
+      setError(getErrorMessage(err, 'Failed to load roles.'));
     } finally {
       setIsLoading(false);
     }
@@ -119,8 +119,7 @@ export default function RoleManager(props: RoleManagerProps) {
       setRoles(roles().map((r) => (r.id === roleId ? updatedRole : r)));
       setSaveSuccess('Role saved successfully.');
     } catch (err: unknown) {
-      const e = err as { detail?: string; error?: string; message?: string };
-      setSaveError(e?.detail ?? e?.error ?? e?.message ?? 'Failed to save role.');
+      setSaveError(getErrorMessage(err, 'Failed to save role.'));
     } finally {
       setIsSaving(false);
     }
@@ -142,8 +141,7 @@ export default function RoleManager(props: RoleManagerProps) {
       setShowCreateForm(false);
       selectRole(newRole);
     } catch (err: unknown) {
-      const e = err as { detail?: string; error?: string; message?: string };
-      setError(e?.detail ?? e?.error ?? e?.message ?? 'Failed to create role.');
+      setError(getErrorMessage(err, 'Failed to create role.'));
     } finally {
       setIsCreating(false);
     }
@@ -158,8 +156,7 @@ export default function RoleManager(props: RoleManagerProps) {
         setSelectedRoleId(null);
       }
     } catch (err: unknown) {
-      const e = err as { detail?: string; error?: string; message?: string };
-      setError(e?.detail ?? e?.error ?? e?.message ?? 'Failed to delete role.');
+      setError(getErrorMessage(err, 'Failed to delete role.'));
     } finally {
       setIsDeleting(false);
     }

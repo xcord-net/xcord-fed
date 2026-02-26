@@ -37,14 +37,12 @@ export function useChannels() {
         const response = await api.get<{ channels: Channel[]; categories: Category[] }>(
           `/api/v1/servers/${serverId}/channels`
         );
-        const channelTypeMap: Record<number, Channel['type']> = { 0: 'Text', 1: 'Voice', 3: 'Forum' };
         store.setChannels(response.channels.map(c => ({
           ...c,
           id: String(c.id),
           serverId: String(c.serverId),
           conversationId: String(c.conversationId),
           categoryId: c.categoryId ? String(c.categoryId) : undefined,
-          type: typeof c.type === 'number' ? (channelTypeMap[c.type as unknown as number] ?? 'Text') : c.type,
         })));
         store.setCategories((response.categories ?? []).map(cat => ({
           ...cat,

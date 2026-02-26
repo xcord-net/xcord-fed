@@ -2,6 +2,7 @@ import { For, Show, onMount, createSignal } from 'solid-js';
 import { useDms } from '../stores/dm.store';
 import { useAuth } from '../stores/auth.store';
 import PresenceDot from './PresenceDot';
+import { getErrorMessage } from '../utils/errors';
 
 export default function DmList() {
   const dmStore = useDms();
@@ -33,8 +34,7 @@ export default function DmList() {
       setDmUsername('');
       setShowNewDm(false);
     } catch (err: unknown) {
-      const e = err as { detail?: string; message?: string };
-      setDmError(e?.detail || e?.message || 'Failed to open DM');
+      setDmError(getErrorMessage(err, 'Failed to open DM'));
     }
   };
 
@@ -68,8 +68,7 @@ export default function DmList() {
       setGroupMemberInput('');
       setShowNewDm(false);
     } catch (err: unknown) {
-      const e = err as { detail?: string; message?: string };
-      setGroupError(e?.detail || e?.message || 'Failed to create group DM');
+      setGroupError(getErrorMessage(err, 'Failed to create group DM'));
     }
   };
 
@@ -79,8 +78,7 @@ export default function DmList() {
       await dmStore.addGroupMemberByUsername(groupId, username);
       setAddMemberInput('');
     } catch (err: unknown) {
-      const e = err as { detail?: string; message?: string };
-      setAddMemberError(e?.detail || e?.message || 'Failed to add member');
+      setAddMemberError(getErrorMessage(err, 'Failed to add member'));
     }
   };
 

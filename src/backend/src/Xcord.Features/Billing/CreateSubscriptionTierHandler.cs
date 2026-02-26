@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -24,7 +23,7 @@ public sealed record CreateSubscriptionTierCommand(
 public sealed class CreateSubscriptionTierHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
-    IHttpContextAccessor httpContextAccessor)
+    ICurrentUserService currentUserService)
     : IRequestHandler<CreateSubscriptionTierCommand, Result<SubscriptionTierDto>>,
       IValidatable<CreateSubscriptionTierCommand>
 {
@@ -46,9 +45,9 @@ public sealed class CreateSubscriptionTierHandler(
     public async Task<Result<SubscriptionTierDto>> Handle(
         CreateSubscriptionTierCommand request, CancellationToken cancellationToken)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         var server = await dbContext.Servers
             .AsNoTracking()

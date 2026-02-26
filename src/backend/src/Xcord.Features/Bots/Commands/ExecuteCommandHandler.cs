@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Bots.Commands;
 
@@ -15,15 +14,15 @@ public sealed record ExecuteCommandResponse(long CommandId, string Status);
 
 public sealed class ExecuteCommandHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     IOutboxWriter outboxWriter)
     : IRequestHandler<ExecuteCommandCommand, Result<ExecuteCommandResponse>>
 {
     public async Task<Result<ExecuteCommandResponse>> Handle(ExecuteCommandCommand request, CancellationToken ct)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         var cmd = await dbContext.SlashCommands.AsNoTracking()
             .Include(c => c.BotToken)

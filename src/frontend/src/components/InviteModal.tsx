@@ -1,6 +1,7 @@
 import { createSignal, onMount } from 'solid-js';
 import { api } from '../api/client';
 import Modal from './ui/Modal';
+import { getErrorMessage } from '../utils/errors';
 
 interface InviteModalProps {
   serverId: string;
@@ -68,8 +69,7 @@ export default function InviteModal(props: InviteModalProps) {
       const result = await api.post<Invite>(`/api/v1/servers/${props.serverId}/invites`, body);
       setInvite(result);
     } catch (err: unknown) {
-      const e = err as { detail?: string; message?: string };
-      setError(e?.detail || e?.message || 'Failed to create invite');
+      setError(getErrorMessage(err, 'Failed to create invite'));
     } finally {
       setLoading(false);
     }

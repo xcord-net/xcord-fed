@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
+using Xcord.Infrastructure.Services;
 
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
@@ -71,14 +71,14 @@ public sealed class ChangePasswordHandler(AppDbContext dbContext)
         return app.MapPost("/api/v1/auth/change-password", async (
                 HttpContext httpContext,
                 [FromBody] ChangePasswordRequest request,
+                [FromServices] ICurrentUserService currentUserService,
                 [FromServices] ChangePasswordHandler handler,
                 CancellationToken ct) =>
             {
-                var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (userIdClaim == null || !long.TryParse(userIdClaim, out var userId))
-                {
-                    return Results.Unauthorized();
-                }
+                var userIdResult = currentUserService.GetCurrentUserId();
+                if (userIdResult.IsFailure)
+                    return Results.Problem(statusCode: userIdResult.Error.StatusCode, title: userIdResult.Error.Code, detail: userIdResult.Error.Message);
+                var userId = userIdResult.Value;
 
                 var command = new ChangePasswordInternalRequest(userId, request.CurrentPassword, request.NewPassword);
 

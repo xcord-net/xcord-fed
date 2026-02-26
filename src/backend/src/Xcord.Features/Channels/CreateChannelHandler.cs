@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
@@ -62,7 +61,7 @@ public sealed class CreateChannelHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     IPermissionService permissionService,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     IOutboxWriter outboxWriter,
     IOptions<TierOptions> tierOptions,
     ILogger<CreateChannelHandler> logger)
@@ -117,12 +116,9 @@ public sealed class CreateChannelHandler(
 
     public async Task<Result<CreateChannelResponse>> Handle(CreateChannelCommand request, CancellationToken cancellationToken)
     {
-        // Get current user ID from JWT claims
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         // Tier gating: reject voice channel creation when feature is disabled
         if (request.Type == ChannelType.Voice && !tierOptions.Value.CanUseVoiceChannels)

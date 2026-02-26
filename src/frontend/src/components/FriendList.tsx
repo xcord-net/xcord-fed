@@ -2,6 +2,7 @@ import { For, Show, onMount, createSignal } from 'solid-js';
 import { useFriends } from '../stores/friend.store';
 import { useAuth } from '../stores/auth.store';
 import PresenceDot from './PresenceDot';
+import { getErrorMessage } from '../utils/errors';
 
 export default function FriendList() {
   const friendStore = useFriends();
@@ -18,8 +19,7 @@ export default function FriendList() {
       setAddFriendError(false);
       setFriendUsername('');
     } catch (err: unknown) {
-      const e = err as { detail?: string; message?: string };
-      setAddFriendMessage(e?.detail || e?.message || 'Failed to send request');
+      setAddFriendMessage(getErrorMessage(err, 'Failed to send request'));
       setAddFriendError(true);
     }
   };

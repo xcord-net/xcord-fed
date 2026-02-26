@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Xcord.Infrastructure.Services;
 
 using Xcord.Entities;
 using Xcord.Features.Authorization;
@@ -128,16 +128,15 @@ public sealed class TwoFactorConfirmEnableHandler(AppDbContext dbContext, Snowfl
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
     {
         return app.MapPost("/api/v1/auth/2fa/confirm-enable", async (
-                HttpContext httpContext,
                 string code,
+                [FromServices] ICurrentUserService currentUserService,
                 [FromServices] TwoFactorConfirmEnableHandler handler,
                 CancellationToken ct) =>
             {
-                var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (userIdClaim == null || !long.TryParse(userIdClaim, out var userId))
-                {
-                    return Results.Unauthorized();
-                }
+                var userIdResult = currentUserService.GetCurrentUserId();
+                if (userIdResult.IsFailure)
+                    return Results.Problem(statusCode: userIdResult.Error.StatusCode, title: userIdResult.Error.Code, detail: userIdResult.Error.Message);
+                var userId = userIdResult.Value;
 
                 var command = new TwoFactorConfirmEnableRequest(userId, code);
                 return await handler.ExecuteAsync(command, ct, success => Results.Ok(new

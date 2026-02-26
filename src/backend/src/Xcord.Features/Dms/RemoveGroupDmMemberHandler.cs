@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
@@ -18,18 +17,15 @@ public sealed record RemoveGroupDmMemberRequest(
 
 public sealed class RemoveGroupDmMemberHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     IOutboxWriter outboxWriter,
     ILogger<RemoveGroupDmMemberHandler> logger) : IRequestHandler<RemoveGroupDmMemberRequest, Result<bool>>
 {
     public async Task<Result<bool>> Handle(RemoveGroupDmMemberRequest request, CancellationToken cancellationToken)
     {
-        // Get current user ID from JWT claims
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var currentUserId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var currentUserId = userIdResult.Value;
 
         // Get DM channel
         var dmChannel = await dbContext.DmChannels

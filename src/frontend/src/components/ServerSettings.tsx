@@ -19,6 +19,7 @@ import AppDirectory from './AppDirectory';
 import OwnershipTransfer from './OwnershipTransfer';
 import WelcomeScreen from './WelcomeScreen';
 import Modal from './ui/Modal';
+import { getErrorMessage } from '../utils/errors';
 
 interface ServerSettingsProps {
   serverId: string;
@@ -107,8 +108,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
       });
       setSuccessMsg('Server settings saved successfully.');
     } catch (err: unknown) {
-      const e = err as { detail?: string; error?: string; message?: string };
-      setErrorMsg(e?.detail ?? e?.error ?? e?.message ?? 'Failed to save settings.');
+      setErrorMsg(getErrorMessage(err, 'Failed to save settings.'));
     } finally {
       setIsSaving(false);
     }

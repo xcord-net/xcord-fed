@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
@@ -20,7 +19,7 @@ public sealed record BulkDeleteMessagesRequest(
 public sealed class BulkDeleteMessagesHandler(
     AppDbContext dbContext,
     IConversationResolver conversationResolver,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     IOutboxWriter outboxWriter,
     ILogger<BulkDeleteMessagesHandler> logger)
     : IRequestHandler<BulkDeleteMessagesRequest, Result<bool>>, IValidatable<BulkDeleteMessagesRequest>
@@ -38,12 +37,9 @@ public sealed class BulkDeleteMessagesHandler(
 
     public async Task<Result<bool>> Handle(BulkDeleteMessagesRequest request, CancellationToken cancellationToken)
     {
-        // Get current user ID from JWT claims
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         // Resolve conversation and check ManageMessages permission
         var contextResult = await conversationResolver.ResolveAsync(

@@ -1,13 +1,12 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Forums.Tags;
 
@@ -34,7 +33,7 @@ public sealed class CreateForumTagHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     IPermissionService permissionService,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     ILogger<CreateForumTagHandler> logger)
     : IRequestHandler<CreateForumTagCommand, Result<CreateForumTagResponse>>, IValidatable<CreateForumTagCommand>
 {
@@ -55,11 +54,9 @@ public sealed class CreateForumTagHandler(
 
     public async Task<Result<CreateForumTagResponse>> Handle(CreateForumTagCommand request, CancellationToken cancellationToken)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         var channel = await dbContext.Channels
             .AsNoTracking()

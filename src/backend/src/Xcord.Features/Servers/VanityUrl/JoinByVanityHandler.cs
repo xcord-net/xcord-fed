@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Servers.VanityUrl;
 
@@ -15,14 +14,14 @@ public sealed record JoinByVanityResponse(long ServerId, string ServerName);
 
 public sealed class JoinByVanityHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor)
+    ICurrentUserService currentUserService)
     : IRequestHandler<JoinByVanityCommand, Result<JoinByVanityResponse>>
 {
     public async Task<Result<JoinByVanityResponse>> Handle(JoinByVanityCommand request, CancellationToken ct)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         var server = await dbContext.Servers.FirstOrDefaultAsync(s => s.VanitySlug == request.Slug.ToLowerInvariant(), ct);
         if (server == null) return Error.NotFound("SERVER_NOT_FOUND", "No server with this vanity URL");

@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Users.Activity;
 
@@ -16,7 +15,7 @@ public sealed record ActivityResponse(long Id, long UserId, string ActivityType,
 
 public sealed class UpdateActivityHandler(
     AppDbContext dbContext, SnowflakeIdGenerator snowflakeGenerator,
-    IHttpContextAccessor httpContextAccessor)
+    ICurrentUserService currentUserService)
     : IRequestHandler<UpdateActivityCommand, Result<ActivityResponse>>, IValidatable<UpdateActivityCommand>
 {
     public Error? Validate(UpdateActivityCommand r)
@@ -28,9 +27,9 @@ public sealed class UpdateActivityHandler(
 
     public async Task<Result<ActivityResponse>> Handle(UpdateActivityCommand request, CancellationToken ct)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         if (!Enum.TryParse<ActivityType>(request.ActivityType, true, out var activityType))
             return Error.Validation("INVALID_TYPE", "Invalid activity type");

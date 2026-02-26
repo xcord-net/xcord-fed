@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
@@ -19,7 +18,7 @@ public sealed record DeleteWebhookCommand(
 
 public sealed class DeleteWebhookHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     IPermissionService permissionService,
     ILogger<DeleteWebhookHandler> logger)
     : IRequestHandler<DeleteWebhookCommand, Result<bool>>, IValidatable<DeleteWebhookCommand>
@@ -41,12 +40,9 @@ public sealed class DeleteWebhookHandler(
 
     public async Task<Result<bool>> Handle(DeleteWebhookCommand request, CancellationToken cancellationToken)
     {
-        // Get current user ID from JWT claims
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         // Verify server exists
         var serverExists = await dbContext.Servers

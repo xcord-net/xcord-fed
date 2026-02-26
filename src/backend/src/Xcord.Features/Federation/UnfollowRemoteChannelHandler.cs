@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Federation;
 
@@ -16,17 +16,15 @@ public sealed record UnfollowRemoteChannelResponse(bool Deleted);
 
 public sealed class UnfollowRemoteChannelHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     ILogger<UnfollowRemoteChannelHandler> logger)
     : IRequestHandler<UnfollowRemoteChannelRequest, Result<UnfollowRemoteChannelResponse>>
 {
     public async Task<Result<UnfollowRemoteChannelResponse>> Handle(UnfollowRemoteChannelRequest request, CancellationToken cancellationToken)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         var follow = await dbContext.FederationFollows
             .FirstOrDefaultAsync(f => f.Id == request.FollowId, cancellationToken);

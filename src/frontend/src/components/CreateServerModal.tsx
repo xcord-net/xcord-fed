@@ -3,6 +3,7 @@ import { useNavigate } from '@solidjs/router';
 import { useServers } from '../stores/server.store';
 import { useChannels } from '../stores/channel.store';
 import Modal from './ui/Modal';
+import { getErrorMessage } from '../utils/errors';
 
 interface CreateServerModalProps {
   onClose: () => void;
@@ -27,8 +28,7 @@ export default function CreateServerModal(props: CreateServerModalProps) {
       navigate(`/channels/${server.id}/${generalChannel?.id ?? ''}`);
       props.onClose();
     } catch (err: unknown) {
-      const e = err as { detail?: string; message?: string };
-      setError(e?.detail || e?.message || 'Failed to create server');
+      setError(getErrorMessage(err, 'Failed to create server'));
     } finally {
       setLoading(false);
     }

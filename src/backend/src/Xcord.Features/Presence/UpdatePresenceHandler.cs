@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
@@ -27,7 +26,7 @@ public sealed record UpdatePresenceCommand(
 
 public sealed class UpdatePresenceHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     IPresenceService presenceService,
     IPresenceNotifier presenceNotifier,
     IConnectionMultiplexer redis,
@@ -71,11 +70,9 @@ public sealed class UpdatePresenceHandler(
 
     public async Task<Result<bool>> Handle(UpdatePresenceCommand request, CancellationToken cancellationToken)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         // Redis-based rate limiting: max 5 calls per minute per user
         var db = redis.GetDatabase();

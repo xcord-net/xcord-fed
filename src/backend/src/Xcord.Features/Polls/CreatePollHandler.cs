@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
@@ -48,7 +47,7 @@ public sealed class CreatePollHandler(
     SnowflakeIdGenerator snowflakeGenerator,
     IConversationResolver conversationResolver,
     IPermissionService permissionService,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     IOutboxWriter outboxWriter,
     ILogger<CreatePollHandler> logger)
     : IRequestHandler<CreatePollCommand, Result<CreatePollResponse>>, IValidatable<CreatePollCommand>
@@ -108,12 +107,9 @@ public sealed class CreatePollHandler(
 
     public async Task<Result<CreatePollResponse>> Handle(CreatePollCommand request, CancellationToken cancellationToken)
     {
-        // Get current user ID from JWT claims
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         // Resolve conversation (permissions checked below based on type)
         var contextResult = await conversationResolver.ResolveAsync(

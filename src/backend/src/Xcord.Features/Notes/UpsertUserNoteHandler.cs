@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
@@ -20,7 +19,7 @@ public sealed record UpsertUserNoteRequest(
 public sealed class UpsertUserNoteHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     ILogger<UpsertUserNoteHandler> logger)
     : IRequestHandler<UpsertUserNoteRequest, Result<UserNoteDto>>, IValidatable<UpsertUserNoteRequest>
 {
@@ -37,11 +36,9 @@ public sealed class UpsertUserNoteHandler(
 
     public async Task<Result<UserNoteDto>> Handle(UpsertUserNoteRequest request, CancellationToken cancellationToken)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         if (request.TargetUserId == userId)
         {

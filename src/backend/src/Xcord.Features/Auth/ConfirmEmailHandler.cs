@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using System.Text.RegularExpressions;
+using Xcord.Infrastructure.Services;
 
 using Xcord.Infrastructure.Data;
 
@@ -71,16 +71,15 @@ public sealed partial class ConfirmEmailHandler(AppDbContext dbContext)
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
     {
         return app.MapPost("/api/v1/auth/confirm-email", async (
-                HttpContext httpContext,
                 string code,
+                [FromServices] ICurrentUserService currentUserService,
                 [FromServices] ConfirmEmailHandler handler,
                 CancellationToken ct) =>
             {
-                var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (userIdClaim == null || !long.TryParse(userIdClaim, out var userId))
-                {
-                    return Results.Unauthorized();
-                }
+                var userIdResult = currentUserService.GetCurrentUserId();
+                if (userIdResult.IsFailure)
+                    return Results.Problem(statusCode: userIdResult.Error.StatusCode, title: userIdResult.Error.Code, detail: userIdResult.Error.Message);
+                var userId = userIdResult.Value;
 
                 var command = new ConfirmEmailRequest(userId, code);
                 return await handler.ExecuteAsync(command, ct, success => Results.Ok(new { confirmed = success }));

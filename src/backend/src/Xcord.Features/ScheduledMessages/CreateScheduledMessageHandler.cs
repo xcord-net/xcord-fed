@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
@@ -31,7 +30,7 @@ public sealed class CreateScheduledMessageHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     IPermissionService permissionService,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     ILogger<CreateScheduledMessageHandler> logger)
     : IRequestHandler<CreateScheduledMessageRequest, Result<CreateScheduledMessageResponse>>,
       IValidatable<CreateScheduledMessageRequest>
@@ -61,9 +60,9 @@ public sealed class CreateScheduledMessageHandler(
     public async Task<Result<CreateScheduledMessageResponse>> Handle(
         CreateScheduledMessageRequest request, CancellationToken cancellationToken)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         // Resolve channel and its ConversationId
         var channel = await dbContext.Channels

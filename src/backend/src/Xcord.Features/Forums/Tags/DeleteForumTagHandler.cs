@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 
 using Xcord.Entities;
 using Xcord.Features.Authorization;
@@ -21,17 +20,15 @@ public sealed record DeleteForumTagCommand(
 public sealed class DeleteForumTagHandler(
     AppDbContext dbContext,
     IPermissionService permissionService,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     ILogger<DeleteForumTagHandler> logger)
     : IRequestHandler<DeleteForumTagCommand, Result<bool>>
 {
     public async Task<Result<bool>> Handle(DeleteForumTagCommand request, CancellationToken cancellationToken)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         var forumTag = await dbContext.ForumTags
             .FirstOrDefaultAsync(ft => ft.Id == request.TagId && ft.ChannelId == request.ChannelId, cancellationToken);

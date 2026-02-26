@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
@@ -39,7 +38,7 @@ public sealed class CreateThreadHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     IPermissionService permissionService,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     ILogger<CreateThreadHandler> logger)
     : IRequestHandler<CreateThreadRequest, Result<CreateThreadResponse>>, IValidatable<CreateThreadRequest>
 {
@@ -64,12 +63,9 @@ public sealed class CreateThreadHandler(
 
     public async Task<Result<CreateThreadResponse>> Handle(CreateThreadRequest request, CancellationToken cancellationToken)
     {
-        // Get current user ID from JWT claims
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         // Get channel and verify it exists
         var channel = await dbContext.Channels

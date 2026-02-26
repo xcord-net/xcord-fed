@@ -14,7 +14,7 @@ public sealed record PublishAppRequest(long BotTokenId, string Name, string? Des
 
 public sealed class PublishAppHandler(
     AppDbContext dbContext, SnowflakeIdGenerator snowflakeGenerator,
-    IHttpContextAccessor httpContextAccessor)
+    ICurrentUserService currentUserService)
     : IRequestHandler<PublishAppCommand, Result<AppDetailResponse>>, IValidatable<PublishAppCommand>
 {
     public Error? Validate(PublishAppCommand r)
@@ -26,9 +26,8 @@ public sealed class PublishAppHandler(
 
     public async Task<Result<AppDetailResponse>> Handle(PublishAppCommand request, CancellationToken ct)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out _))
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
 
         var exists = await dbContext.AppListings.AsNoTracking().AnyAsync(a => a.BotTokenId == request.BotTokenId, ct);
         if (exists) return Error.Conflict("ALREADY_PUBLISHED", "This bot already has a listing");

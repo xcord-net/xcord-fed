@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Servers.Onboarding;
 
@@ -16,14 +15,14 @@ public sealed record SubmitOnboardingResult(bool Completed);
 
 public sealed class SubmitOnboardingHandler(
     AppDbContext dbContext, SnowflakeIdGenerator snowflakeGenerator,
-    IHttpContextAccessor httpContextAccessor)
+    ICurrentUserService currentUserService)
     : IRequestHandler<SubmitOnboardingCommand, Result<SubmitOnboardingResult>>
 {
     public async Task<Result<SubmitOnboardingResult>> Handle(SubmitOnboardingCommand request, CancellationToken ct)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         var existing = await dbContext.OnboardingCompletions.AsNoTracking()
             .AnyAsync(r => r.ServerId == request.ServerId && r.UserId == userId, ct);

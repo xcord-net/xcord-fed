@@ -1,5 +1,6 @@
 import { For, Show, onMount, createSignal } from 'solid-js';
 import { useBlocks } from '../stores/block.store';
+import { getErrorMessage } from '../utils/errors';
 
 export default function BlockList() {
   const blockStore = useBlocks();
@@ -18,8 +19,7 @@ export default function BlockList() {
       setBlockError(false);
       setBlockUsername('');
     } catch (err: unknown) {
-      const e = err as { detail?: string; message?: string };
-      setBlockMessage(e?.detail || e?.message || 'Failed to block user');
+      setBlockMessage(getErrorMessage(err, 'Failed to block user'));
       setBlockError(true);
     }
   };

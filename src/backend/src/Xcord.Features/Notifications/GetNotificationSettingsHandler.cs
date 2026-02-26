@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Notifications;
 
@@ -28,16 +28,13 @@ public sealed record NotificationSettingDto(
 
 public sealed class GetNotificationSettingsHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor) : IRequestHandler<GetNotificationSettingsRequest, Result<List<NotificationSettingDto>>>
+    ICurrentUserService currentUserService) : IRequestHandler<GetNotificationSettingsRequest, Result<List<NotificationSettingDto>>>
 {
     public async Task<Result<List<NotificationSettingDto>>> Handle(GetNotificationSettingsRequest request, CancellationToken cancellationToken)
     {
-        // Get current user ID from JWT claims
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
-        }
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         // Build query based on filters
         var query = dbContext.NotificationSettings

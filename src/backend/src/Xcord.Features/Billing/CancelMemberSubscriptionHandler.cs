@@ -1,7 +1,5 @@
-using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +9,7 @@ using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Billing;
 
@@ -20,7 +19,7 @@ public sealed record CancelMemberSubscriptionResponse(string Message);
 
 public sealed class CancelMemberSubscriptionHandler(
     AppDbContext dbContext,
-    IHttpContextAccessor httpContextAccessor,
+    ICurrentUserService currentUserService,
     IOptions<MemberBillingOptions> billingOptions,
     IMemberBillingService billingService)
     : IRequestHandler<CancelMemberSubscriptionCommand, Result<CancelMemberSubscriptionResponse>>
@@ -28,9 +27,9 @@ public sealed class CancelMemberSubscriptionHandler(
     public async Task<Result<CancelMemberSubscriptionResponse>> Handle(
         CancelMemberSubscriptionCommand request, CancellationToken cancellationToken)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         var subscription = await dbContext.MemberSubscriptions
             .Include(s => s.Tier)

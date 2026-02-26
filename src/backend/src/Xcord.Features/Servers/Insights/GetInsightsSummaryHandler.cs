@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Servers.Insights;
 
@@ -14,15 +13,15 @@ public sealed record GetInsightsSummaryQuery(long ServerId);
 public sealed record InsightsSummaryResponse(long ServerId, int TotalMembers, int MembersToday, int MessagesToday, int ActiveMembersToday);
 
 public sealed class GetInsightsSummaryHandler(
-    AppDbContext dbContext, IHttpContextAccessor httpContextAccessor,
+    AppDbContext dbContext, ICurrentUserService currentUserService,
     IPermissionService permissionService)
     : IRequestHandler<GetInsightsSummaryQuery, Result<InsightsSummaryResponse>>
 {
     public async Task<Result<InsightsSummaryResponse>> Handle(GetInsightsSummaryQuery request, CancellationToken ct)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         var perm = await permissionService.EnsureServerPermission(userId, request.ServerId, Permission.ManageServer);
         if (perm.IsFailure) return Error.Forbidden("MISSING_PERMISSIONS", "You do not have permission");

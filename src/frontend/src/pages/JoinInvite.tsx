@@ -3,6 +3,7 @@ import { useParams, useNavigate } from '@solidjs/router';
 import { useServers } from '../stores/server.store';
 import { useAuth } from '../stores/auth.store';
 import { api } from '../api/client';
+import { getErrorMessage } from '../utils/errors';
 
 export default function JoinInvite() {
   const params = useParams<{ code: string }>();
@@ -59,8 +60,7 @@ export default function JoinInvite() {
         setJoined(true);
         await navigateToServer(serverId);
       } catch (err2: unknown) {
-        const e = err2 as { detail?: string; message?: string };
-        setError(e?.detail || e?.message || 'Failed to join server');
+        setError(getErrorMessage(err2, 'Failed to join server'));
       }
     } finally {
       setJoining(false);

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
+using Xcord.Infrastructure.Services;
 
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
@@ -61,16 +61,15 @@ public sealed class TwoFactorDisableHandler(AppDbContext dbContext)
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
     {
         return app.MapPost("/api/v1/auth/2fa/disable", async (
-                HttpContext httpContext,
                 [FromBody] TwoFactorDisableRequest request,
+                [FromServices] ICurrentUserService currentUserService,
                 [FromServices] TwoFactorDisableHandler handler,
                 CancellationToken ct) =>
             {
-                var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (userIdClaim == null || !long.TryParse(userIdClaim, out var userId))
-                {
-                    return Results.Unauthorized();
-                }
+                var userIdResult = currentUserService.GetCurrentUserId();
+                if (userIdResult.IsFailure)
+                    return Results.Problem(statusCode: userIdResult.Error.StatusCode, title: userIdResult.Error.Code, detail: userIdResult.Error.Message);
+                var userId = userIdResult.Value;
 
                 var command = new TwoFactorDisableInternalRequest(userId, request.CurrentPassword);
                 return await handler.ExecuteAsync(command, ct, success => Results.Ok(new { disabled = true }));

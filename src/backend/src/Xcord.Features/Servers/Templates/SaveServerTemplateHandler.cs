@@ -1,13 +1,12 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using System.Text.Json;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Servers.Templates;
 
@@ -16,7 +15,7 @@ public sealed record SaveServerTemplateRequest(string Name, string? Description)
 
 public sealed class SaveServerTemplateHandler(
     AppDbContext dbContext, SnowflakeIdGenerator snowflakeGenerator,
-    IHttpContextAccessor httpContextAccessor, IPermissionService permissionService)
+    ICurrentUserService currentUserService, IPermissionService permissionService)
     : IRequestHandler<SaveServerTemplateCommand, Result<ServerTemplateResponse>>, IValidatable<SaveServerTemplateCommand>
 {
     public Error? Validate(SaveServerTemplateCommand r)
@@ -28,9 +27,9 @@ public sealed class SaveServerTemplateHandler(
 
     public async Task<Result<ServerTemplateResponse>> Handle(SaveServerTemplateCommand request, CancellationToken ct)
     {
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
-            return Error.Forbidden("UNAUTHORIZED", "User is not authenticated");
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
 
         var perm = await permissionService.EnsureServerPermission(userId, request.ServerId, Permission.ManageServer);
         if (perm.IsFailure) return Error.Forbidden("MISSING_PERMISSIONS", "You do not have permission to manage this server");
