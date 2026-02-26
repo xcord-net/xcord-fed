@@ -87,7 +87,7 @@ public sealed class InteractionCallbackHandler(
         PendingInteraction? pending;
         try
         {
-            pending = JsonSerializer.Deserialize<PendingInteraction>(tokenJson!, TokenDeserializerOptions);
+            pending = JsonSerializer.Deserialize<PendingInteraction>((string)tokenJson!, TokenDeserializerOptions);
         }
         catch
         {
