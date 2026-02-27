@@ -48,6 +48,9 @@ public sealed class TwoFactorVerifyHandler(
         return null;
     }
 
+    private const int MaxCumulativeTwoFactorFailures = 10;
+    private static readonly TimeSpan TwoFactorLockoutDuration = TimeSpan.FromMinutes(30);
+
     public async Task<Result<TwoFactorVerifyResponse>> Handle(TwoFactorVerifyRequest request, CancellationToken cancellationToken)
     {
         // Validate the RSA-signed 2FA token and extract userId
@@ -59,16 +62,65 @@ public sealed class TwoFactorVerifyHandler(
 
         var userId = tokenResult.Value;
 
+        // Check cumulative 2FA failure lockout before attempting verification
+        var user = await dbContext.Users.FindAsync(new object[] { userId }, cancellationToken);
+        if (user == null)
+        {
+            return Error.NotFound("USER_NOT_FOUND", "User not found");
+        }
+
+        if (user.TwoFactorLockedAt != null)
+        {
+            var lockExpiry = user.TwoFactorLockedAt.Value.Add(TwoFactorLockoutDuration);
+            if (DateTimeOffset.UtcNow < lockExpiry)
+            {
+                return Error.Forbidden("TWO_FACTOR_LOCKED",
+                    "Account is temporarily locked due to too many failed 2FA attempts. Please try again later.");
+            }
+
+            // Lockout has expired — reset counters
+            user.TwoFactorFailureCount = 0;
+            user.TwoFactorLockedAt = null;
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
         // Determine whether this is a backup code attempt
         var normalized = request.Code.Replace("-", "");
         var isBackupCode = !(request.Code.Length == 6 && request.Code.All(char.IsDigit));
 
+        Result<TwoFactorVerifyResponse> result;
         if (isBackupCode)
         {
-            return await HandleBackupCode(userId, normalized, cancellationToken);
+            result = await HandleBackupCode(userId, normalized, cancellationToken);
+        }
+        else
+        {
+            result = await HandleOtpCode(userId, request.Code, cancellationToken);
         }
 
-        return await HandleOtpCode(userId, request.Code, cancellationToken);
+        // Track cumulative failures across all 2FA attempts
+        if (result.IsFailure && (result.Error.Code == "INVALID_CODE" || result.Error.Code == "TOO_MANY_ATTEMPTS"))
+        {
+            user.TwoFactorFailureCount++;
+            if (user.TwoFactorFailureCount >= MaxCumulativeTwoFactorFailures)
+            {
+                user.TwoFactorLockedAt = DateTimeOffset.UtcNow;
+                await dbContext.SaveChangesAsync(cancellationToken);
+                return Error.Forbidden("TWO_FACTOR_LOCKED",
+                    "Account is temporarily locked due to too many failed 2FA attempts. Please try again later.");
+            }
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        else if (result.IsSuccess)
+        {
+            // Successful verification — reset cumulative counter
+            user.TwoFactorFailureCount = 0;
+            user.TwoFactorLockedAt = null;
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        return result;
     }
 
     private async Task<Result<TwoFactorVerifyResponse>> HandleOtpCode(long userId, string code, CancellationToken cancellationToken)

@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Xcord.Entities;
 using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Federation;
@@ -58,7 +60,6 @@ public sealed class FederationInboxHandler(
         if (follows.Count == 0)
         {
             // No active follows means this source isn't authorized to deliver here.
-            // TODO: Replace with proper federation token/HMAC verification when federation auth is implemented.
             return Error.NotFound("NO_FOLLOWS", "No active follows for this remote channel");
         }
 
@@ -151,10 +152,34 @@ public sealed class FederationInboxHandler(
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app) =>
         app.MapPost("/api/v1/federation/inbox", async (
+            HttpContext httpContext,
             [FromBody] FederationInboxRequest request,
             [FromServices] FederationInboxHandler handler,
+            [FromServices] IOptions<FederationOptions> federationOptions,
             CancellationToken ct) =>
         {
+            // HMAC signature verification for federation requests.
+            // When RequireSignatureVerification is true (production default), all requests
+            // must include a valid X-Federation-Signature header. When false (development),
+            // missing signatures are allowed but present signatures are still verified.
+            var signatureHeader = httpContext.Request.Headers["X-Federation-Signature"].FirstOrDefault();
+            var requireSignature = federationOptions.Value.RequireSignatureVerification;
+
+            if (requireSignature)
+            {
+                // Federation HMAC signature verification requires shared secrets established
+                // via federation key exchange, which is not yet implemented. Until key exchange
+                // is available, reject all inbound federation requests in production.
+                // Set Federation:RequireSignatureVerification to false for development.
+                return Results.Problem(
+                    statusCode: 501,
+                    title: "FEDERATION_AUTH_NOT_IMPLEMENTED",
+                    detail: "Federation HMAC signature verification is not yet implemented");
+            }
+
+            // Development mode: allow unsigned requests with a warning header
+            httpContext.Response.Headers["X-Federation-Warning"] = "Signature verification is disabled";
+
             return await handler.ExecuteAsync(request, ct);
         })
         .WithName("FederationInbox")

@@ -158,8 +158,9 @@ public sealed class SsrfSafeHttpClient
 
     /// <summary>
     /// Check if an IP address is private or local.
+    /// Used by OutgoingWebhookDeliveryService and other components for SSRF prevention.
     /// </summary>
-    private static bool IsPrivateOrLocalIp(IPAddress ipAddress)
+    public static bool IsPrivateOrLocalIp(IPAddress ipAddress)
     {
         // Check IPv6 loopback
         if (ipAddress.Equals(IPv6Loopback))

@@ -19,8 +19,6 @@ import ChannelSettings from './ChannelSettings';
 import RoleManager from './RoleManager';
 import ScheduledEvents from './ScheduledEvents';
 import UserNotes from './UserNotes';
-import ConnectedAccounts from './ConnectedAccounts';
-import ProfileDecorations from './ProfileDecorations';
 import Modal from './ui/Modal';
 import { useServers } from '../stores/server.store';
 import { useChannels } from '../stores/channel.store';
@@ -427,25 +425,11 @@ export default function Layout() {
           >
             User Notes
           </button>
-          <button
-            class={`px-4 py-3 text-sm ${modals.showSettings === 'connected-accounts' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
-            onClick={() => modals.openSettings('connected-accounts')}
-          >
-            Connected Accounts
-          </button>
-          <button
-            class={`px-4 py-3 text-sm ${modals.showSettings === 'profile-decorations' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
-            onClick={() => modals.openSettings('profile-decorations')}
-          >
-            Profile Decorations
-          </button>
         </div>
         <Show when={modals.showSettings === 'profile'}><UserProfileEditor /></Show>
         <Show when={modals.showSettings === 'notifications'}><NotificationSettings /></Show>
         <Show when={modals.showSettings === 'blocks'}><BlockList /></Show>
         <Show when={modals.showSettings === 'notes'}><UserNotes /></Show>
-        <Show when={modals.showSettings === 'connected-accounts'}><ConnectedAccounts /></Show>
-        <Show when={modals.showSettings === 'profile-decorations'}><ProfileDecorations /></Show>
         </div>
       </Modal>
 

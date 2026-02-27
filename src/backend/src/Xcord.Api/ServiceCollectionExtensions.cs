@@ -166,6 +166,9 @@ public static class ServiceCollectionExtensions
         // Tier options default to permissive when not provided (standalone instances)
         services.AddOptions<TierOptions>().Bind(config.GetSection(TierOptions.SectionName));
 
+        // Federation options default to requiring signature verification
+        services.AddOptions<FederationOptions>().Bind(config.GetSection(FederationOptions.SectionName));
+
         services.AddOptions<EncryptionOptions>().Bind(config.GetSection(EncryptionOptions.SectionName));
 
         // Member billing (Stripe Connect for per-server subscriptions)

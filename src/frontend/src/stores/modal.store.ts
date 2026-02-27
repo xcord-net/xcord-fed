@@ -1,7 +1,7 @@
 import { createSignal, createRoot } from 'solid-js';
 import type { ForumPost } from '../types/forum';
 
-export type SettingsTab = 'profile' | 'blocks' | 'notifications' | 'notes' | 'connected-accounts' | 'profile-decorations';
+export type SettingsTab = 'profile' | 'blocks' | 'notifications' | 'notes';
 
 const store = createRoot(() => {
   const [showSearch, setShowSearch] = createSignal(false);

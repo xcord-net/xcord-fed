@@ -84,6 +84,17 @@ public sealed class User : ISoftDeletable
     public bool TwoFactorEnabled { get; set; } = false;
 
     /// <summary>
+    /// Cumulative count of failed 2FA verification attempts.
+    /// Account is locked after 10 failed attempts. Reset on successful verification.
+    /// </summary>
+    public int TwoFactorFailureCount { get; set; }
+
+    /// <summary>
+    /// Timestamp when the account was locked due to too many failed 2FA attempts.
+    /// </summary>
+    public DateTimeOffset? TwoFactorLockedAt { get; set; }
+
+    /// <summary>
     /// Account creation timestamp.
     /// </summary>
     public DateTimeOffset CreatedAt { get; set; }

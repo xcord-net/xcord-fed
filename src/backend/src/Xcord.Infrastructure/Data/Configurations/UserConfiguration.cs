@@ -87,6 +87,12 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasDefaultValue(false);
 
+        builder.Property(u => u.TwoFactorFailureCount)
+            .IsRequired()
+            .HasDefaultValue(0);
+
+        builder.Property(u => u.TwoFactorLockedAt);
+
         // Timestamps
         builder.Property(u => u.CreatedAt)
             .IsRequired();

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
@@ -161,6 +162,43 @@ public sealed class OutgoingWebhookDeliveryService : BackgroundService
         using var hmac = new HMACSHA256(secretBytes);
         var signatureBytes = hmac.ComputeHash(payloadBytes);
         var signatureHex = Convert.ToHexString(signatureBytes).ToLowerInvariant();
+
+        // SSRF protection: resolve hostname and reject private/local IPs before sending
+        try
+        {
+            if (!Uri.TryCreate(webhook.TargetUrl, UriKind.Absolute, out var targetUri)
+                || (targetUri.Scheme != "http" && targetUri.Scheme != "https"))
+            {
+                delivery.LastError = "Invalid target URL or non-HTTP(S) scheme";
+                delivery.LastAttemptAt = now;
+                delivery.AttemptCount++;
+                ScheduleNextAttemptOrDeadLetter(delivery, now);
+                return;
+            }
+
+            var addresses = await Dns.GetHostAddressesAsync(targetUri.Host);
+            foreach (var addr in addresses)
+            {
+                if (SsrfSafeHttpClient.IsPrivateOrLocalIp(addr))
+                {
+                    _logger.LogWarning(
+                        "SSRF blocked: webhook {WebhookId} target {Url} resolves to private IP {Ip}",
+                        webhook.Id, webhook.TargetUrl, addr);
+                    delivery.LastError = $"Target URL resolves to a private or local IP address";
+                    delivery.LastAttemptAt = now;
+                    delivery.Status = OutgoingWebhookDeliveryStatus.DeadLettered;
+                    return;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            delivery.LastError = $"DNS resolution failed: {(ex.Message.Length > 500 ? ex.Message[..500] : ex.Message)}";
+            delivery.LastAttemptAt = now;
+            delivery.AttemptCount++;
+            ScheduleNextAttemptOrDeadLetter(delivery, now);
+            return;
+        }
 
         // Attempt the HTTP POST
         try
