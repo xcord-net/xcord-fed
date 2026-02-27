@@ -103,8 +103,9 @@ describe('ChannelPermissions', () => {
       // Act
       const result = permissionStateColor('Inherit');
 
-      // Assert
-      expect(result).toBeTruthy();
+      // Assert — Inherit should return a muted/gray color class, not green or red
+      expect(result).toEqual(expect.any(String));
+      expect(result.length).toBeGreaterThan(0);
       expect(result).not.toContain('green');
       expect(result).not.toContain('red');
     });
@@ -154,11 +155,11 @@ describe('ChannelPermissions', () => {
       expect(ALL_PERMISSIONS.length).toBeGreaterThanOrEqual(5);
     });
 
-    it('every permission has a human-readable label', () => {
+    it('every permission has a non-empty human-readable label', () => {
       // Assert
       for (const key of ALL_PERMISSIONS) {
-        expect(PERMISSION_LABELS[key]).toBeTruthy();
-        expect(typeof PERMISSION_LABELS[key]).toBe('string');
+        expect(PERMISSION_LABELS[key]).toEqual(expect.any(String));
+        expect(PERMISSION_LABELS[key].length).toBeGreaterThan(0);
       }
     });
   });

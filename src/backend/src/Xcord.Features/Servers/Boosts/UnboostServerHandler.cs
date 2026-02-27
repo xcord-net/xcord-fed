@@ -6,7 +6,7 @@ using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 
-namespace Xcord.Features.Servers.Boosts;
+namespace Xcord.Features.Servers;
 
 public sealed record UnboostServerCommand(long ServerId);
 public sealed record UnboostResponse(bool Removed);

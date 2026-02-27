@@ -144,7 +144,7 @@ export default function ChannelSidebar() {
         {/* Server dropdown menu */}
         <Menu
           open={showServerMenu()}
-          onClose={() => setShowServerMenu(false)}
+          onClose={() => { setShowServerMenu(false); menuButtonRef?.focus(); }}
           anchorRef={menuButtonRef}
           placement="bottom-start"
         >

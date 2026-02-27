@@ -12,7 +12,7 @@ namespace Xcord.Features.Servers;
 
 public sealed record ListMembersRequest(long ServerId);
 
-public sealed record RoleDto(
+public sealed record MemberRoleDto(
     long Id,
     string Name,
     string? Color,
@@ -25,7 +25,7 @@ public sealed record MemberDto(
     string? DisplayName,
     string? AvatarUrl,
     string? Nickname,
-    List<RoleDto> Roles,
+    List<MemberRoleDto> Roles,
     DateTimeOffset JoinedAt
 );
 
@@ -64,7 +64,7 @@ public sealed class ListMembersHandler(
                 sm.User.AvatarUrl,
                 sm.Nickname,
                 sm.MemberRoles
-                    .Select(mr => new RoleDto(
+                    .Select(mr => new MemberRoleDto(
                         mr.Role.Id,
                         mr.Role.Name,
                         mr.Role.Color,

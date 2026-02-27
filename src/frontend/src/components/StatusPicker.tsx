@@ -60,7 +60,7 @@ export default function StatusPicker() {
 
       <Menu
         open={isOpen()}
-        onClose={() => setIsOpen(false)}
+        onClose={() => { setIsOpen(false); triggerRef?.focus(); }}
         anchorRef={triggerRef}
         placement="top-start"
       >

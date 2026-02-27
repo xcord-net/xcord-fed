@@ -7,7 +7,7 @@ using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 
-namespace Xcord.Features.Servers.Onboarding;
+namespace Xcord.Features.Servers;
 
 public sealed record SubmitOnboardingCommand(long ServerId, string ResponseDataJson);
 public sealed record SubmitOnboardingRequest(string ResponseDataJson);

@@ -168,24 +168,27 @@ describe('StickerPicker', () => {
       // Act
       const result = validateStickerName('');
 
-      // Assert
-      expect(result).toBeTruthy();
+      // Assert — should return a non-empty error string
+      expect(result).toEqual(expect.any(String));
+      expect(result!.length).toBeGreaterThan(0);
     });
 
     it('returns error for single character name', () => {
       // Act
       const result = validateStickerName('a');
 
-      // Assert
-      expect(result).toBeTruthy();
+      // Assert — should return a non-empty error string
+      expect(result).toEqual(expect.any(String));
+      expect(result!.length).toBeGreaterThan(0);
     });
 
     it('returns error for name longer than 32 characters', () => {
       // Act
       const result = validateStickerName('a'.repeat(33));
 
-      // Assert
-      expect(result).toBeTruthy();
+      // Assert — should return a non-empty error string
+      expect(result).toEqual(expect.any(String));
+      expect(result!.length).toBeGreaterThan(0);
     });
 
     it('accepts a name exactly 2 characters', () => {

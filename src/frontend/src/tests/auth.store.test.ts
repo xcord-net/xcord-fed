@@ -39,7 +39,9 @@ describe('auth store', () => {
       await auth.login({ email: 'test@example.com', password: 'password123' });
 
       expect(auth.isAuthenticated).toBe(true);
-      expect(auth.user).toBeTruthy();
+      expect(auth.user).not.toBeNull();
+      expect(auth.user!.userId).toBe('test-user-123');
+      expect(auth.user!.username).toBe('testuser');
     });
   });
 

@@ -86,7 +86,7 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
         {/* Header */}
         <div class="flex items-center justify-between px-6 py-4 border-b border-xcord-border">
           <div>
-            <h2 class="text-xl font-bold text-white">Channel Settings</h2>
+            <h2 class="text-xl font-bold text-xcord-text-primary">Channel Settings</h2>
             <p class="text-xcord-text-muted text-sm mt-0.5">
               #{currentChannel()?.name ?? props.channelId}
             </p>
@@ -130,7 +130,7 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
 
         {/* Body */}
         <Show when={activeTab() === 'permissions'}>
-          <div class="h-[500px]">
+          <div class="h-[min(500px,60vh)]">
             <ChannelPermissions serverId={props.serverId} channelId={props.channelId} />
           </div>
         </Show>

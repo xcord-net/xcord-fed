@@ -7,7 +7,7 @@ using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 
-namespace Xcord.Features.Messages.Reactions;
+namespace Xcord.Features.Messages;
 
 public sealed record RemoveReactionCommand(long ConversationId, long MessageId, string Emoji);
 

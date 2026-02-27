@@ -51,13 +51,17 @@ public sealed class SnowflakeIdGeneratorTests
     [Fact]
     public void Constructor_ShouldAcceptValidWorkerId()
     {
-        // Act
+        // Act — boundary worker IDs should not throw
         var generator1 = new SnowflakeIdGenerator(workerId: 0);
         var generator2 = new SnowflakeIdGenerator(workerId: 1023);
 
-        // Assert
-        generator1.Should().NotBeNull();
-        generator2.Should().NotBeNull();
+        // Assert — generated IDs embed the correct worker ID
+        var id1 = generator1.NextId();
+        var id2 = generator2.NextId();
+        var extractedWorkerId1 = (id1 >> 12) & 0x3FF;
+        var extractedWorkerId2 = (id2 >> 12) & 0x3FF;
+        extractedWorkerId1.Should().Be(0);
+        extractedWorkerId2.Should().Be(1023);
     }
 
     [Fact]
@@ -120,15 +124,19 @@ public sealed class SnowflakeIdGeneratorTests
         // Arrange
         var customEpoch = new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero);
         var generator = new SnowflakeIdGenerator(workerId: 5, epoch: customEpoch);
+        var beforeGeneration = DateTimeOffset.UtcNow;
 
         // Act
         var id = generator.NextId();
+        var afterGeneration = DateTimeOffset.UtcNow;
 
-        // Assert
-        // ID should be larger because the epoch is further in the past
-        id.Should().BePositive();
+        // Assert — extracted timestamp must be relative to the custom epoch
         var timestampMs = id >> 22;
-        timestampMs.Should().BeGreaterThan(0);
+        var extractedTime = customEpoch.AddMilliseconds(timestampMs);
+        extractedTime.Should().BeOnOrAfter(beforeGeneration.AddMilliseconds(-1),
+            "extracted timestamp should correspond to current time relative to custom epoch");
+        extractedTime.Should().BeOnOrBefore(afterGeneration.AddMilliseconds(1),
+            "extracted timestamp should not be in the future");
     }
 
     [Fact]

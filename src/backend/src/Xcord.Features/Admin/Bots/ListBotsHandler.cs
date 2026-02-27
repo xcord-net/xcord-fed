@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Xcord.Infrastructure.Data;
 
-namespace Xcord.Features.Admin.Bots;
+namespace Xcord.Features.Admin;
 
 public sealed record ListBotsQuery;
 

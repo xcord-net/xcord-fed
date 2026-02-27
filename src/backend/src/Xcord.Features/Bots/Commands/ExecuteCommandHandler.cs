@@ -6,7 +6,7 @@ using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 
-namespace Xcord.Features.Bots.Commands;
+namespace Xcord.Features.Bots;
 
 public sealed record ExecuteCommandCommand(long ServerId, long CommandId, string? ArgsJson);
 public sealed record ExecuteCommandRequest(string? ArgsJson);

@@ -9,7 +9,7 @@ using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 
-namespace Xcord.Features.Servers.Roles;
+namespace Xcord.Features.Servers;
 
 public sealed record RemoveRoleCommand(
     long ServerId,

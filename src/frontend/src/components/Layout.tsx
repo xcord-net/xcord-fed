@@ -18,7 +18,9 @@ import NotificationSettings from './NotificationSettings';
 import ChannelSettings from './ChannelSettings';
 import RoleManager from './RoleManager';
 import ScheduledEvents from './ScheduledEvents';
+import ScheduledMessages from './ScheduledMessages';
 import UserNotes from './UserNotes';
+import ScreenShareViewer from './ScreenShareViewer';
 import Modal from './ui/Modal';
 import { useServers } from '../stores/server.store';
 import { useChannels } from '../stores/channel.store';
@@ -334,17 +336,19 @@ export default function Layout() {
                       </Show>
                     </Show>
                     <Show when={currentChannel()?.type !== 'Forum'}>
+                    <ScreenShareViewer />
                     <MessageList conversationId={convId()} />
                     <TypingIndicator conversationId={convId()} />
                     <Show
                       when={messageStore.editingMessageId}
                       fallback={<MessageCompose conversationId={convId()} channelId={params.channelId} />}
                     >
-                      {/* Edit bar replaces compose while editing — textarea is last in DOM so .last() finds it */}
+                      {/* Edit bar replaces compose while editing */}
                       <div class="px-4 pb-6">
                         <div class="bg-xcord-bg-primary rounded-lg px-4 py-3 flex flex-col gap-1">
                           <div class="text-xs text-xcord-text-muted mb-1">Editing message</div>
                           <textarea
+                            data-testid="message-edit-textarea"
                             class="bg-xcord-bg-tertiary text-xcord-text-primary text-sm rounded p-2 border border-xcord-border resize-none outline-none"
                             value={messageStore.editContent}
                             onInput={(e) => messageStore.setEditContent((e.target as HTMLTextAreaElement).value)}
@@ -383,6 +387,11 @@ export default function Layout() {
                   <Show when={modals.showEvents && serverStore.selectedServerId}>
                     <div class="w-80 border-l border-xcord-border bg-xcord-bg-secondary overflow-y-auto">
                       <ScheduledEvents serverId={serverStore.selectedServerId!} />
+                    </div>
+                  </Show>
+                  <Show when={modals.showScheduledMessages && channelStore.selectedChannelId}>
+                    <div class="w-80 border-l border-xcord-border bg-xcord-bg-secondary overflow-y-auto">
+                      <ScheduledMessages channelId={channelStore.selectedChannelId!} />
                     </div>
                   </Show>
                 </div>
@@ -444,7 +453,7 @@ export default function Layout() {
 
       {/* Role Manager modal */}
       <Modal open={modals.showRoleManager && !!serverStore.selectedServerId} onClose={() => modals.closeRoleManager()} aria-label="Role Manager" size="xl">
-        <div class="h-[600px]">
+        <div class="h-[min(600px,70vh)]">
           <RoleManager serverId={serverStore.selectedServerId!} />
         </div>
       </Modal>

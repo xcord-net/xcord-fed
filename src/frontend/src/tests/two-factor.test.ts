@@ -1,47 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { api } from '../api/client';
-
-// Logic mirroring TwoFactorSetup.tsx — extracted for unit testing
-
-async function enableTwoFactor(): Promise<{ error: string; success: boolean }> {
-  try {
-    await api.post('/api/v1/auth/2fa/enable');
-    return { error: '', success: true };
-  } catch (err: unknown) {
-    const errObj = err as { error?: string };
-    return { error: errObj?.error || 'Failed to initiate 2FA setup', success: false };
-  }
-}
-
-async function confirmEnableTwoFactor(
-  code: string
-): Promise<{ error: string; success: boolean }> {
-  if (!code.trim()) {
-    return { error: 'Please enter the verification code', success: false };
-  }
-  try {
-    await api.post('/api/v1/auth/2fa/confirm-enable', { code: code.trim() });
-    return { error: '', success: true };
-  } catch (err: unknown) {
-    const errObj = err as { error?: string };
-    return { error: errObj?.error || 'Invalid verification code', success: false };
-  }
-}
-
-async function disableTwoFactor(
-  password: string
-): Promise<{ error: string; success: boolean }> {
-  if (!password.trim()) {
-    return { error: 'Please enter your current password', success: false };
-  }
-  try {
-    await api.post('/api/v1/auth/2fa/disable', { currentPassword: password.trim() });
-    return { error: '', success: true };
-  } catch (err: unknown) {
-    const errObj = err as { error?: string };
-    return { error: errObj?.error || 'Invalid password', success: false };
-  }
-}
+import {
+  enableTwoFactor,
+  confirmEnableTwoFactor,
+  disableTwoFactor,
+} from '../components/TwoFactorSetup';
 
 describe('two-factor', () => {
   beforeEach(() => {

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 
-namespace Xcord.Features.Servers.VanityUrl;
+namespace Xcord.Features.Servers;
 
 public sealed record GetVanityUrlQuery(long ServerId);
 public sealed record VanityUrlResponse(long ServerId, string? Slug, string? VanityUrl);

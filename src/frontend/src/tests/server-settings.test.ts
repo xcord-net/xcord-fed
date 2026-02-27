@@ -103,63 +103,7 @@ describe('ServerSettings', () => {
     });
   });
 
-  describe('system channel dropdown', () => {
-    it('produces None option when systemChannelId is empty string', () => {
-      // Arrange
-      const systemChannelId = '';
-
-      // Act — replicate the logic that converts empty string to null for API
-      const apiValue = systemChannelId || null;
-
-      // Assert
-      expect(apiValue).toBeNull();
-    });
-
-    it('passes channel id when system channel is selected', () => {
-      // Arrange
-      const systemChannelId = 'ch-999';
-
-      // Act
-      const apiValue = systemChannelId || null;
-
-      // Assert
-      expect(apiValue).toBe('ch-999');
-    });
-
-    it('filters only Text channels for system channel selector', () => {
-      // Arrange
-      const channels = [
-        { id: 'ch-1', name: 'general', type: 'Text' },
-        { id: 'ch-2', name: 'lobby', type: 'Voice' },
-        { id: 'ch-3', name: 'announcements', type: 'Text' },
-      ];
-
-      // Act — replicate textChannels() memo logic
-      const textChannels = channels.filter((c) => c.type === 'Text');
-
-      // Assert
-      expect(textChannels).toHaveLength(2);
-      expect(textChannels.map((c) => c.id)).toEqual(['ch-1', 'ch-3']);
-    });
-  });
-
-  describe('notification level options', () => {
-    it('AllMessages is a valid notification level', () => {
-      // Arrange
-      const validLevels = ['AllMessages', 'OnlyMentions', 'Nothing'];
-
-      // Act & Assert
-      expect(validLevels).toContain('AllMessages');
-    });
-
-    it('OnlyMentions is a valid notification level', () => {
-      // Arrange
-      const validLevels = ['AllMessages', 'OnlyMentions', 'Nothing'];
-
-      // Act & Assert
-      expect(validLevels).toContain('OnlyMentions');
-    });
-
+  describe('notification level in API payload', () => {
     it('sends selected notification level in PUT payload', async () => {
       // Arrange
       const serverId = 'srv-notif';

@@ -7,7 +7,7 @@ using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 
-namespace Xcord.Features.Servers.Insights;
+namespace Xcord.Features.Servers;
 
 public sealed record GetInsightsSummaryQuery(long ServerId);
 public sealed record InsightsSummaryResponse(long ServerId, int TotalMembers, int MembersToday, int MessagesToday, int ActiveMembersToday);

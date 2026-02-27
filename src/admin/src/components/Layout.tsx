@@ -1,76 +1,73 @@
 import { JSX } from 'solid-js';
 import { useAuth } from '../stores/auth.store';
 
+export type Page = 'overview' | 'bots' | 'users' | 'webhooks';
+
 interface LayoutProps {
   children: JSX.Element;
-  currentPage: 'overview' | 'bots' | 'webhooks';
+  currentPage: Page;
   onNavigate: (page: string) => void;
 }
+
+const navItems: { id: Page; label: string }[] = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'users', label: 'Users' },
+  { id: 'bots', label: 'Bots' },
+  { id: 'webhooks', label: 'Webhooks' },
+];
 
 export function Layout(props: LayoutProps) {
   const auth = useAuth();
 
   const handleLogout = async () => {
     await auth.logout();
-    window.location.href = '/login';
+    window.location.reload();
   };
 
   return (
-    <div class="min-h-screen bg-gray-50">
-      <nav class="bg-blue-600 text-white p-4 shadow-md">
-        <div class="container mx-auto flex items-center justify-between">
-          <h1 class="text-xl font-bold">Xcord Instance Admin</h1>
-          <div class="flex items-center gap-4">
-            <span class="text-sm">{auth.username}</span>
-            <button
-              onClick={handleLogout}
-              class="px-3 py-1 bg-blue-700 hover:bg-blue-800 rounded text-sm"
-            >
-              Logout
-            </button>
+    <div class="min-h-screen bg-xcord-bg-primary text-xcord-text-primary">
+      {/* Top navigation bar */}
+      <nav class="bg-xcord-bg-tertiary border-b border-xcord-border px-6 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-xcord-brand flex items-center justify-center text-white font-bold text-sm">
+            X
           </div>
+          <h1 class="text-lg font-semibold text-white">Instance Admin</h1>
+        </div>
+        <div class="flex items-center gap-4">
+          <span class="text-sm text-xcord-text-secondary">{auth.username}</span>
+          <button
+            onClick={handleLogout}
+            class="px-3 py-1.5 rounded text-sm bg-xcord-bg-input text-xcord-text-secondary hover:bg-xcord-bg-secondary hover:text-white transition-colors"
+          >
+            Logout
+          </button>
         </div>
       </nav>
 
-      <div class="container mx-auto py-6 px-4">
-        <div class="flex gap-6">
-          <aside class="w-48 bg-white rounded-lg shadow p-4">
-            <nav class="space-y-2">
+      <div class="flex">
+        {/* Sidebar */}
+        <aside class="w-56 min-h-[calc(100vh-52px)] bg-xcord-bg-secondary border-r border-xcord-border p-3">
+          <nav class="space-y-1">
+            {navItems.map((item) => (
               <button
-                onClick={() => props.onNavigate('overview')}
-                class={`w-full text-left px-3 py-2 rounded ${
-                  props.currentPage === 'overview'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'hover:bg-gray-100'
+                onClick={() => props.onNavigate(item.id)}
+                class={`w-full text-left px-3 py-2 rounded text-sm font-medium transition-colors ${
+                  props.currentPage === item.id
+                    ? 'bg-xcord-brand/20 text-white'
+                    : 'text-xcord-text-secondary hover:bg-xcord-bg-input hover:text-xcord-text-primary'
                 }`}
               >
-                Overview
+                {item.label}
               </button>
-              <button
-                onClick={() => props.onNavigate('bots')}
-                class={`w-full text-left px-3 py-2 rounded ${
-                  props.currentPage === 'bots'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'hover:bg-gray-100'
-                }`}
-              >
-                Bots
-              </button>
-              <button
-                onClick={() => props.onNavigate('webhooks')}
-                class={`w-full text-left px-3 py-2 rounded ${
-                  props.currentPage === 'webhooks'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'hover:bg-gray-100'
-                }`}
-              >
-                Webhooks
-              </button>
-            </nav>
-          </aside>
+            ))}
+          </nav>
+        </aside>
 
-          <main class="flex-1">{props.children}</main>
-        </div>
+        {/* Main content */}
+        <main class="flex-1 p-6 overflow-y-auto max-h-[calc(100vh-52px)]">
+          {props.children}
+        </main>
       </div>
     </div>
   );

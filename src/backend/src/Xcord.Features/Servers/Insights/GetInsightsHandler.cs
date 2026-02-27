@@ -7,7 +7,7 @@ using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 
-namespace Xcord.Features.Servers.Insights;
+namespace Xcord.Features.Servers;
 
 public sealed record GetInsightsQuery(long ServerId, int Days);
 public sealed record InsightDataPoint(DateOnly Date, int TotalMembers, int NewMembers, int MessageCount, int ActiveMembers);

@@ -7,7 +7,7 @@ using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 
-namespace Xcord.Features.Servers.TransferOwnership;
+namespace Xcord.Features.Servers;
 
 public sealed record TransferOwnershipRequest(long TargetUserId);
 

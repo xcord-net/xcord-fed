@@ -8,7 +8,7 @@ using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 
-namespace Xcord.Features.Users.DeleteAccount;
+namespace Xcord.Features.Users;
 
 public sealed record ScheduleAccountDeletionRequest(string Password);
 

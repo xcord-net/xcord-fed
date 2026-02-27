@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 
-namespace Xcord.Features.Servers.Boosts;
+namespace Xcord.Features.Servers;
 
 public sealed record GetBoostStatusQuery(long ServerId);
 

@@ -7,7 +7,7 @@ using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 
-namespace Xcord.Features.Messages.Reactions;
+namespace Xcord.Features.Messages;
 
 public sealed record AddReactionCommand(long ConversationId, long MessageId, string Emoji);
 public sealed record ReactionResponse(long MessageId, long UserId, string Emoji, DateTimeOffset CreatedAt);

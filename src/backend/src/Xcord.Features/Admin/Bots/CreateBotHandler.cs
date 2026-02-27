@@ -10,7 +10,7 @@ using Xcord.Entities;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 
-namespace Xcord.Features.Admin.Bots;
+namespace Xcord.Features.Admin;
 
 public sealed record CreateBotCommand(
     string Username,

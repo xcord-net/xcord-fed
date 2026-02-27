@@ -1,5 +1,24 @@
 @import "tailwindcss";
 
+@theme {
+  /* Xcord color tokens — mirrored from main frontend */
+  --color-xcord-bg-primary: #36393f;
+  --color-xcord-bg-secondary: #2f3136;
+  --color-xcord-bg-tertiary: #202225;
+  --color-xcord-bg-input: #40444b;
+  --color-xcord-text-primary: #dcddde;
+  --color-xcord-text-secondary: #b9bbbe;
+  --color-xcord-text-muted: #72767d;
+  --color-xcord-brand: #5865f2;
+  --color-xcord-brand-hover: #4752c4;
+  --color-xcord-border: #202225;
+  --color-xcord-danger: #ed4245;
+  --color-xcord-danger-hover: #c03537;
+  --color-xcord-success: #3ba55c;
+  --color-xcord-success-hover: #2d7d46;
+  --color-xcord-warning: #faa61a;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -11,8 +30,28 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #36393f;
+  color: #dcddde;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #2f3136;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #202225;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #17181a;
 }

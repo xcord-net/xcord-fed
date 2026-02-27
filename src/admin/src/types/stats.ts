@@ -6,4 +6,6 @@ export interface InstanceStats {
   activeUsers24h: number;
   activeUsers7d: number;
   storageUsedBytes: number;
+  totalBots: number;
+  totalBans: number;
 }

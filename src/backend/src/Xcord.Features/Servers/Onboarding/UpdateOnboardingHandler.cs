@@ -7,7 +7,7 @@ using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 
-namespace Xcord.Features.Servers.Onboarding;
+namespace Xcord.Features.Servers;
 
 public sealed record UpdateOnboardingCommand(long ServerId, bool IsEnabled, string? DefaultChannelIds, string? RulesText, List<OnboardingPromptDto> Prompts);
 public sealed record UpdateOnboardingRequest(bool IsEnabled, string? DefaultChannelIds, string? RulesText, List<OnboardingPromptDto> Prompts);

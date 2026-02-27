@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 
-namespace Xcord.Features.Messages.Components;
+namespace Xcord.Features.Messages;
 
 public sealed record ListComponentsQuery(long ConversationId, long MessageId);
 

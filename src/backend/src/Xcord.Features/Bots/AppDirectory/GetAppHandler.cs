@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 
-namespace Xcord.Features.Bots.AppDirectory;
+namespace Xcord.Features.Bots;
 
 public sealed record GetAppQuery(long AppId);
 public sealed record AppDetailResponse(long Id, string Name, string? Description, string? ShortDescription, string? IconUrl, string? Category, string? Tags, int InstallCount, bool IsVerified, DateTimeOffset CreatedAt, double? AverageRating, int ReviewCount);

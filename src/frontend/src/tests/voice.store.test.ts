@@ -27,7 +27,12 @@ let lastMockRoomInstance: {
   connect: ReturnType<typeof vi.fn>;
   disconnect: ReturnType<typeof vi.fn>;
   state: string;
-  localParticipant: { setMicrophoneEnabled: ReturnType<typeof vi.fn> };
+  localParticipant: {
+    identity: string;
+    setMicrophoneEnabled: ReturnType<typeof vi.fn>;
+    setScreenShareEnabled: ReturnType<typeof vi.fn>;
+    trackPublications: Map<string, unknown>;
+  };
   remoteParticipants: Map<string, unknown>;
   on: ReturnType<typeof vi.fn>;
 } | null = null;
@@ -38,7 +43,10 @@ vi.mock('livekit-client', () => {
     const instance = {
       state: 'disconnected',
       localParticipant: {
+        identity: 'local-user',
         setMicrophoneEnabled: vi.fn().mockResolvedValue(undefined),
+        setScreenShareEnabled: vi.fn().mockResolvedValue(undefined),
+        trackPublications: new Map(),
       },
       remoteParticipants: new Map(),
       connect: vi.fn().mockResolvedValue(undefined),
@@ -61,8 +69,13 @@ vi.mock('livekit-client', () => {
       TrackUnmuted: 'trackUnmuted',
       TrackSubscribed: 'trackSubscribed',
       TrackUnsubscribed: 'trackUnsubscribed',
+      LocalTrackUnpublished: 'localTrackUnpublished',
     },
-    Track: { Kind: { Audio: 'audio', Video: 'video' } },
+    Track: {
+      Kind: { Audio: 'audio', Video: 'video' },
+      Source: { Camera: 'camera', Microphone: 'microphone', ScreenShare: 'screen_share', ScreenShareAudio: 'screen_share_audio' },
+    },
+    LocalTrackPublication: vi.fn(),
     ConnectionState: {
       Connected: 'connected',
       Connecting: 'connecting',

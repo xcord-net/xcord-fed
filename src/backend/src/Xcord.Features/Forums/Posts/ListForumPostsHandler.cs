@@ -8,7 +8,7 @@ using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 
-namespace Xcord.Features.Forums.Posts;
+namespace Xcord.Features.Forums;
 
 public sealed record ListForumPostsCommand(
     long ChannelId,

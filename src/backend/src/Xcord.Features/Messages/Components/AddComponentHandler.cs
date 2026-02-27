@@ -7,7 +7,7 @@ using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 
-namespace Xcord.Features.Messages.Components;
+namespace Xcord.Features.Messages;
 
 public sealed record AddComponentCommand(long ConversationId, long MessageId, string ComponentType, string? CustomId, string? Label, int? Style, string? OptionsJson, bool Disabled, int Row, int Position);
 public sealed record AddComponentRequest(string ComponentType, string? CustomId, string? Label, int? Style, string? OptionsJson, bool Disabled, int Row, int Position);

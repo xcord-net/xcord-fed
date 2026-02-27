@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 
-namespace Xcord.Features.Bots.AppDirectory;
+namespace Xcord.Features.Bots;
 
 public sealed record InstallAppCommand(long AppId, long ServerId);
 public sealed record InstallAppRequest(long ServerId);

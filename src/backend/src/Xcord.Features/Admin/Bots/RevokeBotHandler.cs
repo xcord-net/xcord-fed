@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Xcord.Infrastructure.Data;
 
-namespace Xcord.Features.Admin.Bots;
+namespace Xcord.Features.Admin;
 
 public sealed record RevokeBotCommand(
     long TokenId

@@ -192,6 +192,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseSetting("Email:FromName", "Xcord Test");
         builder.UseSetting("Cors:AllowedOrigins:0", "http://localhost:3000");
         builder.UseSetting("Federation:RequireSignatureVerification", "false");
+        builder.UseSetting("Tier:MaxStorageMb", "1");
 
         builder.ConfigureServices(services =>
         {

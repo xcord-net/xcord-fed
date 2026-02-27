@@ -1,4 +1,4 @@
-namespace Xcord.Features.Admin.Bots;
+namespace Xcord.Features.Admin;
 
 /// <summary>
 /// Response DTOs for bot management endpoints.

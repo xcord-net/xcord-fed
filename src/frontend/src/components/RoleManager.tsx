@@ -170,7 +170,7 @@ export default function RoleManager(props: RoleManagerProps) {
     <div class="flex flex-col h-full bg-xcord-bg-secondary">
       {/* Header */}
       <div class="px-4 py-3 border-b border-xcord-border flex items-center justify-between">
-        <h2 class="text-white font-semibold text-lg">Roles</h2>
+        <h2 class="text-xcord-text-primary font-bold text-xl">Roles</h2>
         <button
           type="button"
           onClick={() => { setShowCreateForm(true); setSaveSuccess(''); setSaveError(''); }}
@@ -196,7 +196,9 @@ export default function RoleManager(props: RoleManagerProps) {
           </Show>
 
           <Show when={!isLoading() && roles().length === 0}>
-            <p class="text-xcord-text-muted text-sm px-4 py-6 text-center">No roles yet.</p>
+            <div class="flex flex-col items-center justify-center py-8 text-center">
+              <p class="text-xcord-text-muted text-sm">No roles yet.</p>
+            </div>
           </Show>
 
           <For each={roles()}>
@@ -255,7 +257,7 @@ export default function RoleManager(props: RoleManagerProps) {
                 <button
                   type="button"
                   onClick={() => { setShowCreateForm(false); setNewRoleName(''); }}
-                  class="px-4 py-1.5 text-xcord-text-muted hover:text-white text-sm rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+                  class="px-4 py-1.5 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
                 >
                   Cancel
                 </button>

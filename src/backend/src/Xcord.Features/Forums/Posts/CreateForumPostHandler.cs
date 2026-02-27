@@ -10,7 +10,7 @@ using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using ThreadEntity = Xcord.Entities.Thread;
 
-namespace Xcord.Features.Forums.Posts;
+namespace Xcord.Features.Forums;
 
 public sealed record CreateForumPostCommand(
     long ChannelId,

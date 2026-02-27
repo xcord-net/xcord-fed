@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 
-namespace Xcord.Features.Forums.Tags;
+namespace Xcord.Features.Forums;
 
 public sealed record ListForumTagsCommand(
     long ChannelId

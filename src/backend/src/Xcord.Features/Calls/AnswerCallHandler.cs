@@ -23,9 +23,11 @@ public sealed class AnswerCallHandler(
     ILiveKitService liveKitService,
     IOutboxWriter outboxWriter,
     IOptions<InstanceOptions> instanceOptions,
+    IOptions<TierOptions> tierOptions,
     ILogger<AnswerCallHandler> logger) : IRequestHandler<AnswerCallRequest, Result<AnswerCallResponse>>
 {
     private readonly InstanceOptions _instanceOptions = instanceOptions.Value;
+    private readonly TierOptions _tierOptions = tierOptions.Value;
 
     public async Task<Result<AnswerCallResponse>> Handle(AnswerCallRequest request, CancellationToken cancellationToken)
     {
@@ -75,7 +77,19 @@ public sealed class AnswerCallHandler(
             var domain = _instanceOptions.Domain;
             var roomName = $"{domain}:call:{call.Id}";
 
-            // Generate LiveKit tokens for both users
+            // Build tier-based quality constraints for server-side enforcement
+            var qualityConstraints = new VideoQualityConstraints
+            {
+                MaxAudioBitrateKbps = _tierOptions.MaxAudioBitrateKbps,
+                MaxVideoBitrateKbps = _tierOptions.MaxVideoBitrateKbps,
+                MaxVideoWidth = _tierOptions.MaxVideoWidth,
+                MaxVideoHeight = _tierOptions.MaxVideoHeight,
+                MaxVideoFps = _tierOptions.MaxVideoFps,
+                MaxScreenShareBitrateKbps = _tierOptions.MaxScreenShareBitrateKbps,
+                EnableSimulcast = _tierOptions.CanUseSimulcast
+            };
+
+            // Generate LiveKit tokens for both users with server-enforced quality limits
             var callerToken = liveKitService.GenerateToken(
                 userId: call.CallerId,
                 roomName: roomName,
@@ -83,7 +97,8 @@ public sealed class AnswerCallHandler(
                 canSubscribe: true,
                 canPublishData: true,
                 canScreenShare: true,
-                ttl: TimeSpan.FromHours(2));
+                ttl: TimeSpan.FromHours(2),
+                qualityConstraints: qualityConstraints);
 
             var recipientToken = liveKitService.GenerateToken(
                 userId: currentUserId,
@@ -92,7 +107,8 @@ public sealed class AnswerCallHandler(
                 canSubscribe: true,
                 canPublishData: true,
                 canScreenShare: true,
-                ttl: TimeSpan.FromHours(2));
+                ttl: TimeSpan.FromHours(2),
+                qualityConstraints: qualityConstraints);
 
             // Write outbox event to notify the caller
             await outboxWriter.WriteAsync(dbContext, "Call.Answered", new

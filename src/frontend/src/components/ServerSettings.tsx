@@ -119,7 +119,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
       <Modal open={true} onClose={props.onClose} aria-label="Server Settings" size="xl">
         {/* Header */}
         <div class="flex items-center justify-between px-6 py-4 border-b border-xcord-border">
-          <h2 class="text-xl font-bold text-white">Server Settings</h2>
+          <h2 class="text-xl font-bold text-xcord-text-primary">Server Settings</h2>
           <button
             type="button"
             aria-label="Close settings"

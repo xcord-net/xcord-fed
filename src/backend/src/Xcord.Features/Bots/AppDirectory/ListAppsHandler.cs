@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 
-namespace Xcord.Features.Bots.AppDirectory;
+namespace Xcord.Features.Bots;
 
 public sealed record ListAppsQuery(string? Search, string? Category);
 public sealed record AppListingResponse(long Id, string Name, string? ShortDescription, string? IconUrl, string? Category, int InstallCount, bool IsVerified, double? AverageRating);

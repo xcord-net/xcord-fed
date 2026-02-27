@@ -31,7 +31,8 @@ public sealed class LiveKitService : ILiveKitService
         bool canSubscribe,
         bool canPublishData,
         bool canScreenShare,
-        TimeSpan ttl)
+        TimeSpan ttl,
+        VideoQualityConstraints? qualityConstraints = null)
     {
         var now = DateTimeOffset.UtcNow;
         var expiry = now.Add(ttl);
@@ -50,6 +51,57 @@ public sealed class LiveKitService : ILiveKitService
         if (canScreenShare)
         {
             videoGrant["canPublishSources"] = new[] { "camera", "microphone", "screen_share" };
+        }
+
+        // Embed server-enforced quality constraints into the token when provided.
+        // LiveKit reads videoEncoding, audioEncoding, and screenShareEncoding from the
+        // video grant at the time of publish and applies them as hard limits server-side.
+        // Fields with value 0 are omitted (LiveKit interprets absence as "no limit").
+        if (qualityConstraints != null)
+        {
+            // Audio encoding constraint
+            if (qualityConstraints.MaxAudioBitrateKbps > 0)
+            {
+                videoGrant["audioEncoding"] = new Dictionary<string, object>
+                {
+                    { "maxBitrate", qualityConstraints.MaxAudioBitrateKbps * 1000 }
+                };
+            }
+
+            // Camera video encoding constraints
+            if (qualityConstraints.MaxVideoBitrateKbps > 0
+                || qualityConstraints.MaxVideoWidth > 0
+                || qualityConstraints.MaxVideoHeight > 0
+                || qualityConstraints.MaxVideoFps > 0)
+            {
+                var videoEncoding = new Dictionary<string, object>();
+                if (qualityConstraints.MaxVideoBitrateKbps > 0)
+                    videoEncoding["maxBitrate"] = qualityConstraints.MaxVideoBitrateKbps * 1000;
+                if (qualityConstraints.MaxVideoWidth > 0)
+                    videoEncoding["maxWidth"] = qualityConstraints.MaxVideoWidth;
+                if (qualityConstraints.MaxVideoHeight > 0)
+                    videoEncoding["maxHeight"] = qualityConstraints.MaxVideoHeight;
+                if (qualityConstraints.MaxVideoFps > 0)
+                    videoEncoding["maxFramerate"] = qualityConstraints.MaxVideoFps;
+
+                videoGrant["videoEncoding"] = videoEncoding;
+            }
+
+            // Screen share encoding constraint
+            if (qualityConstraints.MaxScreenShareBitrateKbps > 0)
+            {
+                videoGrant["screenShareEncoding"] = new Dictionary<string, object>
+                {
+                    { "maxBitrate", qualityConstraints.MaxScreenShareBitrateKbps * 1000 }
+                };
+            }
+
+            // Simulcast: when disabled, restrict published sources to a single quality layer.
+            // When enabled (HD tier), allow the default multi-layer simulcast behaviour.
+            if (!qualityConstraints.EnableSimulcast)
+            {
+                videoGrant["disableSimulcast"] = true;
+            }
         }
 
         var claims = new[]

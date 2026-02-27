@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 
-namespace Xcord.Features.Users.Activity;
+namespace Xcord.Features.Users;
 
 public sealed record GetUserActivityQuery(long UserId);
 

@@ -3,6 +3,7 @@ export interface VoiceParticipant {
   isMuted: boolean;
   isDeafened: boolean;
   isSpeaking?: boolean;
+  isScreenSharing?: boolean;
 }
 
 export interface VoiceState {

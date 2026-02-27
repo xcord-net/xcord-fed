@@ -6,7 +6,7 @@ using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 
-namespace Xcord.Features.Bots.Commands;
+namespace Xcord.Features.Bots;
 
 public sealed record DeleteCommandCommand(long ServerId, long CommandId);
 public sealed record DeleteCommandResponse(bool Deleted);

@@ -231,8 +231,8 @@ export default function ChannelPermissions(props: ChannelPermissionsProps) {
             <Show
               when={selectedOverride() !== null && dirtyPermissions() !== null}
               fallback={
-                <div class="flex flex-col items-center justify-center h-32 text-xcord-text-muted">
-                  <p>Select a role or member to edit permissions.</p>
+                <div class="flex flex-col items-center justify-center py-8 text-center">
+                  <p class="text-xcord-text-muted text-sm">Select a role or member to edit permissions.</p>
                 </div>
               }
             >

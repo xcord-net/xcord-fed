@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 
-namespace Xcord.Features.Bots.Commands;
+namespace Xcord.Features.Bots;
 
 public sealed record ListCommandsQuery(long ServerId);
 

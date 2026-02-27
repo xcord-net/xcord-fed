@@ -6,7 +6,7 @@ using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 
-namespace Xcord.Features.Channels.FollowChannel;
+namespace Xcord.Features.Channels;
 
 public sealed record ListFollowersCommand(long ServerId, long ChannelId);
 

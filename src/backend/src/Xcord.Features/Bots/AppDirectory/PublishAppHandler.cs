@@ -7,7 +7,7 @@ using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 
-namespace Xcord.Features.Bots.AppDirectory;
+namespace Xcord.Features.Bots;
 
 public sealed record PublishAppCommand(long BotTokenId, string Name, string? Description, string? ShortDescription, string? IconUrl, string? Category, string? Tags);
 public sealed record PublishAppRequest(long BotTokenId, string Name, string? Description, string? ShortDescription, string? IconUrl, string? Category, string? Tags);

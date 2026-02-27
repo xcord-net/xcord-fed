@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 
-namespace Xcord.Features.Servers.Onboarding;
+namespace Xcord.Features.Servers;
 
 public sealed record GetOnboardingQuery(long ServerId);
 public sealed record OnboardingPromptDto(long Id, string Title, string Type, bool IsRequired, int Position, string OptionsJson);

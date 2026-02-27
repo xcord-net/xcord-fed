@@ -9,7 +9,7 @@ using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 
-namespace Xcord.Features.Channels.Categories;
+namespace Xcord.Features.Channels;
 
 public sealed record UpdateCategoryCommand(
     long ServerId,

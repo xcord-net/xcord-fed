@@ -7,7 +7,7 @@ using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 
-namespace Xcord.Features.Bots.Commands;
+namespace Xcord.Features.Bots;
 
 public sealed record RegisterCommandCommand(long ServerId, string Name, string? Description, string? OptionsJson);
 public sealed record RegisterCommandRequest(string Name, string? Description, string? OptionsJson);

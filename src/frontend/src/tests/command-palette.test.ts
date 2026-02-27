@@ -214,7 +214,7 @@ describe('CommandPalette', () => {
       const error = validateCommandArgs(cmd, {});
 
       // Assert
-      expect(error).toBeTruthy();
+      expect(typeof error).toBe('string');
       expect(error).toContain('user');
     });
 
@@ -241,7 +241,8 @@ describe('CommandPalette', () => {
       const error = validateCommandArgs(cmd, { user: '   ' });
 
       // Assert
-      expect(error).toBeTruthy();
+      expect(typeof error).toBe('string');
+      expect((error as string).length).toBeGreaterThan(0);
     });
 
     it('returns null for a command with no parameters', () => {

@@ -30,6 +30,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
   const [password, setPassword] = createSignal('');
   const [error, setError] = createSignal('');
   const [isLoading, setIsLoading] = createSignal(false);
+  let cancelButtonRef!: HTMLButtonElement;
 
   const handleRequestDeletion = async () => {
     const validationError = validateDeletionRequest(password());
@@ -122,6 +123,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
         title="Confirm Account Deletion"
         size="md"
         role="alertdialog"
+        initialFocusRef={cancelButtonRef}
       >
         <div class="p-6">
           <p class="text-xcord-text-muted text-sm mb-4">
@@ -155,6 +157,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
               {isLoading() ? 'Scheduling...' : 'Delete My Account'}
             </button>
             <button
+              ref={cancelButtonRef}
               class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
               onClick={() => {
                 setShowConfirmDialog(false);

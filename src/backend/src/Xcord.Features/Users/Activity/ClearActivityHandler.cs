@@ -6,7 +6,7 @@ using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 
-namespace Xcord.Features.Users.Activity;
+namespace Xcord.Features.Users;
 
 public sealed record ClearActivityCommand;
 public sealed record ClearActivityResponse(bool Cleared);

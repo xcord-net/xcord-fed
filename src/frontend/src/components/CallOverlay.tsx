@@ -1,5 +1,6 @@
 import { Show, For } from 'solid-js';
 import { useCalls } from '../stores/call.store';
+import { useVoice } from '../stores/voice.store';
 import Modal from './ui/Modal';
 import type { Call } from '../types/call';
 
@@ -17,7 +18,7 @@ function IncomingCallDialog(props: IncomingCallDialogProps) {
           {props.call.callerUsername.charAt(0).toUpperCase()}
         </div>
 
-        <h2 class="text-white font-semibold text-xl mb-2">
+        <h2 class="text-xcord-text-primary font-bold text-xl mb-2">
           {props.call.callerUsername}
         </h2>
         <p class="text-xcord-text-muted mb-6">
@@ -45,6 +46,7 @@ function IncomingCallDialog(props: IncomingCallDialogProps) {
 
 export default function CallOverlay() {
   const callStore = useCalls();
+  const voice = useVoice();
 
   return (
     <>
@@ -93,6 +95,21 @@ export default function CallOverlay() {
               </Show>
 
               <button
+                class={`w-12 h-12 rounded-full flex items-center justify-center transition ${
+                  voice.isScreenSharing ? 'bg-xcord-brand text-white' : 'bg-xcord-bg-secondary text-white hover:bg-xcord-bg-primary'
+                }`}
+                onClick={() => voice.toggleScreenShare()}
+                title={voice.isScreenSharing ? 'Stop Sharing' : 'Share Screen'}
+                aria-label={voice.isScreenSharing ? 'Stop sharing screen' : 'Share screen'}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                  <line x1="8" y1="21" x2="16" y2="21" />
+                  <line x1="12" y1="17" x2="12" y2="21" />
+                </svg>
+              </button>
+
+              <button
                 class="bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 transition"
                 onClick={() => callStore.endCall(callStore.activeCall!.id)}
               >
@@ -116,6 +133,15 @@ export default function CallOverlay() {
                       </Show>
                       <Show when={participant.isVideoEnabled}>
                         <span class="text-xs">📹</span>
+                      </Show>
+                      <Show when={participant.isScreenSharing}>
+                        <span class="text-xs" title="Sharing screen">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 inline-block text-xcord-brand" aria-hidden="true">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                            <line x1="8" y1="21" x2="16" y2="21" />
+                            <line x1="12" y1="17" x2="12" y2="21" />
+                          </svg>
+                        </span>
                       </Show>
                     </div>
                   </div>

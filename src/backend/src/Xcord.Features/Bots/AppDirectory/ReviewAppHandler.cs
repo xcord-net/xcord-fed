@@ -7,7 +7,7 @@ using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 
-namespace Xcord.Features.Bots.AppDirectory;
+namespace Xcord.Features.Bots;
 
 public sealed record ReviewAppCommand(long AppId, int Rating, string? Content);
 public sealed record ReviewAppRequest(int Rating, string? Content);

@@ -12,7 +12,7 @@ using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
 using Microsoft.Extensions.Options;
 
-namespace Xcord.Features.Bots.Interactions;
+namespace Xcord.Features.Bots;
 
 public sealed record InteractionCallbackCommand(
     string InteractionToken,

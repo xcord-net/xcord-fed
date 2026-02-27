@@ -7,7 +7,7 @@ using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 
-namespace Xcord.Features.Servers.Boosts;
+namespace Xcord.Features.Servers;
 
 public sealed record BoostServerCommand(long ServerId);
 public sealed record BoostResponse(long ServerId, int BoostCount, int BoostLevel, List<BoosterInfo> Boosters);

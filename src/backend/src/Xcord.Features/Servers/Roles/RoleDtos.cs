@@ -1,4 +1,4 @@
-namespace Xcord.Features.Servers.Roles;
+namespace Xcord.Features.Servers;
 
 public sealed record RoleDto(
     long Id,

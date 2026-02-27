@@ -305,7 +305,7 @@ export default function MessageList(props: MessageListProps) {
                       class={`group/msg relative ${grouped() ? 'pl-14 hover:bg-xcord-bg-primary/30' : 'hover:bg-xcord-bg-primary/30'}`}
                     >
                       {/* Hover action bar — uses CSS group-hover for visibility to survive virtualizer DOM re-creation */}
-                      <div role="toolbar" aria-label="Message actions" class={`absolute right-2 top-0 bg-xcord-bg-tertiary rounded shadow-lg border border-xcord-border z-10 ${
+                      <div role="toolbar" aria-label="Message actions" class={`absolute right-2 top-0 bg-xcord-bg-tertiary rounded shadow-lg border border-xcord-border z-30 ${
                         messageStore.editingMessageId
                           ? 'hidden'
                           : reactionPickerMessageId() === message().id
@@ -351,6 +351,7 @@ export default function MessageList(props: MessageListProps) {
                               &#128578;
                             </button>
                             <Show when={reactionPickerMessageId() === message().id}>
+                              <div class="fixed inset-0 z-40" aria-hidden="true" onClick={() => setReactionPickerMessageId(null)} />
                               <div class="absolute right-0 top-full mt-1 z-50">
                                 <EmojiPicker
                                   serverId={params.serverId}

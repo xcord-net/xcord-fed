@@ -165,10 +165,11 @@ describe('WebhookManager', () => {
       expect(ALL_WEBHOOK_EVENTS.length).toBeGreaterThanOrEqual(5);
     });
 
-    it('every event in ALL_WEBHOOK_EVENTS has a label', () => {
+    it('every event in ALL_WEBHOOK_EVENTS has a non-empty label', () => {
       // Assert
       for (const evt of ALL_WEBHOOK_EVENTS) {
-        expect(WEBHOOK_EVENT_LABELS[evt]).toBeTruthy();
+        expect(WEBHOOK_EVENT_LABELS[evt]).toEqual(expect.any(String));
+        expect(WEBHOOK_EVENT_LABELS[evt].length).toBeGreaterThan(0);
       }
     });
   });

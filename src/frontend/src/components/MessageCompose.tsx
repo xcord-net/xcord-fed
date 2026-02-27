@@ -2,8 +2,12 @@ import { createSignal, createEffect, onCleanup, Show } from 'solid-js';
 import { useMessages } from '../stores/message.store';
 import { useChannels } from '../stores/channel.store';
 import { useSignalR } from '../stores/signalr.store';
+import { useModals } from '../stores/modal.store';
 import { api } from '../api/client';
+import { getErrorMessage } from '../utils/errors';
 import { CreatePollForm } from './PollDisplay';
+import GifPicker from './GifPicker';
+import Modal from './ui/Modal';
 
 interface MessageComposeProps {
   conversationId: string;
@@ -31,6 +35,7 @@ export default function MessageCompose(props: MessageComposeProps) {
   const messageStore = useMessages();
   const channelStore = useChannels();
   const signalR = useSignalR();
+  const modals = useModals();
   const [content, setContent] = createSignal('');
   const [replyToId, setReplyToId] = createSignal<string | null>(null);
   const [isSending, setIsSending] = createSignal(false);
@@ -38,6 +43,16 @@ export default function MessageCompose(props: MessageComposeProps) {
 
   // Poll form visibility
   const [showPollForm, setShowPollForm] = createSignal(false);
+
+  // GIF picker visibility
+  const [showGifPicker, setShowGifPicker] = createSignal(false);
+
+  // Schedule message modal
+  const [showScheduleModal, setShowScheduleModal] = createSignal(false);
+  const [scheduleDate, setScheduleDate] = createSignal('');
+  const [scheduleTime, setScheduleTime] = createSignal('');
+  const [scheduleError, setScheduleError] = createSignal('');
+  const [isScheduling, setIsScheduling] = createSignal(false);
 
   // Slow mode state
   const [slowModeCountdown, setSlowModeCountdown] = createSignal(0);
@@ -255,6 +270,102 @@ export default function MessageCompose(props: MessageComposeProps) {
     }
   };
 
+  const handleGifSelect = async (gifUrl: string) => {
+    setShowGifPicker(false);
+    if (isSending() || isSlowModeActive()) return;
+
+    setIsSending(true);
+    setSendError(null);
+    try {
+      await messageStore.sendMessage(props.conversationId, gifUrl);
+      startSlowModeCountdown();
+    } catch (err: unknown) {
+      const e = err as { error?: string; detail?: string; message?: string };
+      const msg = e?.detail ?? e?.error ?? e?.message ?? 'Failed to send GIF';
+      setSendError(msg);
+      setTimeout(() => setSendError(null), 5_000);
+      console.error('Failed to send GIF:', err);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const openScheduleModal = () => {
+    const text = content().trim();
+    if (!text) {
+      setSendError('Type a message before scheduling');
+      setTimeout(() => setSendError(null), 3_000);
+      return;
+    }
+    // Default to 1 hour from now
+    const defaultTime = new Date(Date.now() + 60 * 60 * 1000);
+    const year = defaultTime.getFullYear();
+    const month = String(defaultTime.getMonth() + 1).padStart(2, '0');
+    const day = String(defaultTime.getDate()).padStart(2, '0');
+    const hours = String(defaultTime.getHours()).padStart(2, '0');
+    const minutes = String(defaultTime.getMinutes()).padStart(2, '0');
+    setScheduleDate(`${year}-${month}-${day}`);
+    setScheduleTime(`${hours}:${minutes}`);
+    setScheduleError('');
+    setShowScheduleModal(true);
+  };
+
+  const handleScheduleSend = async () => {
+    if (!props.channelId) {
+      setScheduleError('Scheduled messages require a channel');
+      return;
+    }
+
+    const text = content().trim();
+    if (!text) {
+      setScheduleError('Message content is required');
+      return;
+    }
+
+    const dateVal = scheduleDate();
+    const timeVal = scheduleTime();
+    if (!dateVal || !timeVal) {
+      setScheduleError('Please select a date and time');
+      return;
+    }
+
+    // Build a DateTimeOffset from local date/time
+    const localDate = new Date(`${dateVal}T${timeVal}`);
+    if (isNaN(localDate.getTime())) {
+      setScheduleError('Invalid date or time');
+      return;
+    }
+
+    const now = new Date();
+    if (localDate.getTime() - now.getTime() < 60_000) {
+      setScheduleError('Scheduled time must be at least 1 minute in the future');
+      return;
+    }
+
+    if (localDate.getTime() - now.getTime() > 30 * 24 * 60 * 60 * 1000) {
+      setScheduleError('Scheduled time must be within 30 days');
+      return;
+    }
+
+    setIsScheduling(true);
+    setScheduleError('');
+    try {
+      await api.post(`/api/v1/channels/${props.channelId}/scheduled-messages`, {
+        content: text,
+        scheduledAt: localDate.toISOString(),
+      });
+      setShowScheduleModal(false);
+      setContent('');
+      if (textareaRef) {
+        textareaRef.style.height = 'auto';
+      }
+    } catch (err: unknown) {
+      setScheduleError(getErrorMessage(err, 'Failed to schedule message'));
+    } finally {
+      setIsScheduling(false);
+    }
+  };
+
   const hasTopSection = () => !!(replyToId() || uploading() || uploadedAttachment());
 
   return (
@@ -361,6 +472,42 @@ export default function MessageCompose(props: MessageComposeProps) {
           📊
         </button>
 
+        {/* GIF button */}
+        <div class="relative flex-shrink-0">
+          <button
+            class="text-xcord-text-muted hover:text-xcord-text-primary transition-colors pb-0.5 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold"
+            onClick={() => setShowGifPicker(!showGifPicker())}
+            disabled={isSending() || isSlowModeActive()}
+            aria-label="Send GIF"
+            title="Send GIF"
+          >
+            GIF
+          </button>
+
+          <Show when={showGifPicker()}>
+            <div class="fixed inset-0 z-40" aria-hidden="true" onClick={() => setShowGifPicker(false)} />
+            <div class="absolute bottom-full left-0 mb-2 z-50">
+              <GifPicker
+                onSelect={handleGifSelect}
+                onClose={() => setShowGifPicker(false)}
+              />
+            </div>
+          </Show>
+        </div>
+
+        {/* Schedule message button */}
+        <Show when={props.channelId}>
+          <button
+            class="flex-shrink-0 text-xcord-text-muted hover:text-xcord-text-primary transition-colors pb-0.5 disabled:opacity-40 disabled:cursor-not-allowed"
+            onClick={openScheduleModal}
+            disabled={isSending() || isSlowModeActive()}
+            aria-label="Schedule message"
+            title="Schedule message"
+          >
+            &#128336;
+          </button>
+        </Show>
+
         <textarea
           id="message-compose-textarea"
           ref={textareaRef}
@@ -385,6 +532,97 @@ export default function MessageCompose(props: MessageComposeProps) {
           </span>
         </Show>
       </div>
+
+      {/* View scheduled messages link */}
+      <Show when={props.channelId}>
+        <button
+          class="mt-1 text-xs text-xcord-text-muted hover:text-xcord-brand transition-colors"
+          onClick={() => modals.toggleScheduledMessages()}
+          aria-label="View scheduled messages"
+        >
+          {modals.showScheduledMessages ? 'Hide' : 'View'} scheduled messages
+        </button>
+      </Show>
+
+      {/* Schedule message modal */}
+      <Modal
+        open={showScheduleModal()}
+        onClose={() => setShowScheduleModal(false)}
+        title="Schedule Message"
+        size="sm"
+      >
+        <div class="p-6 space-y-4">
+          {/* Message preview */}
+          <div>
+            <label class="block text-xcord-text-secondary text-xs font-semibold uppercase tracking-wide mb-1">
+              Message
+            </label>
+            <div class="bg-xcord-bg-primary rounded px-3 py-2 text-sm text-xcord-text-primary max-h-24 overflow-y-auto break-words">
+              {content()}
+            </div>
+          </div>
+
+          {/* Date picker */}
+          <div>
+            <label for="schedule-date" class="block text-xcord-text-secondary text-xs font-semibold uppercase tracking-wide mb-1">
+              Date
+            </label>
+            <input
+              id="schedule-date"
+              type="date"
+              class="w-full bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus-visible:ring-2 focus-visible:ring-xcord-brand focus:outline-none"
+              value={scheduleDate()}
+              onInput={(e) => setScheduleDate(e.currentTarget.value)}
+              min={new Date().toISOString().split('T')[0]}
+            />
+          </div>
+
+          {/* Time picker */}
+          <div>
+            <label for="schedule-time" class="block text-xcord-text-secondary text-xs font-semibold uppercase tracking-wide mb-1">
+              Time
+            </label>
+            <input
+              id="schedule-time"
+              type="time"
+              class="w-full bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus-visible:ring-2 focus-visible:ring-xcord-brand focus:outline-none"
+              value={scheduleTime()}
+              onInput={(e) => setScheduleTime(e.currentTarget.value)}
+            />
+          </div>
+
+          {/* Timezone note */}
+          <p class="text-xcord-text-muted text-xs">
+            Times are in your local timezone ({Intl.DateTimeFormat().resolvedOptions().timeZone}).
+          </p>
+
+          {/* Error */}
+          <Show when={scheduleError()}>
+            <div role="alert" class="px-3 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-xs">
+              {scheduleError()}
+            </div>
+          </Show>
+
+          {/* Actions */}
+          <div class="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setShowScheduleModal(false)}
+              class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleScheduleSend}
+              disabled={isScheduling()}
+              class="px-4 py-2 bg-xcord-brand hover:bg-xcord-brand-hover text-white text-sm font-medium rounded transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+            >
+              {isScheduling() ? 'Scheduling...' : 'Schedule'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

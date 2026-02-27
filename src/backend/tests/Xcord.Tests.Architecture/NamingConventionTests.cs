@@ -1,5 +1,6 @@
 using FluentAssertions;
 using NetArchTest.Rules;
+using Xcord;
 
 namespace Xcord.Tests.Architecture;
 
@@ -8,25 +9,21 @@ public sealed class NamingConventionTests
     private const string FeaturesNamespace = "Xcord.Features";
 
     [Fact]
-    public void Handlers_ShouldEndWithHandler()
+    public void EndpointImplementors_ShouldEndWithHandler()
     {
-        // Arrange
+        // Arrange — find all IEndpoint implementors, assert they follow naming convention
         var assembly = typeof(Xcord.Features.FeaturesAssemblyMarker).Assembly;
 
         // Act
-        var result = Types.InAssembly(assembly)
-            .That()
-            .ResideInNamespace(FeaturesNamespace)
-            .And()
-            .AreClasses()
-            .And()
-            .HaveNameMatching(".*Handler$")
-            .Should()
-            .HaveNameEndingWith("Handler")
-            .GetResult();
+        var endpointTypes = assembly.GetTypes()
+            .Where(t => t.IsClass && !t.IsAbstract && t.IsAssignableTo(typeof(IEndpoint)));
 
         // Assert
-        result.IsSuccessful.Should().BeTrue();
+        endpointTypes.Should().NotBeEmpty("expected to find IEndpoint implementors");
+        foreach (var type in endpointTypes)
+        {
+            type.Name.Should().EndWith("Handler", $"{type.Name} implements IEndpoint but doesn't follow Handler naming");
+        }
     }
 
     [Fact]

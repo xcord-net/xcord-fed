@@ -7,7 +7,7 @@ using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 
-namespace Xcord.Features.Servers.VanityUrl;
+namespace Xcord.Features.Servers;
 
 public sealed record JoinByVanityCommand(string Slug);
 public sealed record JoinByVanityResponse(long ServerId, string ServerName);

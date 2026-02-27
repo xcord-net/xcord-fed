@@ -1,4 +1,4 @@
-import { For, Show, createMemo, createSignal } from 'solid-js';
+import { For, Show, createEffect, createMemo, createSignal } from 'solid-js';
 import { useMembers } from '../stores/member.store';
 import { useServers } from '../stores/server.store';
 import { useAuth } from '../stores/auth.store';
@@ -26,6 +26,17 @@ export default function MemberList() {
   const [roleAssignmentLoading, setRoleAssignmentLoading] = createSignal(false);
   const [showBanConfirm, setShowBanConfirm] = createSignal(false);
   const [pendingBanUserId, setPendingBanUserId] = createSignal<string | null>(null);
+  let roleAssignmentPanelRef!: HTMLDivElement;
+
+  // Move focus into the role assignment panel when it appears
+  createEffect(() => {
+    if (showRoleAssignment() && roleAssignmentPanelRef) {
+      requestAnimationFrame(() => {
+        const firstInput = roleAssignmentPanelRef.querySelector<HTMLElement>('input, button, [tabindex]');
+        firstInput?.focus();
+      });
+    }
+  });
 
   // Only the server owner can ban members from the member list context menu.
   // (Moderators with the BanMembers permission would require a full permission
@@ -211,7 +222,7 @@ export default function MemberList() {
 
         {/* Role assignment panel */}
         <Show when={showRoleAssignment()}>
-          <div class="border-t border-xcord-border mt-1 pt-1 px-2 pb-2 max-h-64 overflow-y-auto" aria-label="Assign roles">
+          <div ref={roleAssignmentPanelRef} class="border-t border-xcord-border mt-1 pt-1 px-2 pb-2 max-h-64 overflow-y-auto" aria-label="Assign roles">
             <p class="text-xs font-semibold text-xcord-text-muted uppercase tracking-wide px-1 py-1">Roles</p>
             <Show when={roleAssignmentLoading() && serverRoles().length === 0}>
               <p class="text-xs text-xcord-text-muted px-1 py-1">Loading...</p>

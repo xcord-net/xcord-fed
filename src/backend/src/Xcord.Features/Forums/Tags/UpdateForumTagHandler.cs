@@ -8,7 +8,7 @@ using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 
-namespace Xcord.Features.Forums.Tags;
+namespace Xcord.Features.Forums;
 
 public sealed record UpdateForumTagCommand(
     long ChannelId,

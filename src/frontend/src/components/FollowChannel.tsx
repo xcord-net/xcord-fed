@@ -2,14 +2,14 @@ import { createSignal, createEffect, For, Show } from 'solid-js';
 import { api } from '../api/client';
 import Modal from './ui/Modal';
 
-interface Channel {
+export interface Channel {
   id: string;
   name: string;
   type: string;
   serverId: string;
 }
 
-interface Follow {
+export interface Follow {
   id: string;
   targetChannelId: string;
   targetServerId: string;
@@ -22,6 +22,75 @@ interface FollowChannelProps {
   channelId: string;
   channelType: string;
   channelName: string;
+}
+
+// ---- Exported pure API functions for testing ----
+
+export async function fetchFollows(
+  serverId: string,
+  channelId: string,
+): Promise<{ follows: Follow[]; error: string }> {
+  try {
+    const data = await api.get<Follow[]>(
+      `/api/v1/servers/${serverId}/channels/${channelId}/followers`,
+    );
+    return { follows: data, error: '' };
+  } catch (err: unknown) {
+    const errObj = err as { error?: string };
+    return { follows: [], error: errObj?.error || 'Failed to load follows' };
+  }
+}
+
+export async function fetchAvailableChannels(
+  serverId: string,
+  sourceChannelId: string,
+): Promise<{ channels: Channel[]; error: string }> {
+  try {
+    const data = await api.get<Channel[]>(`/api/v1/servers/${serverId}/channels`);
+    return {
+      channels: data.filter((c) => c.id !== sourceChannelId && c.type === 'Text'),
+      error: '',
+    };
+  } catch (err: unknown) {
+    const errObj = err as { error?: string };
+    return { channels: [], error: errObj?.error || 'Failed to load channels' };
+  }
+}
+
+export async function followChannel(
+  serverId: string,
+  channelId: string,
+  targetChannelId: string,
+): Promise<{ follow: Follow | null; error: string }> {
+  if (!targetChannelId) {
+    return { follow: null, error: 'Please select a channel' };
+  }
+  try {
+    const follow = await api.post<Follow>(
+      `/api/v1/servers/${serverId}/channels/${channelId}/followers`,
+      { targetChannelId },
+    );
+    return { follow, error: '' };
+  } catch (err: unknown) {
+    const errObj = err as { error?: string };
+    return { follow: null, error: errObj?.error || 'Failed to follow channel' };
+  }
+}
+
+export async function unfollowChannel(
+  serverId: string,
+  channelId: string,
+  subscriptionId: string,
+): Promise<{ error: string; success: boolean }> {
+  try {
+    await api.delete(
+      `/api/v1/servers/${serverId}/channels/${channelId}/followers/${subscriptionId}`,
+    );
+    return { error: '', success: true };
+  } catch (err: unknown) {
+    const errObj = err as { error?: string };
+    return { error: errObj?.error || 'Failed to unfollow channel', success: false };
+  }
 }
 
 export default function FollowChannel(props: FollowChannelProps) {

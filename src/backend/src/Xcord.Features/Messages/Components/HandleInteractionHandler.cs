@@ -6,7 +6,7 @@ using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 
-namespace Xcord.Features.Messages.Components;
+namespace Xcord.Features.Messages;
 
 public sealed record HandleInteractionCommand(long ComponentId, string? Value);
 public sealed record HandleInteractionRequest(string? Value);

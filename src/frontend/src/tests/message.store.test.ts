@@ -166,7 +166,8 @@ describe('message.store', () => {
 
       // Assert
       expect(messages.messages[0].content).toBe('Updated content');
-      expect(messages.messages[0].editedAt).toBeTruthy();
+      expect(messages.messages[0].editedAt).toEqual(expect.any(String));
+      expect(messages.messages[0].editedAt!.length).toBeGreaterThan(0);
     });
   });
 });

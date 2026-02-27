@@ -4,6 +4,7 @@ import {
   RoomEvent,
   Track,
   TrackPublication,
+  LocalTrackPublication,
   RemoteTrack,
   RemoteTrackPublication,
   RemoteParticipant,
@@ -38,6 +39,9 @@ const store = createRoot(() => {
   const [isDeafened, setIsDeafened] = createSignal(false);
   const [isConnecting, setIsConnecting] = createSignal(false);
   const [error, setError] = createSignal<string | null>(null);
+  const [isScreenSharing, setIsScreenSharing] = createSignal(false);
+  // Identity of the participant currently screen sharing (null if nobody is).
+  const [screenShareParticipantId, setScreenShareParticipantId] = createSignal<string | null>(null);
 
   return {
     currentChannelId,
@@ -52,6 +56,10 @@ const store = createRoot(() => {
     setIsConnecting,
     error,
     setError,
+    isScreenSharing,
+    setIsScreenSharing,
+    screenShareParticipantId,
+    setScreenShareParticipantId,
   };
 });
 
@@ -114,6 +122,8 @@ function attachRoomEventHandlers(room: Room): void {
       store.setParticipants(new Map());
       store.setIsMuted(false);
       store.setIsDeafened(false);
+      store.setIsScreenSharing(false);
+      store.setScreenShareParticipantId(null);
     }
     store.setIsConnecting(false);
     intentionalLeave = false;
@@ -174,7 +184,7 @@ function attachRoomEventHandlers(room: Room): void {
 
   room.on(
     RoomEvent.TrackSubscribed,
-    (track: RemoteTrack, _publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+    (track: RemoteTrack, publication: RemoteTrackPublication, participant: RemoteParticipant) => {
       // Attach audio tracks to the DOM so they play automatically.
       if (track.kind === Track.Kind.Audio) {
         track.attach();
@@ -186,6 +196,26 @@ function attachRoomEventHandlers(room: Room): void {
           }
         }
       }
+
+      // Track screen share publications from remote participants.
+      if (track.kind === Track.Kind.Video && publication.source === Track.Source.ScreenShare) {
+        store.setScreenShareParticipantId(participant.identity);
+        const map = new Map(store.participants());
+        const existing = map.get(participant.identity);
+        if (existing) {
+          map.set(participant.identity, { ...existing, isScreenSharing: true });
+        } else {
+          map.set(participant.identity, {
+            userId: participant.identity,
+            isMuted: !participant.isMicrophoneEnabled,
+            isDeafened: false,
+            isScreenSharing: true,
+          });
+        }
+        store.setParticipants(map);
+        return;
+      }
+
       const map = new Map(store.participants());
       if (!map.has(participant.identity)) {
         map.set(participant.identity, {
@@ -200,9 +230,36 @@ function attachRoomEventHandlers(room: Room): void {
 
   room.on(
     RoomEvent.TrackUnsubscribed,
-    (track: RemoteTrack) => {
+    (track: RemoteTrack, publication: RemoteTrackPublication, participant: RemoteParticipant) => {
       if (track.kind === Track.Kind.Audio) {
         track.detach();
+      }
+
+      // Clear screen share state when the track is removed.
+      if (track.kind === Track.Kind.Video && publication.source === Track.Source.ScreenShare) {
+        if (store.screenShareParticipantId() === participant.identity) {
+          store.setScreenShareParticipantId(null);
+        }
+        const map = new Map(store.participants());
+        const existing = map.get(participant.identity);
+        if (existing) {
+          map.set(participant.identity, { ...existing, isScreenSharing: false });
+          store.setParticipants(map);
+        }
+      }
+    },
+  );
+
+  // Detect when the local user stops screen sharing via the browser's
+  // native "Stop sharing" button (which unpublishes the track automatically).
+  room.on(
+    RoomEvent.LocalTrackUnpublished,
+    (publication: LocalTrackPublication) => {
+      if (publication.source === Track.Source.ScreenShare) {
+        store.setIsScreenSharing(false);
+        if (store.screenShareParticipantId() === room.localParticipant.identity) {
+          store.setScreenShareParticipantId(null);
+        }
       }
     },
   );
@@ -221,6 +278,14 @@ async function applyDeafenToAllRemoteTracks(room: Room, deafened: boolean): Prom
   }
 }
 
+/**
+ * Returns the module-level LiveKit Room instance, or null if not yet created.
+ * Used by ScreenShareViewer to attach video tracks to DOM elements.
+ */
+export function getLivekitRoom(): Room | null {
+  return livekitRoom;
+}
+
 export function useVoice() {
   return {
     get currentChannelId() { return store.currentChannelId(); },
@@ -229,6 +294,8 @@ export function useVoice() {
     get isDeafened() { return store.isDeafened(); },
     get isConnecting() { return store.isConnecting(); },
     get error() { return store.error(); },
+    get isScreenSharing() { return store.isScreenSharing(); },
+    get screenShareParticipantId() { return store.screenShareParticipantId(); },
 
     /**
      * Called by signalr.store after a connection is established so that voice
@@ -295,11 +362,16 @@ export function useVoice() {
         // Seed participants map with anyone already in the room.
         const map = new Map<string, VoiceParticipant>();
         for (const participant of room.remoteParticipants.values()) {
+          const hasScreenShare = participant.isScreenShareEnabled;
           map.set(participant.identity, {
             userId: participant.identity,
             isMuted: !participant.isMicrophoneEnabled,
             isDeafened: false,
+            isScreenSharing: hasScreenShare,
           });
+          if (hasScreenShare) {
+            store.setScreenShareParticipantId(participant.identity);
+          }
         }
         store.setParticipants(map);
       } catch (err) {
@@ -334,6 +406,8 @@ export function useVoice() {
       store.setParticipants(new Map());
       store.setIsMuted(false);
       store.setIsDeafened(false);
+      store.setIsScreenSharing(false);
+      store.setScreenShareParticipantId(null);
     },
 
     async toggleMute(): Promise<void> {
@@ -412,6 +486,46 @@ export function useVoice() {
       }
     },
 
+    async toggleScreenShare(): Promise<void> {
+      if (store.isScreenSharing()) {
+        await this.stopScreenShare();
+        return;
+      }
+
+      if (!livekitRoom || livekitRoom.state !== ConnectionState.Connected) {
+        console.error('Cannot screen share: not connected to LiveKit');
+        return;
+      }
+
+      try {
+        await livekitRoom.localParticipant.setScreenShareEnabled(true);
+        store.setIsScreenSharing(true);
+        store.setScreenShareParticipantId(livekitRoom.localParticipant.identity);
+      } catch (err) {
+        // User denied the browser prompt or an error occurred — not fatal.
+        console.warn('Screen share failed:', err);
+        store.setIsScreenSharing(false);
+      }
+    },
+
+    async stopScreenShare(): Promise<void> {
+      if (!store.isScreenSharing()) return;
+
+      if (livekitRoom && livekitRoom.state === ConnectionState.Connected) {
+        try {
+          await livekitRoom.localParticipant.setScreenShareEnabled(false);
+        } catch (err) {
+          console.error('Failed to stop screen share in LiveKit:', err);
+        }
+      }
+
+      store.setIsScreenSharing(false);
+      // Only clear the screen share participant if it was us.
+      if (livekitRoom && store.screenShareParticipantId() === livekitRoom.localParticipant.identity) {
+        store.setScreenShareParticipantId(null);
+      }
+    },
+
     updateVoiceState(userId: string, channelId: string | null, isMuted: boolean, isDeafened: boolean): void {
       if (channelId === store.currentChannelId()) {
         // User joined or updated in current channel
@@ -440,6 +554,8 @@ export function useVoice() {
       store.setParticipants(new Map());
       store.setIsMuted(false);
       store.setIsDeafened(false);
+      store.setIsScreenSharing(false);
+      store.setScreenShareParticipantId(null);
     },
   };
 }

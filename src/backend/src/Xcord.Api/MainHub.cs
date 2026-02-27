@@ -466,8 +466,20 @@ public class MainHub : Hub
         // Generate LiveKit room name
         var roomName = $"{_instanceDomain}:voice:{channelId}";
 
-        // Generate LiveKit token (30 min TTL)
-        // Audio publish is always allowed in voice channels; video publish requires Video tier
+        // Build tier-based quality constraints for server-side enforcement
+        var voiceQualityConstraints = new VideoQualityConstraints
+        {
+            MaxAudioBitrateKbps = _tierOptions.MaxAudioBitrateKbps,
+            MaxVideoBitrateKbps = _tierOptions.MaxVideoBitrateKbps,
+            MaxVideoWidth = _tierOptions.MaxVideoWidth,
+            MaxVideoHeight = _tierOptions.MaxVideoHeight,
+            MaxVideoFps = _tierOptions.MaxVideoFps,
+            MaxScreenShareBitrateKbps = _tierOptions.MaxScreenShareBitrateKbps,
+            EnableSimulcast = _tierOptions.CanUseSimulcast
+        };
+
+        // Generate LiveKit token (30 min TTL) with server-enforced quality limits.
+        // Audio publish is always allowed in voice channels; video publish requires Video tier.
         var token = liveKitService.GenerateToken(
             userId: userId.Value,
             roomName: roomName,
@@ -475,7 +487,8 @@ public class MainHub : Hub
             canSubscribe: true,
             canPublishData: true,
             canScreenShare: canScreenShare && _tierOptions.CanUseVideoChannels,
-            ttl: TimeSpan.FromMinutes(30));
+            ttl: TimeSpan.FromMinutes(30),
+            qualityConstraints: voiceQualityConstraints);
 
         // Create VoiceState entity
         var voiceState = new VoiceState
@@ -676,7 +689,19 @@ public class MainHub : Hub
         // Generate LiveKit room name
         var roomName = $"{_instanceDomain}:voice:{channelId}";
 
-        // Generate new LiveKit token
+        // Build tier-based quality constraints for server-side enforcement
+        var refreshQualityConstraints = new VideoQualityConstraints
+        {
+            MaxAudioBitrateKbps = _tierOptions.MaxAudioBitrateKbps,
+            MaxVideoBitrateKbps = _tierOptions.MaxVideoBitrateKbps,
+            MaxVideoWidth = _tierOptions.MaxVideoWidth,
+            MaxVideoHeight = _tierOptions.MaxVideoHeight,
+            MaxVideoFps = _tierOptions.MaxVideoFps,
+            MaxScreenShareBitrateKbps = _tierOptions.MaxScreenShareBitrateKbps,
+            EnableSimulcast = _tierOptions.CanUseSimulcast
+        };
+
+        // Generate new LiveKit token with server-enforced quality limits
         var token = liveKitService.GenerateToken(
             userId: userId.Value,
             roomName: roomName,
@@ -684,7 +709,8 @@ public class MainHub : Hub
             canSubscribe: true,
             canPublishData: true,
             canScreenShare: canScreenShare,
-            ttl: TimeSpan.FromMinutes(30));
+            ttl: TimeSpan.FromMinutes(30),
+            qualityConstraints: refreshQualityConstraints);
 
         _logger.LogInformation("User {UserId} refreshed voice token for channel {ChannelId}", userId, channelId);
 

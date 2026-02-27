@@ -9,7 +9,7 @@ using System.Text;
 using Xcord.Entities;
 using Xcord.Infrastructure.Data;
 
-namespace Xcord.Features.Admin.Bots;
+namespace Xcord.Features.Admin;
 
 public sealed record CreateBotTokenCommand(
     long BotId,

@@ -11,6 +11,7 @@ const store = createRoot(() => {
   const [showChannelSettings, setShowChannelSettings] = createSignal(false);
   const [showRoleManager, setShowRoleManager] = createSignal(false);
   const [showEvents, setShowEvents] = createSignal(false);
+  const [showScheduledMessages, setShowScheduledMessages] = createSignal(false);
   const [selectedForumPost, setSelectedForumPost] = createSignal<ForumPost | null>(null);
 
   return {
@@ -21,6 +22,7 @@ const store = createRoot(() => {
     showChannelSettings, setShowChannelSettings,
     showRoleManager, setShowRoleManager,
     showEvents, setShowEvents,
+    showScheduledMessages, setShowScheduledMessages,
     selectedForumPost, setSelectedForumPost,
   };
 });
@@ -34,6 +36,7 @@ export function useModals() {
     get showChannelSettings() { return store.showChannelSettings(); },
     get showRoleManager() { return store.showRoleManager(); },
     get showEvents() { return store.showEvents(); },
+    get showScheduledMessages() { return store.showScheduledMessages(); },
     get selectedForumPost() { return store.selectedForumPost(); },
 
     toggleSearch() { store.setShowSearch(!store.showSearch()); },
@@ -42,6 +45,7 @@ export function useModals() {
     toggleChannelSettings() { store.setShowChannelSettings(!store.showChannelSettings()); },
     toggleRoleManager() { store.setShowRoleManager(!store.showRoleManager()); },
     toggleEvents() { store.setShowEvents(!store.showEvents()); },
+    toggleScheduledMessages() { store.setShowScheduledMessages(!store.showScheduledMessages()); },
     toggleSettings() { store.setShowSettings(store.showSettings() ? null : 'profile'); },
 
     openSettings(tab: SettingsTab) { store.setShowSettings(tab); },

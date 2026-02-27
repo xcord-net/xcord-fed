@@ -30,7 +30,7 @@ export function WebhookOverview() {
     setIsLoading(true);
     setError('');
     try {
-      const response = await api.get<Server[]>('/api/v1/servers');
+      const response = await api.get<Server[]>('/api/v1/users/@me/servers');
       setServers(response);
     } catch (err: any) {
       setError(err?.message || 'Failed to load servers');
@@ -53,82 +53,86 @@ export function WebhookOverview() {
   };
 
   return (
-    <div class="bg-white rounded-lg shadow p-6">
-      <h2 class="text-2xl font-bold mb-6">Webhook Overview</h2>
+    <div>
+      <h2 class="text-xl font-bold text-white mb-6">Webhooks</h2>
 
       {error() && (
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+        <div class="bg-xcord-danger/10 border border-xcord-danger/30 text-xcord-danger px-4 py-3 rounded text-sm mb-4">
           {error()}
         </div>
       )}
 
-      <Show when={isLoading()} fallback={
-        <>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 class="text-lg font-semibold mb-4">Servers</h3>
-              <Show when={servers().length === 0} fallback={
+      <Show when={!isLoading()} fallback={
+        <div class="text-xcord-text-muted text-sm">Loading servers...</div>
+      }>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Server list */}
+          <div>
+            <h3 class="text-sm font-semibold uppercase text-xcord-text-muted mb-3">Servers</h3>
+            <Show when={servers().length > 0} fallback={
+              <p class="text-xcord-text-muted text-sm">No servers found</p>
+            }>
+              <div class="space-y-2">
+                <For each={servers()}>
+                  {(server) => (
+                    <button
+                      onClick={() => setSelectedServerId(server.id)}
+                      class={`w-full text-left p-4 rounded-lg border transition-colors ${
+                        selectedServerId() === server.id
+                          ? 'border-xcord-brand bg-xcord-brand/10'
+                          : 'border-xcord-border bg-xcord-bg-secondary hover:border-xcord-bg-input'
+                      }`}
+                    >
+                      <p class="font-medium text-white">{server.name}</p>
+                      <p class="text-xs text-xcord-text-muted">ID: {server.id}</p>
+                    </button>
+                  )}
+                </For>
+              </div>
+            </Show>
+          </div>
+
+          {/* Webhook list for selected server */}
+          <div>
+            <Show when={selectedServerId()}>
+              <h3 class="text-sm font-semibold uppercase text-xcord-text-muted mb-3">Webhooks</h3>
+
+              <Show when={isLoadingWebhooks()}>
+                <p class="text-xcord-text-muted text-sm">Loading webhooks...</p>
+              </Show>
+
+              <Show when={!isLoadingWebhooks() && webhooks().length === 0}>
+                <p class="text-xcord-text-muted text-sm">No webhooks for this server</p>
+              </Show>
+
+              <Show when={!isLoadingWebhooks() && webhooks().length > 0}>
                 <div class="space-y-2">
-                  <For each={servers()}>
-                    {(server) => (
-                      <button
-                        onClick={() => setSelectedServerId(server.id)}
-                        class={`w-full text-left p-4 rounded border ${
-                          selectedServerId() === server.id
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:bg-gray-50'
-                        }`}
-                      >
-                        <p class="font-medium">{server.name}</p>
-                        <p class="text-xs text-gray-500">ID: {server.id}</p>
-                      </button>
+                  <For each={webhooks()}>
+                    {(webhook) => (
+                      <div class="p-4 bg-xcord-bg-secondary rounded-lg border border-xcord-border">
+                        <div class="flex items-start gap-3">
+                          <div class="w-10 h-10 rounded-full bg-xcord-bg-input flex items-center justify-center text-xcord-text-secondary font-bold text-sm">
+                            {webhook.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div class="flex-1">
+                            <p class="font-medium text-white">{webhook.name}</p>
+                            <p class="text-xs text-xcord-text-muted">ID: {webhook.id}</p>
+                            <p class="text-xs text-xcord-text-muted">Channel: {webhook.channelId}</p>
+                            <p class="text-xs text-xcord-text-muted">Created: {new Date(webhook.createdAt).toLocaleString()}</p>
+                          </div>
+                        </div>
+                      </div>
                     )}
                   </For>
                 </div>
-              }>
-                <p class="text-gray-500">No servers found</p>
               </Show>
-            </div>
+            </Show>
 
-            <div>
-              <Show when={selectedServerId()}>
-                <h3 class="text-lg font-semibold mb-4">Webhooks</h3>
-
-                <Show when={isLoadingWebhooks()}>
-                  <p class="text-gray-500">Loading webhooks...</p>
-                </Show>
-
-                <Show when={!isLoadingWebhooks() && webhooks().length === 0}>
-                  <p class="text-gray-500">No webhooks found for this server</p>
-                </Show>
-
-                <Show when={!isLoadingWebhooks() && webhooks().length > 0}>
-                  <div class="space-y-3">
-                    <For each={webhooks()}>
-                      {(webhook) => (
-                        <div class="p-4 border border-gray-200 rounded">
-                          <div class="flex items-start gap-3">
-                            <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold">
-                              {webhook.name.charAt(0)}
-                            </div>
-                            <div class="flex-1">
-                              <p class="font-medium">{webhook.name}</p>
-                              <p class="text-xs text-gray-500">ID: {webhook.id}</p>
-                              <p class="text-xs text-gray-500">Channel ID: {webhook.channelId}</p>
-                              <p class="text-xs text-gray-500">Created: {new Date(webhook.createdAt).toLocaleDateString()}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </For>
-                  </div>
-                </Show>
-              </Show>
-            </div>
+            <Show when={!selectedServerId()}>
+              <p class="text-xcord-text-muted text-sm">Select a server to view its webhooks</p>
+            </Show>
           </div>
-        </>
-      }>
-        <p class="text-gray-500">Loading servers...</p>
+        </div>
       </Show>
     </div>
   );

@@ -6,7 +6,7 @@ using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 
-namespace Xcord.Features.Servers.Templates;
+namespace Xcord.Features.Servers;
 
 public sealed record DeleteServerTemplateCommand(long TemplateId);
 public sealed record DeleteServerTemplateResponse(bool Deleted);

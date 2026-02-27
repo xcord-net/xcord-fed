@@ -1,88 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { api } from '../api/client';
-
-// Logic mirroring FollowChannel.tsx
-
-interface Follow {
-  id: string;
-  targetChannelId: string;
-  targetServerId: string;
-  targetChannelName: string;
-  createdAt: string;
-}
-
-interface Channel {
-  id: string;
-  name: string;
-  type: string;
-}
-
-async function loadFollows(
-  serverId: string,
-  channelId: string
-): Promise<{ follows: Follow[]; error: string }> {
-  try {
-    const data = await api.get<Follow[]>(
-      `/api/v1/servers/${serverId}/channels/${channelId}/followers`
-    );
-    return { follows: data, error: '' };
-  } catch (err: unknown) {
-    const errObj = err as { error?: string };
-    return { follows: [], error: errObj?.error || 'Failed to load follows' };
-  }
-}
-
-async function loadAvailableChannels(
-  serverId: string,
-  sourceChannelId: string
-): Promise<{ channels: Channel[]; error: string }> {
-  try {
-    const data = await api.get<Channel[]>(`/api/v1/servers/${serverId}/channels`);
-    return {
-      channels: data.filter((c) => c.id !== sourceChannelId && c.type === 'Text'),
-      error: '',
-    };
-  } catch (err: unknown) {
-    const errObj = err as { error?: string };
-    return { channels: [], error: errObj?.error || 'Failed to load channels' };
-  }
-}
-
-async function followChannel(
-  serverId: string,
-  channelId: string,
-  targetChannelId: string
-): Promise<{ follow: Follow | null; error: string }> {
-  if (!targetChannelId) {
-    return { follow: null, error: 'Please select a channel' };
-  }
-  try {
-    const follow = await api.post<Follow>(
-      `/api/v1/servers/${serverId}/channels/${channelId}/followers`,
-      { targetChannelId }
-    );
-    return { follow, error: '' };
-  } catch (err: unknown) {
-    const errObj = err as { error?: string };
-    return { follow: null, error: errObj?.error || 'Failed to follow channel' };
-  }
-}
-
-async function unfollowChannel(
-  serverId: string,
-  channelId: string,
-  subscriptionId: string
-): Promise<{ error: string; success: boolean }> {
-  try {
-    await api.delete(
-      `/api/v1/servers/${serverId}/channels/${channelId}/followers/${subscriptionId}`
-    );
-    return { error: '', success: true };
-  } catch (err: unknown) {
-    const errObj = err as { error?: string };
-    return { error: errObj?.error || 'Failed to unfollow channel', success: false };
-  }
-}
+import {
+  fetchFollows,
+  fetchAvailableChannels,
+  followChannel,
+  unfollowChannel,
+} from '../components/FollowChannel';
+import type { Follow } from '../components/FollowChannel';
 
 describe('follow-channel', () => {
   beforeEach(() => {
@@ -104,7 +28,7 @@ describe('follow-channel', () => {
         ],
       });
 
-      const result = await loadAvailableChannels('server-1', 'ch-source');
+      const result = await fetchAvailableChannels('server-1', 'ch-source');
 
       expect(result.error).toBe('');
       // Source channel and non-text channels are excluded
@@ -121,7 +45,7 @@ describe('follow-channel', () => {
         json: async () => ({ error: 'Not a member' }),
       });
 
-      const result = await loadAvailableChannels('server-1', 'ch-source');
+      const result = await fetchAvailableChannels('server-1', 'ch-source');
 
       expect(result.error).toBe('Not a member');
       expect(result.channels).toHaveLength(0);
@@ -145,7 +69,7 @@ describe('follow-channel', () => {
         ],
       });
 
-      const result = await loadFollows('server-1', 'channel-1');
+      const result = await fetchFollows('server-1', 'channel-1');
 
       expect(result.error).toBe('');
       expect(result.follows).toHaveLength(1);
@@ -160,7 +84,7 @@ describe('follow-channel', () => {
         json: async () => [],
       });
 
-      const result = await loadFollows('server-1', 'channel-1');
+      const result = await fetchFollows('server-1', 'channel-1');
 
       expect(result.error).toBe('');
       expect(result.follows).toHaveLength(0);

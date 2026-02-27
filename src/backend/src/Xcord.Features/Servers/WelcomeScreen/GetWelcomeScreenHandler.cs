@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 
-namespace Xcord.Features.Servers.WelcomeScreen;
+namespace Xcord.Features.Servers;
 
 public sealed record GetWelcomeScreenQuery(long ServerId);
 public sealed record WelcomeChannelDto(long ChannelId, string? Description, string? EmojiName, int Position);

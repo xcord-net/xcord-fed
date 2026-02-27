@@ -8,7 +8,7 @@ using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 
-namespace Xcord.Features.Servers.Templates;
+namespace Xcord.Features.Servers;
 
 public sealed record CreateFromTemplateCommand(long TemplateId, string ServerName);
 public sealed record CreateFromTemplateRequest(long TemplateId, string ServerName);

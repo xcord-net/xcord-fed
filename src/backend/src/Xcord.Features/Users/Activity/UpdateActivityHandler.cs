@@ -7,7 +7,7 @@ using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 
-namespace Xcord.Features.Users.Activity;
+namespace Xcord.Features.Users;
 
 public sealed record UpdateActivityCommand(string ActivityType, string Name, string? Details, string? State, string? LargeImageUrl, string? SmallImageUrl);
 public sealed record UpdateActivityRequest(string ActivityType, string Name, string? Details, string? State, string? LargeImageUrl, string? SmallImageUrl);

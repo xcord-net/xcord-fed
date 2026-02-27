@@ -10,7 +10,7 @@ using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 
-namespace Xcord.Features.Forums.Posts;
+namespace Xcord.Features.Forums;
 
 public sealed record AddPostTagCommand(
     long ChannelId,

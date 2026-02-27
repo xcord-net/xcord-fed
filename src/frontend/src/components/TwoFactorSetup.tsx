@@ -12,6 +12,48 @@ interface ConfirmEnableResponse {
   backupCodes: string[];
 }
 
+// ---- Exported pure API functions for testing ----
+
+export async function enableTwoFactor(): Promise<{ error: string; success: boolean }> {
+  try {
+    await api.post('/api/v1/auth/2fa/enable');
+    return { error: '', success: true };
+  } catch (err: unknown) {
+    const errObj = err as { error?: string };
+    return { error: errObj?.error || 'Failed to initiate 2FA setup', success: false };
+  }
+}
+
+export async function confirmEnableTwoFactor(
+  code: string,
+): Promise<{ error: string; success: boolean }> {
+  if (!code.trim()) {
+    return { error: 'Please enter the verification code', success: false };
+  }
+  try {
+    await api.post('/api/v1/auth/2fa/confirm-enable', { code: code.trim() });
+    return { error: '', success: true };
+  } catch (err: unknown) {
+    const errObj = err as { error?: string };
+    return { error: errObj?.error || 'Invalid verification code', success: false };
+  }
+}
+
+export async function disableTwoFactor(
+  password: string,
+): Promise<{ error: string; success: boolean }> {
+  if (!password.trim()) {
+    return { error: 'Please enter your current password', success: false };
+  }
+  try {
+    await api.post('/api/v1/auth/2fa/disable', { currentPassword: password.trim() });
+    return { error: '', success: true };
+  } catch (err: unknown) {
+    const errObj = err as { error?: string };
+    return { error: errObj?.error || 'Invalid password', success: false };
+  }
+}
+
 export default function TwoFactorSetup(props: TwoFactorSetupProps) {
   const [phase, setPhase] = createSignal<TwoFactorPhase>('idle');
   const [code, setCode] = createSignal('');

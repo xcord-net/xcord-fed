@@ -7,7 +7,7 @@ using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 
-namespace Xcord.Features.Servers.WelcomeScreen;
+namespace Xcord.Features.Servers;
 
 public sealed record UpdateWelcomeScreenCommand(long ServerId, string? Description, bool IsEnabled, List<WelcomeChannelDto> Channels);
 public sealed record UpdateWelcomeScreenRequest(string? Description, bool IsEnabled, List<WelcomeChannelDto> Channels);

@@ -278,7 +278,7 @@ public class MainHubTests
     // ──────────── Heartbeat ────────────
 
     [Fact]
-    public async Task Heartbeat_WhileConnected_DoesNotThrow()
+    public async Task Heartbeat_WhileConnected_CompletesAndMaintainsConnection()
     {
         var (_, _, token, _) = await SetupServerWithChannelAndUser();
 
@@ -286,9 +286,18 @@ public class MainHubTests
         try
         {
             await connection.StartAsync().WaitAsync(TimeSpan.FromSeconds(2));
+            connection.State.Should().Be(HubConnectionState.Connected);
 
-            // Should not throw
+            // Heartbeat should complete without throwing
             await connection.InvokeAsync("Heartbeat").WaitAsync(TimeSpan.FromSeconds(5));
+
+            // Connection must still be alive after heartbeat
+            connection.State.Should().Be(HubConnectionState.Connected,
+                "heartbeat should keep the connection in Connected state");
+
+            // A second heartbeat should also succeed (idempotent)
+            await connection.InvokeAsync("Heartbeat").WaitAsync(TimeSpan.FromSeconds(5));
+            connection.State.Should().Be(HubConnectionState.Connected);
         }
         finally
         {
