@@ -3,6 +3,14 @@ class ApiClient {
   private authenticated = false;
   private refreshPromise: Promise<boolean> | null = null;
 
+  setBaseUrl(url: string) {
+    this.baseUrl = url;
+  }
+
+  getBaseUrl(): string {
+    return this.baseUrl;
+  }
+
   setAuthenticated(value: boolean) {
     this.authenticated = value;
   }

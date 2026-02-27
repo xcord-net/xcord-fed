@@ -266,6 +266,8 @@ public static class ServiceCollectionExtensions
         });
     }
 
+    private static readonly string[] MobileOrigins = ["capacitor://localhost", "https://localhost"];
+
     private static void AddCors(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
         var corsOpts = config.GetSection(CorsOptions.SectionName).Get<CorsOptions>() ?? new CorsOptions();
@@ -279,7 +281,8 @@ public static class ServiceCollectionExtensions
             {
                 if (corsOpts.AllowedOrigins.Length > 0)
                 {
-                    policy.WithOrigins(corsOpts.AllowedOrigins)
+                    var allOrigins = corsOpts.AllowedOrigins.Concat(MobileOrigins).ToArray();
+                    policy.WithOrigins(allOrigins)
                         .AllowAnyMethod().AllowAnyHeader().AllowCredentials();
                 }
                 else

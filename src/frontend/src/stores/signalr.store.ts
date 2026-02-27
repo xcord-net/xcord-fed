@@ -217,7 +217,7 @@ export function useSignalR() {
 
     try {
       const ticket = await getTicket();
-      const baseUrl = window.location.origin;
+      const baseUrl = api.getBaseUrl() || window.location.origin;
 
       const connection = new HubConnectionBuilder()
         .withUrl(`${baseUrl}/hubs/main?ticket=${ticket}`)
