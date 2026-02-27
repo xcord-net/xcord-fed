@@ -325,6 +325,51 @@ public class UploadTests
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
+    [Fact]
+    public async Task GetAttachment_UserNotInServer_Returns403()
+    {
+        // Arrange — owner creates a server + channel and sends a message
+        var owner = await _helper.RegisterUserAsync();
+        var server = await _helper.CreateServerAsync(owner.AccessToken);
+        var serverId = server.GetProperty("id").ReadLong();
+        var channel = await _helper.CreateChannelAsync(owner.AccessToken, serverId);
+        var conversationId = channel.GetProperty("conversationId").ReadLong();
+
+        var message = await _helper.SendMessageAsync(owner.AccessToken, conversationId, "Message with attachment");
+        var messageId = message.GetProperty("id").ReadLong();
+
+        // Insert a confirmed attachment record linked to that message
+        long attachmentId;
+        await using (var db = _fixture.CreateDbContext())
+        {
+            var attachment = new Xcord.Entities.Attachment
+            {
+                Id = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + 500L,
+                MessageId = messageId,
+                FileName = "secret.png",
+                ContentType = "image/png",
+                FileSize = 1024,
+                S3Key = "attachments/test/secret.png",
+                IsConfirmed = true,
+                CreatedAt = DateTimeOffset.UtcNow
+            };
+            db.Attachments.Add(attachment);
+            await db.SaveChangesAsync();
+            attachmentId = attachment.Id;
+        }
+
+        // Register a second user who never joins the server
+        var outsider = await _helper.RegisterUserAsync();
+
+        // Act — outsider attempts to download the attachment
+        var response = await _helper.AuthGetAsync(
+            $"/api/v1/attachments/{attachmentId}",
+            outsider.AccessToken);
+
+        // Assert — must be 403 Forbidden, not 200 OK
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
     // ──────────── Confirm Upload ────────────
 
     [Fact]

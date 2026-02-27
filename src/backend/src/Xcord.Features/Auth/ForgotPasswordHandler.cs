@@ -103,8 +103,9 @@ public sealed class ForgotPasswordHandler(
 
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            logger.LogInformation("Password reset email queued for user {UserId}", user.Id);
         }
+
+        logger.LogInformation("Password reset requested");
 
         // ALWAYS return 204 regardless of whether email exists
         return true;
@@ -165,6 +166,7 @@ public sealed class ForgotPasswordHandler(
                 CancellationToken ct) =>
             await handler.ExecuteAsync(request, ct, _ => Results.NoContent()))
             .AllowAnonymous()
+            .RequireRateLimiting("auth-forgot-password")
             .WithName("ForgotPassword")
             .WithTags("Auth");
     }

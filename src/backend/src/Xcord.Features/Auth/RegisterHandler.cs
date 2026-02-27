@@ -229,6 +229,7 @@ public sealed partial class RegisterHandler(
                 );
             })
             .AllowAnonymous()
+            .RequireRateLimiting("auth-register")
             .WithName("Register")
             .WithTags("Auth");
     }

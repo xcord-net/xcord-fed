@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
@@ -29,7 +30,8 @@ public sealed record GetAttachmentResponse(
 public sealed class GetAttachmentHandler(
     AppDbContext dbContext,
     IStorageService storageService,
-    ICurrentUserService currentUserService)
+    ICurrentUserService currentUserService,
+    IConversationResolver conversationResolver)
     : IRequestHandler<GetAttachmentCommand, Result<GetAttachmentResponse>>
 {
     public async Task<Result<GetAttachmentResponse>> Handle(GetAttachmentCommand request, CancellationToken cancellationToken)
@@ -38,9 +40,10 @@ public sealed class GetAttachmentHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        // Get attachment
+        // Get attachment with its associated message (needed for ConversationId)
         var attachment = await dbContext.Attachments
             .AsNoTracking()
+            .Include(a => a.Message)
             .FirstOrDefaultAsync(a => a.Id == request.AttachmentId, cancellationToken);
 
         if (attachment == null)
@@ -48,18 +51,16 @@ public sealed class GetAttachmentHandler(
             return Error.NotFound("ATTACHMENT_NOT_FOUND", "Attachment not found");
         }
 
-        // Get message to verify permissions
-        var message = await dbContext.Messages
-            .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.Id == attachment.MessageId, cancellationToken);
-
-        if (message == null)
+        if (attachment.Message == null)
         {
             return Error.NotFound("MESSAGE_NOT_FOUND", "Associated message not found");
         }
 
-        // For now, simple permission check: user must be authenticated
-        // In a full implementation, you'd check channel/server permissions here
+        // Verify the requesting user has access to the conversation containing this attachment.
+        // ReadMessageHistory permission is sufficient — if you can read the channel you can see attachments.
+        var contextResult = await conversationResolver.ResolveAsync(
+            attachment.Message.ConversationId, userId, Permission.ReadMessageHistory, cancellationToken);
+        if (contextResult.IsFailure) return contextResult.Error;
 
         // Generate pre-signed download URL (1 hour expiry)
         var downloadUrl = await storageService.GenerateDownloadUrlAsync(attachment.S3Key, TimeSpan.FromHours(1));

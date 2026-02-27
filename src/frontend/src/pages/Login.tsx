@@ -1,6 +1,7 @@
 import { createSignal } from 'solid-js';
-import { useNavigate, A } from '@solidjs/router';
+import { useNavigate, useSearchParams, A } from '@solidjs/router';
 import { useAuth } from '../stores/auth.store';
+import { sanitizeRedirect } from '../utils/redirect';
 
 export default function Login() {
   const [email, setEmail] = createSignal('');
@@ -9,6 +10,7 @@ export default function Login() {
   const [loading, setLoading] = createSignal(false);
   const auth = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
@@ -16,7 +18,8 @@ export default function Login() {
     setLoading(true);
     try {
       await auth.login({ email: email(), password: password() });
-      navigate('/channels/me');
+      const redirectTo = sanitizeRedirect(searchParams.redirect);
+      navigate(redirectTo);
     } catch (err: unknown) {
       setError((err as Error)?.message || 'Login failed');
     } finally {

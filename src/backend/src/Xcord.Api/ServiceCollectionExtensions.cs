@@ -266,6 +266,22 @@ public static class ServiceCollectionExtensions
                 });
             });
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            // Registration: max 3 per minute per IP
+            options.AddFixedWindowLimiter("auth-register", limiterOptions =>
+            {
+                limiterOptions.PermitLimit = 3;
+                limiterOptions.Window = TimeSpan.FromMinutes(1);
+                limiterOptions.QueueLimit = 0;
+            });
+
+            // Password reset: max 3 per minute per IP
+            options.AddFixedWindowLimiter("auth-forgot-password", limiterOptions =>
+            {
+                limiterOptions.PermitLimit = 3;
+                limiterOptions.Window = TimeSpan.FromMinutes(1);
+                limiterOptions.QueueLimit = 0;
+            });
         });
     }
 
@@ -286,11 +302,15 @@ public static class ServiceCollectionExtensions
                 {
                     var allOrigins = corsOpts.AllowedOrigins.Concat(MobileOrigins).ToArray();
                     policy.WithOrigins(allOrigins)
-                        .AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+                        .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH")
+                        .WithHeaders("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin")
+                        .AllowCredentials();
                 }
                 else
                 {
-                    policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+                    policy.AllowAnyOrigin()
+                        .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH")
+                        .WithHeaders("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin");
                 }
             });
         });

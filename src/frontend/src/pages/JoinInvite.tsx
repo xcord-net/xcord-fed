@@ -4,6 +4,7 @@ import { useServers } from '../stores/server.store';
 import { useAuth } from '../stores/auth.store';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
+import { sanitizeRedirect } from '../utils/redirect';
 
 export default function JoinInvite() {
   const params = useParams<{ code: string }>();
@@ -19,7 +20,8 @@ export default function JoinInvite() {
   createEffect(() => {
     if (auth.isLoading) return;
     if (!auth.isAuthenticated) {
-      navigate(`/login?redirect=/invite/${params.code}`);
+      const redirectPath = sanitizeRedirect(`/invite/${params.code}`);
+      navigate(`/login?redirect=${encodeURIComponent(redirectPath)}`);
       return;
     }
     if (!joinAttempted) {
