@@ -162,6 +162,7 @@ public static class ServiceCollectionExtensions
         Bind<GifOptions>(GifOptions.SectionName);
         Bind<EmailOptions>(EmailOptions.SectionName);
         Bind<OutboxOptions>(OutboxOptions.SectionName);
+        Bind<AuthOptions>(AuthOptions.SectionName);
 
         // Tier options default to permissive when not provided (standalone instances)
         services.AddOptions<TierOptions>().Bind(config.GetSection(TierOptions.SectionName));
@@ -267,18 +268,18 @@ public static class ServiceCollectionExtensions
             });
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-            // Registration: max 3 per minute per IP
+            // Registration: configurable per-IP limit (default 3/min)
             options.AddFixedWindowLimiter("auth-register", limiterOptions =>
             {
-                limiterOptions.PermitLimit = 3;
+                limiterOptions.PermitLimit = opts.AuthRegisterPermitLimit;
                 limiterOptions.Window = TimeSpan.FromMinutes(1);
                 limiterOptions.QueueLimit = 0;
             });
 
-            // Password reset: max 3 per minute per IP
+            // Password reset: configurable per-IP limit (default 3/min)
             options.AddFixedWindowLimiter("auth-forgot-password", limiterOptions =>
             {
-                limiterOptions.PermitLimit = 3;
+                limiterOptions.PermitLimit = opts.AuthForgotPasswordPermitLimit;
                 limiterOptions.Window = TimeSpan.FromMinutes(1);
                 limiterOptions.QueueLimit = 0;
             });
@@ -338,6 +339,16 @@ public static class ServiceCollectionExtensions
                 ValidAudience = jwtOpts.Audience,
                 ClockSkew = TimeSpan.FromSeconds(30),
                 NameClaimType = "sub"
+            };
+
+            // Route "Authorization: Bot ..." requests to the Bot auth handler
+            // instead of trying to parse them as JWT.
+            options.ForwardDefaultSelector = context =>
+            {
+                var auth = context.Request.Headers.Authorization.ToString();
+                if (auth.StartsWith("Bot ", StringComparison.OrdinalIgnoreCase))
+                    return "Bot";
+                return null; // use default (JWT Bearer)
             };
 
             options.Events = new JwtBearerEvents

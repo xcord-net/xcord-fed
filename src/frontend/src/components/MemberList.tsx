@@ -49,12 +49,16 @@ export default function MemberList() {
     return !!currentServer && !!userId && currentServer.ownerId === userId;
   };
 
-  // Group members by role
+  // Group members by their highest-position custom role
   const groupedMembers = createMemo(() => {
     const groups: Record<string, typeof memberStore.members> = {};
 
     memberStore.members.forEach((member) => {
-      const role = member.roles[0]?.name || 'Members';
+      // Pick the highest-position role (already sorted by backend, but sort defensively)
+      const topRole = [...member.roles]
+        .filter((r) => r.name !== '@everyone' && r.name !== 'everyone')
+        .sort((a, b) => b.position - a.position)[0];
+      const role = topRole?.name || 'Members';
       if (!groups[role]) {
         groups[role] = [];
       }

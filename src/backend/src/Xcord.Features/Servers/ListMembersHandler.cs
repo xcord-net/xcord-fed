@@ -64,6 +64,8 @@ public sealed class ListMembersHandler(
                 sm.User.AvatarUrl,
                 sm.Nickname,
                 sm.MemberRoles
+                    .Where(mr => !mr.Role.IsEveryone)
+                    .OrderByDescending(mr => mr.Role.Position)
                     .Select(mr => new MemberRoleDto(
                         mr.Role.Id,
                         mr.Role.Name,

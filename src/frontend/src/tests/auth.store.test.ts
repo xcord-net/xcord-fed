@@ -40,7 +40,7 @@ describe('auth store', () => {
 
       expect(auth.isAuthenticated).toBe(true);
       expect(auth.user).not.toBeNull();
-      expect(auth.user!.userId).toBe('test-user-123');
+      expect(auth.user!.id).toBe('test-user-123');
       expect(auth.user!.username).toBe('testuser');
     });
   });

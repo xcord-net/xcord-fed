@@ -48,8 +48,8 @@ public sealed class ScheduleAccountDeletionHandler(
             return Error.NotFound("USER_NOT_FOUND", "User not found");
         }
 
-        // Verify password
-        if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        // Verify password — offloaded to Task.Run to avoid thread pool starvation
+        if (!await Task.Run(() => BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash)))
         {
             return Error.Validation("INVALID_PASSWORD", "Password is incorrect");
         }

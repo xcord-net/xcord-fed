@@ -18,7 +18,8 @@ export default function Login() {
     setLoading(true);
     try {
       await auth.login({ email: email(), password: password() });
-      const redirectTo = sanitizeRedirect(searchParams.redirect);
+      const redirectParam = Array.isArray(searchParams.redirect) ? searchParams.redirect[0] : searchParams.redirect;
+      const redirectTo = sanitizeRedirect(redirectParam);
       navigate(redirectTo);
     } catch (err: unknown) {
       setError((err as Error)?.message || 'Login failed');

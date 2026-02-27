@@ -178,6 +178,8 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseSetting("Encryption:EncryptionKey", "test-encryption-key-for-integration-tests");
         builder.UseSetting("RateLimiting:MaxRequests", "1000");
         builder.UseSetting("RateLimiting:WindowSeconds", "1");
+        builder.UseSetting("RateLimiting:AuthRegisterPermitLimit", "10000");
+        builder.UseSetting("RateLimiting:AuthForgotPasswordPermitLimit", "10000");
         builder.UseSetting("Outbox:PollingIntervalSeconds", "60");
         builder.UseSetting("Outbox:BatchSize", "100");
         builder.UseSetting("Outbox:CleanupIntervalMinutes", "60");
@@ -192,7 +194,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseSetting("Email:FromName", "Xcord Test");
         builder.UseSetting("Cors:AllowedOrigins:0", "http://localhost:3000");
         builder.UseSetting("Federation:RequireSignatureVerification", "false");
-        builder.UseSetting("Tier:MaxStorageMb", "1");
+        builder.UseSetting("Tier:MaxStorageMb", "50");
 
         builder.ConfigureServices(services =>
         {

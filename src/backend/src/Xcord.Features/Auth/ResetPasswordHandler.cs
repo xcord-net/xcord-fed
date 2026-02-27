@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
+using Xcord.Infrastructure.Options;
 
 using Xcord.Infrastructure.Data;
 
@@ -15,9 +17,11 @@ public sealed record ResetPasswordRequest(
     string NewPassword
 );
 
-public sealed class ResetPasswordHandler(AppDbContext dbContext)
+public sealed class ResetPasswordHandler(AppDbContext dbContext, IOptions<AuthOptions> authOptions)
     : IRequestHandler<ResetPasswordRequest, Result<bool>>, IValidatable<ResetPasswordRequest>
 {
+    private readonly AuthOptions _authOptions = authOptions.Value;
+
     public Error? Validate(ResetPasswordRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Token))
@@ -55,8 +59,8 @@ public sealed class ResetPasswordHandler(AppDbContext dbContext)
             return Error.Validation("INVALID_TOKEN", "Invalid or expired reset token");
         }
 
-        // Hash new password (BCrypt, work factor 12)
-        resetToken.User.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, 12);
+        // Hash new password (BCrypt, configurable work factor) — offloaded to Task.Run to avoid thread pool starvation
+        resetToken.User.PasswordHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(request.NewPassword, _authOptions.BcryptWorkFactor));
 
         // Delete ALL refresh tokens for the user (force re-login everywhere)
         var refreshTokens = await dbContext.RefreshTokens

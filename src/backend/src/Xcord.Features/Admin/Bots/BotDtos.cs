@@ -30,7 +30,3 @@ public sealed record ListBotsResponse(
     BotTokenDto[] Bots
 );
 
-public sealed record RevokeBotResponse(
-    long TokenId,
-    bool Success
-);

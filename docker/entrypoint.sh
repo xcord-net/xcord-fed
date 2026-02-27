@@ -62,7 +62,9 @@ if [ -n "${XCORD_CONFIG_INLINE:-}" ]; then
         },
         RateLimiting: {
             MaxRequests: (.rateLimiting.maxRequests // 100),
-            WindowSeconds: (.rateLimiting.windowSeconds // 60)
+            WindowSeconds: (.rateLimiting.windowSeconds // 60),
+            AuthRegisterPermitLimit: (.rateLimiting.authRegisterPermitLimit // 3),
+            AuthForgotPasswordPermitLimit: (.rateLimiting.authForgotPasswordPermitLimit // 3)
         },
         Gif: {
             Provider: (.gif.provider // "none"),
@@ -105,6 +107,9 @@ if [ -n "${XCORD_CONFIG_INLINE:-}" ]; then
             MaxVideoHeight: (.tier.maxVideoHeight // 0),
             MaxVideoFps: (.tier.maxVideoFps // 0),
             MaxScreenShareBitrateKbps: (.tier.maxScreenShareBitrateKbps // 0)
+        },
+        Auth: {
+            BcryptWorkFactor: (.auth.bcryptWorkFactor // 12)
         }
     }' > "$APPSETTINGS_PATH"
     echo "Configuration generated at $APPSETTINGS_PATH"
@@ -163,7 +168,9 @@ elif [ -f "$CONFIG_PATH" ]; then
         },
         RateLimiting: {
             MaxRequests: (.rateLimiting.maxRequests // 100),
-            WindowSeconds: (.rateLimiting.windowSeconds // 60)
+            WindowSeconds: (.rateLimiting.windowSeconds // 60),
+            AuthRegisterPermitLimit: (.rateLimiting.authRegisterPermitLimit // 3),
+            AuthForgotPasswordPermitLimit: (.rateLimiting.authForgotPasswordPermitLimit // 3)
         },
         Gif: {
             Provider: (.gif.provider // "none"),
@@ -206,6 +213,9 @@ elif [ -f "$CONFIG_PATH" ]; then
             MaxVideoHeight: (.tier.maxVideoHeight // 0),
             MaxVideoFps: (.tier.maxVideoFps // 0),
             MaxScreenShareBitrateKbps: (.tier.maxScreenShareBitrateKbps // 0)
+        },
+        Auth: {
+            BcryptWorkFactor: (.auth.bcryptWorkFactor // 12)
         }
     }' "$CONFIG_PATH" > "$APPSETTINGS_PATH"
 

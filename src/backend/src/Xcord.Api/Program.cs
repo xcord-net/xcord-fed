@@ -2,6 +2,10 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 using Xcord.Api;
 
+// Pre-warm the thread pool to handle concurrent CPU-bound work (e.g. BCrypt)
+// without starvation. Default min threads is too low for burst auth traffic.
+ThreadPool.SetMinThreads(workerThreads: 32, completionPortThreads: 32);
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure Serilog

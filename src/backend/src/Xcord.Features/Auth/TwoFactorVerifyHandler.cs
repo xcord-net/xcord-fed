@@ -175,11 +175,11 @@ public sealed class TwoFactorVerifyHandler(
             return Error.Validation("INVALID_CODE", "Invalid 2FA code");
         }
 
-        // Find a matching backup code by BCrypt verification
+        // Find a matching backup code by BCrypt verification — offloaded to Task.Run to avoid thread pool starvation
         Xcord.Entities.TwoFactorBackupCode? matchedCode = null;
         foreach (var bc in backupCodes)
         {
-            if (BCrypt.Net.BCrypt.Verify(normalizedCode, bc.CodeHash))
+            if (await Task.Run(() => BCrypt.Net.BCrypt.Verify(normalizedCode, bc.CodeHash)))
             {
                 matchedCode = bc;
                 break;

@@ -31,11 +31,13 @@ public sealed partial class RegisterHandler(
     ILogger<RegisterHandler> logger,
     IOutboxWriter outboxWriter,
     IOptions<EmailOptions> emailOptions,
-    IOptions<TierOptions> tierOptions)
+    IOptions<TierOptions> tierOptions,
+    IOptions<AuthOptions> authOptions)
     : IRequestHandler<RegisterRequest, Result<RegisterResponse>>, IValidatable<RegisterRequest>
 {
     private readonly EmailOptions _emailOptions = emailOptions.Value;
     private readonly TierOptions _tierOptions = tierOptions.Value;
+    private readonly AuthOptions _authOptions = authOptions.Value;
 
     public Error? Validate(RegisterRequest request)
     {
@@ -102,8 +104,8 @@ public sealed partial class RegisterHandler(
             return Error.Conflict("EMAIL_TAKEN", "Email is already registered");
         }
 
-        // Hash password (BCrypt, work factor 12)
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password, 12);
+        // Hash password (BCrypt, configurable work factor) — offloaded to Task.Run to avoid thread pool starvation
+        var passwordHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(request.Password, _authOptions.BcryptWorkFactor));
 
         // Encrypt email
         var encryptedEmail = encryptionService.Encrypt(request.Email.ToLowerInvariant());

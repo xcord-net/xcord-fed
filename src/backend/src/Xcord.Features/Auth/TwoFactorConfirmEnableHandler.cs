@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using System.Text;
+using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
 
 using Xcord.Entities;
@@ -23,9 +25,10 @@ public sealed record TwoFactorConfirmEnableResponse(
     IReadOnlyList<string> BackupCodes
 );
 
-public sealed class TwoFactorConfirmEnableHandler(AppDbContext dbContext, SnowflakeIdGenerator snowflakeGenerator)
+public sealed class TwoFactorConfirmEnableHandler(AppDbContext dbContext, SnowflakeIdGenerator snowflakeGenerator, IOptions<AuthOptions> authOptions)
     : IRequestHandler<TwoFactorConfirmEnableRequest, Result<TwoFactorConfirmEnableResponse>>, IValidatable<TwoFactorConfirmEnableRequest>
 {
+    private readonly AuthOptions _authOptions = authOptions.Value;
     private const int BackupCodeCount = 10;
     private const string BackupCodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
@@ -88,8 +91,8 @@ public sealed class TwoFactorConfirmEnableHandler(AppDbContext dbContext, Snowfl
             var formatted = $"{rawCode[..4]}-{rawCode[4..]}";
             plaintextCodes.Add(formatted);
 
-            // Hash without hyphen
-            var codeHash = BCrypt.Net.BCrypt.HashPassword(rawCode);
+            // Hash without hyphen — offloaded to Task.Run to avoid thread pool starvation
+            var codeHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(rawCode, _authOptions.BcryptWorkFactor));
 
             dbContext.TwoFactorBackupCodes.Add(new TwoFactorBackupCode
             {

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Xcord.Tests.Integration.Fixtures;
 using Xcord.Tests.Integration.Helpers;
 using Xunit;
@@ -241,7 +242,7 @@ public class UploadTests
     {
         var user = await _helper.RegisterUserAsync();
 
-        // Insert a confirmed attachment that consumes nearly the entire 1MB quota
+        // Insert a confirmed attachment that consumes the entire 50MB quota
         await using (var db = _fixture.CreateDbContext())
         {
             db.Attachments.Add(new Xcord.Entities.Attachment
@@ -249,7 +250,7 @@ public class UploadTests
                 Id = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 FileName = "large-file.bin",
                 ContentType = "application/octet-stream",
-                FileSize = 1024 * 1024, // 1 MB — fills the quota
+                FileSize = 50L * 1024 * 1024, // 50 MB — fills the quota
                 S3Key = "test/large-file.bin",
                 IsConfirmed = true,
                 CreatedAt = DateTimeOffset.UtcNow
@@ -279,6 +280,16 @@ public class UploadTests
     {
         var user = await _helper.RegisterUserAsync();
 
+        // Clean up confirmed test attachments left by other tests so quota is clear
+        await using (var cleanupDb = _fixture.CreateDbContext())
+        {
+            var staleAttachments = cleanupDb.Attachments
+                .IgnoreQueryFilters()
+                .Where(a => a.S3Key.StartsWith("test/"));
+            cleanupDb.Attachments.RemoveRange(staleAttachments);
+            await cleanupDb.SaveChangesAsync();
+        }
+
         // Insert a confirmed but soft-deleted attachment that would fill the quota
         await using (var db = _fixture.CreateDbContext())
         {
@@ -287,7 +298,7 @@ public class UploadTests
                 Id = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + 1,
                 FileName = "deleted-file.bin",
                 ContentType = "application/octet-stream",
-                FileSize = 1024 * 1024, // 1 MB
+                FileSize = 50L * 1024 * 1024, // 50 MB — would fill the quota
                 S3Key = "test/deleted-file.bin",
                 IsConfirmed = true,
                 CreatedAt = DateTimeOffset.UtcNow,

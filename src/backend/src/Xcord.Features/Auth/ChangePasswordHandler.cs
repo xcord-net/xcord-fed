@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
 
 using Xcord.Features.Authorization;
@@ -19,9 +21,11 @@ public sealed record ChangePasswordInternalRequest(
     string NewPassword
 );
 
-public sealed class ChangePasswordHandler(AppDbContext dbContext)
+public sealed class ChangePasswordHandler(AppDbContext dbContext, IOptions<AuthOptions> authOptions)
     : IRequestHandler<ChangePasswordInternalRequest, Result<bool>>, IValidatable<ChangePasswordInternalRequest>
 {
+    private readonly AuthOptions _authOptions = authOptions.Value;
+
     public Error? Validate(ChangePasswordInternalRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.CurrentPassword))
@@ -45,14 +49,14 @@ public sealed class ChangePasswordHandler(AppDbContext dbContext)
             return Error.NotFound("USER_NOT_FOUND", "User not found");
         }
 
-        // Verify current password
-        if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+        // Verify current password — offloaded to Task.Run to avoid thread pool starvation
+        if (!await Task.Run(() => BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash)))
         {
             return Error.Validation("INVALID_PASSWORD", "Current password is incorrect");
         }
 
-        // Hash new password (BCrypt, work factor 12)
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, 12);
+        // Hash new password (BCrypt, configurable work factor) — offloaded to Task.Run to avoid thread pool starvation
+        user.PasswordHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(request.NewPassword, _authOptions.BcryptWorkFactor));
 
         // Delete ALL refresh tokens for the user (force re-login everywhere)
         var refreshTokens = await dbContext.RefreshTokens
