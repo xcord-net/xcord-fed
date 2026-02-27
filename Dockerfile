@@ -32,6 +32,18 @@ RUN npm ci --production=false
 COPY src/frontend/ ./
 RUN npm run build
 
+# ===== Stage 2b: Build admin SPA =====
+FROM node:22-alpine AS build-admin
+WORKDIR /app
+
+COPY src/admin/ .
+RUN if [ -f package.json ]; then \
+        npm ci && npm run build; \
+    else \
+        mkdir -p dist && \
+        echo '<!DOCTYPE html><html><head><title>Admin</title></head><body><h1>Admin SPA - Coming Soon</h1></body></html>' > dist/index.html; \
+    fi
+
 # ===== Stage 3: Runtime =====
 FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS runtime
 WORKDIR /app
@@ -48,6 +60,9 @@ COPY --from=build-backend /app/publish .
 
 # Copy frontend SPA to wwwroot
 COPY --from=build-frontend /src/dist ./wwwroot/
+
+# Copy admin SPA to wwwroot/admin
+COPY --from=build-admin /app/dist ./wwwroot/admin
 
 # Copy entrypoint
 COPY docker/entrypoint.sh /app/entrypoint.sh
