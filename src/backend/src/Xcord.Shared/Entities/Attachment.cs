@@ -57,6 +57,11 @@ public sealed class Attachment : ISoftDeletable
     public bool IsConfirmed { get; set; }
 
     /// <summary>
+    /// User who created this upload (nullable for legacy data).
+    /// </summary>
+    public long? CreatedByUserId { get; set; }
+
+    /// <summary>
     /// Attachment creation timestamp.
     /// </summary>
     public DateTimeOffset CreatedAt { get; set; }

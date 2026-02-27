@@ -544,6 +544,7 @@ namespace Xcord.Infrastructure.Migrations
                     MessageId = table.Column<long>(type: "bigint", nullable: true),
                     FileName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     ContentType = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    CreatedByUserId = table.Column<long>(type: "bigint", nullable: true),
                     FileSize = table.Column<long>(type: "bigint", nullable: false),
                     S3Key = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
                     Width = table.Column<int>(type: "integer", nullable: true),

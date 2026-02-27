@@ -124,6 +124,9 @@ public sealed class ExecuteWebhookHandler(
 
         var now = DateTimeOffset.UtcNow;
 
+        // HTML-encode content to prevent XSS (webhook messages bypass MessageProcessor pipeline)
+        var sanitizedContent = System.Text.Encodings.Web.HtmlEncoder.Default.Encode(request.Content);
+
         // Create message entity
         var messageId = snowflakeGenerator.NextId();
 
@@ -143,7 +146,7 @@ public sealed class ExecuteWebhookHandler(
             ConversationId = channel.ConversationId,
             AuthorId = null, // Webhook messages have no author
             Type = MessageType.Default,
-            Content = request.Content,
+            Content = sanitizedContent,
             Metadata = JsonSerializer.Serialize(metadata),
             IsPinned = false,
             CreatedAt = now
@@ -184,7 +187,7 @@ public sealed class ExecuteWebhookHandler(
             return new ExecuteWebhookResponse(
                 MessageId: message.Id,
                 ConversationId: message.ConversationId,
-                Content: message.Content,
+                Content: sanitizedContent,
                 CreatedAt: message.CreatedAt
             );
         }

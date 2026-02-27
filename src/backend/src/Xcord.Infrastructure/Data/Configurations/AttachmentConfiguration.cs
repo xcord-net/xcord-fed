@@ -64,6 +64,9 @@ public sealed class AttachmentConfiguration : IEntityTypeConfiguration<Attachmen
             .IsRequired()
             .HasDefaultValue(false);
 
+        // CreatedByUserId (nullable — null for legacy attachments)
+        builder.Property(a => a.CreatedByUserId);
+
         // Timestamps
         builder.Property(a => a.CreatedAt)
             .IsRequired();

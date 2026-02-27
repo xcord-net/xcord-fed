@@ -88,13 +88,15 @@ public sealed class FederationInboxHandler(
 
                     // Create local message copy
                     var localMessageId = snowflakeGenerator.NextId();
+                    // HTML-encode content to prevent XSS from remote instances
+                    var sanitizedContent = System.Text.Encodings.Web.HtmlEncoder.Default.Encode(message.Content);
                     var localMessage = new Message
                     {
                         Id = localMessageId,
                         ConversationId = follow.LocalChannel.ConversationId,
                         AuthorId = null, // System/federated message
                         Type = MessageType.Default,
-                        Content = message.Content,
+                        Content = sanitizedContent,
                         Metadata = System.Text.Json.JsonSerializer.Serialize(new
                         {
                             federated = true,

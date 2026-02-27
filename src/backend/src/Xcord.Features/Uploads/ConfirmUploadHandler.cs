@@ -38,6 +38,12 @@ public sealed class ConfirmUploadHandler(
             return Error.NotFound("ATTACHMENT_NOT_FOUND", "Attachment not found");
         }
 
+        // Verify ownership — only the user who created the upload can confirm it
+        if (attachment.CreatedByUserId != null && attachment.CreatedByUserId != userId)
+        {
+            return Error.Forbidden("NOT_OWNER", "You can only confirm your own uploads");
+        }
+
         // Verify the file exists in S3
         var exists = await storageService.ExistsAsync(attachment.S3Key);
         if (!exists)

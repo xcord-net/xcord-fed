@@ -131,6 +131,9 @@ namespace Xcord.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<long?>("CreatedByUserId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 

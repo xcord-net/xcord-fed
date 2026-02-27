@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
@@ -22,14 +23,18 @@ public sealed class DownloadAttachmentHandler : IEndpoint
             AppDbContext dbContext,
             IStorageService storageService,
             ICurrentUserService currentUserService,
+            IConversationResolver conversationResolver,
             CancellationToken ct) =>
         {
             var userIdResult = currentUserService.GetCurrentUserId();
             if (userIdResult.IsFailure)
                 return Results.Json(new { error = "UNAUTHORIZED", message = "User is not authenticated" }, statusCode: 401);
 
+            var userId = userIdResult.Value;
+
             var attachment = await dbContext.Attachments
                 .AsNoTracking()
+                .Include(a => a.Message)
                 .FirstOrDefaultAsync(a => a.Id == attachmentId, ct);
 
             if (attachment == null)
@@ -40,6 +45,15 @@ public sealed class DownloadAttachmentHandler : IEndpoint
             if (!attachment.IsConfirmed)
             {
                 return Results.Json(new { error = "ATTACHMENT_NOT_CONFIRMED", message = "Attachment has not been uploaded" }, statusCode: 404);
+            }
+
+            // Verify the user has access to the conversation containing this attachment
+            if (attachment.Message != null)
+            {
+                var accessResult = await conversationResolver.ResolveAsync(
+                    attachment.Message.ConversationId, userId, Permission.ReadMessageHistory, ct);
+                if (accessResult.IsFailure)
+                    return Results.Json(new { error = "FORBIDDEN", message = "You do not have access to this attachment" }, statusCode: 403);
             }
 
             // Stream the file bytes directly from S3 to avoid presigned URL TTL issues.

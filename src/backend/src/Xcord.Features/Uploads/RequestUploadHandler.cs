@@ -159,6 +159,7 @@ public sealed class RequestUploadHandler(
             FileSize = request.FileSize,
             S3Key = s3Key,
             IsConfirmed = false,
+            CreatedByUserId = userId,
             CreatedAt = DateTimeOffset.UtcNow
         };
 

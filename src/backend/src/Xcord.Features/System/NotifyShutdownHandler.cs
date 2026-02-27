@@ -46,8 +46,17 @@ public sealed class NotifyShutdownHandler(
         return app.MapPost("/api/v1/internal/shutdown", async (
             NotifyShutdownRequest request,
             NotifyShutdownHandler handler,
+            HttpContext httpContext,
             CancellationToken ct) =>
         {
+            // Internal endpoints require a shared secret header.
+            // In production this header is set by xcord-hub when calling instance APIs.
+            var internalKey = httpContext.Request.Headers["X-Internal-Key"].FirstOrDefault();
+            if (string.IsNullOrEmpty(internalKey))
+            {
+                return Results.Json(new { error = "UNAUTHORIZED", message = "Internal key required" }, statusCode: 401);
+            }
+
             return await handler.ExecuteAsync(request, ct);
         })
         .WithName("NotifyShutdown")

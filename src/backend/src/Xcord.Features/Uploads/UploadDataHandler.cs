@@ -30,12 +30,20 @@ public sealed class UploadDataHandler : IEndpoint
             if (userIdResult.IsFailure)
                 return Results.Json(new { error = "UNAUTHORIZED", message = "User is not authenticated" }, statusCode: 401);
 
+            var userId = userIdResult.Value;
+
             var attachment = await dbContext.Attachments
                 .FirstOrDefaultAsync(a => a.Id == attachmentId, ct);
 
             if (attachment == null)
             {
                 return Results.Json(new { error = "ATTACHMENT_NOT_FOUND", message = "Attachment not found" }, statusCode: 404);
+            }
+
+            // Verify ownership
+            if (attachment.CreatedByUserId != null && attachment.CreatedByUserId != userId)
+            {
+                return Results.Json(new { error = "FORBIDDEN", message = "You can only upload data to your own attachments" }, statusCode: 403);
             }
 
             if (attachment.IsConfirmed)
