@@ -41,9 +41,9 @@ const PERMISSION_FLAGS: { label: string; bit: number }[] = [
 ];
 
 const PRESET_COLORS = [
-  '#5865f2', '#57f287', '#fee75c', '#eb459e', '#ed4245',
-  '#3498db', '#2ecc71', '#e67e22', '#9b59b6', '#1abc9c',
-  '#e74c3c', '#f39c12', '#95a5a6', '#ffffff', '#000000',
+  '#d4943a', '#3ba55d', '#f0b232', '#e06a8a', '#ed4245',
+  '#3a8fd4', '#2ecc71', '#c47a2e', '#8a5db8', '#1abc9c',
+  '#cf5050', '#e0a44a', '#8a8ea0', '#ffffff', '#000000',
 ];
 
 export function hasPermission(perms: number, bit: number): boolean {
@@ -62,7 +62,7 @@ export default function RoleManager(props: RoleManagerProps) {
   // Selected role for editing
   const [selectedRoleId, setSelectedRoleId] = createSignal<string | null>(null);
   const [editName, setEditName] = createSignal('');
-  const [editColor, setEditColor] = createSignal('#5865f2');
+  const [editColor, setEditColor] = createSignal('#d4943a');
   const [editPermissions, setEditPermissions] = createSignal(0);
   const [isSaving, setIsSaving] = createSignal(false);
   const [saveSuccess, setSaveSuccess] = createSignal('');
@@ -95,7 +95,7 @@ export default function RoleManager(props: RoleManagerProps) {
   function selectRole(role: Role) {
     setSelectedRoleId(role.id);
     setEditName(role.name);
-    setEditColor(role.color || '#5865f2');
+    setEditColor(role.color || '#d4943a');
     setEditPermissions(role.permissions);
     setSaveSuccess('');
     setSaveError('');
@@ -216,7 +216,7 @@ export default function RoleManager(props: RoleManagerProps) {
                 {/* Color dot */}
                 <span
                   class="w-3 h-3 rounded-full flex-shrink-0"
-                  style={{ 'background-color': role.color || '#5865f2' }}
+                  style={{ 'background-color': role.color || '#d4943a' }}
                   aria-hidden="true"
                 />
                 <span class="truncate text-sm">{role.name}</span>

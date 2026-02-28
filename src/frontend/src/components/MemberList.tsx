@@ -244,7 +244,7 @@ export default function MemberList() {
                   />
                   <span
                     class="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ 'background-color': role.color || '#5865f2' }}
+                    style={{ 'background-color': role.color || '#d4943a' }}
                     aria-hidden="true"
                   />
                   <span class="text-sm text-xcord-text-secondary">{role.name}</span>

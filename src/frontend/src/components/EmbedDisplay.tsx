@@ -6,7 +6,7 @@ interface EmbedDisplayProps {
 }
 
 export default function EmbedDisplay(props: EmbedDisplayProps) {
-  const borderColor = () => props.embed.color ?? '#5865f2'; // xcord-brand fallback
+  const borderColor = () => props.embed.color ?? '#d4943a'; // xcord-brand fallback
 
   return (
     <div

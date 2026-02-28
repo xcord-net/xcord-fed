@@ -24,7 +24,7 @@ describe('RoleManager', () => {
       // Arrange
       const serverId = 'srv-1';
       const roles: Role[] = [
-        { id: 'role-1', serverId, name: 'Admin', color: '#5865f2', permissions: 3, position: 0, isHoisted: true, isMentionable: true },
+        { id: 'role-1', serverId, name: 'Admin', color: '#d4943a', permissions: 3, position: 0, isHoisted: true, isMentionable: true },
         { id: 'role-2', serverId, name: 'Moderator', color: '#57f287', permissions: 1, position: 1, isHoisted: false, isMentionable: false },
       ];
 
@@ -89,7 +89,7 @@ describe('RoleManager', () => {
         id: 'role-new',
         serverId,
         name: roleName,
-        color: '#5865f2',
+        color: '#d4943a',
         permissions: 0,
         position: 2,
         isHoisted: false,
@@ -186,7 +186,7 @@ describe('RoleManager', () => {
       // Act
       await api.put(`/api/v1/servers/${serverId}/roles/${roleId}`, {
         name: 'Role',
-        color: '#5865f2',
+        color: '#d4943a',
         permissions,
       });
 
