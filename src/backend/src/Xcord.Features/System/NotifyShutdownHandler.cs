@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography;
+using System.Text;
 using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Internal;
@@ -47,6 +50,7 @@ public sealed class NotifyShutdownHandler(
             NotifyShutdownRequest request,
             NotifyShutdownHandler handler,
             HttpContext httpContext,
+            IConfiguration config,
             CancellationToken ct) =>
         {
             // Internal endpoints require a shared secret header.
@@ -55,6 +59,20 @@ public sealed class NotifyShutdownHandler(
             if (string.IsNullOrEmpty(internalKey))
             {
                 return Results.Json(new { error = "UNAUTHORIZED", message = "Internal key required" }, statusCode: 401);
+            }
+
+            // Validate the key against the configured secret using constant-time comparison
+            var configuredKey = config["InternalApi:Key"];
+            if (string.IsNullOrEmpty(configuredKey))
+            {
+                return Results.Json(new { error = "UNAUTHORIZED", message = "Internal API key not configured" }, statusCode: 401);
+            }
+
+            var providedBytes = Encoding.UTF8.GetBytes(internalKey);
+            var expectedBytes = Encoding.UTF8.GetBytes(configuredKey);
+            if (!CryptographicOperations.FixedTimeEquals(providedBytes, expectedBytes))
+            {
+                return Results.Json(new { error = "UNAUTHORIZED", message = "Invalid internal key" }, statusCode: 401);
             }
 
             return await handler.ExecuteAsync(request, ct);

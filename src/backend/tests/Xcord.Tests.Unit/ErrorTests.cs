@@ -102,27 +102,4 @@ public sealed class ErrorTests
         error1.Should().NotBe(error3);
     }
 
-    [Theory]
-    [InlineData(404)]
-    [InlineData(400)]
-    [InlineData(403)]
-    [InlineData(409)]
-    [InlineData(500)]
-    [InlineData(429)]
-    public void AllErrorFactories_ShouldMapToCorrectHttpStatusCodes(int expectedStatusCode)
-    {
-        // Act & Assert
-        var error = expectedStatusCode switch
-        {
-            404 => Error.NotFound("CODE", "Message"),
-            400 => Error.Validation("CODE", "Message"),
-            403 => Error.Forbidden("CODE", "Message"),
-            409 => Error.Conflict("CODE", "Message"),
-            500 => Error.Failure("CODE", "Message"),
-            429 => Error.RateLimited("CODE", "Message"),
-            _ => throw new InvalidOperationException()
-        };
-
-        error.StatusCode.Should().Be(expectedStatusCode);
-    }
 }

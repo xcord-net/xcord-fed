@@ -46,9 +46,10 @@ public static class ServiceCollectionExtensions
             return ConnectionMultiplexer.Connect(cfg);
         });
 
-        // JSON serialization
+        // JSON serialization — explicit camelCase + converters
         services.ConfigureHttpJsonOptions(options =>
         {
+            options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
             options.SerializerOptions.Converters.Add(new SnowflakeJsonConverter());
             options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
         });
@@ -111,16 +112,14 @@ public static class ServiceCollectionExtensions
         services.AddSignalR(options => options.EnableDetailedErrors = builder.Environment.IsDevelopment())
             .AddJsonProtocol(options =>
             {
-                // Snowflake IDs exceed JavaScript's Number.MAX_SAFE_INTEGER, so
-                // the HTTP API uses SnowflakeJsonConverter to serialize them as strings.
-                // SignalR must do the same:
-                //   WriteAsString  — server-sent events write longs as "12345" so JS
-                //                    doesn't lose precision on Snowflake IDs.
-                //   AllowReadingFromString — hub methods accept longs that the frontend
-                //                           sends as JSON strings.
+                // Snowflake IDs exceed JavaScript's Number.MAX_SAFE_INTEGER.
+                // Use the same SnowflakeJsonConverter as the HTTP API so only
+                // long fields are stringified (not ints, not permission bitmasks).
+                // AllowReadingFromString lets the frontend send IDs as strings.
                 options.PayloadSerializerOptions.NumberHandling =
-                    System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString
-                    | System.Text.Json.Serialization.JsonNumberHandling.WriteAsString;
+                    System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString;
+                options.PayloadSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                options.PayloadSerializerOptions.Converters.Add(new SnowflakeJsonConverter());
 
                 // Serialize enums as camelCase strings ("online", "idle", "dnd")
                 // matching the frontend PresenceStatus type and the HTTP API convention.
@@ -280,6 +279,14 @@ public static class ServiceCollectionExtensions
             options.AddFixedWindowLimiter("auth-forgot-password", limiterOptions =>
             {
                 limiterOptions.PermitLimit = opts.AuthForgotPasswordPermitLimit;
+                limiterOptions.Window = TimeSpan.FromMinutes(1);
+                limiterOptions.QueueLimit = 0;
+            });
+
+            // General auth endpoints (login, reset-password): configurable per-IP limit (default 10/min)
+            options.AddFixedWindowLimiter("auth", limiterOptions =>
+            {
+                limiterOptions.PermitLimit = opts.AuthPermitLimit;
                 limiterOptions.Window = TimeSpan.FromMinutes(1);
                 limiterOptions.QueueLimit = 0;
             });

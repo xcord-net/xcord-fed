@@ -131,7 +131,13 @@ public class LoginBruteForceTests
     [Fact]
     public async Task ForgotPassword_AlwaysReturns204_RegardlessOfFrequency()
     {
-        // Register a user
+        // Anti-enumeration: the forgot-password endpoint must return 204 whether
+        // or not the email belongs to a real account, and regardless of how many
+        // times the same email is submitted. This prevents an attacker from
+        // discovering registered emails by observing different response codes or
+        // timing differences. This test verifies the anti-enumeration guarantee
+        // for a known email by submitting the same request 5 times and asserting
+        // every response is 204 — not 400, 404, or 429.
         var id = Guid.NewGuid().ToString("N")[..12];
         var email = $"fpbrute_{id}@xcord.local";
         var password = "TestPassword123!";
@@ -144,12 +150,14 @@ public class LoginBruteForceTests
             password
         });
 
-        // Multiple requests should all return 204 (rate limiter is set very high in tests)
+        // Submit 5 consecutive forgot-password requests for the same known email.
+        // Every response must be 204 — a 400, 404, or inconsistent response would
+        // leak account existence and break the anti-enumeration contract.
         for (var i = 1; i <= 5; i++)
         {
             var resp = await _fixture.Client.PostJsonAsync("/api/v1/auth/forgot-password", new { email });
             resp.StatusCode.Should().Be(HttpStatusCode.NoContent,
-                $"request {i} should return 204");
+                $"request {i} for a known email must return 204 — any other status code leaks account existence");
         }
     }
 

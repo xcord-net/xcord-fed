@@ -160,9 +160,17 @@ describe('WebhookManager', () => {
   // ---- Event catalog ----
 
   describe('ALL_WEBHOOK_EVENTS and labels', () => {
-    it('ALL_WEBHOOK_EVENTS contains at least 5 events', () => {
-      // Assert
-      expect(ALL_WEBHOOK_EVENTS.length).toBeGreaterThanOrEqual(5);
+    it('ALL_WEBHOOK_EVENTS contains the expected events', () => {
+      // Assert — exact catalog so accidentally removing any event fails the test
+      expect(ALL_WEBHOOK_EVENTS).toEqual([
+        'message.created',
+        'message.deleted',
+        'member.joined',
+        'member.left',
+        'channel.created',
+        'channel.deleted',
+        'role.updated',
+      ]);
     });
 
     it('every event in ALL_WEBHOOK_EVENTS has a non-empty label', () => {
@@ -247,18 +255,6 @@ describe('WebhookManager', () => {
       expect(result.id).toBe('wh-new');
     });
 
-    it('new webhook is appended to local list', () => {
-      // Arrange
-      let webhooks: OutgoingWebhook[] = [makeWebhook({ id: 'wh-1' })];
-      const created = makeWebhook({ id: 'wh-new', name: 'New' });
-
-      // Act
-      webhooks = [...webhooks, created];
-
-      // Assert
-      expect(webhooks).toHaveLength(2);
-      expect(webhooks[1].id).toBe('wh-new');
-    });
   });
 
   describe('deleting a webhook', () => {
@@ -279,19 +275,5 @@ describe('WebhookManager', () => {
       );
     });
 
-    it('removes deleted webhook from local list', () => {
-      // Arrange
-      let webhooks: OutgoingWebhook[] = [
-        makeWebhook({ id: 'wh-1' }),
-        makeWebhook({ id: 'wh-2', name: 'Other' }),
-      ];
-
-      // Act
-      webhooks = webhooks.filter((w) => w.id !== 'wh-1');
-
-      // Assert
-      expect(webhooks).toHaveLength(1);
-      expect(webhooks[0].id).toBe('wh-2');
-    });
   });
 });

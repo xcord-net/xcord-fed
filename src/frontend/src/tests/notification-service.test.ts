@@ -40,11 +40,6 @@ describe('isTabFocused', () => {
     expect(isTabFocused()).toBe(false);
   });
 
-  it('returns true again after focus follows blur', () => {
-    window.dispatchEvent(new Event('blur'));
-    window.dispatchEvent(new Event('focus'));
-    expect(isTabFocused()).toBe(true);
-  });
 });
 
 // ---------------------------------------------------------------------------

@@ -33,6 +33,13 @@ public interface IPermissionService
     Task<Result<bool>> EnsureChannelPermission(long userId, long channelId, Permission permission);
 
     /// <summary>
+    /// Gets the highest role position held by a user in a server.
+    /// Returns 0 if the user has no assigned roles (only @everyone).
+    /// Returns int.MaxValue for the server owner.
+    /// </summary>
+    Task<int> GetHighestRolePosition(long userId, long serverId);
+
+    /// <summary>
     /// Invalidates all cached permission entries (server-level and channel-level) for a single user
     /// in a given server. Called after a role is assigned to or removed from a specific user.
     /// </summary>

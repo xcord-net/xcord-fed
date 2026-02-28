@@ -180,6 +180,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseSetting("RateLimiting:WindowSeconds", "1");
         builder.UseSetting("RateLimiting:AuthRegisterPermitLimit", "10000");
         builder.UseSetting("RateLimiting:AuthForgotPasswordPermitLimit", "10000");
+        builder.UseSetting("RateLimiting:AuthPermitLimit", "10000");
         builder.UseSetting("Outbox:PollingIntervalSeconds", "60");
         builder.UseSetting("Outbox:BatchSize", "100");
         builder.UseSetting("Outbox:CleanupIntervalMinutes", "60");
@@ -193,11 +194,21 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseSetting("Email:FromAddress", "test@xcord.local");
         builder.UseSetting("Email:FromName", "Xcord Test");
         builder.UseSetting("Cors:AllowedOrigins:0", "http://localhost:3000");
+        builder.UseSetting("InternalApi:Key", "test-internal-api-key-for-integration");
         builder.UseSetting("Federation:RequireSignatureVerification", "false");
         builder.UseSetting("Tier:MaxStorageMb", "50");
 
         builder.ConfigureServices(services =>
         {
+            // Replace the real S3StorageService with a stub that never touches S3.
+            // ExistsAsync returns false (file not found) so ConfirmUpload returns 400
+            // instead of 500 from a network error, enabling precise business-rule assertions.
+            var storageDescriptors = services
+                .Where(d => d.ServiceType == typeof(IStorageService))
+                .ToList();
+            foreach (var d in storageDescriptors) services.Remove(d);
+            services.AddSingleton<IStorageService, NullStorageService>();
+
             // Override DbContext to suppress PendingModelChangesWarning
             var dbDescriptor = services.SingleOrDefault(d =>
                 d.ServiceType == typeof(DbContextOptions<AppDbContext>));
@@ -244,6 +255,29 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
                 services.Remove(descriptor);
         });
     }
+}
+
+/// <summary>
+/// A no-op IStorageService used in integration tests so that ConfirmUpload returns 400
+/// (file not uploaded) rather than 500 (S3 connection failure) when the file has not
+/// been PUT to storage. All operations are safe no-ops; ExistsAsync always returns false.
+/// </summary>
+public sealed class NullStorageService : IStorageService
+{
+    public Task<string> GenerateUploadUrlAsync(string key, string contentType, long maxSize, TimeSpan expiry)
+        => Task.FromResult($"/api/v1/uploads/{key}/data");
+
+    public Task<string> GenerateDownloadUrlAsync(string key, TimeSpan expiry)
+        => Task.FromResult($"/api/v1/attachments/{key}/download");
+
+    public Task DeleteAsync(string key) => Task.CompletedTask;
+
+    /// <summary>Always returns false — no file has been uploaded to storage.</summary>
+    public Task<bool> ExistsAsync(string key) => Task.FromResult(false);
+
+    public Task UploadAsync(string key, byte[] data, string contentType) => Task.CompletedTask;
+
+    public Task<byte[]> DownloadAsync(string key) => Task.FromResult(Array.Empty<byte>());
 }
 
 [CollectionDefinition("WebApp")]

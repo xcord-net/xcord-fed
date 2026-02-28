@@ -31,76 +31,10 @@ describe('ForumPostList', () => {
 
   // ---- Post card rendering ----
 
-  describe('post card data', () => {
-    it('renders post title from ForumPost shape', () => {
-      // Arrange
-      const post = makePost({ title: 'My First Forum Post' });
-
-      // Assert
-      expect(post.title).toBe('My First Forum Post');
-      expect(post.authorUsername).toBe('Alice');
-    });
-
-    it('renders reply count with singular/plural label', () => {
-      // Arrange
-      const singleReply = makePost({ messageCount: 1 });
-      const manyReplies = makePost({ messageCount: 5 });
-
-      // Assert
-      const labelSingle = singleReply.messageCount === 1 ? 'reply' : 'replies';
-      const labelMany = manyReplies.messageCount === 1 ? 'reply' : 'replies';
-      expect(labelSingle).toBe('reply');
-      expect(labelMany).toBe('replies');
-    });
-
-    it('renders correct reply count value', () => {
-      // Arrange
-      const post = makePost({ messageCount: 42 });
-
-      // Assert
-      expect(post.messageCount).toBe(42);
-    });
-
-    it('isPinned flag is accessible on the post object', () => {
-      // Arrange
-      const pinned = makePost({ isPinned: true });
-      const unpinned = makePost({ isPinned: false });
-
-      // Assert
-      expect(pinned.isPinned).toBe(true);
-      expect(unpinned.isPinned).toBe(false);
-    });
-
-    it('isLocked flag is accessible on the post object', () => {
-      // Arrange
-      const locked = makePost({ isLocked: true });
-
-      // Assert
-      expect(locked.isLocked).toBe(true);
-    });
-  });
 
   // ---- Tag display ----
 
   describe('tag display', () => {
-    it('renders tags from the post tags array', () => {
-      // Arrange
-      const post = makePost({ tags: ['announcement', 'help', 'bug'] });
-
-      // Assert
-      expect(post.tags).toHaveLength(3);
-      expect(post.tags).toContain('announcement');
-      expect(post.tags).toContain('help');
-    });
-
-    it('renders no tags section when tags array is empty', () => {
-      // Arrange
-      const post = makePost({ tags: [] });
-
-      // Assert
-      expect(post.tags.length).toBe(0);
-    });
-
     it('adding a new tag appends it to selectedTags', () => {
       // Arrange
       const existing: string[] = ['bug'];
@@ -195,28 +129,6 @@ describe('ForumPostList', () => {
 
   // ---- Create post form validation ----
 
-  describe('create post form validation', () => {
-    it('create button is disabled when title is empty', () => {
-      // Arrange — mirrors: disabled={!title().trim() || !content().trim()}
-      const isDisabled = (title: string, content: string) =>
-        !title.trim() || !content.trim();
-
-      // Assert
-      expect(isDisabled('', 'Some content')).toBe(true);
-      expect(isDisabled('Title', '')).toBe(true);
-      expect(isDisabled('', '')).toBe(true);
-      expect(isDisabled('Title', 'Content')).toBe(false);
-    });
-
-    it('whitespace-only title is treated as empty', () => {
-      // Arrange
-      const isDisabled = (title: string, content: string) =>
-        !title.trim() || !content.trim();
-
-      // Assert
-      expect(isDisabled('   ', 'Content')).toBe(true);
-    });
-  });
 
   // ---- API calls ----
 

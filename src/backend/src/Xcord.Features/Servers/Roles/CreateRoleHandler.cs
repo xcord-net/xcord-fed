@@ -98,6 +98,27 @@ public sealed class CreateRoleHandler(
             return permissionCheck.Error;
         }
 
+        // Role hierarchy check: caller cannot create a role with permissions they don't have
+        var callerPermissions = await permissionService.GetServerPermissions(userId, request.ServerId);
+        if (callerPermissions != long.MaxValue) // Owner bypasses all checks
+        {
+            // Cannot grant permissions the caller doesn't possess
+            var escalatedBits = request.Permissions & ~callerPermissions;
+            if (escalatedBits != 0)
+            {
+                return Error.Forbidden("PERMISSION_ESCALATION",
+                    "You cannot create a role with permissions you do not have");
+            }
+
+            // Cannot create a role at or above caller's highest role position
+            var callerHighestPosition = await permissionService.GetHighestRolePosition(userId, request.ServerId);
+            if (request.Position >= callerHighestPosition)
+            {
+                return Error.Forbidden("ROLE_HIERARCHY",
+                    "You cannot create a role at or above your highest role position");
+            }
+        }
+
         var now = DateTimeOffset.UtcNow;
 
         // Create role

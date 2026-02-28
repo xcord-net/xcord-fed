@@ -52,7 +52,7 @@ describe('AppDirectory', () => {
       const result = formatInstallCount(12500);
 
       // Assert
-      expect(result).toContain('K');
+      expect(result).toBe('12.5K');
     });
 
     it('formats millions with M suffix', () => {
@@ -60,7 +60,7 @@ describe('AppDirectory', () => {
       const result = formatInstallCount(1_500_000);
 
       // Assert
-      expect(result).toContain('M');
+      expect(result).toBe('1.5M');
     });
 
     it('returns "0" for zero installs', () => {
@@ -179,17 +179,6 @@ describe('AppDirectory', () => {
       expect(sorted[1].installCount).toBeGreaterThanOrEqual(sorted[2].installCount);
     });
 
-    it('most-installed bot is first', () => {
-      // Arrange
-      const bots = makeBotList(); // MusicBot has 50000
-
-      // Act
-      const sorted = sortBotsByInstalls(bots);
-
-      // Assert
-      expect(sorted[0].name).toBe('MusicBot');
-    });
-
     it('does not mutate the original array', () => {
       // Arrange
       const bots = makeBotList();
@@ -200,43 +189,6 @@ describe('AppDirectory', () => {
 
       // Assert
       expect(bots[0].id).toBe(originalFirst);
-    });
-  });
-
-  // ---- BotListing shape ----
-
-  describe('BotListing data shape', () => {
-    it('has all required fields', () => {
-      // Arrange
-      const bot = makeBot();
-
-      // Assert
-      expect(bot.id).toBeDefined();
-      expect(bot.name).toBeDefined();
-      expect(bot.description).toBeDefined();
-      expect(bot.shortDescription).toBeDefined();
-      expect(bot.category).toBeDefined();
-      expect(bot.installCount).toBeDefined();
-      expect(bot.permissions).toBeInstanceOf(Array);
-      expect(bot.isVerified).toBeDefined();
-      expect(bot.developerName).toBeDefined();
-      expect(bot.tags).toBeInstanceOf(Array);
-    });
-
-    it('avatarUrl is optional', () => {
-      // Arrange
-      const bot = makeBot({ avatarUrl: undefined });
-
-      // Assert
-      expect(bot.avatarUrl).toBeUndefined();
-    });
-
-    it('isVerified can be false for unverified bots', () => {
-      // Arrange
-      const bot = makeBot({ isVerified: false });
-
-      // Assert
-      expect(bot.isVerified).toBe(false);
     });
   });
 
@@ -288,34 +240,11 @@ describe('AppDirectory', () => {
       );
     });
 
-    it('install API uses the correct server and bot IDs in URL', async () => {
-      // Arrange
-      const serverId = 'srv-abc';
-      const botId = 'bot-xyz';
-
-      globalThis.fetch = vi.fn().mockResolvedValueOnce({
-        ok: true,
-        status: 204,
-      });
-
-      // Act
-      await api.post(`/api/v1/servers/${serverId}/bots/${botId}/install`, {});
-
-      // Assert
-      const url = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][0] as string;
-      expect(url).toContain(serverId);
-      expect(url).toContain(botId);
-    });
   });
 
   // ---- Empty / error states ----
 
   describe('empty state', () => {
-    it('empty bot list has length 0', () => {
-      const bots: BotListing[] = [];
-      expect(bots.length).toBe(0);
-    });
-
     it('filtering an empty list returns empty list', () => {
       expect(filterBots([], 'search', '')).toHaveLength(0);
     });

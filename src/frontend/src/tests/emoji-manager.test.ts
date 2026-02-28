@@ -147,14 +147,6 @@ describe('emoji-manager', () => {
       expect(deriveEmojiName('SomeName.webp')).toBe('somename');
     });
 
-    it('deriveEmojiName strips the file extension', () => {
-      // Act
-      const result = deriveEmojiName('screenshot.png');
-
-      // Assert
-      expect(result).not.toContain('.png');
-      expect(result).toBe('screenshot');
-    });
   });
 
   describe('emoji delete', () => {
@@ -176,23 +168,6 @@ describe('emoji-manager', () => {
         `/api/v1/servers/${serverId}/emojis/${emojiId}`,
         expect.objectContaining({ method: 'DELETE' }),
       );
-    });
-
-    it('removes deleted emoji from local list', () => {
-      // Arrange
-      let emojis: CustomEmoji[] = [
-        makeEmoji({ id: 'emoji-1', name: 'alpha' }),
-        makeEmoji({ id: 'emoji-2', name: 'beta' }),
-        makeEmoji({ id: 'emoji-3', name: 'gamma' }),
-      ];
-
-      // Act — mirror component's delete logic
-      const targetId = 'emoji-2';
-      emojis = emojis.filter((em) => em.id !== targetId);
-
-      // Assert
-      expect(emojis).toHaveLength(2);
-      expect(emojis.map((em) => em.name)).toEqual(['alpha', 'gamma']);
     });
 
     it('throws when delete API call fails', async () => {
@@ -241,19 +216,6 @@ describe('emoji-manager', () => {
       expect(result.id).toBe('emoji-new');
     });
 
-    it('appends new emoji to the local list after upload', () => {
-      // Arrange
-      let emojis: CustomEmoji[] = [makeEmoji({ id: 'emoji-1', name: 'existing' })];
-      const newEmoji = makeEmoji({ id: 'emoji-new', name: 'fresh_emoji' });
-
-      // Act — mirror component's upload success handler
-      emojis = [...emojis, newEmoji];
-
-      // Assert
-      expect(emojis).toHaveLength(2);
-      expect(emojis[1].name).toBe('fresh_emoji');
-    });
-
     it('upload fails when name is empty', () => {
       // Arrange
       const name = '   ';
@@ -266,26 +228,4 @@ describe('emoji-manager', () => {
     });
   });
 
-  describe('emoji grid data', () => {
-    it('emoji imageUrl is a valid URL string', () => {
-      // Arrange
-      const emoji = makeEmoji();
-
-      // Act
-      const isUrl = emoji.imageUrl.startsWith('http');
-
-      // Assert
-      expect(isUrl).toBe(true);
-    });
-
-    it('animated emojis have isAnimated flag set', () => {
-      // Arrange
-      const animated = makeEmoji({ isAnimated: true });
-      const still = makeEmoji({ isAnimated: false });
-
-      // Assert
-      expect(animated.isAnimated).toBe(true);
-      expect(still.isAnimated).toBe(false);
-    });
-  });
 });

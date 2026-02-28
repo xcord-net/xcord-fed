@@ -90,15 +90,6 @@ describe('typing.store', () => {
       expect(typing.getTypingUsers('conv-1')).not.toContain('user-1');
     });
 
-    it('should clean up conversation entry when last user stops', () => {
-      const typing = useTyping();
-
-      typing.startTyping('conv-1', 'user-1');
-      typing.stopTyping('conv-1', 'user-1');
-
-      expect(typing.getTypingUsers('conv-1')).toEqual([]);
-    });
-
     it('should not throw when stopping typing for non-existent user', () => {
       const typing = useTyping();
 

@@ -1,60 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { createSlowModeController, formatSlowModeLabel } from '../utils/slowmode';
 
 /**
  * Slow Mode tests — Card 168
  *
- * These tests exercise the slow-mode countdown logic that lives inside
- * MessageCompose.tsx.  Because the component uses DOM APIs (textarea, refs)
- * that are hard to exercise in jsdom, we extract the pure logic here and
- * verify the behaviour contracts that the component relies on.
+ * These tests exercise the slow-mode countdown logic exported from
+ * utils/slowmode.ts, which is the same module used by MessageCompose.tsx.
+ * Tests import the production code directly so that any regression in the
+ * real implementation will cause these tests to fail.
  */
-
-// ---- Slow-mode countdown logic extracted for unit testing ----
-
-interface SlowModeState {
-  countdown: number;
-  timerId: ReturnType<typeof setInterval> | undefined;
-}
-
-function createSlowModeController(slowModeSeconds: number) {
-  const state: SlowModeState = { countdown: 0, timerId: undefined };
-
-  function startCountdown(onTick?: (remaining: number) => void) {
-    if (slowModeSeconds <= 0) return;
-    state.countdown = slowModeSeconds;
-    if (state.timerId !== undefined) {
-      clearInterval(state.timerId);
-    }
-    state.timerId = setInterval(() => {
-      state.countdown -= 1;
-      onTick?.(state.countdown);
-      if (state.countdown <= 0) {
-        clearInterval(state.timerId);
-        state.timerId = undefined;
-      }
-    }, 1000);
-  }
-
-  function resetCountdown() {
-    if (state.timerId !== undefined) {
-      clearInterval(state.timerId);
-      state.timerId = undefined;
-    }
-    state.countdown = 0;
-  }
-
-  function isActive() {
-    return state.countdown > 0;
-  }
-
-  function getCountdown() {
-    return state.countdown;
-  }
-
-  return { startCountdown, resetCountdown, isActive, getCountdown, state };
-}
-
-// ---- Tests ----
 
 describe('slow-mode', () => {
   beforeEach(() => {
@@ -215,8 +169,8 @@ describe('slow-mode', () => {
       const ctrl = createSlowModeController(7);
       ctrl.startCountdown();
 
-      // Act — build the label the component would render
-      const label = `Slowmode: ${ctrl.getCountdown()}s`;
+      // Act — build the label using the production formatSlowModeLabel function
+      const label = formatSlowModeLabel(ctrl.getCountdown());
 
       // Assert
       expect(label).toBe('Slowmode: 7s');

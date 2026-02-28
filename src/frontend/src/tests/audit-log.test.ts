@@ -68,32 +68,46 @@ describe('audit-log', () => {
     });
 
     it('includes all entry fields in response', async () => {
-      // Arrange
-      const entry = makeEntry({
+      // Arrange — server returns a response that omits optional fields but includes all required ones
+      const serverResponse = {
         id: 'e-99',
         actionType: 'MemberBan',
+        actorId: 'mod-user',
         actorUsername: 'AdminUser',
+        targetId: 'target-user',
         targetName: 'Spammer',
         reason: 'Repeated spam',
-      });
+        createdAt: '2026-02-10T14:30:00Z',
+      };
 
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => [entry],
+        json: async () => [serverResponse],
       });
 
-      // Act
+      // Act — verify the api client does not drop or rename any fields
       const result = await api.get<AuditLogEntry[]>(
         '/api/v1/servers/server-1/audit-log?limit=50',
       );
 
-      // Assert
+      // Assert — every required AuditLogEntry field survives the round-trip through api.get
+      expect(result).toHaveLength(1);
       const e = result[0];
+      // Identity fields
       expect(e.id).toBe('e-99');
       expect(e.actionType).toBe('MemberBan');
+      // Actor fields
+      expect(e.actorId).toBe('mod-user');
       expect(e.actorUsername).toBe('AdminUser');
+      // Target fields
+      expect(e.targetId).toBe('target-user');
       expect(e.targetName).toBe('Spammer');
+      // Metadata
       expect(e.reason).toBe('Repeated spam');
+      expect(e.createdAt).toBe('2026-02-10T14:30:00Z');
+      // Verify no extra transformation occurred (field count matches the known shape)
+      const fieldCount = Object.keys(e).length;
+      expect(fieldCount).toBeGreaterThanOrEqual(8);
     });
 
     it('throws when API returns an error', async () => {
@@ -128,32 +142,6 @@ describe('audit-log', () => {
       );
     });
 
-    it('filters only matching action types client-side for display', () => {
-      // Arrange
-      const entries: AuditLogEntry[] = [
-        makeEntry({ actionType: 'MemberBan' }),
-        makeEntry({ id: 'e2', actionType: 'MemberKick' }),
-        makeEntry({ id: 'e3', actionType: 'MemberBan' }),
-      ];
-
-      // Act — simulate client-side filtering before server-side filter propagates
-      const filtered = entries.filter((e) => e.actionType === 'MemberBan');
-
-      // Assert
-      expect(filtered).toHaveLength(2);
-      expect(filtered.every((e) => e.actionType === 'MemberBan')).toBe(true);
-    });
-
-    it('encodes special characters in filter value', () => {
-      // Arrange
-      const actionType = 'Channel Create';
-
-      // Act
-      const encoded = encodeURIComponent(actionType);
-
-      // Assert
-      expect(encoded).toBe('Channel%20Create');
-    });
   });
 
   describe('pagination / load more', () => {
@@ -175,61 +163,9 @@ describe('audit-log', () => {
       );
     });
 
-    it('detects hasMore when result length equals limit', () => {
-      // Arrange
-      const LIMIT = 50;
-      const results = Array.from({ length: LIMIT }, (_, i) =>
-        makeEntry({ id: `e${i}` }),
-      );
-
-      // Act — mirror hasMore logic from component
-      const hasMore = results.length === LIMIT;
-
-      // Assert
-      expect(hasMore).toBe(true);
-    });
-
-    it('detects no more pages when result count is less than limit', () => {
-      // Arrange
-      const LIMIT = 50;
-      const results = Array.from({ length: 10 }, (_, i) =>
-        makeEntry({ id: `e${i}` }),
-      );
-
-      // Act
-      const hasMore = results.length === LIMIT;
-
-      // Assert
-      expect(hasMore).toBe(false);
-    });
-
-    it('appends new entries to existing entries on load more', () => {
-      // Arrange
-      const existing: AuditLogEntry[] = [makeEntry({ id: 'e1' }), makeEntry({ id: 'e2' })];
-      const newEntries: AuditLogEntry[] = [makeEntry({ id: 'e3' }), makeEntry({ id: 'e4' })];
-
-      // Act — mirror the state update logic
-      const combined = [...existing, ...newEntries];
-
-      // Assert
-      expect(combined).toHaveLength(4);
-      expect(combined[2].id).toBe('e3');
-    });
   });
 
   describe('timestamp formatting', () => {
-    it('formatTimestamp returns a non-empty string', () => {
-      // Arrange
-      const iso = '2026-02-10T14:30:00Z';
-
-      // Act
-      const result = formatTimestamp(iso);
-
-      // Assert
-      expect(result.length).toBeGreaterThan(0);
-      expect(typeof result).toBe('string');
-    });
-
     it('formatTimestamp includes the year', () => {
       // Arrange
       const iso = '2026-02-10T14:30:00Z';
@@ -267,18 +203,6 @@ describe('audit-log', () => {
   });
 
   describe('action icons', () => {
-    it('getActionIcon returns a non-empty string for known action types', () => {
-      // Arrange
-      const knownActions = ['MemberKick', 'MemberBan', 'MemberUnban', 'ChannelCreate', 'MessageDelete'];
-
-      // Act & Assert
-      for (const action of knownActions) {
-        const icon = getActionIcon(action);
-        expect(typeof icon).toBe('string');
-        expect(icon.length).toBeGreaterThan(0);
-      }
-    });
-
     it('getActionIcon returns a fallback for unknown action types', () => {
       // Act
       const icon = getActionIcon('UnknownAction');

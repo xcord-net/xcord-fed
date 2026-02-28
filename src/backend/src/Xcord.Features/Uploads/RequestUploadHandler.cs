@@ -40,7 +40,6 @@ public sealed class RequestUploadHandler(
         "image/png",
         "image/gif",
         "image/webp",
-        "image/svg+xml",
         // Video
         "video/mp4",
         "video/webm",

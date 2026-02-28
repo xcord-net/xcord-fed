@@ -307,7 +307,7 @@ public class MessageEndpointTests
     // ──────────── Bulk Delete ────────────
 
     [Fact]
-    public async Task BulkDelete_AsOwner_Returns204()
+    public async Task BulkDelete_AsOwner_Returns204AndDeletesMessages()
     {
         var owner = await _helper.RegisterUserAsync();
         var server = await _helper.CreateServerAsync(owner.AccessToken);
@@ -327,11 +327,27 @@ public class MessageEndpointTests
             msg3.GetProperty("id").ReadLong()
         };
 
-        var response = await _helper.AuthPostAsync(
+        var bulkDeleteResponse = await _helper.AuthPostAsync(
             $"/api/v1/conversations/{conversationId}/messages/bulk-delete",
             owner.AccessToken,
             new { messageIds });
 
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        bulkDeleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // Verify the messages are actually gone by re-fetching the conversation
+        var getResponse = await _helper.AuthGetAsync(
+            $"/api/v1/conversations/{conversationId}/messages",
+            owner.AccessToken);
+
+        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await getResponse.ReadAsJsonAsync<JsonElement>();
+        var remaining = body.GetProperty("messages").EnumerateArray().ToList();
+
+        // None of the bulk-deleted message IDs should appear in the response
+        var remainingIds = remaining.Select(m => m.GetProperty("id").ReadLong()).ToHashSet();
+        remainingIds.Should().NotContain(messageIds[0], "bulk-deleted message 1 should be absent");
+        remainingIds.Should().NotContain(messageIds[1], "bulk-deleted message 2 should be absent");
+        remainingIds.Should().NotContain(messageIds[2], "bulk-deleted message 3 should be absent");
     }
 }

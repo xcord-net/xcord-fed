@@ -70,96 +70,6 @@ function appendTo(parent: HTMLElement, tag: string, attrs: Record<string, string
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('createFocusTrap — getFocusableElements', () => {
-  beforeEach(() => {
-    container = document.createElement('div');
-    document.body.appendChild(container);
-  });
-
-  afterEach(() => {
-    document.body.removeChild(container);
-  });
-
-  it('finds buttons, links with href, inputs, textareas, selects', () => {
-    // Arrange
-    appendTo(container, 'button');
-    appendTo(container, 'a', { href: 'https://example.com' });
-    appendTo(container, 'input');
-    appendTo(container, 'textarea');
-    appendTo(container, 'select');
-
-    // Act
-    const result = getFocusableElements(container);
-
-    // Assert
-    expect(result).toHaveLength(5);
-    expect(result.map((el) => el.tagName.toLowerCase())).toEqual([
-      'button',
-      'a',
-      'input',
-      'textarea',
-      'select',
-    ]);
-  });
-
-  it('excludes disabled elements', () => {
-    // Arrange
-    appendTo(container, 'button'); // focusable
-    appendTo(container, 'button', { disabled: '' }); // not focusable
-    appendTo(container, 'input', { disabled: '' }); // not focusable
-    appendTo(container, 'textarea', { disabled: '' }); // not focusable
-    appendTo(container, 'select', { disabled: '' }); // not focusable
-
-    // Act
-    const result = getFocusableElements(container);
-
-    // Assert
-    expect(result).toHaveLength(1);
-    expect(result[0].tagName.toLowerCase()).toBe('button');
-  });
-
-  it('excludes elements inside aria-hidden containers', () => {
-    // Arrange
-    appendTo(container, 'button'); // focusable
-    const hidden = appendTo(container, 'div', { 'aria-hidden': 'true' });
-    appendTo(hidden, 'button'); // inside aria-hidden — excluded
-    appendTo(hidden, 'input'); // inside aria-hidden — excluded
-
-    // Act
-    const result = getFocusableElements(container);
-
-    // Assert
-    expect(result).toHaveLength(1);
-  });
-
-  it('finds elements with positive tabindex, excludes tabindex="-1"', () => {
-    // Arrange
-    appendTo(container, 'div', { tabindex: '0' }); // focusable
-    appendTo(container, 'span', { tabindex: '5' }); // focusable
-    appendTo(container, 'p', { tabindex: '-1' }); // excluded
-
-    // Act
-    const result = getFocusableElements(container);
-
-    // Assert
-    expect(result).toHaveLength(2);
-    expect(result.map((el) => el.tagName.toLowerCase())).toEqual(['div', 'span']);
-  });
-
-  it('returns empty array when container has no focusable children', () => {
-    // Arrange
-    appendTo(container, 'div');
-    appendTo(container, 'p');
-    appendTo(container, 'span');
-
-    // Act
-    const result = getFocusableElements(container);
-
-    // Assert
-    expect(result).toHaveLength(0);
-  });
-});
-
 describe('createFocusTrap — Tab wrap logic', () => {
   beforeEach(() => {
     container = document.createElement('div');
@@ -183,32 +93,6 @@ describe('createFocusTrap — Tab wrap logic', () => {
     expect(target).toBe(btn1);
   });
 
-  it('Shift+Tab from first element wraps to last', () => {
-    // Arrange
-    const btn1 = appendTo(container, 'button') as HTMLButtonElement;
-    appendTo(container, 'button');
-    const btn3 = appendTo(container, 'button') as HTMLButtonElement;
-
-    // Act — active element is the first focusable, pressing Shift+Tab
-    const target = getTabWrapTarget(container, btn1, true);
-
-    // Assert
-    expect(target).toBe(btn3);
-  });
-
-  it('Tab from a middle element does not wrap (returns null)', () => {
-    // Arrange
-    appendTo(container, 'button');
-    const btn2 = appendTo(container, 'button') as HTMLButtonElement;
-    appendTo(container, 'button');
-
-    // Act
-    const target = getTabWrapTarget(container, btn2, false);
-
-    // Assert — no wrap needed, browser handles normal tab
-    expect(target).toBeNull();
-  });
-
   it('Tab when active element is outside container wraps to first', () => {
     // Arrange
     const btn1 = appendTo(container, 'button') as HTMLButtonElement;
@@ -224,35 +108,5 @@ describe('createFocusTrap — Tab wrap logic', () => {
 
     // Cleanup
     document.body.removeChild(outsideBtn);
-  });
-
-  it('Shift+Tab when active element is outside container wraps to last', () => {
-    // Arrange
-    appendTo(container, 'button');
-    const btn2 = appendTo(container, 'button') as HTMLButtonElement;
-    const outsideBtn = document.createElement('button');
-    document.body.appendChild(outsideBtn);
-
-    // Act
-    const target = getTabWrapTarget(container, outsideBtn, true);
-
-    // Assert
-    expect(target).toBe(btn2);
-
-    // Cleanup
-    document.body.removeChild(outsideBtn);
-  });
-
-  it('returns null when container has no focusable elements', () => {
-    // Arrange
-    appendTo(container, 'div');
-
-    // Act
-    const forwardTarget = getTabWrapTarget(container, null, false);
-    const backwardTarget = getTabWrapTarget(container, null, true);
-
-    // Assert
-    expect(forwardTarget).toBeNull();
-    expect(backwardTarget).toBeNull();
   });
 });

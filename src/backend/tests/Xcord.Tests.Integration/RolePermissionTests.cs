@@ -309,8 +309,20 @@ public class RolePermissionTests
             owner.AccessToken
         );
 
-        // Assert
+        // Assert - 204 returned
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // Verify the role assignment persisted by fetching the member and checking their role list
+        var memberResponse = await _helper.AuthGetAsync(
+            $"/api/v1/servers/{serverId}/members/{member.UserId}",
+            owner.AccessToken
+        );
+        memberResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var memberData = await memberResponse.ReadAsJsonAsync<JsonElement>();
+        var roleIds = memberData.GetProperty("roleIds").EnumerateArray()
+            .Select(e => e.ValueKind == JsonValueKind.String ? long.Parse(e.GetString()!) : e.GetInt64())
+            .ToList();
+        roleIds.Should().Contain(roleId, "the assigned role should appear in the member's role list");
     }
 
     [Fact]
@@ -381,8 +393,20 @@ public class RolePermissionTests
             owner.AccessToken
         );
 
-        // Assert
+        // Assert - 204 returned
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // Verify the role removal persisted by fetching the member and confirming the role is gone
+        var memberResponse = await _helper.AuthGetAsync(
+            $"/api/v1/servers/{serverId}/members/{member.UserId}",
+            owner.AccessToken
+        );
+        memberResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var memberData = await memberResponse.ReadAsJsonAsync<JsonElement>();
+        var roleIds = memberData.GetProperty("roleIds").EnumerateArray()
+            .Select(e => e.ValueKind == JsonValueKind.String ? long.Parse(e.GetString()!) : e.GetInt64())
+            .ToList();
+        roleIds.Should().NotContain(roleId, "the removed role should no longer appear in the member's role list");
     }
 
     [Fact]

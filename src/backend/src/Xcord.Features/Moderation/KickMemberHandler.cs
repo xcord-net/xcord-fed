@@ -98,6 +98,15 @@ public sealed class KickMemberHandler(
             return Error.Validation("CANNOT_KICK_OWNER", "You cannot kick the server owner");
         }
 
+        // Role hierarchy check: cannot kick a user with equal or higher role position
+        var moderatorHighest = await permissionService.GetHighestRolePosition(moderatorId, request.ServerId);
+        var targetHighest = await permissionService.GetHighestRolePosition(request.UserId, request.ServerId);
+        if (moderatorHighest != int.MaxValue && targetHighest >= moderatorHighest)
+        {
+            return Error.Forbidden("ROLE_HIERARCHY",
+                "You cannot kick a member with an equal or higher role position");
+        }
+
         var now = DateTimeOffset.UtcNow;
 
         // Remove server member

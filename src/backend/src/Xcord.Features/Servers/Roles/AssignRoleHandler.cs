@@ -42,13 +42,35 @@ public sealed class AssignRoleHandler(
         }
 
         // Verify role exists and belongs to the server
-        var roleExists = await dbContext.Roles
+        var role = await dbContext.Roles
             .AsNoTracking()
-            .AnyAsync(r => r.Id == request.RoleId && r.ServerId == request.ServerId, cancellationToken);
+            .FirstOrDefaultAsync(r => r.Id == request.RoleId && r.ServerId == request.ServerId, cancellationToken);
 
-        if (!roleExists)
+        if (role == null)
         {
             return Error.NotFound("ROLE_NOT_FOUND", "Role not found");
+        }
+
+        // Role hierarchy check: caller cannot assign roles at or above their level
+        var callerPermissions = await permissionService.GetServerPermissions(userId, request.ServerId);
+        if (callerPermissions != long.MaxValue) // Owner bypasses all checks
+        {
+            var callerHighestPosition = await permissionService.GetHighestRolePosition(userId, request.ServerId);
+
+            // Cannot assign a role at or above caller's highest position
+            if (role.Position >= callerHighestPosition)
+            {
+                return Error.Forbidden("ROLE_HIERARCHY",
+                    "You cannot assign a role at or above your highest role position");
+            }
+
+            // Cannot assign a role with permissions the caller doesn't have
+            var escalatedBits = role.Permissions & ~callerPermissions;
+            if (escalatedBits != 0)
+            {
+                return Error.Forbidden("PERMISSION_ESCALATION",
+                    "You cannot assign a role with permissions you do not have");
+            }
         }
 
         // Verify target user is a member of the server

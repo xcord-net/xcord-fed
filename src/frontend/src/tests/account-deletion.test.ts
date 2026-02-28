@@ -33,8 +33,14 @@ describe('account-deletion', () => {
     it('should display formatted deletion date when deletion is pending', () => {
       const scheduledDeletionAt = '2026-03-04T12:00:00Z';
       const formatted = formatDeletionDate(scheduledDeletionAt);
-      expect(formatted.length).toBeGreaterThan(0);
+      // Must be a human-readable date — not a raw ISO string and not empty.
+      // A locale-formatted date will contain a month name (e.g. "March") or
+      // abbreviated month (e.g. "Mar") and must NOT look like an ISO timestamp.
+      expect(formatted).not.toBe('');
+      expect(formatted).not.toMatch(/^\d{4}-\d{2}-\d{2}T/); // reject raw ISO
+      // Locale date should contain the year and some month representation
       expect(formatted).toContain('2026');
+      expect(formatted).toMatch(/[A-Za-z]/); // at least one letter (month name / abbreviation)
     });
   });
 
@@ -84,15 +90,19 @@ describe('account-deletion', () => {
 
     it('should return generic error when API returns no message', async () => {
       api.setAuthenticated(true);
+      // Simulate a server error response with no parseable JSON body (e.g. empty 500 response).
+      // The client's .catch(() => ({ error: 'Request failed' })) fallback must activate
+      // so the rejection always carries a non-empty error string.
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: false,
         status: 500,
-        json: async () => ({}),
+        json: async () => { throw new SyntaxError('No body'); },
       });
 
+      // The rejection must carry a fallback error string so the UI can display something.
       await expect(
         api.post('/api/v1/users/@me/delete', { password: 'mypassword123' })
-      ).rejects.toBeDefined();
+      ).rejects.toMatchObject({ error: expect.any(String) });
     });
   });
 

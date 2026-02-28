@@ -3,7 +3,10 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using StackExchange.Redis;
 using System.Text.RegularExpressions;
+using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
 
 using Xcord.Infrastructure.Data;
@@ -15,9 +18,14 @@ public sealed record ConfirmEmailRequest(
     string Code
 );
 
-public sealed partial class ConfirmEmailHandler(AppDbContext dbContext)
+public sealed partial class ConfirmEmailHandler(
+    AppDbContext dbContext,
+    IConnectionMultiplexer redis,
+    IOptions<RedisOptions> redisOptions)
     : IRequestHandler<ConfirmEmailRequest, Result<bool>>, IValidatable<ConfirmEmailRequest>
 {
+    private const int MaxAttempts = 5;
+    private static readonly TimeSpan AttemptWindow = TimeSpan.FromMinutes(15);
     public Error? Validate(ConfirmEmailRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Code))
@@ -31,12 +39,26 @@ public sealed partial class ConfirmEmailHandler(AppDbContext dbContext)
 
     public async Task<Result<bool>> Handle(ConfirmEmailRequest request, CancellationToken cancellationToken)
     {
+        // Rate-limit confirmation attempts per user
+        var attemptKey = $"{redisOptions.Value.ChannelPrefix}:email-confirm-attempts:{request.UserId}";
+        var db = redis.GetDatabase();
+        var currentCount = (long?)await db.StringGetAsync(attemptKey);
+        if (currentCount >= MaxAttempts)
+        {
+            var ttl = await db.KeyTimeToLiveAsync(attemptKey);
+            var retryAfter = ttl.HasValue ? (int)Math.Ceiling(ttl.Value.TotalSeconds) : (int)AttemptWindow.TotalSeconds;
+            return Error.RateLimited("CONFIRM_EMAIL_RATE_LIMITED", retryAfter.ToString());
+        }
+
         // Find the confirmation token
         var token = await dbContext.EmailConfirmationTokens
             .FirstOrDefaultAsync(t => t.UserId == request.UserId && t.Code == request.Code, cancellationToken);
 
         if (token == null)
         {
+            // Increment attempt counter on failure
+            var count = await db.StringIncrementAsync(attemptKey);
+            if (count == 1) await db.KeyExpireAsync(attemptKey, AttemptWindow);
             return Error.Validation("INVALID_CODE", "Invalid confirmation code");
         }
 

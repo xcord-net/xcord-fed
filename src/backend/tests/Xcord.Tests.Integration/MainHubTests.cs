@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using System.Threading;
 using FluentAssertions;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -53,29 +54,42 @@ public class MainHubTests
     [Fact]
     public async Task Disconnect_CleansUpVoiceState()
     {
-        var (_, conversationId, token, user) = await SetupServerWithChannelAndUser();
+        var (serverId, _, token, user) = await SetupServerWithChannelAndUser();
 
-        // Get the channel to find channelId for voice
-        await using var db = _fixture.CreateDbContext();
-        var channel = await db.Channels.AsNoTracking()
-            .FirstAsync(c => c.ConversationId == conversationId);
+        // Create a voice channel so we have something to join
+        var voiceChannel = await _helper.CreateChannelAsync(token, serverId, name: "voice-disconnect", type: 1);
+        var voiceChannelId = voiceChannel.GetProperty("id").ReadLong();
 
         var connection = CreateHubConnection(token);
         try
         {
             await connection.StartAsync().WaitAsync(TimeSpan.FromSeconds(2));
 
-            // Join conversation first
-            await connection.InvokeAsync("JoinConversation", conversationId)
+            // Join the voice channel — this creates a VoiceState row in the DB
+            await connection.InvokeAsync<JsonElement>("JoinVoiceChannel", voiceChannelId)
                 .WaitAsync(TimeSpan.FromSeconds(5));
+
+            // Verify voice state was created before disconnecting
+            await using var dbBefore = _fixture.CreateDbContext();
+            var voiceStateBefore = await dbBefore.VoiceStates
+                .AsNoTracking()
+                .FirstOrDefaultAsync(vs => vs.ChannelId == voiceChannelId && vs.UserId == user.UserId);
+            voiceStateBefore.Should().NotBeNull("voice state should be created when joining a voice channel");
         }
         finally
         {
             await connection.DisposeAsync();
         }
 
-        // After disconnect, connection should be closed
-        connection.State.Should().Be(HubConnectionState.Disconnected);
+        // Give the server a moment to process the disconnect cleanup
+        await Task.Delay(500);
+
+        // After disconnect, voice state should be removed from the DB
+        await using var dbAfter = _fixture.CreateDbContext();
+        var voiceStateAfter = await dbAfter.VoiceStates
+            .AsNoTracking()
+            .FirstOrDefaultAsync(vs => vs.ChannelId == voiceChannelId && vs.UserId == user.UserId);
+        voiceStateAfter.Should().BeNull("voice state should be removed when the connection disconnects");
     }
 
     // ──────────── Conversation Join/Leave ────────────
@@ -182,26 +196,60 @@ public class MainHubTests
     [Fact]
     public async Task StartTyping_RateLimited_SecondCallWithinWindowIsThrottled()
     {
-        var (_, conversationId, token, _) = await SetupServerWithChannelAndUser();
+        // Set up two users: one to send typing events, one to observe broadcasts
+        var owner = await _helper.RegisterUserAsync();
+        var member = await _helper.RegisterUserAsync();
+        var server = await _helper.CreateServerAsync(owner.AccessToken);
+        var serverId = server.GetProperty("id").ReadLong();
+        var channel = await _helper.CreateChannelAsync(owner.AccessToken, serverId);
+        var conversationId = channel.GetProperty("conversationId").ReadLong();
 
-        var connection = CreateHubConnection(token);
+        var inviteCode = await _helper.CreateInviteAsync(owner.AccessToken, serverId);
+        await _helper.JoinServerAsync(member.AccessToken, inviteCode);
+
+        var senderConn = CreateHubConnection(member.AccessToken);
+        var observerConn = CreateHubConnection(owner.AccessToken);
+
         try
         {
-            await connection.StartAsync().WaitAsync(TimeSpan.FromSeconds(2));
-            await connection.InvokeAsync("JoinConversation", conversationId)
+            await Task.WhenAll(
+                senderConn.StartAsync().WaitAsync(TimeSpan.FromSeconds(2)),
+                observerConn.StartAsync().WaitAsync(TimeSpan.FromSeconds(2))
+            );
+
+            await Task.WhenAll(
+                senderConn.InvokeAsync("JoinConversation", conversationId).WaitAsync(TimeSpan.FromSeconds(5)),
+                observerConn.InvokeAsync("JoinConversation", conversationId).WaitAsync(TimeSpan.FromSeconds(5))
+            );
+
+            // Count how many Chat_TypingStarted events the observer receives
+            var broadcastCount = 0;
+            observerConn.On<JsonElement>("Chat_TypingStarted", _ =>
+            {
+                Interlocked.Increment(ref broadcastCount);
+            });
+
+            // First typing call — should broadcast
+            await senderConn.InvokeAsync("StartTyping", conversationId)
                 .WaitAsync(TimeSpan.FromSeconds(5));
 
-            // First typing call should succeed (no exception)
-            await connection.InvokeAsync("StartTyping", conversationId)
+            // Wait briefly for the first broadcast to arrive
+            await Task.Delay(200);
+
+            // Second call within the rate limit window — should be throttled (no additional broadcast)
+            await senderConn.InvokeAsync("StartTyping", conversationId)
                 .WaitAsync(TimeSpan.FromSeconds(5));
 
-            // Second call within rate limit window should also "succeed" (it's throttled silently, not errored)
-            await connection.InvokeAsync("StartTyping", conversationId)
-                .WaitAsync(TimeSpan.FromSeconds(5));
+            // Wait to ensure any throttled broadcast would have arrived
+            await Task.Delay(300);
+
+            // Only the first call should have produced a broadcast; the second should have been suppressed
+            broadcastCount.Should().Be(1, "the second StartTyping within the rate limit window should be throttled and not broadcast");
         }
         finally
         {
-            await connection.DisposeAsync();
+            await senderConn.DisposeAsync();
+            await observerConn.DisposeAsync();
         }
     }
 

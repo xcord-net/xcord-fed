@@ -45,7 +45,11 @@ public sealed class KeyWrappingTests
     [Fact]
     public void IsWrapped_ReturnsFalseForPlaintextBase64()
     {
-        var dek = GenerateKey();
+        // Use a deterministic key whose first byte is NOT 0x02 (the wrapped version marker).
+        // A random key has a 1/256 chance of starting with 0x02, making the test flaky.
+        var dek = new byte[32];
+        dek[0] = 0x00;
+        for (var i = 1; i < dek.Length; i++) dek[i] = (byte)i;
         var base64 = Convert.ToBase64String(dek);
 
         KeyWrappingService.IsWrappedBase64(base64).Should().BeFalse();

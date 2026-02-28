@@ -113,30 +113,6 @@ describe('RoleManager', () => {
       expect(result.name).toBe('New Role');
     });
 
-    it('adds created role to the list', async () => {
-      // Arrange
-      const existingRoles: Role[] = [
-        { id: 'role-1', serverId: 'srv-1', name: 'Admin', color: '#fff', permissions: 1, position: 0, isHoisted: false, isMentionable: false },
-      ];
-      const newRole: Role = {
-        id: 'role-2',
-        serverId: 'srv-1',
-        name: 'Member',
-        color: '#5865f2',
-        permissions: 0,
-        position: 1,
-        isHoisted: false,
-        isMentionable: false,
-      };
-
-      // Act — simulate adding new role to state
-      const updatedRoles = [...existingRoles, newRole];
-
-      // Assert
-      expect(updatedRoles).toHaveLength(2);
-      expect(updatedRoles[1].name).toBe('Member');
-    });
-
     it('throws when POST fails', async () => {
       // Arrange
       globalThis.fetch = vi.fn().mockResolvedValue({
@@ -149,40 +125,6 @@ describe('RoleManager', () => {
       await expect(
         api.post('/api/v1/servers/srv-x/roles', { name: 'Fail' })
       ).rejects.toMatchObject({ detail: 'Missing Manage Roles permission' });
-    });
-  });
-
-  describe('color picker', () => {
-    it('preset colors are valid hex values', () => {
-      // Arrange
-      const presetColors = [
-        '#5865f2', '#57f287', '#fee75c', '#eb459e', '#ed4245',
-        '#3498db', '#2ecc71', '#e67e22', '#9b59b6', '#1abc9c',
-        '#e74c3c', '#f39c12', '#95a5a6', '#ffffff', '#000000',
-      ];
-
-      // Assert
-      for (const color of presetColors) {
-        expect(color).toMatch(/^#[0-9a-fA-F]{6}$/);
-      }
-    });
-
-    it('hex input accepts valid hex color', () => {
-      // Arrange
-      const validHex = '#ff5500';
-      const hexPattern = /^#[0-9a-fA-F]{0,6}$/;
-
-      // Act & Assert
-      expect(hexPattern.test(validHex)).toBe(true);
-    });
-
-    it('hex input rejects non-hex characters', () => {
-      // Arrange
-      const invalidHex = '#gggggg';
-      const hexPattern = /^#[0-9a-fA-F]{0,6}$/;
-
-      // Act & Assert
-      expect(hexPattern.test(invalidHex)).toBe(false);
     });
   });
 
@@ -276,22 +218,6 @@ describe('RoleManager', () => {
         `/api/v1/servers/${serverId}/roles/${roleId}`,
         expect.objectContaining({ method: 'DELETE' })
       );
-    });
-
-    it('removes deleted role from list', () => {
-      // Arrange
-      const roles: Role[] = [
-        { id: 'role-1', serverId: 'srv-1', name: 'Admin', color: '#fff', permissions: 1, position: 0, isHoisted: false, isMentionable: false },
-        { id: 'role-2', serverId: 'srv-1', name: 'Mod', color: '#aaa', permissions: 0, position: 1, isHoisted: false, isMentionable: false },
-      ];
-      const deletedId = 'role-1';
-
-      // Act — simulate state update after delete
-      const updatedRoles = roles.filter((r) => r.id !== deletedId);
-
-      // Assert
-      expect(updatedRoles).toHaveLength(1);
-      expect(updatedRoles[0].id).toBe('role-2');
     });
 
     it('throws when DELETE fails', async () => {

@@ -3,12 +3,6 @@ import { api } from '../api/client';
 import type { VanityUrlInfo } from '../components/VanityInvite';
 import { validateVanitySlug, buildVanityUrl } from '../components/VanityInvite';
 
-// ---- Pure logic helpers mirrored from VanityInvite ----
-
-function isSlugValid(slug: string): boolean {
-  return validateVanitySlug(slug) === null;
-}
-
 // ---- Test data ----
 
 const makeVanityInfo = (overrides: Partial<VanityUrlInfo> = {}): VanityUrlInfo => ({
@@ -129,28 +123,11 @@ describe('VanityInvite', () => {
       expect(url).toBe('/invite/my-server');
     });
 
-    it('includes the slug verbatim in the URL', () => {
-      // Act
-      const url = buildVanityUrl('gaming-hub');
-
-      // Assert
-      expect(url).toContain('gaming-hub');
-    });
   });
 
   // ---- VanityUrlInfo shape ----
 
   describe('VanityUrlInfo data shape', () => {
-    it('has a serverId, slug, and vanityUrl', () => {
-      // Arrange
-      const info = makeVanityInfo();
-
-      // Assert
-      expect(info.serverId).toBe('srv-1');
-      expect(info.slug).toBe('my-server');
-      expect(info.vanityUrl).toBe('/invite/my-server');
-    });
-
     it('slug can be null when no vanity URL is set', () => {
       // Arrange
       const info = makeVanityInfo({ slug: null, vanityUrl: null });
@@ -191,39 +168,6 @@ describe('VanityInvite', () => {
       expect(result.slug).toBe('new-slug');
     });
 
-    it('PUT response contains updated vanityUrl', async () => {
-      // Arrange
-      const updatedInfo = makeVanityInfo({ slug: 'updated', vanityUrl: '/invite/updated' });
-
-      globalThis.fetch = vi.fn().mockResolvedValueOnce({
-        ok: true,
-        json: async () => updatedInfo,
-      });
-
-      // Act
-      const result = await api.put<VanityUrlInfo>(
-        '/api/v1/servers/srv-1/vanity-url',
-        { slug: 'updated' },
-      );
-
-      // Assert
-      expect(result.vanityUrl).toBe('/invite/updated');
-    });
   });
 
-  // ---- isSlugValid helper ----
-
-  describe('isSlugValid convenience helper', () => {
-    it('returns true for a valid slug', () => {
-      expect(isSlugValid('valid-slug')).toBe(true);
-    });
-
-    it('returns false for an invalid slug', () => {
-      expect(isSlugValid('')).toBe(false);
-    });
-
-    it('returns false for slug with spaces', () => {
-      expect(isSlugValid('invalid slug')).toBe(false);
-    });
-  });
 });

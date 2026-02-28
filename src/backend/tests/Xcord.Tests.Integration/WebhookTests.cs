@@ -183,6 +183,11 @@ public class WebhookTests
 
         var executeBody = await executeResponse.ReadAsJsonAsync<JsonElement>();
         executeBody.GetProperty("content").GetString().Should().Be("Message with overrides");
+
+        // Verify the message was created with the correct content (username/avatarUrl
+        // overrides are stored in message metadata, not the top-level response)
+        executeBody.GetProperty("messageId").ValueKind.Should().NotBe(JsonValueKind.Null,
+            "webhook execution should return the created message ID");
     }
 
     [Fact]

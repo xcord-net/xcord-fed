@@ -19,4 +19,7 @@ public sealed class RateLimitingOptions
 
     /// <summary>Max password-reset requests per minute per IP (default 3).</summary>
     public int AuthForgotPasswordPermitLimit { get; set; } = 3;
+
+    /// <summary>Max auth requests (login, reset-password) per minute per IP (default 10).</summary>
+    public int AuthPermitLimit { get; set; } = 10;
 }

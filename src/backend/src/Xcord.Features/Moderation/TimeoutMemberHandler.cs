@@ -100,6 +100,23 @@ public sealed class TimeoutMemberHandler(
             return Error.Validation("CANNOT_TIMEOUT_SELF", "You cannot timeout yourself");
         }
 
+        // Cannot timeout the server owner
+        var server = await dbContext.Servers.AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == request.ServerId, cancellationToken);
+        if (server != null && server.OwnerId == request.UserId)
+        {
+            return Error.Validation("CANNOT_TIMEOUT_OWNER", "You cannot timeout the server owner");
+        }
+
+        // Role hierarchy check: cannot timeout a user with equal or higher role position
+        var moderatorHighest = await permissionService.GetHighestRolePosition(moderatorId, request.ServerId);
+        var targetHighest = await permissionService.GetHighestRolePosition(request.UserId, request.ServerId);
+        if (moderatorHighest != int.MaxValue && targetHighest >= moderatorHighest)
+        {
+            return Error.Forbidden("ROLE_HIERARCHY",
+                "You cannot timeout a member with an equal or higher role position");
+        }
+
         var now = DateTimeOffset.UtcNow;
         var expiresAt = now.AddMinutes(request.DurationMinutes);
 

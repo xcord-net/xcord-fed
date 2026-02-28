@@ -105,6 +105,38 @@ public sealed class UpdateRoleHandler(
             return Error.NotFound("ROLE_NOT_FOUND", "Role not found");
         }
 
+        // Role hierarchy check: caller cannot modify roles above their level
+        var callerPermissions = await permissionService.GetServerPermissions(userId, request.ServerId);
+        if (callerPermissions != long.MaxValue) // Owner bypasses all checks
+        {
+            var callerHighestPosition = await permissionService.GetHighestRolePosition(userId, request.ServerId);
+
+            // Cannot modify a role at or above caller's highest position
+            if (role.Position >= callerHighestPosition)
+            {
+                return Error.Forbidden("ROLE_HIERARCHY",
+                    "You cannot modify a role at or above your highest role position");
+            }
+
+            // Cannot grant permissions the caller doesn't possess
+            if (request.Permissions.HasValue)
+            {
+                var escalatedBits = request.Permissions.Value & ~callerPermissions;
+                if (escalatedBits != 0)
+                {
+                    return Error.Forbidden("PERMISSION_ESCALATION",
+                        "You cannot add permissions to a role that you do not have");
+                }
+            }
+
+            // Cannot move role to a position at or above caller's highest
+            if (request.Position.HasValue && request.Position.Value >= callerHighestPosition)
+            {
+                return Error.Forbidden("ROLE_HIERARCHY",
+                    "You cannot move a role to a position at or above your highest role position");
+            }
+        }
+
         // Update fields if provided
         if (request.Name != null)
         {

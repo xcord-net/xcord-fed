@@ -22,6 +22,40 @@ export function validateAvatarFile(file: { type: string; size: number }): string
   return null;
 }
 
+/**
+ * Executes the full avatar upload flow:
+ *   1. POST /api/v1/uploads to obtain a presigned URL
+ *   2. PUT to the presigned URL (via the provided xhrFactory)
+ *   3. POST /api/v1/attachments/{id}/confirm to finalise the attachment
+ *   4. PUT /api/v1/users/@me to update the user's avatar URL
+ *
+ * Returns the confirmed CDN URL for the new avatar.
+ * Exported for direct unit-testing of each step.
+ */
+export async function uploadAvatar(
+  file: { name: string; type: string; size: number },
+  xhrFactory: (uploadUrl: string) => Promise<void>,
+): Promise<string> {
+  // Step 1: request presigned URL
+  const { attachmentId, uploadUrl } = await api.post<UploadInitResponse>('/api/v1/uploads', {
+    fileName: file.name,
+    contentType: file.type,
+    fileSize: file.size,
+  });
+
+  // Step 2: PUT to presigned URL
+  await xhrFactory(uploadUrl);
+
+  // Step 3: confirm upload
+  const confirmed = await api.post<{ url: string }>(`/api/v1/attachments/${attachmentId}/confirm`, {});
+  const avatarUrl = confirmed.url ?? uploadUrl;
+
+  // Step 4: update profile
+  await api.put<UserProfile>('/api/v1/users/@me', { avatarUrl });
+
+  return avatarUrl;
+}
+
 // ---- Component ----
 
 export default function AvatarUpload(props: AvatarUploadProps) {
@@ -78,38 +112,29 @@ export default function AvatarUpload(props: AvatarUploadProps) {
       const dataUrl = await readPreview(file);
       setPreview(dataUrl);
 
-      // Step 1: request presigned URL
-      const { attachmentId, uploadUrl } = await api.post<UploadInitResponse>('/api/v1/uploads', {
-        fileName: file.name,
-        contentType: file.type,
-        fileSize: file.size,
-      });
-
-      // Step 2: PUT to presigned URL with progress
-      await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.upload.addEventListener('progress', (ev) => {
-          if (ev.lengthComputable) {
-            setUploadProgress(Math.round((ev.loaded / ev.total) * 100));
-          }
+      // XHR factory with upload-progress tracking wired to component state
+      const xhrFactory = (uploadUrl: string): Promise<void> =>
+        new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.upload.addEventListener('progress', (ev) => {
+            if (ev.lengthComputable) {
+              setUploadProgress(Math.round((ev.loaded / ev.total) * 100));
+            }
+          });
+          xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) resolve();
+            else reject(new Error(`Upload failed with status ${xhr.status}`));
+          });
+          xhr.addEventListener('error', () => reject(new Error('Upload network error')));
+          xhr.open('PUT', uploadUrl);
+          xhr.setRequestHeader('Content-Type', file.type);
+          xhr.send(file);
         });
-        xhr.addEventListener('load', () => {
-          if (xhr.status >= 200 && xhr.status < 300) resolve();
-          else reject(new Error(`Upload failed with status ${xhr.status}`));
-        });
-        xhr.addEventListener('error', () => reject(new Error('Upload network error')));
-        xhr.open('PUT', uploadUrl);
-        xhr.setRequestHeader('Content-Type', file.type);
-        xhr.send(file);
-      });
 
-      // Step 3: confirm upload
-      const confirmed = await api.post<{ url: string }>(`/api/v1/attachments/${attachmentId}/confirm`, {});
-      const avatarUrl = confirmed.url ?? uploadUrl;
+      const avatarUrl = await uploadAvatar(file, xhrFactory);
 
-      // Step 4: update user profile with new avatar URL
-      const updated = await api.put<UserProfile>('/api/v1/users/@me', { avatarUrl });
-      props.onUpdated?.(updated);
+      // Notify the parent with the updated profile (new avatar URL merged into existing profile)
+      props.onUpdated?.({ ...props.profile, avatarUrl });
       setSuccess('Avatar updated successfully.');
     } catch (err) {
       console.error('Avatar upload failed:', err);

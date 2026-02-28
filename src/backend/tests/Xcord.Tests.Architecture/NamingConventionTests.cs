@@ -75,26 +75,6 @@ public sealed class NamingConventionTests
     }
 
     [Fact]
-    public void Handlers_ShouldNotBeAbstract()
-    {
-        // Arrange
-        var assembly = typeof(Xcord.Features.FeaturesAssemblyMarker).Assembly;
-
-        // Act
-        var result = Types.InAssembly(assembly)
-            .That()
-            .ResideInNamespace(FeaturesNamespace)
-            .And()
-            .HaveNameEndingWith("Handler")
-            .Should()
-            .NotBeAbstract()
-            .GetResult();
-
-        // Assert
-        result.IsSuccessful.Should().BeTrue();
-    }
-
-    [Fact]
     public void Handlers_ShouldBeSealed()
     {
         // Arrange

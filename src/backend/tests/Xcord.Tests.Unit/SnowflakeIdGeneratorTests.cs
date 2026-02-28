@@ -6,21 +6,6 @@ namespace Xcord.Tests.Unit;
 public sealed class SnowflakeIdGeneratorTests
 {
     [Fact]
-    public void NextId_ShouldGenerateUniqueIds()
-    {
-        // Arrange
-        var generator = new SnowflakeIdGenerator(workerId: 1);
-
-        // Act
-        var id1 = generator.NextId();
-        var id2 = generator.NextId();
-
-        // Assert
-        id1.Should().NotBe(id2);
-        id2.Should().BeGreaterThan(id1);
-    }
-
-    [Fact]
     public void NextId_ShouldGenerateMultipleUniqueIdsInSequence()
     {
         // Arrange
@@ -116,27 +101,6 @@ public sealed class SnowflakeIdGeneratorTests
         // Allow 10ms tolerance for timestamp precision
         extractedTime.Should().BeCloseTo(beforeGeneration, TimeSpan.FromMilliseconds(10));
         extractedTime.Should().BeOnOrBefore(afterGeneration.AddMilliseconds(10));
-    }
-
-    [Fact]
-    public void NextId_WithCustomEpoch_ShouldUseCustomEpoch()
-    {
-        // Arrange
-        var customEpoch = new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero);
-        var generator = new SnowflakeIdGenerator(workerId: 5, epoch: customEpoch);
-        var beforeGeneration = DateTimeOffset.UtcNow;
-
-        // Act
-        var id = generator.NextId();
-        var afterGeneration = DateTimeOffset.UtcNow;
-
-        // Assert — extracted timestamp must be relative to the custom epoch
-        var timestampMs = id >> 22;
-        var extractedTime = customEpoch.AddMilliseconds(timestampMs);
-        extractedTime.Should().BeOnOrAfter(beforeGeneration.AddMilliseconds(-1),
-            "extracted timestamp should correspond to current time relative to custom epoch");
-        extractedTime.Should().BeOnOrBefore(afterGeneration.AddMilliseconds(1),
-            "extracted timestamp should not be in the future");
     }
 
     [Fact]

@@ -207,8 +207,10 @@ describe('ServerInsights', () => {
       // Act
       const result = formatInsightsDate('2026-01-15T00:00:00Z');
 
-      // Assert
-      expect(result.length).toBeGreaterThan(0);
+      // Assert — must include the abbreviated month name and day number so chart axes are readable
+      expect(result).toMatch(/Jan/i);
+      expect(result).toMatch(/15/);
+      expect(result).not.toContain('Invalid');
     });
 
     it('includes the day of month in the output', () => {
@@ -220,34 +222,4 @@ describe('ServerInsights', () => {
     });
   });
 
-  // ---- Channel activity ----
-
-  describe('popular channels data', () => {
-    it('channels have channelName and messageCount', () => {
-      // Arrange
-      const data = makeInsightsData();
-
-      // Assert
-      for (const ch of data.popularChannels) {
-        expect(typeof ch.channelName).toBe('string');
-        expect(typeof ch.messageCount).toBe('number');
-      }
-    });
-
-    it('channels can be sorted by messageCount descending', () => {
-      // Arrange
-      const channels: ChannelActivity[] = [
-        makeChannelActivity({ messageCount: 50 }),
-        makeChannelActivity({ messageCount: 200 }),
-        makeChannelActivity({ messageCount: 10 }),
-      ];
-
-      // Act
-      const sorted = [...channels].sort((a, b) => b.messageCount - a.messageCount);
-
-      // Assert
-      expect(sorted[0].messageCount).toBe(200);
-      expect(sorted[2].messageCount).toBe(10);
-    });
-  });
 });

@@ -412,6 +412,14 @@ public class BotInteractionTests
         outboxEvent.Should().NotBeNull();
         outboxEvent!.Payload.Should().Contain("argsJson",
             "outbox payload should include the args field");
+        // argsJson is stored as an escaped JSON string inside the payload,
+        // so keys like "user" appear as \"user\" — check for the unquoted values
+        outboxEvent.Payload.Should().Contain("user",
+            "outbox payload should preserve the user argument key");
+        outboxEvent.Payload.Should().Contain("12345",
+            "outbox payload should preserve the user argument value");
+        outboxEvent.Payload.Should().Contain("hello",
+            "outbox payload should preserve the message argument value");
     }
 
     [Fact]
@@ -533,23 +541,23 @@ public class BotInteractionTests
     // ──────────── Interaction Callback ────────────
 
     [Fact]
-    public async Task InteractionCallback_DeferredChannelMessage_ReturnsDeferred()
+    public async Task InteractionCallback_AuthenticatedBot_MissingToken_Returns404()
     {
         // The interaction callback endpoint requires a valid Redis-backed interaction token.
-        // Since creating a real interaction token requires triggering the outbox pipeline
-        // (which is disabled in tests), we verify the endpoint rejects an invalid token
-        // with a 404, confirming the route and authentication work correctly.
+        // Seeding a real token requires triggering the outbox pipeline (disabled in tests).
+        // This test proves: (1) an authenticated bot reaches the endpoint, and (2) a missing
+        // or expired interaction token produces a clean 404 (not a 500 or auth failure).
         var ctx = await SetupBotContextAsync();
 
-        // POST to the callback endpoint — token does not exist in Redis yet
+        // POST to the callback endpoint with a token that does not exist in Redis
         var response = await BotPostAsync(
             "/api/v1/interactions/nonexistent-token/callback",
             ctx.BotRawToken,
             new { type = 2, content = (string?)null }); // DeferredChannelMessage = 2
 
-        // 404 means: bot is authenticated, endpoint reached, token not in Redis
+        // 404 means: bot is authenticated, endpoint reached, token not found in Redis
         response.StatusCode.Should().Be(HttpStatusCode.NotFound,
-            "a valid bot using a non-existent interaction token should get 404 (token expired/missing)");
+            "an authenticated bot posting to a non-existent interaction token should get 404");
     }
 
     [Fact]

@@ -324,6 +324,35 @@ public sealed class PermissionService : IPermissionService
     }
 
     /// <inheritdoc />
+    public async Task<int> GetHighestRolePosition(long userId, long serverId)
+    {
+        // Server owner outranks everyone
+        var server = await _dbContext.Servers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == serverId);
+
+        if (server == null) return 0;
+        if (server.OwnerId == userId) return int.MaxValue;
+
+        // Get the user's assigned role IDs
+        var memberRoleIds = await _dbContext.MemberRoles
+            .AsNoTracking()
+            .Where(mr => mr.UserId == userId && mr.ServerId == serverId)
+            .Select(mr => mr.RoleId)
+            .ToListAsync();
+
+        if (memberRoleIds.Count == 0) return 0;
+
+        // Get the highest position among the user's roles
+        var highestPosition = await _dbContext.Roles
+            .AsNoTracking()
+            .Where(r => memberRoleIds.Contains(r.Id))
+            .MaxAsync(r => (int?)r.Position) ?? 0;
+
+        return highestPosition;
+    }
+
+    /// <inheritdoc />
     public async Task InvalidateUserPermissionsAsync(long userId, long serverId, CancellationToken cancellationToken = default)
     {
         try

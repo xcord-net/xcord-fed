@@ -8,15 +8,36 @@ interface ChannelSettingsPayload {
   isNsfw: boolean;
 }
 
+/**
+ * Build the payload that ChannelSettings.handleSave() sends via api.patch.
+ * Mirrors the component's exact logic:
+ *   topic: topic().trim() || null
+ *   slowModeSeconds: slowMode()          (already a number from parseInt)
+ *   isNsfw: isNsfw()
+ */
+function buildChannelSettingsPayload(
+  name: string,
+  topic: string,
+  slowModeSeconds: number,
+  isNsfw: boolean
+): ChannelSettingsPayload {
+  return {
+    name: name.trim(),
+    topic: topic.trim() || null,
+    slowModeSeconds,
+    isNsfw,
+  };
+}
+
 describe('ChannelSettings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    api.setAuthenticated(true);
   });
 
   describe('slowmode dropdown', () => {
     it('slowmode value is sent as integer in API payload', async () => {
-      const serverId = 'srv-1';
       const channelId = 'ch-5';
       const slowMode = 60;
 
@@ -26,15 +47,17 @@ describe('ChannelSettings', () => {
         json: async () => ({ id: channelId }),
       });
 
-      await api.put(`/api/v1/servers/${serverId}/channels/${channelId}`, {
-        name: 'test',
-        slowModeSeconds: slowMode,
-        isNsfw: false,
-      });
+      // Build payload using the same logic as the component's handleSave
+      const payload = buildChannelSettingsPayload('test', '', slowMode, false);
+
+      await api.patch(`/api/v1/channels/${channelId}`, payload);
 
       const body = JSON.parse(
         (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][1].body
       );
+      // The slowModeSeconds value must be a number, not a string — a string would
+      // cause a backend type mismatch (the select element stores its value as a
+      // string and parseInt is required before passing it here).
       expect(body.slowModeSeconds).toBe(60);
       expect(typeof body.slowModeSeconds).toBe('number');
     });
@@ -42,14 +65,7 @@ describe('ChannelSettings', () => {
 
   describe('NSFW toggle', () => {
     it('sends isNsfw true in API payload when enabled', async () => {
-      const serverId = 'srv-2';
       const channelId = 'ch-nsfw';
-      const payload: ChannelSettingsPayload = {
-        name: 'adults-only',
-        topic: null,
-        slowModeSeconds: 0,
-        isNsfw: true,
-      };
 
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
@@ -57,18 +73,24 @@ describe('ChannelSettings', () => {
         json: async () => ({ id: channelId }),
       });
 
-      await api.put(`/api/v1/servers/${serverId}/channels/${channelId}`, payload);
+      // Build payload as the component does when the NSFW toggle is on
+      const payload = buildChannelSettingsPayload('adults-only', '', 0, true);
+
+      await api.patch(`/api/v1/channels/${channelId}`, payload);
 
       const body = JSON.parse(
         (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][1].body
       );
+      // isNsfw must be the boolean true, not a string
       expect(body.isNsfw).toBe(true);
+      expect(typeof body.isNsfw).toBe('boolean');
     });
   });
 
   describe('save changes via API', () => {
-    it('calls PUT /api/v1/servers/{serverId}/channels/{channelId}', async () => {
-      const serverId = 'srv-3';
+    it('calls PATCH /api/v1/channels/{channelId}', async () => {
+      // The component uses api.patch (not api.put) with /api/v1/channels/{id}
+      // (no serverId in the path — channels are addressed directly by their ID).
       const channelId = 'ch-7';
 
       globalThis.fetch = vi.fn().mockResolvedValue({
@@ -77,24 +99,16 @@ describe('ChannelSettings', () => {
         json: async () => ({ id: channelId, name: 'updated' }),
       });
 
-      await api.put(`/api/v1/servers/${serverId}/channels/${channelId}`, {
-        name: 'updated',
-        topic: null,
-        slowModeSeconds: 0,
-        isNsfw: false,
-      });
+      const payload = buildChannelSettingsPayload('updated', '', 0, false);
+      await api.patch(`/api/v1/channels/${channelId}`, payload);
 
-      expect(globalThis.fetch).toHaveBeenCalledWith(
-        `/api/v1/servers/${serverId}/channels/${channelId}`,
-        expect.objectContaining({ method: 'PUT' })
-      );
+      const [url, opts] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(url).toBe(`/api/v1/channels/${channelId}`);
+      expect(opts.method).toBe('PATCH');
     });
 
     it('sends null topic when topic field is empty', async () => {
-      const serverId = 'srv-4';
       const channelId = 'ch-8';
-      const emptyTopic = '';
-      const apiTopic = emptyTopic.trim() || null;
 
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
@@ -102,14 +116,16 @@ describe('ChannelSettings', () => {
         json: async () => ({ id: channelId }),
       });
 
-      await api.put(`/api/v1/servers/${serverId}/channels/${channelId}`, {
-        name: 'test',
-        topic: apiTopic,
-      });
+      // The component converts empty topic string to null via: topic().trim() || null
+      // Pass the raw empty string through the same builder function to verify the conversion.
+      const payload = buildChannelSettingsPayload('test', '', 0, false);
+
+      await api.patch(`/api/v1/channels/${channelId}`, payload);
 
       const body = JSON.parse(
         (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][1].body
       );
+      // Empty string must arrive as null, not '' or undefined
       expect(body.topic).toBeNull();
     });
 
@@ -121,7 +137,7 @@ describe('ChannelSettings', () => {
       });
 
       await expect(
-        api.put('/api/v1/servers/srv-x/channels/ch-x', { name: 'fail' })
+        api.patch('/api/v1/channels/ch-x', { name: 'fail' })
       ).rejects.toMatchObject({ detail: 'Missing Manage Channels permission' });
     });
   });

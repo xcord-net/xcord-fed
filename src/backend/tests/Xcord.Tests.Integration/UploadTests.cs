@@ -416,15 +416,14 @@ public class UploadTests
         var uploadBody = await uploadResponse.ReadAsJsonAsync<JsonElement>();
         var attachmentId = uploadBody.GetProperty("attachmentId").ReadLong();
 
-        // Try to confirm without actually uploading data to S3
-        // S3 is not available in the test fixture, so ExistsAsync will fail
+        // Try to confirm without uploading any bytes to storage.
+        // NullStorageService.ExistsAsync always returns false, so the handler
+        // must return 400 BadRequest with the FILE_NOT_UPLOADED business rule.
         var confirmResponse = await _helper.AuthPostAsync(
             $"/api/v1/attachments/{attachmentId}/confirm",
             user.AccessToken);
 
-        // Should return 400 (file not uploaded) or 500 (S3 unavailable)
-        // Either way, it should not return 200
-        confirmResponse.StatusCode.Should().NotBe(HttpStatusCode.OK);
+        confirmResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]

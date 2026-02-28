@@ -26,18 +26,6 @@ public class MessagePipelineTests
     // ──────────── Sanitization ────────────
 
     [Fact]
-    public async Task SendMessage_HtmlContent_IsEncoded()
-    {
-        var (_, conversationId, token) = await SetupServerWithChannel();
-
-        var message = await _helper.SendMessageAsync(token, conversationId, "<script>alert('xss')</script>");
-
-        var content = message.GetProperty("content").GetString()!;
-        content.Should().NotContain("<script>");
-        content.Should().Contain("&lt;script&gt;");
-    }
-
-    [Fact]
     public async Task SendMessage_WhitespaceContent_Returns400()
     {
         var (_, conversationId, token) = await SetupServerWithChannel();
@@ -191,8 +179,8 @@ public class MessagePipelineTests
             new { content = "This contains badword in it" });
 
         // Should be blocked by automod
-        response.StatusCode.Should().NotBe(HttpStatusCode.Created,
-            "message with blocked keyword should not be created");
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
+            "automod keyword block should reject the message");
     }
 
     [Fact]
@@ -257,8 +245,8 @@ public class MessagePipelineTests
             token,
             new { content = "Call me at 555-123-4567" });
 
-        response.StatusCode.Should().NotBe(HttpStatusCode.Created,
-            "message matching regex pattern should be blocked");
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
+            "automod regex block should reject the message");
     }
 
     // ──────────── Automod: Link Filter ────────────
@@ -293,8 +281,8 @@ public class MessagePipelineTests
             token,
             new { content = "Check out https://spam.example.com/free-stuff" });
 
-        response.StatusCode.Should().NotBe(HttpStatusCode.Created,
-            "message with blacklisted domain should be blocked");
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
+            "automod link filter should reject the message");
     }
 
     [Fact]

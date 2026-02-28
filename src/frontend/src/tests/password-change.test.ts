@@ -116,7 +116,7 @@ describe('password-change', () => {
       expect(result.error).toBe('Current password is incorrect');
     });
 
-    it('should return success and signal form should clear on successful change', async () => {
+    it('should return success and not leak confirmPassword to the API', async () => {
       // Arrange
       api.setAuthenticated(true);
       globalThis.fetch = vi.fn().mockResolvedValue({
@@ -127,9 +127,16 @@ describe('password-change', () => {
       // Act
       const result = await submitPasswordChange('oldpass123', 'newpass456', 'newpass456');
 
-      // Assert — success signals the form should clear its fields
+      // Assert — success: true is the signal that drives form field clearing in the component
       expect(result.success).toBe(true);
       expect(result.error).toBe('');
+
+      // The API body must NOT contain confirmPassword — that field is client-only validation
+      const callBody = JSON.parse(
+        (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][1].body as string,
+      );
+      expect(callBody).not.toHaveProperty('confirmPassword');
+      expect(callBody).toMatchObject({ currentPassword: 'oldpass123', newPassword: 'newpass456' });
     });
   });
 });

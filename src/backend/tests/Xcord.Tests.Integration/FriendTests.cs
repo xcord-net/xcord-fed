@@ -208,6 +208,28 @@ public class FriendTests
             receiver.AccessToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Verify the friendship no longer appears in the pending list for the sender
+        var senderPendingResponse = await _helper.AuthGetAsync(
+            "/api/v1/users/@me/friends?status=Pending",
+            sender.AccessToken);
+
+        senderPendingResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var senderPending = await senderPendingResponse.ReadAsJsonAsync<JsonElement>();
+        senderPending.EnumerateArray()
+            .Should().NotContain(f => f.GetProperty("id").ReadLong() == friendshipId,
+                "declined friend request must no longer appear in the sender's pending list");
+
+        // Verify it also no longer appears in the receiver's pending list
+        var receiverPendingResponse = await _helper.AuthGetAsync(
+            "/api/v1/users/@me/friends?status=Pending",
+            receiver.AccessToken);
+
+        receiverPendingResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var receiverPending = await receiverPendingResponse.ReadAsJsonAsync<JsonElement>();
+        receiverPending.EnumerateArray()
+            .Should().NotContain(f => f.GetProperty("id").ReadLong() == friendshipId,
+                "declined friend request must no longer appear in the receiver's pending list");
     }
 
     // ──────────── Remove Friend ────────────

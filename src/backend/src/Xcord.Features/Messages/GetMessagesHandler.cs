@@ -42,7 +42,7 @@ public sealed record AttachmentDto(
     long Id,
     string FileName,
     string ContentType,
-    long FileSize,
+    [property: System.Text.Json.Serialization.JsonConverter(typeof(LongAsNumberConverter))] long FileSize,
     int? Width,
     int? Height,
     string DownloadUrl,

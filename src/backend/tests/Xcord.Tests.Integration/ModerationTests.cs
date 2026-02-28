@@ -125,6 +125,16 @@ public class ModerationTests
             owner.AccessToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Verify ban is actually removed — GET /bans must not list the user any more
+        var bansResponse = await _helper.AuthGetAsync(
+            $"/api/v1/servers/{serverId}/bans",
+            owner.AccessToken);
+        bansResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var bans = await bansResponse.ReadAsJsonAsync<JsonElement>();
+        var banArray = bans.EnumerateArray().ToList();
+        banArray.Should().NotContain(b => b.GetProperty("userId").ReadLong() == member.UserId,
+            "unbanned user must no longer appear in the ban list");
     }
 
     // ──────────── List Bans ────────────
@@ -207,10 +217,11 @@ public class ModerationTests
         var (serverId, owner, member) = await SetupServerWithMember();
 
         // Create timeout first
-        await _helper.AuthPostAsync(
+        var createResponse = await _helper.AuthPostAsync(
             $"/api/v1/servers/{serverId}/members/{member.UserId}/timeout",
             owner.AccessToken,
             new { durationMinutes = 10 });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.OK, "timeout creation should succeed");
 
         // Remove timeout
         var response = await _helper.AuthDeleteAsync(
@@ -218,6 +229,14 @@ public class ModerationTests
             owner.AccessToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Verify the timeout is actually cleared — no active (non-expired) timeout should exist
+        // for this member in the database after removal
+        await using var db = _fixture.CreateDbContext();
+        var activeTimeout = await db.Timeouts
+            .Where(t => t.UserId == member.UserId && t.ServerId == serverId && t.ExpiresAt > DateTimeOffset.UtcNow)
+            .FirstOrDefaultAsync();
+        activeTimeout.Should().BeNull("removing a timeout must clear the active timeout record so the member can send messages again");
     }
 
     // ──────────── Reports ────────────

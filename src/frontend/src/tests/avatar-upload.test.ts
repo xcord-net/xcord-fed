@@ -1,50 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { api } from '../api/client';
-import { validateAvatarFile } from '../components/AvatarUpload';
+import { validateAvatarFile, uploadAvatar } from '../components/AvatarUpload';
 
 /**
  * User Avatar Upload tests — Card 172
  */
 
-// ---- Types ----
-
-interface UploadInitResponse {
-  attachmentId: string;
-  uploadUrl: string;
-}
-
-interface UserProfile {
-  userId: string;
-  username: string;
-  displayName: string;
-  avatarUrl?: string;
-}
-
-// ---- Upload flow helper (test infrastructure) ----
-
-async function performAvatarUpload(
-  file: { name: string; type: string; size: number },
-  xhrFactory: (uploadUrl: string) => Promise<void>,
-): Promise<string> {
-  // Step 1: request presigned URL
-  const { attachmentId, uploadUrl } = await api.post<UploadInitResponse>('/api/v1/uploads', {
-    fileName: file.name,
-    contentType: file.type,
-    fileSize: file.size,
-  });
-
-  // Step 2: PUT to presigned URL
-  await xhrFactory(uploadUrl);
-
-  // Step 3: confirm upload
-  const confirmed = await api.post<{ url: string }>(`/api/v1/attachments/${attachmentId}/confirm`, {});
-  const avatarUrl = confirmed.url ?? uploadUrl;
-
-  // Step 4: update profile
-  await api.put<UserProfile>('/api/v1/users/@me', { avatarUrl });
-
-  return avatarUrl;
-}
+// ---- Helpers ----
 
 function makeMockXhrFactory(onCall?: (url: string) => void) {
   return async (uploadUrl: string): Promise<void> => {
@@ -104,7 +66,7 @@ describe('avatar-upload', () => {
           json: async () => ({ userId: 'u-1', username: 'alice', displayName: 'Alice', avatarUrl: 'https://cdn.example.com/avatar.png' }),
         });
 
-      await performAvatarUpload(file, makeMockXhrFactory());
+      await uploadAvatar(file, makeMockXhrFactory());
 
       expect(globalThis.fetch).toHaveBeenNthCalledWith(
         1,
@@ -134,7 +96,7 @@ describe('avatar-upload', () => {
           json: async () => ({ userId: 'u-1', username: 'alice', displayName: 'Alice', avatarUrl: confirmedUrl }),
         });
 
-      await performAvatarUpload(file, makeMockXhrFactory());
+      await uploadAvatar(file, makeMockXhrFactory());
 
       expect(globalThis.fetch).toHaveBeenNthCalledWith(
         3,
@@ -164,7 +126,7 @@ describe('avatar-upload', () => {
           json: async () => ({ userId: 'u-1', username: 'bob', displayName: 'Bob' }),
         });
 
-      await performAvatarUpload(file, makeMockXhrFactory());
+      await uploadAvatar(file, makeMockXhrFactory());
 
       expect(globalThis.fetch).toHaveBeenNthCalledWith(
         2,
@@ -191,7 +153,7 @@ describe('avatar-upload', () => {
           json: async () => ({ userId: 'u-2', username: 'carol', displayName: 'Carol', avatarUrl: confirmedUrl }),
         });
 
-      const result = await performAvatarUpload(file, makeMockXhrFactory());
+      const result = await uploadAvatar(file, makeMockXhrFactory());
 
       expect(result).toBe(confirmedUrl);
     });
@@ -204,7 +166,7 @@ describe('avatar-upload', () => {
         json: async () => ({ error: 'Quota exceeded' }),
       });
 
-      await expect(performAvatarUpload(file, makeMockXhrFactory())).rejects.toMatchObject({
+      await expect(uploadAvatar(file, makeMockXhrFactory())).rejects.toMatchObject({
         error: 'Quota exceeded',
       });
     });

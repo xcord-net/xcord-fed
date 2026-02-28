@@ -136,9 +136,10 @@ describe('ServerOnboarding', () => {
     });
 
     it('returns a value between 0 and 100 for intermediate steps', () => {
+      // 4 steps: rules=0, roles=1, channels=2, complete=3
+      // roles: Math.round((1 / (4 - 1)) * 100) = Math.round(33.33) = 33
       const pct = progressPercent('roles');
-      expect(pct).toBeGreaterThan(0);
-      expect(pct).toBeLessThan(100);
+      expect(pct).toBe(33);
     });
 
     it('channels step has higher progress than roles step', () => {
@@ -185,16 +186,6 @@ describe('ServerOnboarding', () => {
       expect(selectedIds).toHaveLength(3);
     });
 
-    it('toggle does not mutate the original array', () => {
-      // Arrange
-      const original = ['role-1'];
-
-      // Act
-      toggleRoleSelection(original, 'role-2');
-
-      // Assert — original unchanged
-      expect(original).toHaveLength(1);
-    });
   });
 
   // ---- Channel selection ----
@@ -232,39 +223,6 @@ describe('ServerOnboarding', () => {
 
       // Assert
       expect(selectedIds).toHaveLength(2);
-    });
-  });
-
-  // ---- OnboardingConfig shape ----
-
-  describe('OnboardingConfig shape', () => {
-    it('config has serverId, rules, roles, and channels', () => {
-      // Arrange
-      const config = makeConfig();
-
-      // Assert
-      expect(config.serverId).toBe('srv-1');
-      expect(config.rules).toContain('Be respectful');
-      expect(config.roles).toHaveLength(3);
-      expect(config.channels).toHaveLength(2);
-    });
-
-    it('role has id, name, optional description and emoji', () => {
-      // Arrange
-      const role = makeRole({ id: 'r-1', name: 'Gamer', emoji: '🎮' });
-
-      // Assert
-      expect(role.id).toBe('r-1');
-      expect(role.name).toBe('Gamer');
-      expect(role.emoji).toBe('🎮');
-    });
-
-    it('channel description is optional', () => {
-      // Arrange
-      const channel = makeChannel({ description: undefined });
-
-      // Assert
-      expect(channel.description).toBeUndefined();
     });
   });
 

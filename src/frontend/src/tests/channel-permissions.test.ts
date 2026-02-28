@@ -103,11 +103,12 @@ describe('ChannelPermissions', () => {
       // Act
       const result = permissionStateColor('Inherit');
 
-      // Assert — Inherit should return a muted/gray color class, not green or red
-      expect(result).toEqual(expect.any(String));
-      expect(result.length).toBeGreaterThan(0);
+      // Assert — Inherit should return a muted/gray color class, visually distinct
+      // from Allow (green) and Deny (red). Check for a muted token that proves
+      // the design intent rather than just the absence of green/red.
       expect(result).not.toContain('green');
       expect(result).not.toContain('red');
+      expect(result).toMatch(/muted|gray|tertiary/);
     });
   });
 
@@ -150,9 +151,23 @@ describe('ChannelPermissions', () => {
   // ---- Permission catalog ----
 
   describe('ALL_PERMISSIONS and PERMISSION_LABELS', () => {
-    it('ALL_PERMISSIONS contains at least 5 entries', () => {
-      // Assert
-      expect(ALL_PERMISSIONS.length).toBeGreaterThanOrEqual(5);
+    it('ALL_PERMISSIONS contains all required permission keys', () => {
+      // Assert — every permission that an admin needs to configure must be present.
+      // A count floor would still pass even if critical permissions are removed.
+      const requiredKeys: PermissionKey[] = [
+        'ViewChannel',
+        'SendMessages',
+        'ManageMessages',
+        'AttachFiles',
+        'EmbedLinks',
+        'MentionEveryone',
+        'ManageChannel',
+        'Connect',
+        'Speak',
+      ];
+      for (const key of requiredKeys) {
+        expect(ALL_PERMISSIONS).toContain(key);
+      }
     });
 
     it('every permission has a non-empty human-readable label', () => {
@@ -246,25 +261,4 @@ describe('ChannelPermissions', () => {
     });
   });
 
-  // ---- Override data shape ----
-
-  describe('PermissionOverride shape', () => {
-    it('override has subjectType of Role or Member', () => {
-      // Arrange
-      const roleOverride = makeOverride({ subjectType: 'Role' });
-      const memberOverride = makeOverride({ subjectType: 'Member' });
-
-      // Assert
-      expect(['Role', 'Member']).toContain(roleOverride.subjectType);
-      expect(['Role', 'Member']).toContain(memberOverride.subjectType);
-    });
-
-    it('override data includes subjectName', () => {
-      // Arrange
-      const override = makeOverride({ subjectName: 'Moderator' });
-
-      // Assert
-      expect(override.subjectName).toBe('Moderator');
-    });
-  });
 });

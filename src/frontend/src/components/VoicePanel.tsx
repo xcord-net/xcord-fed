@@ -69,6 +69,7 @@ export default function VoicePanel() {
           </button>
           <button
             aria-label="Deafen"
+            aria-pressed={voice.isDeafened}
             class={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
               voice.isDeafened
                 ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'

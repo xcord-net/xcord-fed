@@ -92,6 +92,7 @@ public sealed class ResetPasswordHandler(AppDbContext dbContext, IOptions<AuthOp
                 CancellationToken ct) =>
             await handler.ExecuteAsync(request, ct, _ => Results.NoContent()))
             .AllowAnonymous()
+            .RequireRateLimiting("auth")
             .WithName("ResetPassword")
             .WithTags("Auth");
     }

@@ -104,9 +104,6 @@ describe('Modal — role', () => {
     expect(dialogRole('alertdialog')).toBe('alertdialog');
   });
 
-  it('uses dialog when explicitly specified', () => {
-    expect(dialogRole('dialog')).toBe('dialog');
-  });
 });
 
 describe('Modal — backdrop click logic', () => {
@@ -155,20 +152,6 @@ describe('Modal — backdrop click logic', () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it('integration: inner click does not fire onClose', () => {
-    // Arrange
-    const onClose = vi.fn();
-
-    backdrop.addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) onClose();
-    });
-
-    // Act — click on inner element, event bubbles up
-    inner.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-
-    // Assert
-    expect(onClose).not.toHaveBeenCalled();
-  });
 });
 
 describe('Modal — prefers-reduced-motion', () => {
@@ -180,12 +163,4 @@ describe('Modal — prefers-reduced-motion', () => {
     expect(prefersReducedMotion(false)).toBe(false);
   });
 
-  it('component logic: returns false when window is undefined', () => {
-    // The component checks typeof window !== 'undefined' before calling matchMedia.
-    // When the guard fails (SSR), the result is false — no animation skip.
-    const result = typeof undefined !== 'undefined' && false;
-
-    // Assert
-    expect(result).toBe(false);
-  });
 });

@@ -42,36 +42,6 @@ describe('WelcomeScreen', () => {
     api.setAuthenticated(true);
   });
 
-  // ---- Config data shape ----
-
-  describe('WelcomeScreenConfig shape', () => {
-    it('config has isEnabled flag, description, and channels', () => {
-      // Arrange
-      const config = makeConfig();
-
-      // Assert
-      expect(config.isEnabled).toBe(true);
-      expect(config.description).toBe('Welcome to our awesome community server!');
-      expect(Array.isArray(config.channels)).toBe(true);
-    });
-
-    it('config can be disabled', () => {
-      // Arrange
-      const config = makeConfig({ isEnabled: false });
-
-      // Assert
-      expect(config.isEnabled).toBe(false);
-    });
-
-    it('welcome channels are optional (can be empty)', () => {
-      // Arrange
-      const config = makeConfig({ channels: [] });
-
-      // Assert
-      expect(config.channels).toHaveLength(0);
-    });
-  });
-
   // ---- Description validation ----
 
   describe('validateWelcomeDescription', () => {
@@ -294,28 +264,14 @@ describe('WelcomeScreen', () => {
         payload,
       );
 
-      // Assert
+      // Assert — verify the PUT request body sent isEnabled=false to the API
+      const sentBody = JSON.parse(
+        (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][1].body as string,
+      ) as WelcomeScreenConfig;
+      expect(sentBody.isEnabled).toBe(false);
+      // And the API response reflects the disabled state
       expect(result.isEnabled).toBe(false);
     });
   });
 
-  // ---- Channel with emojiName ----
-
-  describe('welcome channel emojiName', () => {
-    it('channel emojiName is included in the channel shape', () => {
-      // Arrange
-      const ch = makeChannel({ emojiName: '🎮' });
-
-      // Assert
-      expect(ch.emojiName).toBe('🎮');
-    });
-
-    it('channel without emojiName has undefined emojiName', () => {
-      // Arrange
-      const ch = makeChannel({ emojiName: undefined });
-
-      // Assert
-      expect(ch.emojiName).toBeUndefined();
-    });
-  });
 });

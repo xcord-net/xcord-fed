@@ -7,12 +7,6 @@ import {
   templateRoleCount,
 } from '../components/ServerTemplates';
 
-// ---- Pure logic helpers mirrored from ServerTemplates ----
-
-function isCreateFormValid(serverName: string): boolean {
-  return serverName.trim().length > 0;
-}
-
 // ---- Test data ----
 
 const makeChannel = (overrides: Partial<TemplateChannel> = {}): TemplateChannel => ({
@@ -54,51 +48,6 @@ describe('ServerTemplates', () => {
     vi.clearAllMocks();
     localStorage.clear();
     api.setAuthenticated(true);
-  });
-
-  // ---- Template shape ----
-
-  describe('template data shape', () => {
-    it('template has name and id', () => {
-      // Arrange
-      const template = makeTemplate({ id: 'tpl-abc', name: 'Gaming Server' });
-
-      // Assert
-      expect(template.id).toBe('tpl-abc');
-      expect(template.name).toBe('Gaming Server');
-    });
-
-    it('template description is optional', () => {
-      // Arrange
-      const template = makeTemplate({ description: undefined });
-
-      // Assert
-      expect(template.description).toBeUndefined();
-    });
-
-    it('template tracks usage count', () => {
-      // Arrange
-      const template = makeTemplate({ usageCount: 7 });
-
-      // Assert
-      expect(template.usageCount).toBe(7);
-    });
-
-    it('template contains channels array', () => {
-      // Arrange
-      const template = makeTemplate();
-
-      // Assert
-      expect(Array.isArray(template.channels)).toBe(true);
-    });
-
-    it('template contains roles array', () => {
-      // Arrange
-      const template = makeTemplate();
-
-      // Assert
-      expect(Array.isArray(template.roles)).toBe(true);
-    });
   });
 
   // ---- Channel and role counts ----
@@ -199,22 +148,6 @@ describe('ServerTemplates', () => {
     });
   });
 
-  // ---- Create from template form validation ----
-
-  describe('create from template form validation', () => {
-    it('form is invalid when server name is empty', () => {
-      expect(isCreateFormValid('')).toBe(false);
-    });
-
-    it('form is invalid when server name is whitespace-only', () => {
-      expect(isCreateFormValid('   ')).toBe(false);
-    });
-
-    it('form is valid when server name is provided', () => {
-      expect(isCreateFormValid('My New Server')).toBe(true);
-    });
-  });
-
   // ---- API: save template ----
 
   describe('save template API', () => {
@@ -310,22 +243,4 @@ describe('ServerTemplates', () => {
     });
   });
 
-  // ---- Channel types ----
-
-  describe('template channel types', () => {
-    it('channel can be Text type', () => {
-      const ch = makeChannel({ type: 'Text' });
-      expect(ch.type).toBe('Text');
-    });
-
-    it('channel can be Voice type', () => {
-      const ch = makeChannel({ type: 'Voice' });
-      expect(ch.type).toBe('Voice');
-    });
-
-    it('channel can be Forum type', () => {
-      const ch = makeChannel({ type: 'Forum' });
-      expect(ch.type).toBe('Forum');
-    });
-  });
 });

@@ -145,8 +145,8 @@ export default function MessageList(props: MessageListProps) {
   };
 
   // Fetch my effective permissions for the current channel whenever channelId changes.
-  // The backend serializes long values as JSON strings (SnowflakeJsonConverter),
-  // so Permissions comes back as a string like "128". Use BigInt to handle it safely.
+  // Permissions is a numeric bitmask (LongAsNumberConverter). BigInt handles both
+  // number and string inputs safely in case of format changes.
   createEffect(() => {
     const channelId = params.channelId;
     if (!channelId) {

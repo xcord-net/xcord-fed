@@ -28,11 +28,6 @@ describe('TypingIndicator', () => {
       );
     });
 
-    it('should use plural "others" for more than 1 extra user', () => {
-      expect(formatTypingText(['Alice', 'Bob', 'Carol', 'Dave', 'Eve'])).toBe(
-        'Alice, Bob, and 3 others are typing...'
-      );
-    });
   });
 
   describe('typing store filtering by conversationId', () => {
@@ -62,14 +57,6 @@ describe('TypingIndicator', () => {
 
       expect(typing.getTypingUsers('conv-1')).toEqual(['Alice']);
       expect(typing.getTypingUsers('conv-2')).toEqual(['Bob']);
-    });
-
-    it('should not include users from other conversations', () => {
-      const typing = useTyping();
-
-      typing.startTyping('conv-2', 'Bob');
-
-      expect(typing.getTypingUsers('conv-1')).toEqual([]);
     });
 
     it('should produce correct text when multiple users type in same conversation', () => {

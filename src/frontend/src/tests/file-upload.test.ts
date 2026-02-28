@@ -227,22 +227,5 @@ describe('file-upload', () => {
       expect(formatFileSize(2 * 1024 * 1024)).toBe('2.0 MB');
     });
 
-    it('attachment fileName is preserved in the result', async () => {
-      // Arrange
-      const file = { name: 'my-document.pdf', type: 'application/pdf', size: 3000, data: new Blob() };
-
-      globalThis.fetch = vi.fn()
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({ attachmentId: 'att-fn', uploadUrl: 'https://s3.example.com/att-fn' }),
-        })
-        .mockResolvedValueOnce({ ok: true, status: 204 });
-
-      // Act
-      const result = await performUpload(file, makeMockXhrFactory());
-
-      // Assert — component uses result.fileName to display the preview
-      expect(result.fileName).toBe('my-document.pdf');
-    });
   });
 });

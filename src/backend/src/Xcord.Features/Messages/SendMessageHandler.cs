@@ -136,10 +136,11 @@ public sealed class SendMessageHandler(
             CreatedAt = now
         };
 
-        // Run through processing pipeline (skip for DM conversations and attachment-only messages
-        // where there is no content to sanitize, validate, or parse)
-        var deferredActions = new List<AutomodDeferredAction>();
         var hasContent = !string.IsNullOrWhiteSpace(request.Content);
+
+        // Run through processing pipeline (skip automod/mentions for DM conversations and
+        // attachment-only messages — channel messages are sanitized inside MessageProcessor)
+        var deferredActions = new List<AutomodDeferredAction>();
         if (context.Type != ConversationType.DmChannel && hasContent)
         {
             // Get author's role IDs and bot status for automod
@@ -163,6 +164,12 @@ public sealed class SendMessageHandler(
 
             message = processingResult.Value.Message;
             deferredActions = processingResult.Value.DeferredActions;
+        }
+        else if (hasContent)
+        {
+            // DM messages skip the processing pipeline (automod/mentions) but still
+            // need HTML encoding to prevent stored XSS (V12 fix)
+            message.Content = System.Text.Encodings.Web.HtmlEncoder.Default.Encode(message.Content).Trim();
         }
 
         // Get author info for response (re-fetch if not already fetched above)

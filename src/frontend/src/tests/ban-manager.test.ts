@@ -97,19 +97,6 @@ describe('ban-manager', () => {
       );
     });
 
-    it('removes the user from the local list after unban', () => {
-      let bans: BannedUser[] = [
-        makeBan({ userId: 'user-1', username: 'Alpha' }),
-        makeBan({ userId: 'user-2', username: 'Beta' }),
-      ];
-
-      const targetUserId = 'user-1';
-      bans = bans.filter((b) => b.userId !== targetUserId);
-
-      expect(bans).toHaveLength(1);
-      expect(bans[0].username).toBe('Beta');
-    });
-
     it('throws when unban API call fails', async () => {
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: false,
@@ -167,31 +154,6 @@ describe('ban-manager', () => {
       expect(page2[0].userId).toBe('u20');
     });
 
-    it('calculates total pages correctly', () => {
-      expect(totalBanPages(45, 20)).toBe(3);
-      expect(totalBanPages(0, 20)).toBe(1);
-    });
-
-    it('returns at least 1 page even with no bans', () => {
-      const pages = totalBanPages(0, 20);
-      expect(pages).toBe(1);
-    });
   });
 
-  describe('ban entry data', () => {
-    it('bannedAt is a parseable ISO date', () => {
-      const ban = makeBan({ bannedAt: '2026-01-15T10:00:00Z' });
-      const date = new Date(ban.bannedAt);
-      expect(date.getFullYear()).toBe(2026);
-      expect(isNaN(date.getTime())).toBe(false);
-    });
-
-    it('ban without a reason still has required fields', () => {
-      const ban = makeBan({ reason: undefined });
-      expect(ban.userId).toBeDefined();
-      expect(ban.username).toBeDefined();
-      expect(ban.bannedAt).toBeDefined();
-      expect(ban.reason).toBeUndefined();
-    });
-  });
 });

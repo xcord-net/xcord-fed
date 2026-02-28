@@ -93,6 +93,23 @@ public sealed class BanMemberHandler(
             return Error.Validation("CANNOT_BAN_SELF", "You cannot ban yourself");
         }
 
+        // Cannot ban the server owner
+        var server2 = await dbContext.Servers.AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == request.ServerId, cancellationToken);
+        if (server2 != null && server2.OwnerId == request.UserId)
+        {
+            return Error.Validation("CANNOT_BAN_OWNER", "You cannot ban the server owner");
+        }
+
+        // Role hierarchy check: cannot ban a user with equal or higher role position
+        var moderatorHighest = await permissionService.GetHighestRolePosition(moderatorId, request.ServerId);
+        var targetHighest = await permissionService.GetHighestRolePosition(request.UserId, request.ServerId);
+        if (moderatorHighest != int.MaxValue && targetHighest >= moderatorHighest)
+        {
+            return Error.Forbidden("ROLE_HIERARCHY",
+                "You cannot ban a member with an equal or higher role position");
+        }
+
         // Check if already banned
         var existingBan = await dbContext.Bans
             .AsNoTracking()

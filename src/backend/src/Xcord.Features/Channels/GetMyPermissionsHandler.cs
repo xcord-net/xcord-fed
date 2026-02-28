@@ -14,7 +14,8 @@ namespace Xcord.Features.Channels;
 /// </summary>
 public sealed record GetMyPermissionsQuery(long ChannelId);
 
-public sealed record MyChannelPermissionsDto(long Permissions);
+public sealed record MyChannelPermissionsDto(
+    [property: System.Text.Json.Serialization.JsonConverter(typeof(LongAsNumberConverter))] long Permissions);
 
 public sealed class GetMyPermissionsHandler(
     ICurrentUserService currentUserService,

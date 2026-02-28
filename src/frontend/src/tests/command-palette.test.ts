@@ -282,50 +282,6 @@ describe('CommandPalette', () => {
       expect(result).toHaveLength(4);
     });
 
-    it('API result maps to BotCommand shape', async () => {
-      // Arrange
-      const cmd = makeCommand();
-
-      globalThis.fetch = vi.fn().mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => [cmd],
-      });
-
-      // Act
-      const result = await api.get<BotCommand[]>('/api/v1/servers/srv-1/commands');
-
-      // Assert
-      expect(result[0].name).toBe('ban');
-      expect(result[0].parameters).toHaveLength(1);
-    });
   });
 
-  // ---- BotCommand shape ----
-
-  describe('BotCommand data shape', () => {
-    it('has all expected fields', () => {
-      // Arrange
-      const cmd = makeCommand();
-
-      // Assert
-      expect(cmd.id).toBeDefined();
-      expect(cmd.name).toBeDefined();
-      expect(cmd.description).toBeDefined();
-      expect(cmd.parameters).toBeDefined();
-      expect(cmd.botId).toBeDefined();
-      expect(cmd.botName).toBeDefined();
-    });
-
-    it('parameter has name, description, required, and type', () => {
-      // Arrange
-      const param = makeParam({ name: 'target', required: false, type: 'channel' });
-
-      // Assert
-      expect(param.name).toBe('target');
-      expect(param.required).toBe(false);
-      expect(param.type).toBe('channel');
-      expect(param.description).toBeDefined();
-    });
-  });
 });

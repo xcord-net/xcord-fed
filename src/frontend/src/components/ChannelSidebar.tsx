@@ -403,7 +403,12 @@ export default function ChannelSidebar() {
                 setShowLeaveConfirm(false);
                 const sid = serverStore.selectedServerId;
                 if (sid) {
-                  serverStore.leaveServer(sid).then(() => navigate('/channels/me'));
+                  serverStore.leaveServer(sid)
+                    .then(() => navigate('/channels/me'))
+                    .catch(() => {
+                      // Owner cannot leave — backend rejects with OWNER_CANNOT_LEAVE.
+                      // Stay on the server page instead of navigating away.
+                    });
                 }
               }}
               class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"

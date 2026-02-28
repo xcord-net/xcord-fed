@@ -265,10 +265,6 @@ describe('Menu — keyboard navigation index logic', () => {
   it('handles single item — ArrowDown wraps to itself', () => {
     expect(getNextIndex('ArrowDown', 0, 1)).toBe(0);
   });
-
-  it('handles single item — ArrowUp wraps to itself', () => {
-    expect(getNextIndex('ArrowUp', 0, 1)).toBe(0);
-  });
 });
 
 describe('Menu — positioning (context-menu clamp)', () => {

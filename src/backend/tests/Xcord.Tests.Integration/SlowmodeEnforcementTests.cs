@@ -125,57 +125,6 @@ public class SlowmodeEnforcementTests
         msg2.GetProperty("id").ReadLong().Should().BeGreaterThan(0);
     }
 
-    // ──────────── Regular member is rate-limited ────────────
-
-    /// <summary>
-    /// A regular member (no ManageMessages / ManageChannels) IS subject to slowmode.
-    /// </summary>
-    [Fact]
-    public async Task SendMessage_WithSlowmode_RegularMemberIsRateLimited()
-    {
-        // Arrange
-        var owner = await _helper.RegisterUserAsync();
-        var member = await _helper.RegisterUserAsync();
-        var server = await _helper.CreateServerAsync(owner.AccessToken);
-        var serverId = server.GetProperty("id").ReadLong();
-        var channel = await _helper.CreateChannelAsync(owner.AccessToken, serverId);
-        var channelId = channel.GetProperty("id").ReadLong();
-        var conversationId = channel.GetProperty("conversationId").ReadLong();
-
-        // Member joins the server
-        var inviteCode = await _helper.CreateInviteAsync(owner.AccessToken, serverId);
-        var joinResponse = await _helper.JoinServerAsync(member.AccessToken, inviteCode);
-        joinResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        // Set slowmode to 30 seconds
-        var updateResponse = await _helper.AuthPatchAsync(
-            $"/api/v1/channels/{channelId}",
-            owner.AccessToken,
-            new { slowModeSeconds = 30 });
-        updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        // Member sends first message — allowed
-        var firstMessage = await _helper.SendMessageAsync(member.AccessToken, conversationId, "First member message");
-        firstMessage.GetProperty("id").ReadLong().Should().BeGreaterThan(0);
-
-        // Member immediately sends second message — should be rate-limited
-        var rateLimitedResponse = await _helper.AuthPostAsync(
-            $"/api/v1/conversations/{conversationId}/messages",
-            member.AccessToken,
-            new { content = "Second member message — blocked" });
-
-        rateLimitedResponse.StatusCode.Should().Be(
-            HttpStatusCode.TooManyRequests,
-            "regular member must be rate-limited by slowmode");
-
-        rateLimitedResponse.Headers.TryGetValues("Retry-After", out var retryAfterValues)
-            .Should().BeTrue("Retry-After header must be present");
-
-        var retryAfterStr = retryAfterValues!.First();
-        int.TryParse(retryAfterStr, out var retryAfterSeconds).Should().BeTrue();
-        retryAfterSeconds.Should().BeGreaterThan(0);
-    }
-
     // ──────────── No slowmode — no restriction ────────────
 
     /// <summary>

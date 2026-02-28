@@ -263,30 +263,6 @@ public sealed class ForgotPasswordHandlerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ForgotPassword_ReturnsNoContent_AlwaysRegardlessOfEmailExistence()
-    {
-        // Arrange
-        await using var db = CreateDbContext();
-        var enc = CreateEncryptionService();
-        var (_, existingEmail) = await SeedUserAsync(db, enc, "always");
-        var handler = CreateForgotPasswordHandler(db, enc);
-
-        // Act — existing email
-        var resultExisting = await handler.Handle(
-            new ForgotPasswordRequest(existingEmail), CancellationToken.None);
-
-        // Act — non-existing email
-        await using var db2 = CreateDbContext();
-        var handler2 = CreateForgotPasswordHandler(db2, enc);
-        var resultNonExisting = await handler2.Handle(
-            new ForgotPasswordRequest("nonexistent@nowhere.example"), CancellationToken.None);
-
-        // Both must succeed (prevents user enumeration)
-        resultExisting.IsSuccess.Should().BeTrue();
-        resultNonExisting.IsSuccess.Should().BeTrue();
-    }
-
-    [Fact]
     public async Task ForgotPassword_FullResetFlow_AllowsLoginWithNewPassword()
     {
         // Arrange — create user

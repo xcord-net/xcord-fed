@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
@@ -111,6 +112,31 @@ public sealed class TestOutgoingWebhookHandler(
         using var hmac = new HMACSHA256(secretBytes);
         var signatureBytes = hmac.ComputeHash(payloadBytes);
         var signatureHex = Convert.ToHexString(signatureBytes).ToLowerInvariant();
+
+        // SSRF validation: reject private/local target URLs
+        if (Uri.TryCreate(webhook.TargetUrl, UriKind.Absolute, out var targetUri))
+        {
+            try
+            {
+                var hostEntry = await Dns.GetHostEntryAsync(targetUri.Host, cancellationToken);
+                foreach (var ip in hostEntry.AddressList)
+                {
+                    if (SsrfSafeHttpClient.IsPrivateOrLocalIp(ip))
+                    {
+                        logger.LogWarning("SSRF blocked: webhook {WebhookId} targets private IP {Ip}", request.WebhookId, ip);
+                        return new TestOutgoingWebhookResponse(
+                            Success: false, HttpStatus: null,
+                            Error: $"Target URL resolves to a private or local IP address: {ip}");
+                    }
+                }
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                return new TestOutgoingWebhookResponse(
+                    Success: false, HttpStatus: null,
+                    Error: $"Failed to resolve target URL hostname: {ex.Message}");
+            }
+        }
 
         // Send the test payload
         try

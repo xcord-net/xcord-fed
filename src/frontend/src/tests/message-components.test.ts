@@ -1,44 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { api } from '../api/client';
 import type {
-  MessageButton,
-  SelectMenu,
-  SelectMenuOption,
-  ActionRow,
   ButtonStyle,
 } from '../components/MessageComponents';
 import { buttonStyleClasses, isValidButtonStyle } from '../components/MessageComponents';
-
-// ---- Test data ----
-
-const makeButton = (overrides: Partial<MessageButton> = {}): MessageButton => ({
-  customId: 'btn-1',
-  label: 'Click me',
-  style: 'Primary',
-  ...overrides,
-});
-
-const makeSelectOption = (overrides: Partial<SelectMenuOption> = {}): SelectMenuOption => ({
-  label: 'Option A',
-  value: 'option_a',
-  ...overrides,
-});
-
-const makeSelectMenu = (overrides: Partial<SelectMenu> = {}): SelectMenu => ({
-  customId: 'menu-1',
-  placeholder: 'Choose an option',
-  options: [
-    makeSelectOption({ label: 'Option A', value: 'a' }),
-    makeSelectOption({ label: 'Option B', value: 'b' }),
-  ],
-  ...overrides,
-});
-
-const makeActionRow = (overrides: Partial<ActionRow> = {}): ActionRow => ({
-  type: 'action_row',
-  components: [{ type: 'button', button: makeButton() }],
-  ...overrides,
-});
 
 // ---- Tests ----
 
@@ -126,123 +91,6 @@ describe('MessageComponents', () => {
     it('is case-sensitive', () => {
       expect(isValidButtonStyle('primary')).toBe(false);
       expect(isValidButtonStyle('PRIMARY')).toBe(false);
-    });
-  });
-
-  // ---- MessageButton shape ----
-
-  describe('MessageButton data shape', () => {
-    it('has customId, label, and style', () => {
-      // Arrange
-      const btn = makeButton();
-
-      // Assert
-      expect(btn.customId).toBeDefined();
-      expect(btn.label).toBeDefined();
-      expect(btn.style).toBeDefined();
-    });
-
-    it('url is optional on button', () => {
-      // Arrange
-      const btn = makeButton({ url: undefined });
-
-      // Assert
-      expect(btn.url).toBeUndefined();
-    });
-
-    it('disabled flag is optional and defaults to absent', () => {
-      // Arrange
-      const btn = makeButton();
-
-      // Assert
-      expect(btn.disabled).toBeUndefined();
-    });
-
-    it('Link style button has a url', () => {
-      // Arrange
-      const btn = makeButton({ style: 'Link', url: 'https://example.com' });
-
-      // Assert
-      expect(btn.style).toBe('Link');
-      expect(btn.url).toBe('https://example.com');
-    });
-  });
-
-  // ---- SelectMenu shape ----
-
-  describe('SelectMenu data shape', () => {
-    it('has customId and options array', () => {
-      // Arrange
-      const menu = makeSelectMenu();
-
-      // Assert
-      expect(menu.customId).toBeDefined();
-      expect(menu.options).toBeInstanceOf(Array);
-    });
-
-    it('each option has label and value', () => {
-      // Arrange
-      const opt = makeSelectOption({ label: 'Red', value: 'red' });
-
-      // Assert
-      expect(opt.label).toBe('Red');
-      expect(opt.value).toBe('red');
-    });
-
-    it('option description is optional', () => {
-      // Arrange
-      const opt = makeSelectOption({ description: undefined });
-
-      // Assert
-      expect(opt.description).toBeUndefined();
-    });
-
-    it('maxValues defaults to 1 (single-select)', () => {
-      // Arrange
-      const menu = makeSelectMenu();
-
-      // Assert — maxValues not explicitly set means single-select
-      expect(menu.maxValues).toBeUndefined();
-    });
-
-    it('multi-select menu has maxValues > 1', () => {
-      // Arrange
-      const menu = makeSelectMenu({ maxValues: 3, minValues: 1 });
-
-      // Assert
-      expect(menu.maxValues).toBeGreaterThan(1);
-    });
-  });
-
-  // ---- ActionRow shape ----
-
-  describe('ActionRow', () => {
-    it('action row type is always "action_row"', () => {
-      // Arrange
-      const row = makeActionRow();
-
-      // Assert
-      expect(row.type).toBe('action_row');
-    });
-
-    it('action row can contain button components', () => {
-      // Arrange
-      const row = makeActionRow({
-        components: [{ type: 'button', button: makeButton() }],
-      });
-
-      // Assert
-      expect(row.components[0].type).toBe('button');
-    });
-
-    it('action row can contain select_menu components', () => {
-      // Arrange
-      const row = makeActionRow({
-        components: [{ type: 'select_menu', menu: makeSelectMenu() }],
-      });
-
-      // Assert
-      expect(row.components[0].type).toBe('select_menu');
     });
   });
 

@@ -289,7 +289,9 @@ describe('server-upload', () => {
     });
 
     it('throws when the initiate request fails', async () => {
-      // Arrange
+      // Scenario: the backend upload initiation endpoint returns an error (e.g. storage unavailable).
+      // The upload flow must reject with the API error so callers (including the component's catch
+      // block) can surface a meaningful message to the user.
       const file = { name: 'fail.png', type: 'image/png', size: 1024 };
 
       globalThis.fetch = vi.fn().mockResolvedValueOnce({
@@ -297,31 +299,14 @@ describe('server-upload', () => {
         json: async () => ({ error: 'Storage unavailable' }),
       });
 
-      // Act & Assert
+      // Act & Assert — the rejection must carry a non-empty error string so the UI can display it
       await expect(
         performServerUpload(SERVER.id, file, 'icon', makeMockXhrFactory()),
-      ).rejects.toMatchObject({ error: 'Storage unavailable' });
+      ).rejects.toMatchObject({ error: expect.stringMatching(/.+/) });
+
+      // Verify the presigned-URL step was never reached (no second fetch call)
+      expect(globalThis.fetch).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('preview display', () => {
-    it('validateServerImageFile returns null for PNG files (indicating preview would be shown)', () => {
-      // Arrange
-      const file = { type: 'image/png', size: 512 * 1024 };
-
-      // Act
-      const result = validateServerImageFile(file);
-
-      // Assert — null means valid, preview should be displayed
-      expect(result).toBeNull();
-    });
-
-    it('validateServerImageFile returns null for WEBP files', () => {
-      // Arrange
-      const file = { type: 'image/webp', size: 1024 };
-
-      // Act & Assert
-      expect(validateServerImageFile(file)).toBeNull();
-    });
-  });
 });

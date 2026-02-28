@@ -35,53 +35,20 @@ describe('ScheduledEvents', () => {
     api.setAuthenticated(true);
   });
 
-  // ---- Event list rendering ----
-
-  describe('event list data', () => {
-    it('renders event name from ScheduledEvent shape', () => {
-      // Arrange
-      const event = makeEvent({ name: 'Game Night' });
-
-      // Assert
-      expect(event.name).toBe('Game Night');
-    });
-
-    it('renders description when present', () => {
-      // Arrange
-      const event = makeEvent({ description: 'Bring snacks!' });
-
-      // Assert
-      expect(event.description).toBe('Bring snacks!');
-    });
-
-    it('description is optional on the event shape', () => {
-      // Arrange
-      const event = makeEvent({ description: undefined });
-
-      // Assert
-      expect(event.description).toBeUndefined();
-    });
-
-    it('renders interested count', () => {
-      // Arrange
-      const event = makeEvent({ interestedCount: 12 });
-
-      // Assert
-      expect(event.interestedCount).toBe(12);
-    });
-  });
 
   // ---- Date/time formatting ----
 
   describe('date/time formatting', () => {
     const testDate = '2026-03-15T14:30:00Z';
 
-    it('formatEventDate returns a non-empty date string', () => {
+    it('formatEventDate returns a string containing the month name and day', () => {
       // Act
       const result = formatEventDate(testDate);
 
-      // Assert
-      expect(result.length).toBeGreaterThan(0);
+      // Assert — must contain both the month name and the numeric day
+      // "March 15", "Mar 15", "15 March" etc. are all acceptable
+      expect(result).toMatch(/mar/i);
+      expect(result).toMatch(/15/);
     });
 
     it('formatEventDate includes the day of month', () => {
@@ -92,12 +59,12 @@ describe('ScheduledEvents', () => {
       expect(result).toMatch(/15/);
     });
 
-    it('formatEventTime returns a non-empty time string', () => {
+    it('formatEventTime returns a string matching HH:MM time format', () => {
       // Act
       const result = formatEventTime(testDate);
 
-      // Assert
-      expect(result.length).toBeGreaterThan(0);
+      // Assert — must match a recognisable time pattern such as "2:30 PM" or "14:30"
+      expect(result).toMatch(/\d{1,2}:\d{2}/);
     });
 
     it('formatEventTime contains a colon separator (HH:MM format)', () => {
@@ -231,37 +198,4 @@ describe('ScheduledEvents', () => {
     });
   });
 
-  // ---- Empty state ----
-
-  describe('empty state', () => {
-    it('an empty events array has length 0', () => {
-      const events: ScheduledEvent[] = [];
-      expect(events.length).toBe(0);
-    });
-
-    it('non-empty events array is detected correctly', () => {
-      const events: ScheduledEvent[] = [makeEvent()];
-      expect(events.length).toBeGreaterThan(0);
-    });
-  });
-
-  // ---- Location types ----
-
-  describe('location type', () => {
-    it('voice channel event has channelId', () => {
-      const event = makeEvent({
-        channelId: '456',
-        location: undefined,
-      });
-      expect(event.channelId).toBe('456');
-    });
-
-    it('external event has location URL', () => {
-      const event = makeEvent({
-        channelId: undefined,
-        location: 'https://meet.example.com/room',
-      });
-      expect(event.location).toBe('https://meet.example.com/room');
-    });
-  });
 });

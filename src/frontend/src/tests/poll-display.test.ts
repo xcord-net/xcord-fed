@@ -43,42 +43,6 @@ describe('PollDisplay', () => {
 
   // ---- Poll rendering ----
 
-  describe('poll question and options', () => {
-    it('poll question is accessible on the poll object', () => {
-      // Arrange
-      const poll = makePoll();
-
-      // Assert
-      expect(poll.question).toBe('What is your favourite language?');
-    });
-
-    it('poll has the correct number of options', () => {
-      // Arrange
-      const poll = makePoll();
-
-      // Assert
-      expect(poll.options).toHaveLength(3);
-    });
-
-    it('each option has an id, text, and voteCount', () => {
-      // Arrange
-      const opt = makeOption({ id: 'o1', text: 'TypeScript', voteCount: 7 });
-
-      // Assert
-      expect(opt.id).toBe('o1');
-      expect(opt.text).toBe('TypeScript');
-      expect(opt.voteCount).toBe(7);
-    });
-
-    it('renders total votes count correctly', () => {
-      // Arrange
-      const poll = makePoll({ totalVotes: 17 });
-
-      // Assert
-      expect(poll.totalVotes).toBe(17);
-    });
-  });
-
   // ---- Progress bar percentages ----
 
   describe('vote percentage calculation', () => {
@@ -198,49 +162,10 @@ describe('PollDisplay', () => {
       expect(totalVotesDelta).toBe(-1);
     });
 
-    it('allowMultiSelect flag is accessible on poll object', () => {
-      // Arrange
-      const poll = makePoll({ allowMultiSelect: true });
-
-      // Assert
-      expect(poll.allowMultiSelect).toBe(true);
-    });
   });
 
   // ---- Already voted state ----
 
-  describe('already voted state', () => {
-    it('userVotedOptionIds contains the voted option id', () => {
-      // Arrange
-      const poll = makePoll({ userVotedOptionIds: ['opt-2'] });
-
-      // Assert
-      expect(poll.userVotedOptionIds.includes('opt-2')).toBe(true);
-      expect(poll.userVotedOptionIds.includes('opt-1')).toBe(false);
-    });
-
-    it('hasVoted returns true when userVotedOptionIds is non-empty', () => {
-      // Arrange
-      const poll = makePoll({ userVotedOptionIds: ['opt-1'] });
-
-      // Act
-      const hasVoted = poll.userVotedOptionIds.length > 0;
-
-      // Assert
-      expect(hasVoted).toBe(true);
-    });
-
-    it('hasVoted returns false when userVotedOptionIds is empty', () => {
-      // Arrange
-      const poll = makePoll({ userVotedOptionIds: [] });
-
-      // Act
-      const hasVoted = poll.userVotedOptionIds.length > 0;
-
-      // Assert
-      expect(hasVoted).toBe(false);
-    });
-  });
 
   // ---- Poll closed / expired state ----
 

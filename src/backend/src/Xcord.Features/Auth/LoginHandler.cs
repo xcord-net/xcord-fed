@@ -220,6 +220,7 @@ public sealed class LoginHandler(
                 );
             })
             .AllowAnonymous()
+            .RequireRateLimiting("auth")
             .WithName("Login")
             .WithTags("Auth");
     }

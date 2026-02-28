@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
@@ -48,6 +49,16 @@ public sealed class RemoveTimeoutHandler(
 
         // Remove from Redis cache
         await timeoutService.RemoveTimeoutAsync(request.UserId, request.ServerId, cancellationToken);
+
+        // Expire any active timeout records in the database so that the fallback
+        // DB check in IsTimedOutAsync no longer finds an active timeout for this user
+        var activeTimeouts = await dbContext.Timeouts
+            .Where(t => t.UserId == request.UserId && t.ServerId == request.ServerId && t.ExpiresAt > now)
+            .ToListAsync(cancellationToken);
+        foreach (var t in activeTimeouts)
+        {
+            t.ExpiresAt = now;
+        }
 
         // Create audit log
         var auditLogId = snowflakeGenerator.NextId();

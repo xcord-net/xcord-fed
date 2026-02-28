@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Xcord.Features.Admin;
 
 /// <summary>
@@ -11,7 +13,7 @@ public sealed record CreateBotResponse(
     long TokenId,
     string TokenName,
     string RawToken, // Only returned once on creation
-    long Permissions,
+    [property: JsonConverter(typeof(LongAsNumberConverter))] long Permissions,
     DateTimeOffset CreatedAt
 );
 
@@ -20,7 +22,7 @@ public sealed record BotTokenDto(
     string TokenName,
     long UserId,
     string Username,
-    long Permissions,
+    [property: JsonConverter(typeof(LongAsNumberConverter))] long Permissions,
     bool IsRevoked,
     DateTimeOffset CreatedAt,
     DateTimeOffset? LastUsedAt

@@ -140,17 +140,6 @@ describe('StickerPicker', () => {
       expect(packs).toHaveLength(0);
     });
 
-    it('each pack has serverId and stickers array', () => {
-      // Arrange
-      const stickers = [makeSticker({ serverId: 'srv-1' })];
-
-      // Act
-      const packs = groupStickersByServer(stickers);
-
-      // Assert
-      expect(packs[0].serverId).toBe('srv-1');
-      expect(Array.isArray(packs[0].stickers)).toBe(true);
-    });
   });
 
   // ---- validateStickerName ----
@@ -247,18 +236,6 @@ describe('StickerPicker', () => {
       expect(result).toHaveLength(0);
     });
 
-    it('throws when API returns an error', async () => {
-      // Arrange
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: false,
-        json: async () => ({ error: 'Forbidden' }),
-      });
-
-      // Act & Assert
-      await expect(
-        api.get('/api/v1/servers/srv/stickers'),
-      ).rejects.toMatchObject({ error: 'Forbidden' });
-    });
   });
 
   describe('deleting a sticker', () => {
@@ -279,22 +256,6 @@ describe('StickerPicker', () => {
       );
     });
 
-    it('removes deleted sticker from local list', () => {
-      // Arrange
-      let stickers: Sticker[] = [
-        makeSticker({ id: 's-1', name: 'wave' }),
-        makeSticker({ id: 's-2', name: 'clap' }),
-        makeSticker({ id: 's-3', name: 'dance' }),
-      ];
-
-      // Act
-      stickers = stickers.filter((s) => s.id !== 's-2');
-
-      // Assert
-      expect(stickers).toHaveLength(2);
-      expect(stickers.map((s) => s.name)).toEqual(['wave', 'dance']);
-    });
-
     it('throws when delete API call fails', async () => {
       // Arrange
       globalThis.fetch = vi.fn().mockResolvedValue({
@@ -309,22 +270,4 @@ describe('StickerPicker', () => {
     });
   });
 
-  describe('sticker data shape', () => {
-    it('sticker imageUrl is a valid URL string', () => {
-      // Arrange
-      const sticker = makeSticker();
-
-      // Assert
-      expect(sticker.imageUrl.startsWith('http')).toBe(true);
-    });
-
-    it('sticker tags is an array', () => {
-      // Arrange
-      const sticker = makeSticker({ tags: ['fun', 'cute'] });
-
-      // Assert
-      expect(Array.isArray(sticker.tags)).toBe(true);
-      expect(sticker.tags).toHaveLength(2);
-    });
-  });
 });

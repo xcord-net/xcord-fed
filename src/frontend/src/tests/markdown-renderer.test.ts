@@ -91,6 +91,7 @@ describe('parseMarkdown', () => {
       const tokens = parseMarkdown('http://example.com/path');
       expect(tokens).toHaveLength(1);
       expect(tokens[0].type).toBe('link');
+      expect((tokens[0] as { type: string; value: string }).value).toBe('http://example.com/path');
     });
   });
 
@@ -117,8 +118,10 @@ describe('parseMarkdown', () => {
 
     it('should keep plain text between formatted tokens', () => {
       const tokens = parseMarkdown('hello **world** foo');
-      const textTokens = tokens.filter(t => t.type === 'text');
+      const textTokens = tokens.filter(t => t.type === 'text') as { type: string; value: string }[];
       expect(textTokens.length).toBeGreaterThan(0);
+      expect(textTokens.map(t => t.value)).toContain('hello ');
+      expect(textTokens.map(t => t.value)).toContain(' foo');
     });
   });
 });

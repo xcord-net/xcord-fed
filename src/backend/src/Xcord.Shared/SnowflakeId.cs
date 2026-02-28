@@ -91,6 +91,8 @@ public sealed class SnowflakeIdGenerator
 
 /// <summary>
 /// JSON converter for Snowflake IDs to serialize as strings.
+/// Registered globally — affects ALL long fields. Use <see cref="LongAsNumberConverter"/>
+/// on non-ID long properties (e.g. permission bitmasks, file sizes) to override.
 /// </summary>
 public sealed class SnowflakeJsonConverter : JsonConverter<long>
 {
@@ -115,5 +117,66 @@ public sealed class SnowflakeJsonConverter : JsonConverter<long>
     public override void Write(Utf8JsonWriter writer, long value, JsonSerializerOptions options)
     {
         writer.WriteStringValue(value.ToString());
+    }
+}
+
+/// <summary>
+/// JSON converter that serializes long values as numbers (not strings).
+/// Apply via [property: JsonConverter(typeof(LongAsNumberConverter))] on non-ID long
+/// fields like permission bitmasks and file sizes to override the global
+/// SnowflakeJsonConverter which stringifies all longs.
+/// </summary>
+public sealed class LongAsNumberConverter : JsonConverter<long>
+{
+    public override long Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Number)
+            return reader.GetInt64();
+
+        if (reader.TokenType == JsonTokenType.String)
+        {
+            var str = reader.GetString();
+            if (long.TryParse(str, out var value))
+                return value;
+        }
+
+        throw new JsonException("Expected number or numeric string");
+    }
+
+    public override void Write(Utf8JsonWriter writer, long value, JsonSerializerOptions options)
+    {
+        writer.WriteNumberValue(value);
+    }
+}
+
+/// <summary>
+/// Nullable variant of <see cref="LongAsNumberConverter"/> for long? fields.
+/// </summary>
+public sealed class NullableLongAsNumberConverter : JsonConverter<long?>
+{
+    public override long? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null)
+            return null;
+
+        if (reader.TokenType == JsonTokenType.Number)
+            return reader.GetInt64();
+
+        if (reader.TokenType == JsonTokenType.String)
+        {
+            var str = reader.GetString();
+            if (long.TryParse(str, out var value))
+                return value;
+        }
+
+        throw new JsonException("Expected number, numeric string, or null");
+    }
+
+    public override void Write(Utf8JsonWriter writer, long? value, JsonSerializerOptions options)
+    {
+        if (value.HasValue)
+            writer.WriteNumberValue(value.Value);
+        else
+            writer.WriteNullValue();
     }
 }
