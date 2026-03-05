@@ -60,16 +60,19 @@ public class WebAppFixture : IAsyncLifetime
         {
             await db.Database.EnsureCreatedAsync();
 
-            // Generate RSA key pair for JWT
+            // Generate RSA key pair for JWT — private key encrypted at rest with DEK
             using var rsa = RSA.Create(2048);
             var privateKeyBase64 = Convert.ToBase64String(rsa.ExportRSAPrivateKey());
             _rsaPublicKeyBase64 = Convert.ToBase64String(rsa.ExportRSAPublicKey());
             var now = DateTimeOffset.UtcNow;
 
+            var encService = new PgCryptoEncryptionService("test-encryption-key-for-integration-tests");
+            var encryptedPrivateKey = Convert.ToBase64String(encService.Encrypt(privateKeyBase64));
+
             db.SystemSettings.Add(new SystemSetting
             {
-                Key = "RsaPrivateKey",
-                Value = privateKeyBase64,
+                Key = "EncryptedRsaPrivateKey",
+                Value = encryptedPrivateKey,
                 CreatedAt = now,
                 UpdatedAt = now
             });
@@ -77,6 +80,16 @@ public class WebAppFixture : IAsyncLifetime
             {
                 Key = "RsaPublicKey",
                 Value = _rsaPublicKeyBase64,
+                CreatedAt = now,
+                UpdatedAt = now
+            });
+
+            // Store encryption key for BootstrapService (not running in tests,
+            // but JwtService needs the DEK to decrypt the RSA private key)
+            db.SystemSettings.Add(new SystemSetting
+            {
+                Key = "EncryptionKey",
+                Value = "test-encryption-key-for-integration-tests",
                 CreatedAt = now,
                 UpdatedAt = now
             });
