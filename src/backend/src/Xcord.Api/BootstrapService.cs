@@ -18,7 +18,10 @@ public static class BootstrapService
         await db.Database.MigrateAsync();
         Log.Information("Database migrations applied");
 
-        // Ensure RSA key pair exists
+        // Bootstrap encryption key FIRST — RSA key encryption depends on it
+        await InitializeEncryptionAsync(db, app, scope);
+
+        // Ensure RSA key pair exists (private key encrypted at rest with DEK)
         var jwtService = scope.ServiceProvider.GetRequiredService<IJwtService>();
         await jwtService.EnsureRsaKeyPairAsync();
         Log.Information("RSA key pair verified");
@@ -40,9 +43,6 @@ public static class BootstrapService
         {
             currentOptions.TokenValidationParameters.IssuerSigningKey = rsaKey.GetPublicKey();
         }
-
-        // Bootstrap encryption key with envelope encryption support
-        await InitializeEncryptionAsync(db, app, scope);
     }
 
     private static async Task InitializeEncryptionAsync(AppDbContext db, WebApplication app, IServiceScope scope)

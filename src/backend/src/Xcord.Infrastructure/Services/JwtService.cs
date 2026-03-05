@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -13,47 +14,85 @@ namespace Xcord.Infrastructure.Services;
 
 /// <summary>
 /// Service for generating and validating JWT access tokens using RS256 asymmetric signing.
+/// RSA private key is encrypted at rest using the instance DEK via IEncryptionService.
 /// </summary>
 public sealed class JwtService : IJwtService
 {
     private const string RsaPrivateKeySettingKey = "RsaPrivateKey";
+    private const string EncryptedRsaPrivateKeySettingKey = "EncryptedRsaPrivateKey";
     private const string RsaPublicKeySettingKey = "RsaPublicKey";
     private const string TwoFactorPurpose = "2fa";
 
     private readonly AppDbContext _dbContext;
     private readonly JwtOptions _jwtOptions;
     private readonly RsaKeySingleton _rsaKeySingleton;
+    private readonly IEncryptionService _encryptionService;
+    private readonly ILogger<JwtService> _logger;
     private RSA? _rsa;
 
-    public JwtService(AppDbContext dbContext, IOptions<JwtOptions> jwtOptions, RsaKeySingleton rsaKeySingleton)
+    public JwtService(
+        AppDbContext dbContext,
+        IOptions<JwtOptions> jwtOptions,
+        RsaKeySingleton rsaKeySingleton,
+        IEncryptionService encryptionService,
+        ILogger<JwtService> logger)
     {
         _dbContext = dbContext;
         _jwtOptions = jwtOptions.Value;
         _rsaKeySingleton = rsaKeySingleton;
+        _encryptionService = encryptionService;
+        _logger = logger;
     }
 
     /// <summary>
     /// Ensures the RSA key pair exists in the database.
-    /// Generates and stores a new key pair on first boot if needed.
+    /// Private key is always stored encrypted with the instance DEK.
+    /// Handles migration from plaintext storage.
     /// </summary>
     public async Task EnsureRsaKeyPairAsync(CancellationToken cancellationToken = default)
     {
-        var privateKeySetting = await _dbContext.SystemSettings
+        var encryptedKeySetting = await _dbContext.SystemSettings
+            .FirstOrDefaultAsync(s => s.Key == EncryptedRsaPrivateKeySettingKey, cancellationToken);
+
+        if (encryptedKeySetting != null)
+        {
+            // Already encrypted — nothing to do
+            return;
+        }
+
+        var plaintextKeySetting = await _dbContext.SystemSettings
             .FirstOrDefaultAsync(s => s.Key == RsaPrivateKeySettingKey, cancellationToken);
 
-        if (privateKeySetting == null)
+        var now = DateTimeOffset.UtcNow;
+
+        if (plaintextKeySetting != null)
         {
-            // Generate new RSA key pair (2048 bits)
+            // Migrate: encrypt existing plaintext private key, delete plaintext entry
+            var encryptedBytes = _encryptionService.Encrypt(plaintextKeySetting.Value);
+            _dbContext.SystemSettings.Add(new SystemSetting
+            {
+                Key = EncryptedRsaPrivateKeySettingKey,
+                Value = Convert.ToBase64String(encryptedBytes),
+                CreatedAt = now,
+                UpdatedAt = now
+            });
+            _dbContext.SystemSettings.Remove(plaintextKeySetting);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Migrated RSA private key from plaintext to encrypted storage");
+        }
+        else
+        {
+            // First boot: generate new RSA key pair, encrypt private key
             using var rsa = RSA.Create(2048);
             var privateKey = Convert.ToBase64String(rsa.ExportRSAPrivateKey());
             var publicKey = Convert.ToBase64String(rsa.ExportRSAPublicKey());
 
-            var now = DateTimeOffset.UtcNow;
+            var encryptedBytes = _encryptionService.Encrypt(privateKey);
 
             _dbContext.SystemSettings.Add(new SystemSetting
             {
-                Key = RsaPrivateKeySettingKey,
-                Value = privateKey,
+                Key = EncryptedRsaPrivateKeySettingKey,
+                Value = Convert.ToBase64String(encryptedBytes),
                 CreatedAt = now,
                 UpdatedAt = now
             });
@@ -67,6 +106,7 @@ public sealed class JwtService : IJwtService
             });
 
             await _dbContext.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Generated new RSA key pair with encrypted private key");
         }
     }
 
@@ -180,7 +220,7 @@ public sealed class JwtService : IJwtService
     }
 
     /// <summary>
-    /// Loads the RSA private key from the database.
+    /// Loads the RSA private key from the database, decrypting it from encrypted storage.
     /// </summary>
     private RSA GetRsa()
     {
@@ -189,18 +229,20 @@ public sealed class JwtService : IJwtService
             return _rsa;
         }
 
-        var privateKeySetting = _dbContext.SystemSettings
-            .FirstOrDefault(s => s.Key == RsaPrivateKeySettingKey);
+        // Try encrypted key first (normal path)
+        var encryptedKeySetting = _dbContext.SystemSettings
+            .FirstOrDefault(s => s.Key == EncryptedRsaPrivateKeySettingKey);
 
-        if (privateKeySetting == null)
+        if (encryptedKeySetting != null)
         {
-            throw new InvalidOperationException("RSA key pair not found in database. Call EnsureRsaKeyPairAsync first.");
+            var encryptedBytes = Convert.FromBase64String(encryptedKeySetting.Value);
+            var privateKeyBase64 = _encryptionService.Decrypt(encryptedBytes);
+            var privateKeyBytes = Convert.FromBase64String(privateKeyBase64);
+            _rsa = RSA.Create();
+            _rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
+            return _rsa;
         }
 
-        var privateKeyBytes = Convert.FromBase64String(privateKeySetting.Value);
-        _rsa = RSA.Create();
-        _rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
-
-        return _rsa;
+        throw new InvalidOperationException("RSA key pair not found in database. Call EnsureRsaKeyPairAsync first.");
     }
 }
