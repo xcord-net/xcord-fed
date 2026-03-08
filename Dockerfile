@@ -1,6 +1,7 @@
 # ===== Stage 1: Build backend =====
 FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build-backend
 WORKDIR /src
+ARG VERSION=0.0.0-dev
 
 # Copy solution and project files for restore
 COPY src/backend/Directory.Build.props src/backend/
@@ -20,11 +21,14 @@ COPY src/backend/ src/backend/
 RUN dotnet publish src/backend/src/Xcord.Api/Xcord.Api.csproj \
     -c Release \
     -o /app/publish \
+    -p:Version=$VERSION \
     --no-restore
 
 # ===== Stage 2: Build frontend (client SPA) =====
 FROM node:22-alpine AS build-frontend
 WORKDIR /src
+ARG VERSION=0.0.0-dev
+ENV VITE_APP_VERSION=$VERSION
 
 COPY src/frontend/package*.json ./
 RUN npm ci --production=false
@@ -35,6 +39,8 @@ RUN npm run build
 # ===== Stage 2b: Build admin SPA =====
 FROM node:22-alpine AS build-admin
 WORKDIR /app
+ARG VERSION=0.0.0-dev
+ENV VITE_APP_VERSION=$VERSION
 
 COPY src/admin/ .
 RUN if [ -f package.json ]; then \
