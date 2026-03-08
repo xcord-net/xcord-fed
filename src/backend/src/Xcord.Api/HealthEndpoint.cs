@@ -1,11 +1,15 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using System.Reflection;
 using System.Text.Json;
 
 namespace Xcord.Api;
 
 public static class HealthEndpoint
 {
+    private static readonly string Version = typeof(HealthEndpoint).Assembly
+        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "unknown";
+
     public static void MapHealthEndpoint(this IEndpointRouteBuilder app)
     {
         app.MapHealthChecks("/health", new HealthCheckOptions
@@ -17,6 +21,7 @@ public static class HealthEndpoint
                 var response = new
                 {
                     status = report.Status.ToString(),
+                    version = Version,
                     timestamp = DateTimeOffset.UtcNow,
                     checks = report.Entries.Select(e => new
                     {
