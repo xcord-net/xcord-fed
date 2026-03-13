@@ -94,7 +94,7 @@ public sealed class ScheduledMessageDispatcher : BackgroundService
 
         if (channel == null)
         {
-            // Conversation no longer has an associated channel — soft-delete the scheduled message.
+            // Conversation no longer has an associated channel - soft-delete the scheduled message.
             _logger.LogWarning(
                 "Scheduled message {Id}: no channel found for conversation {ConversationId}. Soft-deleting.",
                 scheduled.Id, scheduled.ConversationId);

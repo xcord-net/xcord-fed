@@ -72,7 +72,7 @@ export function parseMarkdown(content: string): RenderedToken[] {
         continue;
       }
 
-      // <@&roleId> — role mention (must come before user mention)
+      // <@&roleId> - role mention (must come before user mention)
       const roleMentionMatch = remaining.match(/^<@&(\d+)>/);
       if (roleMentionMatch) {
         result.push({ type: 'mention_role', value: roleMentionMatch[1] });
@@ -80,7 +80,7 @@ export function parseMarkdown(content: string): RenderedToken[] {
         continue;
       }
 
-      // <@userId> — user mention
+      // <@userId> - user mention
       const userMentionMatch = remaining.match(/^<@(\d+)>/);
       if (userMentionMatch) {
         result.push({ type: 'mention_user', value: userMentionMatch[1] });
@@ -142,7 +142,7 @@ export function parseMarkdown(content: string): RenderedToken[] {
         continue;
       }
 
-      // Plain text — consume until the next potential token character
+      // Plain text - consume until the next potential token character
       const plainMatch = remaining.match(/^[^*_~`|@<h]+/) ||
         remaining.match(/^./);
       if (plainMatch) {
@@ -190,7 +190,7 @@ export function parseMarkdown(content: string): RenderedToken[] {
       continue;
     }
 
-    // Normal line — process inline
+    // Normal line - process inline
     const inlineTokens = processInline(line);
     tokens.push(...inlineTokens);
 

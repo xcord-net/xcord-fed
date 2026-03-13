@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Extracted logic from createScrollLock.ts — we test the lock/unlock counter
+// Extracted logic from createScrollLock.ts - we test the lock/unlock counter
 // mechanism, not the Solid reactive wrapper.
 // ---------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ function unlock() {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('createScrollLock — lock/unlock counter', () => {
+describe('createScrollLock - lock/unlock counter', () => {
   beforeEach(() => {
     // Reset module-level state before each test
     lockCount = 0;
@@ -74,7 +74,7 @@ describe('createScrollLock — lock/unlock counter', () => {
     lock();
     expect(lockCount).toBe(2);
 
-    unlock(); // only decrement — still 1 lock remaining
+    unlock(); // only decrement - still 1 lock remaining
 
     // Assert
     expect(lockCount).toBe(1);
@@ -97,7 +97,7 @@ describe('createScrollLock — lock/unlock counter', () => {
   });
 
   it('does not go below zero lockCount', () => {
-    // Act — unlock without any prior locks
+    // Act - unlock without any prior locks
     unlock();
     unlock();
     unlock();
@@ -127,10 +127,10 @@ describe('createScrollLock — lock/unlock counter', () => {
   });
 
   it('saves overflow at the moment of first lock only', () => {
-    // Arrange — body starts with 'auto'
+    // Arrange - body starts with 'auto'
     document.body.style.overflow = 'auto';
 
-    // Act — first lock captures 'auto'
+    // Act - first lock captures 'auto'
     lock();
     // Change overflow externally while locked (should not affect saved value)
     document.body.style.overflow = 'scroll';

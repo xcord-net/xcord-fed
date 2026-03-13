@@ -26,7 +26,7 @@ async function fetchAndStoreProfile(): Promise<void> {
       });
     }
   } catch {
-    // Profile fetch failure is non-fatal — user is still authenticated
+    // Profile fetch failure is non-fatal - user is still authenticated
   }
 }
 
@@ -99,10 +99,10 @@ export function useAuth() {
         }
         return true;
       } catch {
-        // Session invalid or expired — try refresh
+        // Session invalid or expired - try refresh
         try {
           await api.post('/api/v1/auth/refresh');
-          // Refresh succeeded — now fetch user info
+          // Refresh succeeded - now fetch user info
           const userInfo = await api.get<UserInfo>('/api/v1/auth/me');
           api.setAuthenticated(true);
           store.setIsAuthenticated(true);

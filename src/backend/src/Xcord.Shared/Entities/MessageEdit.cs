@@ -3,7 +3,7 @@ namespace Xcord.Entities;
 /// <summary>
 /// Represents a historical edit of a message.
 /// Preserves the previous content before each edit for audit purposes.
-/// NOT soft-deleted — edit history is preserved permanently.
+/// NOT soft-deleted - edit history is preserved permanently.
 /// </summary>
 public sealed class MessageEdit
 {

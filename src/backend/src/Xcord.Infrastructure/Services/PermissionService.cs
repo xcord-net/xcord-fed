@@ -78,7 +78,7 @@ public sealed class PermissionService : IPermissionService
     /// Internal implementation that returns server permissions along with the @everyone role.
     /// Used by GetChannelPermissions to share the @everyone role lookup, avoiding a redundant
     /// DB round-trip that would otherwise duplicate the query in both methods.
-    /// This method always queries the database — callers are responsible for cache lookup.
+    /// This method always queries the database - callers are responsible for cache lookup.
     /// </summary>
     private async Task<(long Permissions, XcordRole? EveryoneRole)> GetServerPermissionsWithEveryoneRole(long userId, long serverId)
     {
@@ -95,7 +95,7 @@ public sealed class PermissionService : IPermissionService
 
         if (server.OwnerId == userId)
         {
-            // Server owner has all permissions — no need to load roles
+            // Server owner has all permissions - no need to load roles
             return (long.MaxValue, null);
         }
 
@@ -190,7 +190,7 @@ public sealed class PermissionService : IPermissionService
             return 0L;
         }
 
-        // Step 2: Get server permissions — reuse the @everyone role from the internal implementation
+        // Step 2: Get server permissions - reuse the @everyone role from the internal implementation
         // to avoid a second DB round-trip that the original code made at step 3 below.
         var (permissions, everyoneRole) = await GetServerPermissionsWithEveryoneRole(userId, channel.ServerId);
 
@@ -205,7 +205,7 @@ public sealed class PermissionService : IPermissionService
             return await CacheAndReturn(long.MaxValue); // Administrator has all permissions
         }
 
-        // Step 3: @everyone role already loaded by GetServerPermissionsWithEveryoneRole — no extra query
+        // Step 3: @everyone role already loaded by GetServerPermissionsWithEveryoneRole - no extra query
         if (everyoneRole == null)
         {
             _logger.LogWarning(
@@ -392,7 +392,7 @@ public sealed class PermissionService : IPermissionService
     public async Task InvalidateRoleMembersPermissionsAsync(long roleId, long serverId, CancellationToken cancellationToken = default)
     {
         // Check if this is the @everyone role. The @everyone role applies to ALL server
-        // members implicitly — its membership is NOT tracked in MemberRoles. If we only
+        // members implicitly - its membership is NOT tracked in MemberRoles. If we only
         // query MemberRoles we'd find zero affected users and skip cache invalidation.
         var isEveryoneRole = await _dbContext.Roles
             .AsNoTracking()
@@ -401,7 +401,7 @@ public sealed class PermissionService : IPermissionService
         List<long> affectedUserIds;
         if (isEveryoneRole)
         {
-            // @everyone applies to ALL server members — invalidate everyone
+            // @everyone applies to ALL server members - invalidate everyone
             affectedUserIds = await _dbContext.ServerMembers
                 .AsNoTracking()
                 .Where(sm => sm.ServerId == serverId)
@@ -413,7 +413,7 @@ public sealed class PermissionService : IPermissionService
             // Find every user who currently holds this role in the server.
             // We must do this before the role assignment rows are deleted so that
             // DeleteRoleHandler can call this before SaveChanges, but AssignRoleHandler/
-            // RemoveRoleHandler call it after — the role membership rows still exist when
+            // RemoveRoleHandler call it after - the role membership rows still exist when
             // UpdateRoleHandler triggers this. For DeleteRole we query before soft-delete.
             affectedUserIds = await _dbContext.MemberRoles
                 .AsNoTracking()

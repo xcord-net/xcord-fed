@@ -38,7 +38,7 @@ public class EmojiTests
 
     /// <summary>
     /// Seeds a confirmed attachment directly in the database.
-    /// Emoji creation requires a confirmed attachment — since the integration test
+    /// Emoji creation requires a confirmed attachment - since the integration test
     /// environment has no real S3, we seed the record directly.
     /// </summary>
     private async Task<long> SeedConfirmedAttachmentAsync()

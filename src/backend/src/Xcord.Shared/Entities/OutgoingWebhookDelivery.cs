@@ -2,7 +2,7 @@ namespace Xcord.Entities;
 
 /// <summary>
 /// Represents a single delivery attempt record for an outgoing webhook.
-/// NOT soft-deleted — hard-deleted by the cleanup service after retention period.
+/// NOT soft-deleted - hard-deleted by the cleanup service after retention period.
 /// </summary>
 public sealed class OutgoingWebhookDelivery
 {

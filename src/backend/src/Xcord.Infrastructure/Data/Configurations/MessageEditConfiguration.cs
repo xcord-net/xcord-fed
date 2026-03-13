@@ -38,6 +38,6 @@ public sealed class MessageEditConfiguration : IEntityTypeConfiguration<MessageE
         builder.Property(me => me.EditedAt)
             .IsRequired();
 
-        // NOTE: No soft delete filter — edit history is preserved permanently
+        // NOTE: No soft delete filter - edit history is preserved permanently
     }
 }

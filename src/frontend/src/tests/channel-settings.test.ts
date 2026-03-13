@@ -55,7 +55,7 @@ describe('ChannelSettings', () => {
       const body = JSON.parse(
         (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][1].body
       );
-      // The slowModeSeconds value must be a number, not a string — a string would
+      // The slowModeSeconds value must be a number, not a string - a string would
       // cause a backend type mismatch (the select element stores its value as a
       // string and parseInt is required before passing it here).
       expect(body.slowModeSeconds).toBe(60);
@@ -90,7 +90,7 @@ describe('ChannelSettings', () => {
   describe('save changes via API', () => {
     it('calls PATCH /api/v1/channels/{channelId}', async () => {
       // The component uses api.patch (not api.put) with /api/v1/channels/{id}
-      // (no serverId in the path — channels are addressed directly by their ID).
+      // (no serverId in the path - channels are addressed directly by their ID).
       const channelId = 'ch-7';
 
       globalThis.fetch = vi.fn().mockResolvedValue({

@@ -40,7 +40,7 @@ export default function MemberList() {
 
   // Only the server owner can ban members from the member list context menu.
   // (Moderators with the BanMembers permission would require a full permission
-  // fetch per-server — owner check is sufficient for this UI guard.)
+  // fetch per-server - owner check is sufficient for this UI guard.)
   const canBan = () => {
     const currentServer = serverStore.servers.find(
       (s) => s.id === serverStore.selectedServerId,
@@ -154,7 +154,7 @@ export default function MemberList() {
             <div class="mb-4">
               {/* Role header */}
               <h3 class="text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-2">
-                {group.role} — {group.members.length}
+                {group.role} - {group.members.length}
               </h3>
 
               {/* Members */}
@@ -180,7 +180,7 @@ export default function MemberList() {
                         <PresenceDot userId={member.userId} size="sm" />
                       </div>
 
-                      {/* Username and display name — Card 170: apply role color */}
+                      {/* Username and display name - Card 170: apply role color */}
                       <div class="flex-1 min-w-0 text-left">
                         <div
                           class="text-sm truncate"

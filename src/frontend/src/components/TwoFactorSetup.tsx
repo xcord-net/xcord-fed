@@ -114,7 +114,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Clipboard API not available — ignore
+      // Clipboard API not available - ignore
     }
   };
 
@@ -245,7 +245,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
           <div class="bg-yellow-900/30 border border-yellow-600/40 rounded-lg p-4">
             <p class="text-yellow-300 font-semibold text-sm mb-1">Save these backup codes now.</p>
             <p class="text-yellow-200/80 text-sm">
-              These codes will not be shown again. Each code can only be used once. Store them somewhere safe — if you lose access to your email, you can use a backup code to sign in.
+              These codes will not be shown again. Each code can only be used once. Store them somewhere safe - if you lose access to your email, you can use a backup code to sign in.
             </p>
           </div>
 

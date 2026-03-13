@@ -3,7 +3,7 @@ namespace Xcord.Entities;
 /// <summary>
 /// Represents a reaction to a message.
 /// Composite PK: MessageId + UserId + Emoji.
-/// NOT soft-deleted — reactions are hard-deleted on removal.
+/// NOT soft-deleted - reactions are hard-deleted on removal.
 /// </summary>
 public sealed class Reaction
 {

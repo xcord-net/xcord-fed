@@ -31,7 +31,7 @@ public sealed class OutgoingWebhookConfiguration : IEntityTypeConfiguration<Outg
             .IsRequired()
             .HasMaxLength(2048);
 
-        // Secret (encrypted bytea — raw bytes stored, encryption handled in service layer)
+        // Secret (encrypted bytea - raw bytes stored, encryption handled in service layer)
         builder.Property(w => w.Secret)
             .IsRequired()
             .HasColumnType("bytea");
@@ -57,13 +57,13 @@ public sealed class OutgoingWebhookConfiguration : IEntityTypeConfiguration<Outg
         // DeletedAt (soft delete, implements ISoftDeletable)
         builder.Property(w => w.DeletedAt);
 
-        // Server FK — cascade delete when server is deleted
+        // Server FK - cascade delete when server is deleted
         builder.HasOne(w => w.Server)
             .WithMany()
             .HasForeignKey(w => w.ServerId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // CreatedByUser FK — SetNull on user deletion
+        // CreatedByUser FK - SetNull on user deletion
         builder.HasOne(w => w.CreatedByUser)
             .WithMany()
             .HasForeignKey(w => w.CreatedByUserId)

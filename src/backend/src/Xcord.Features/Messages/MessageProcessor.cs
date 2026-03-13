@@ -335,7 +335,7 @@ public sealed class MessageProcessor : IMessageProcessor
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == channelId);
 
-        // No channel (e.g. thread with no parent channel) or slowmode disabled — nothing to do
+        // No channel (e.g. thread with no parent channel) or slowmode disabled - nothing to do
         if (channel == null || !channel.SlowModeSeconds.HasValue || channel.SlowModeSeconds.Value <= 0)
         {
             return true;

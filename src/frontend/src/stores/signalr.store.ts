@@ -26,11 +26,11 @@ const store = createRoot(() => {
   const [isConnected, setIsConnected] = createSignal(false);
   const [isConnecting, setIsConnecting] = createSignal(false);
   const [currentConversations, setCurrentConversations] = createSignal<Set<string>>(new Set());
-  // Notification context — updated by callers so the Chat_MessageCreated handler
+  // Notification context - updated by callers so the Chat_MessageCreated handler
   // can decide whether to suppress sound/desktop notifications.
   const [currentUserId, setCurrentUserId] = createSignal<string | null>(null);
   const [activeConversationId, setActiveConversationId] = createSignal<string | null>(null);
-  // Set when the server sends System_ShuttingDown — non-null value triggers the
+  // Set when the server sends System_ShuttingDown - non-null value triggers the
   // suspension overlay so users see a friendly message before the connection drops.
   const [suspensionReason, setSuspensionReason] = createSignal<string | null>(null);
 
@@ -98,7 +98,7 @@ export function useSignalR() {
       return;
     }
 
-    // Remove any stale handlers first (defensive — covers edge cases where the
+    // Remove any stale handlers first (defensive - covers edge cases where the
     // WeakSet entry was cleared but the connection object was reused).
     unregisterEventHandlers(connection);
 
@@ -148,7 +148,7 @@ export function useSignalR() {
       typing.startTyping(data.conversationId, data.userId);
     });
 
-    // Channel events — broadcast to all server members when a channel is created
+    // Channel events - broadcast to all server members when a channel is created
     connection.on('Chat_ChannelCreated', (channel: Channel) => {
       const normalized: Channel = {
         ...channel,
@@ -234,11 +234,11 @@ export function useSignalR() {
 
       // Register all event handlers exactly once on this new connection object.
       // Auto-reconnect reuses this same object, so onreconnected must NOT call
-      // registerEventHandlers again — the WeakSet guard ensures idempotency if
+      // registerEventHandlers again - the WeakSet guard ensures idempotency if
       // it ever does.
       registerEventHandlers(connection);
 
-      // Handle reconnected — handlers are already registered on the same
+      // Handle reconnected - handlers are already registered on the same
       // HubConnection object; do NOT call registerEventHandlers here.
       connection.onreconnected(async () => {
         console.log('SignalR reconnected');
@@ -255,7 +255,7 @@ export function useSignalR() {
         store.setIsConnected(false);
       });
 
-      // Handle close — auto-reconnect has been exhausted; build a new connection
+      // Handle close - auto-reconnect has been exhausted; build a new connection
       // with a fresh auth ticket. The old connection object is discarded, so its
       // WeakSet entry is eligible for GC.
       connection.onclose(async (error) => {

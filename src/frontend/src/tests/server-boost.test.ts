@@ -127,7 +127,7 @@ describe('server-boost', () => {
     });
 
     it('returns 50% halfway through tier 0 to tier 1', () => {
-      // 0 boosts required for tier 0, 2 for tier 1 — 1 boost is 50%
+      // 0 boosts required for tier 0, 2 for tier 1 - 1 boost is 50%
       expect(tierProgressPercent(0, 1)).toBe(50);
     });
 
@@ -156,7 +156,7 @@ describe('server-boost', () => {
       // Act
       const result = await api.get<BoostStatus>(`/api/v1/servers/${serverId}/boost-status`);
 
-      // Assert — the full boost status is returned so all UI fields can be rendered
+      // Assert - the full boost status is returned so all UI fields can be rendered
       expect(globalThis.fetch).toHaveBeenCalledWith(
         `/api/v1/servers/${serverId}/boost-status`,
         expect.objectContaining({ method: 'GET' }),
@@ -175,7 +175,7 @@ describe('server-boost', () => {
         json: async () => ({ error: 'Not found' }),
       });
 
-      // Act & Assert — the error payload is propagated so the UI can display it
+      // Act & Assert - the error payload is propagated so the UI can display it
       await expect(api.get('/api/v1/servers/nonexistent/boost-status')).rejects.toMatchObject({ error: 'Not found' });
     });
   });
@@ -188,10 +188,10 @@ describe('server-boost', () => {
       const serverId = 'server-xyz';
       globalThis.fetch = vi.fn().mockResolvedValue({ ok: true, status: 204 });
 
-      // Act — should resolve without throwing so the UI can update boost state
+      // Act - should resolve without throwing so the UI can update boost state
       await expect(api.post(`/api/v1/servers/${serverId}/boosts`)).resolves.not.toThrow();
 
-      // Assert — correct endpoint was called
+      // Assert - correct endpoint was called
       expect(globalThis.fetch).toHaveBeenCalledWith(
         `/api/v1/servers/${serverId}/boosts`,
         expect.objectContaining({ method: 'POST' }),
@@ -205,7 +205,7 @@ describe('server-boost', () => {
         json: async () => ({ error: 'No boosts available' }),
       });
 
-      // Act & Assert — the error message must be propagated so the UI can show it to the user
+      // Act & Assert - the error message must be propagated so the UI can show it to the user
       await expect(api.post('/api/v1/servers/server-1/boosts')).rejects.toMatchObject({ error: 'No boosts available' });
     });
   });

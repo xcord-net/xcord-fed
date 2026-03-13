@@ -15,7 +15,7 @@ export interface ListBotsResponse {
   bots: BotTokenDto[];
 }
 
-/** Matches CreateBotCommand — sent as POST /api/v1/admin/bots */
+/** Matches CreateBotCommand - sent as POST /api/v1/admin/bots */
 export interface CreateBotRequest {
   username: string;
   displayName: string;

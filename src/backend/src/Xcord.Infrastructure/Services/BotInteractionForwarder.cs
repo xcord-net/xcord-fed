@@ -30,7 +30,7 @@ public sealed class BotInteractionForwarder
     private const string InteractionKeyPrefix = "interaction:";
     private static readonly TimeSpan InteractionTokenTtl = TimeSpan.FromMinutes(15);
 
-    // Serializer options for the Redis token payload — plain camelCase, no custom converters needed.
+    // Serializer options for the Redis token payload - plain camelCase, no custom converters needed.
     private static readonly JsonSerializerOptions TokenSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -62,7 +62,7 @@ public sealed class BotInteractionForwarder
         using var doc = JsonDocument.Parse(payload);
         var root = doc.RootElement;
 
-        // Extract botTokenId — both command and interaction events carry this field.
+        // Extract botTokenId - both command and interaction events carry this field.
         if (!root.TryGetProperty("botTokenId", out var botTokenIdElement))
         {
             _logger.LogWarning("Bot event {EventType} payload missing botTokenId, skipping forwarding", eventType);
@@ -89,7 +89,7 @@ public sealed class BotInteractionForwarder
         }
         else if (botTokenIdElement.ValueKind == JsonValueKind.Null)
         {
-            // Component interaction from a non-bot message author — nothing to forward.
+            // Component interaction from a non-bot message author - nothing to forward.
             _logger.LogDebug("Bot event {EventType} has null botTokenId, skipping forwarding", eventType);
             return;
         }
@@ -224,7 +224,7 @@ public sealed class BotInteractionForwarder
         {
             var status = (int)response.StatusCode;
 
-            // 4xx errors (except 429) are not retryable — log and return to avoid infinite retry.
+            // 4xx errors (except 429) are not retryable - log and return to avoid infinite retry.
             if (status >= 400 && status < 500 && status != 429)
             {
                 _logger.LogError(
@@ -234,7 +234,7 @@ public sealed class BotInteractionForwarder
                 return;
             }
 
-            // 5xx and 429 are retryable — delete the token and throw so the outbox backs off.
+            // 5xx and 429 are retryable - delete the token and throw so the outbox backs off.
             await db.KeyDeleteAsync(redisKey);
             throw new InvalidOperationException(
                 $"Bot interaction delivery returned {status} for event {eventType} to {MaskUrl(endpointUrl)}");

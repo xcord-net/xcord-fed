@@ -3,7 +3,7 @@ import { api } from '../api/client';
 import { validateServerImageFile } from '../components/ServerIconUpload';
 
 /**
- * Server Icon and Banner Upload tests — Card 171
+ * Server Icon and Banner Upload tests - Card 171
  *
  * The ServerIconUpload component handles a three-step flow:
  *   1. POST /api/v1/uploads  → get presigned URL + attachmentId
@@ -153,7 +153,7 @@ describe('server-upload', () => {
       // Act
       await performServerUpload(SERVER.id, file, 'icon', makeMockXhrFactory());
 
-      // Assert — first fetch is the initiate request
+      // Assert - first fetch is the initiate request
       expect(globalThis.fetch).toHaveBeenNthCalledWith(
         1,
         '/api/v1/uploads',
@@ -216,7 +216,7 @@ describe('server-upload', () => {
       // Act
       await performServerUpload(SERVER.id, file, 'icon', makeMockXhrFactory());
 
-      // Assert — third fetch is the server update
+      // Assert - third fetch is the server update
       expect(globalThis.fetch).toHaveBeenNthCalledWith(
         3,
         `/api/v1/servers/${SERVER.id}`,
@@ -299,7 +299,7 @@ describe('server-upload', () => {
         json: async () => ({ error: 'Storage unavailable' }),
       });
 
-      // Act & Assert — the rejection must carry a non-empty error string so the UI can display it
+      // Act & Assert - the rejection must carry a non-empty error string so the UI can display it
       await expect(
         performServerUpload(SERVER.id, file, 'icon', makeMockXhrFactory()),
       ).rejects.toMatchObject({ error: expect.stringMatching(/.+/) });

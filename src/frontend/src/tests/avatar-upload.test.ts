@@ -3,7 +3,7 @@ import { api } from '../api/client';
 import { validateAvatarFile, uploadAvatar } from '../components/AvatarUpload';
 
 /**
- * User Avatar Upload tests — Card 172
+ * User Avatar Upload tests - Card 172
  */
 
 // ---- Helpers ----

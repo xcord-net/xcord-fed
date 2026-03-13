@@ -112,7 +112,7 @@ function ComponentButton(props: {
       });
       props.onInteract?.(response);
     } catch {
-      // swallow — interaction errors are non-fatal
+      // swallow - interaction errors are non-fatal
     } finally {
       setLoading(false);
     }

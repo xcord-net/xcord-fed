@@ -11,7 +11,7 @@ public sealed class NamingConventionTests
     [Fact]
     public void EndpointImplementors_ShouldEndWithHandler()
     {
-        // Arrange — find all IEndpoint implementors, assert they follow naming convention
+        // Arrange - find all IEndpoint implementors, assert they follow naming convention
         var assembly = typeof(Xcord.Features.FeaturesAssemblyMarker).Assembly;
 
         // Act

@@ -49,6 +49,6 @@ public sealed class PollOptionConfiguration : IEntityTypeConfiguration<PollOptio
         builder.Property(po => po.Position)
             .IsRequired();
 
-        // NOTE: No soft delete filter — follows poll lifecycle
+        // NOTE: No soft delete filter - follows poll lifecycle
     }
 }

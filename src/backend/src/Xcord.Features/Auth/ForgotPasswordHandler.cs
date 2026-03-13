@@ -57,7 +57,7 @@ public sealed class ForgotPasswordHandler(
         var currentCount = await db.StringIncrementAsync(redisKey);
         if (currentCount == 1)
         {
-            // First request in this window — set TTL
+            // First request in this window - set TTL
             await db.KeyExpireAsync(redisKey, ForgotPasswordWindow);
         }
 

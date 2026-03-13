@@ -36,7 +36,7 @@ export default function StatusPicker() {
         presence.updatePresence(userId, status);
       }
     } catch {
-      // Silently fail — presence is non-critical
+      // Silently fail - presence is non-critical
     } finally {
       setIsSaving(false);
       setIsOpen(false);

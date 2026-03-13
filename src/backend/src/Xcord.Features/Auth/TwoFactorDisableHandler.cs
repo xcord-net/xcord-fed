@@ -38,7 +38,7 @@ public sealed class TwoFactorDisableHandler(AppDbContext dbContext)
             return Error.NotFound("USER_NOT_FOUND", "User not found");
         }
 
-        // Verify current password (required for security) — offloaded to Task.Run to avoid thread pool starvation
+        // Verify current password (required for security) - offloaded to Task.Run to avoid thread pool starvation
         if (!await Task.Run(() => BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash)))
         {
             return Error.Validation("INVALID_PASSWORD", "Current password is incorrect");

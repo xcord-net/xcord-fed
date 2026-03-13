@@ -87,7 +87,7 @@ function PollContainer(props: { pollId: string; isAuthor: boolean }) {
         isClosed: data.isClosed,
       });
     } catch {
-      // Poll failed to load — render nothing
+      // Poll failed to load - render nothing
     }
   });
 
@@ -189,7 +189,7 @@ export default function MessageList(props: MessageListProps) {
       return timeDiff < 5 * 60 * 1000 ? 36 : 72;
     },
     overscan: 10,
-    // Messages list grows downward — reverse scroll (newest at bottom)
+    // Messages list grows downward - reverse scroll (newest at bottom)
     getItemKey: (index) => messageStore.messages[index]?.id ?? index,
   });
 
@@ -304,7 +304,7 @@ export default function MessageList(props: MessageListProps) {
                     <div
                       class={`group/msg relative ${grouped() ? 'pl-14 hover:bg-xcord-bg-primary/30' : 'hover:bg-xcord-bg-primary/30'}`}
                     >
-                      {/* Hover action bar — uses CSS group-hover for visibility to survive virtualizer DOM re-creation */}
+                      {/* Hover action bar - uses CSS group-hover for visibility to survive virtualizer DOM re-creation */}
                       <div role="toolbar" aria-label="Message actions" class={`absolute right-2 top-0 bg-xcord-bg-tertiary rounded shadow-lg border border-xcord-border z-30 ${
                         messageStore.editingMessageId
                           ? 'hidden'
@@ -402,7 +402,7 @@ export default function MessageList(props: MessageListProps) {
                           </Show>
                         </div>
 
-                        {/* Thread creation form — shown inline below the action bar when triggered */}
+                      {/* Thread creation form - shown inline below the action bar when triggered */}
                         <Show when={createThreadMessageId() === message().id}>
                           <div class="mt-1 ml-14 flex items-center gap-2 p-2 bg-xcord-bg-tertiary rounded border border-xcord-border">
                             <input

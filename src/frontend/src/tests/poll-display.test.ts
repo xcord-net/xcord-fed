@@ -64,7 +64,7 @@ describe('PollDisplay', () => {
       // Act
       const pct = votePercentage(option, 3);
 
-      // Assert — 1/3 = 33.33...% → 33
+      // Assert - 1/3 = 33.33...% → 33
       expect(pct).toBe(33);
     });
 
@@ -119,10 +119,10 @@ describe('PollDisplay', () => {
     });
 
     it('switching from one option to another clears previous vote', () => {
-      // Arrange — user voted for opt-1, now clicking opt-2
+      // Arrange - user voted for opt-1, now clicking opt-2
       const poll = makePoll({ userVotedOptionIds: ['opt-1'] });
 
-      // Act — single-select: clicking opt-2 when opt-1 is voted → opt-1 stays, opt-2 gets added
+      // Act - single-select: clicking opt-2 when opt-1 is voted → opt-1 stays, opt-2 gets added
       // The component re-renders both options; here we just test the new vote for opt-2
       const { newVotedIds } = toggleVoteSingleSelect(poll, 'opt-2');
 
@@ -141,7 +141,7 @@ describe('PollDisplay', () => {
       // Act
       const { newVotedIds } = toggleVoteMultiSelect(poll, 'opt-2');
 
-      // Assert — both opt-1 and opt-2 are selected
+      // Assert - both opt-1 and opt-2 are selected
       expect(newVotedIds).toContain('opt-1');
       expect(newVotedIds).toContain('opt-2');
     });

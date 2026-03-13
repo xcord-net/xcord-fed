@@ -36,7 +36,7 @@ public sealed class ImageSharpThumbnailService : IThumbnailService
     {
         using var inputStream = new MemoryStream(imageBytes);
 
-        // Load image — ImageSharp handles JPEG, PNG, GIF (first frame), and WebP transparently.
+        // Load image - ImageSharp handles JPEG, PNG, GIF (first frame), and WebP transparently.
         using var image = await Image.LoadAsync(inputStream);
 
         // Compute thumbnail dimensions preserving aspect ratio.

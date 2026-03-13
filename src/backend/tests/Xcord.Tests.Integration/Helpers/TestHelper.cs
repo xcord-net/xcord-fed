@@ -9,7 +9,7 @@ using Xcord.Tests.Integration.Fixtures;
 namespace Xcord.Tests.Integration.Helpers;
 
 /// <summary>
-/// Shared helper for integration tests — registers users, creates servers/channels,
+/// Shared helper for integration tests - registers users, creates servers/channels,
 /// and provides authenticated HTTP clients.
 /// </summary>
 public sealed class TestHelper

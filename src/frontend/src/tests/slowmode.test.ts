@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createSlowModeController, formatSlowModeLabel } from '../utils/slowmode';
 
 /**
- * Slow Mode tests — Card 168
+ * Slow Mode tests - Card 168
  *
  * These tests exercise the slow-mode countdown logic exported from
  * utils/slowmode.ts, which is the same module used by MessageCompose.tsx.
@@ -24,7 +24,7 @@ describe('slow-mode', () => {
       // Arrange
       const ctrl = createSlowModeController(10);
 
-      // Act — simulate post-send trigger
+      // Act - simulate post-send trigger
       ctrl.startCountdown();
 
       // Assert
@@ -49,10 +49,10 @@ describe('slow-mode', () => {
       const ctrl = createSlowModeController(3);
       ctrl.startCountdown();
 
-      // Assert — still active before any ticks
+      // Assert - still active before any ticks
       expect(ctrl.isActive()).toBe(true);
 
-      // Advance 2 s — still active
+      // Advance 2 s - still active
       vi.advanceTimersByTime(2000);
       expect(ctrl.isActive()).toBe(true);
     });
@@ -62,7 +62,7 @@ describe('slow-mode', () => {
       const ctrl = createSlowModeController(3);
       ctrl.startCountdown();
 
-      // Act — advance past the full countdown
+      // Act - advance past the full countdown
       vi.advanceTimersByTime(3000);
 
       // Assert
@@ -76,14 +76,14 @@ describe('slow-mode', () => {
       const ctrl = createSlowModeController(5);
       ctrl.startCountdown();
 
-      // Act — advance 1 second at a time and record values
+      // Act - advance 1 second at a time and record values
       const recorded: number[] = [];
       for (let i = 0; i < 5; i++) {
         vi.advanceTimersByTime(1000);
         recorded.push(ctrl.getCountdown());
       }
 
-      // Assert — [4, 3, 2, 1, 0]
+      // Assert - [4, 3, 2, 1, 0]
       expect(recorded).toEqual([4, 3, 2, 1, 0]);
     });
 
@@ -94,7 +94,7 @@ describe('slow-mode', () => {
 
       vi.advanceTimersByTime(2000);
 
-      // Assert — internal timer cleared
+      // Assert - internal timer cleared
       expect(ctrl.state.timerId).toBeUndefined();
     });
   });
@@ -116,7 +116,7 @@ describe('slow-mode', () => {
       // Arrange
       const ctrl = createSlowModeController(0);
 
-      // Assert — no send yet, no countdown
+      // Assert - no send yet, no countdown
       expect(ctrl.isActive()).toBe(false);
     });
   });
@@ -128,7 +128,7 @@ describe('slow-mode', () => {
       ctrl.startCountdown();
       expect(ctrl.isActive()).toBe(true);
 
-      // Act — simulate channel switch
+      // Act - simulate channel switch
       ctrl.resetCountdown();
 
       // Assert
@@ -141,16 +141,16 @@ describe('slow-mode', () => {
       const ctrl = createSlowModeController(10);
       ctrl.startCountdown();
 
-      // Act — reset mid-countdown, then advance time
+      // Act - reset mid-countdown, then advance time
       ctrl.resetCountdown();
       vi.advanceTimersByTime(5000);
 
-      // Assert — countdown stays at 0 (interval was cleared)
+      // Assert - countdown stays at 0 (interval was cleared)
       expect(ctrl.getCountdown()).toBe(0);
     });
 
     it('starting a new countdown after reset uses the correct initial value', () => {
-      // Arrange — simulate switching to a different channel (controller rebuilt)
+      // Arrange - simulate switching to a different channel (controller rebuilt)
       const ctrl1 = createSlowModeController(10);
       ctrl1.startCountdown();
       ctrl1.resetCountdown();
@@ -169,7 +169,7 @@ describe('slow-mode', () => {
       const ctrl = createSlowModeController(7);
       ctrl.startCountdown();
 
-      // Act — build the label using the production formatSlowModeLabel function
+      // Act - build the label using the production formatSlowModeLabel function
       const label = formatSlowModeLabel(ctrl.getCountdown());
 
       // Assert

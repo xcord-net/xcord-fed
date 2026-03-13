@@ -45,6 +45,6 @@ public sealed class PollVoteConfiguration : IEntityTypeConfiguration<PollVote>
         // Index on UserId for efficient lookups
         builder.HasIndex(pv => pv.UserId);
 
-        // NOTE: No soft delete filter — hard-deleted on retraction
+        // NOTE: No soft delete filter - hard-deleted on retraction
     }
 }

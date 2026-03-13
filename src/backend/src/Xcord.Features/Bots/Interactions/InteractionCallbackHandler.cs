@@ -96,7 +96,7 @@ public sealed class InteractionCallbackHandler(
         if (pending == null)
             return Error.Validation("INTERACTION_TOKEN_INVALID", "Interaction token payload is malformed");
 
-        // Verify the bot owns this interaction — the token was issued for a specific bot token.
+        // Verify the bot owns this interaction - the token was issued for a specific bot token.
         var botToken = await dbContext.BotTokens.AsNoTracking()
             .Where(bt => bt.UserId == botUserId && bt.Id == pending.BotTokenId && !bt.IsRevoked)
             .FirstOrDefaultAsync(ct);

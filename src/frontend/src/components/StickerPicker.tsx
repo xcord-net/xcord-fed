@@ -119,7 +119,7 @@ async function uploadFileAndGetAttachmentId(file: File): Promise<string> {
 }
 
 export default function StickerPicker(props: StickerPickerProps) {
-  // Internal pack ID tracking — we create/use a single "Default" pack per server.
+  // Internal pack ID tracking - we create/use a single "Default" pack per server.
   const [defaultPackId, setDefaultPackId] = createSignal<string | null>(null);
   const [stickers, setStickers] = createSignal<Sticker[]>([]);
   const [isLoading, setIsLoading] = createSignal(false);
@@ -316,7 +316,7 @@ export default function StickerPicker(props: StickerPickerProps) {
               class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
             />
             <label class="block bg-xcord-bg-tertiary text-xcord-text-muted rounded px-3 py-1.5 text-sm cursor-pointer hover:bg-xcord-bg-primary transition-colors">
-              {uploadFile() ? uploadFile()!.name : 'Choose image (PNG, GIF, WEBP — max 512 KB)'}
+              {uploadFile() ? uploadFile()!.name : 'Choose image (PNG, GIF, WEBP - max 512 KB)'}
               <input
                 type="file"
                 accept="image/png,image/gif,image/webp"

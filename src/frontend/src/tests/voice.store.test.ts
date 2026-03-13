@@ -96,7 +96,7 @@ describe('voice.store', () => {
     // Reset SignalR connection
     voice.setSignalRConnection(null);
     // Clear mock call history so each test starts with a clean slate.
-    // NOTE: do NOT reset lastMockRoomInstance — the mock factory updates it
+    // NOTE: do NOT reset lastMockRoomInstance - the mock factory updates it
     // each time a new Room is created, and tests can inspect the latest instance.
     vi.clearAllMocks();
   });
@@ -136,7 +136,7 @@ describe('voice.store', () => {
       voice.setSignalRConnection(makeMockConnection({ token: 'token-1', livekitUrl: 'ws://lk:7880' }));
       await voice.joinVoice('channel-1');
 
-      // Second join with a different token — the store recreates the Room
+      // Second join with a different token - the store recreates the Room
       // with quality config each time, so we check the NEW room instance.
       voice.setSignalRConnection(makeMockConnection({ token: 'token-2', livekitUrl: 'ws://lk:7880' }));
       await voice.joinVoice('channel-2');

@@ -45,7 +45,7 @@ describe('ScheduledEvents', () => {
       // Act
       const result = formatEventDate(testDate);
 
-      // Assert — must contain both the month name and the numeric day
+      // Assert - must contain both the month name and the numeric day
       // "March 15", "Mar 15", "15 March" etc. are all acceptable
       expect(result).toMatch(/mar/i);
       expect(result).toMatch(/15/);
@@ -55,7 +55,7 @@ describe('ScheduledEvents', () => {
       // Act
       const result = formatEventDate(testDate);
 
-      // Assert — "15" should appear somewhere in the formatted string
+      // Assert - "15" should appear somewhere in the formatted string
       expect(result).toMatch(/15/);
     });
 
@@ -63,7 +63,7 @@ describe('ScheduledEvents', () => {
       // Act
       const result = formatEventTime(testDate);
 
-      // Assert — must match a recognisable time pattern such as "2:30 PM" or "14:30"
+      // Assert - must match a recognisable time pattern such as "2:30 PM" or "14:30"
       expect(result).toMatch(/\d{1,2}:\d{2}/);
     });
 
@@ -124,7 +124,7 @@ describe('ScheduledEvents', () => {
       // Act
       toggleInterestedState(original);
 
-      // Assert — original unchanged
+      // Assert - original unchanged
       expect(original.isInterested).toBe(false);
       expect(original.interestedCount).toBe(3);
     });

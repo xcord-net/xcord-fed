@@ -171,7 +171,7 @@ public sealed class ForgotPasswordHandlerTests : IAsyncLifetime
             new ForgotPasswordRequest(email),
             CancellationToken.None);
 
-        // Assert — handler returns success (bool)
+        // Assert - handler returns success (bool)
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeTrue();
 
@@ -198,7 +198,7 @@ public sealed class ForgotPasswordHandlerTests : IAsyncLifetime
         // Act
         await handler.Handle(new ForgotPasswordRequest(email), CancellationToken.None);
 
-        // Assert — an outbox event of type "Email.PasswordReset" must have been written
+        // Assert - an outbox event of type "Email.PasswordReset" must have been written
         await using var verifyDb = CreateDbContext();
         var outboxEntry = await verifyDb.OutboxEvents
             .FirstOrDefaultAsync(e => e.EventType == "Email.PasswordReset");
@@ -246,7 +246,7 @@ public sealed class ForgotPasswordHandlerTests : IAsyncLifetime
         var tokenCountBefore = await db.PasswordResetTokens.CountAsync();
         var outboxCountBefore = await db.OutboxEvents.CountAsync();
 
-        // Act — email enumeration protection: always returns success
+        // Act - email enumeration protection: always returns success
         var result = await handler.Handle(
             new ForgotPasswordRequest("nobody@notexist.example"),
             CancellationToken.None);
@@ -265,7 +265,7 @@ public sealed class ForgotPasswordHandlerTests : IAsyncLifetime
     [Fact]
     public async Task ForgotPassword_FullResetFlow_AllowsLoginWithNewPassword()
     {
-        // Arrange — create user
+        // Arrange - create user
         await using var db = CreateDbContext();
         var enc = CreateEncryptionService();
 

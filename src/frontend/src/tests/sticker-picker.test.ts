@@ -157,7 +157,7 @@ describe('StickerPicker', () => {
       // Act
       const result = validateStickerName('');
 
-      // Assert — should return a non-empty error string
+      // Assert - should return a non-empty error string
       expect(result).toEqual(expect.any(String));
       expect(result!.length).toBeGreaterThan(0);
     });
@@ -166,7 +166,7 @@ describe('StickerPicker', () => {
       // Act
       const result = validateStickerName('a');
 
-      // Assert — should return a non-empty error string
+      // Assert - should return a non-empty error string
       expect(result).toEqual(expect.any(String));
       expect(result!.length).toBeGreaterThan(0);
     });
@@ -175,7 +175,7 @@ describe('StickerPicker', () => {
       // Act
       const result = validateStickerName('a'.repeat(33));
 
-      // Assert — should return a non-empty error string
+      // Assert - should return a non-empty error string
       expect(result).toEqual(expect.any(String));
       expect(result!.length).toBeGreaterThan(0);
     });

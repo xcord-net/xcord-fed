@@ -40,6 +40,6 @@ public sealed class UserBlockConfiguration : IEntityTypeConfiguration<UserBlock>
             .HasForeignKey(ub => ub.BlockedId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // NOTE: No soft delete filter — UserBlock is hard-deleted
+        // NOTE: No soft delete filter - UserBlock is hard-deleted
     }
 }

@@ -37,7 +37,7 @@ public class SlowmodeEnforcementTests
     [Fact]
     public async Task SendMessage_WithSlowmode_EnforcesRateLimit()
     {
-        // Arrange — owner creates server/channel, member joins to test rate-limiting
+        // Arrange - owner creates server/channel, member joins to test rate-limiting
         // (Owners are exempt from slowmode, so we must test with a regular member)
         var owner = await _helper.RegisterUserAsync();
         var member = await _helper.RegisterUserAsync();
@@ -59,15 +59,15 @@ public class SlowmodeEnforcementTests
             new { slowModeSeconds = 2 });
         updateResponse.StatusCode.Should().Be(HttpStatusCode.OK, "setting slowmode should succeed");
 
-        // Act 1 — first message should succeed
+        // Act 1 - first message should succeed
         var firstMessage = await _helper.SendMessageAsync(member.AccessToken, conversationId, "First message in slowmode channel");
         firstMessage.GetProperty("id").ReadLong().Should().BeGreaterThan(0);
 
-        // Act 2 — immediate second message should be rate-limited
+        // Act 2 - immediate second message should be rate-limited
         var rateLimitedResponse = await _helper.AuthPostAsync(
             $"/api/v1/conversations/{conversationId}/messages",
             member.AccessToken,
-            new { content = "Second message — should be blocked" });
+            new { content = "Second message - should be blocked" });
 
         rateLimitedResponse.StatusCode.Should().Be(
             HttpStatusCode.TooManyRequests,
@@ -85,7 +85,7 @@ public class SlowmodeEnforcementTests
         var errorBody = await rateLimitedResponse.ReadAsJsonAsync<JsonElement>();
         errorBody.GetProperty("title").GetString().Should().Be("SLOWMODE_RATE_LIMITED");
 
-        // Act 3 — wait for the 2-second cooldown to expire, then send again
+        // Act 3 - wait for the 2-second cooldown to expire, then send again
         await Task.Delay(TimeSpan.FromSeconds(3));
 
         var thirdMessage = await _helper.SendMessageAsync(
@@ -102,7 +102,7 @@ public class SlowmodeEnforcementTests
     [Fact]
     public async Task SendMessage_WithSlowmode_OwnerIsExempt()
     {
-        // Arrange — owner creates the server and channel
+        // Arrange - owner creates the server and channel
         var owner = await _helper.RegisterUserAsync();
         var server = await _helper.CreateServerAsync(owner.AccessToken);
         var serverId = server.GetProperty("id").ReadLong();
@@ -117,15 +117,15 @@ public class SlowmodeEnforcementTests
             new { slowModeSeconds = 30 });
         updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Owner sends two messages in quick succession — both should succeed
+        // Owner sends two messages in quick succession - both should succeed
         var msg1 = await _helper.SendMessageAsync(owner.AccessToken, conversationId, "Owner message 1");
         msg1.GetProperty("id").ReadLong().Should().BeGreaterThan(0);
 
-        var msg2 = await _helper.SendMessageAsync(owner.AccessToken, conversationId, "Owner message 2 — not rate-limited");
+        var msg2 = await _helper.SendMessageAsync(owner.AccessToken, conversationId, "Owner message 2 - not rate-limited");
         msg2.GetProperty("id").ReadLong().Should().BeGreaterThan(0);
     }
 
-    // ──────────── No slowmode — no restriction ────────────
+    // ──────────── No slowmode - no restriction ────────────
 
     /// <summary>
     /// When SlowModeSeconds is 0 (disabled), rapid sends are all allowed.
@@ -133,14 +133,14 @@ public class SlowmodeEnforcementTests
     [Fact]
     public async Task SendMessage_WithoutSlowmode_AllowsRapidSends()
     {
-        // Arrange — channel has no slowmode (default)
+        // Arrange - channel has no slowmode (default)
         var user = await _helper.RegisterUserAsync();
         var server = await _helper.CreateServerAsync(user.AccessToken);
         var serverId = server.GetProperty("id").ReadLong();
         var channel = await _helper.CreateChannelAsync(user.AccessToken, serverId);
         var conversationId = channel.GetProperty("conversationId").ReadLong();
 
-        // Act — send several messages in rapid succession
+        // Act - send several messages in rapid succession
         var msg1 = await _helper.SendMessageAsync(user.AccessToken, conversationId, "Rapid 1");
         var msg2 = await _helper.SendMessageAsync(user.AccessToken, conversationId, "Rapid 2");
         var msg3 = await _helper.SendMessageAsync(user.AccessToken, conversationId, "Rapid 3");

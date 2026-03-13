@@ -93,7 +93,7 @@ public sealed class OutgoingWebhookEventProcessor : BackgroundService
 
         _logger.LogDebug("OutgoingWebhookEventProcessor found {Count} events to process", events.Count);
 
-        // Load all active outgoing webhooks — we'll filter per-event in memory.
+        // Load all active outgoing webhooks - we'll filter per-event in memory.
         // This is efficient because the number of webhooks is bounded (<=10 per server, <=N servers).
         var activeWebhooks = await dbContext.OutgoingWebhooks
             .AsNoTracking()
@@ -102,7 +102,7 @@ public sealed class OutgoingWebhookEventProcessor : BackgroundService
 
         if (activeWebhooks.Count == 0)
         {
-            // No active webhooks — still advance the watermark
+            // No active webhooks - still advance the watermark
             _lastProcessedId = events[^1].Id;
             return;
         }
@@ -209,7 +209,7 @@ public sealed class OutgoingWebhookEventProcessor : BackgroundService
             }
 
             // For Message.Created events, we need to look up the server via conversationId
-            // This is a lightweight lookup — we only do it if needed
+            // This is a lightweight lookup - we only do it if needed
             if (eventType == "Message.Created")
             {
                 // Message.Created payload has conversationId, not serverId directly.

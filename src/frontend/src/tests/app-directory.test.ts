@@ -120,7 +120,7 @@ describe('AppDirectory', () => {
       // Act
       const result = filterBots(bots, 'automod', '');
 
-      // Assert — ModBot has 'automod' tag
+      // Assert - ModBot has 'automod' tag
       expect(result.some((b) => b.id === 'bot-1')).toBe(true);
     });
 
@@ -147,7 +147,7 @@ describe('AppDirectory', () => {
       // Act
       const result = filterBots(bots, 'Alpha', 'Utility');
 
-      // Assert — only the Utility Alpha bot
+      // Assert - only the Utility Alpha bot
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('1');
     });

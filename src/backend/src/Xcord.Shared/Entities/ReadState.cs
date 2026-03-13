@@ -3,7 +3,7 @@ namespace Xcord.Entities;
 /// <summary>
 /// Represents read state tracking for a user in a conversation.
 /// Composite PK: UserId + ConversationId.
-/// NOT soft-deleted — hard-deleted when user leaves conversation.
+/// NOT soft-deleted - hard-deleted when user leaves conversation.
 /// </summary>
 public sealed class ReadState
 {

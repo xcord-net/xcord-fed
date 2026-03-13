@@ -100,7 +100,7 @@ public sealed class UpdateChannelPermissionsHandler(
                 case "Deny":
                     deny |= (long)bit;
                     break;
-                // "Inherit" — neither bit set
+                    // "Inherit" - neither bit set
             }
         }
 
@@ -114,7 +114,7 @@ public sealed class UpdateChannelPermissionsHandler(
 
         if (allow == 0L && deny == 0L)
         {
-            // All permissions are "Inherit" — delete the override if it exists
+            // All permissions are "Inherit" - delete the override if it exists
             if (existing != null)
             {
                 dbContext.ChannelPermissionOverrides.Remove(existing);

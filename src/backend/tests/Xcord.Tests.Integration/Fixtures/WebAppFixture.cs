@@ -60,7 +60,7 @@ public class WebAppFixture : IAsyncLifetime
         {
             await db.Database.EnsureCreatedAsync();
 
-            // Generate RSA key pair for JWT — private key encrypted at rest with DEK
+            // Generate RSA key pair for JWT - private key encrypted at rest with DEK
             using var rsa = RSA.Create(2048);
             var privateKeyBase64 = Convert.ToBase64String(rsa.ExportRSAPrivateKey());
             _rsaPublicKeyBase64 = Convert.ToBase64String(rsa.ExportRSAPublicKey());
@@ -285,7 +285,7 @@ public sealed class NullStorageService : IStorageService
 
     public Task DeleteAsync(string key) => Task.CompletedTask;
 
-    /// <summary>Always returns false — no file has been uploaded to storage.</summary>
+    /// <summary>Always returns false - no file has been uploaded to storage.</summary>
     public Task<bool> ExistsAsync(string key) => Task.FromResult(false);
 
     public Task UploadAsync(string key, byte[] data, string contentType) => Task.CompletedTask;

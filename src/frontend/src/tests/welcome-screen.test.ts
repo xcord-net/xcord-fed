@@ -264,7 +264,7 @@ describe('WelcomeScreen', () => {
         payload,
       );
 
-      // Assert — verify the PUT request body sent isEnabled=false to the API
+      // Assert - verify the PUT request body sent isEnabled=false to the API
       const sentBody = JSON.parse(
         (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][1].body as string,
       ) as WelcomeScreenConfig;

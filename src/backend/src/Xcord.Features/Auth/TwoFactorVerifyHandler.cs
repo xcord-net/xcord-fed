@@ -78,7 +78,7 @@ public sealed class TwoFactorVerifyHandler(
                     "Account is temporarily locked due to too many failed 2FA attempts. Please try again later.");
             }
 
-            // Lockout has expired — reset counters
+            // Lockout has expired - reset counters
             user.TwoFactorFailureCount = 0;
             user.TwoFactorLockedAt = null;
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -114,7 +114,7 @@ public sealed class TwoFactorVerifyHandler(
         }
         else if (result.IsSuccess)
         {
-            // Successful verification — reset cumulative counter
+            // Successful verification - reset cumulative counter
             user.TwoFactorFailureCount = 0;
             user.TwoFactorLockedAt = null;
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -175,7 +175,7 @@ public sealed class TwoFactorVerifyHandler(
             return Error.Validation("INVALID_CODE", "Invalid 2FA code");
         }
 
-        // Find a matching backup code by BCrypt verification — offloaded to Task.Run to avoid thread pool starvation
+        // Find a matching backup code by BCrypt verification - offloaded to Task.Run to avoid thread pool starvation
         Xcord.Entities.TwoFactorBackupCode? matchedCode = null;
         foreach (var bc in backupCodes)
         {

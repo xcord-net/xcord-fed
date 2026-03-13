@@ -161,7 +161,7 @@ describe('WebhookManager', () => {
 
   describe('ALL_WEBHOOK_EVENTS and labels', () => {
     it('ALL_WEBHOOK_EVENTS contains the expected events', () => {
-      // Assert — exact catalog so accidentally removing any event fails the test
+      // Assert - exact catalog so accidentally removing any event fails the test
       expect(ALL_WEBHOOK_EVENTS).toEqual([
         'message.created',
         'message.deleted',

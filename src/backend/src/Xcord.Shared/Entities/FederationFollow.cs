@@ -1,7 +1,7 @@
 namespace Xcord.Entities;
 
 /// <summary>
-/// Represents a federation follow — a local channel subscribing to a remote channel on another instance.
+/// Represents a federation follow - a local channel subscribing to a remote channel on another instance.
 /// </summary>
 public sealed class FederationFollow : ISoftDeletable
 {

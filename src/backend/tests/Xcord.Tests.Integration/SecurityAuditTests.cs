@@ -675,7 +675,7 @@ public class SecurityAuditTests
             password = "TestPassword123!"
         });
 
-        // Script tags are invalid username characters — the API must reject them.
+        // Script tags are invalid username characters - the API must reject them.
         // A 400 is the definitive defense: usernames containing HTML angle brackets
         // are not valid identifiers and should never reach the database.
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
@@ -763,7 +763,7 @@ public class SecurityAuditTests
 
         var response = await _fixture.Client.SendAsync(request);
 
-        // The CORS header must be present — its absence on an OPTIONS preflight with a
+        // The CORS header must be present - its absence on an OPTIONS preflight with a
         // valid Origin means CORS is not configured at all, which is also a security finding.
         // Either the header is absent (browser will block cross-origin) OR it must not
         // contain a wildcard or the attacker's origin.
@@ -771,9 +771,9 @@ public class SecurityAuditTests
         {
             var originList = origins.ToList();
             originList.Should().NotContain("*",
-                "CORS must not allow wildcard origins — that would let any site make authenticated requests");
+                "CORS must not allow wildcard origins - that would let any site make authenticated requests");
             originList.Should().NotContain("https://evil.com",
-                "CORS must not reflect arbitrary origins — that would let evil.com make authenticated requests");
+                "CORS must not reflect arbitrary origins - that would let evil.com make authenticated requests");
         }
         // If the header is absent on an evil.com preflight that is correct behavior:
         // the browser will block the request. Verify this by checking the response
@@ -823,7 +823,7 @@ public class SecurityAuditTests
         var payloadJson = Encoding.UTF8.GetString(Base64UrlDecode(parts[1]));
         var payload = JsonSerializer.Deserialize<JsonElement>(payloadJson);
 
-        // Just use a completely fake token with expired claim — the invalid signature
+        // Just use a completely fake token with expired claim - the invalid signature
         // will cause rejection too, which is the correct behavior
         var expiredToken = $"{parts[0]}.{Base64UrlEncode(Encoding.UTF8.GetBytes(payloadJson.Replace(
             payload.GetProperty("exp").GetRawText(),
@@ -881,7 +881,7 @@ public class SecurityAuditTests
 
     #region Security Audit V7-V19: Prove-Then-Fix
 
-    // ──────────── V7: Role Privilege Escalation — CRITICAL ────────────
+    // ──────────── V7: Role Privilege Escalation - CRITICAL ────────────
 
     [Fact]
     public async Task V7_01_CreateRole_WithAdminPermission_ByModerator_Returns403()
@@ -944,7 +944,7 @@ public class SecurityAuditTests
             "moderator should not add Administrator permission to a role");
     }
 
-    // ──────────── V8: Ban Server Owner — CRITICAL ────────────
+    // ──────────── V8: Ban Server Owner - CRITICAL ────────────
 
     [Fact]
     public async Task V8_01_BanServerOwner_ByModerator_Returns400()
@@ -974,7 +974,7 @@ public class SecurityAuditTests
             "moderator should not ban a user with a higher role position");
     }
 
-    // ──────────── V9: Shutdown Key Not Validated — CRITICAL ────────────
+    // ──────────── V9: Shutdown Key Not Validated - CRITICAL ────────────
 
     [Fact]
     public async Task V9_01_ShutdownEndpoint_WithGarbageKey_Returns401()
@@ -989,7 +989,7 @@ public class SecurityAuditTests
             "shutdown endpoint should validate the key value, not just check for presence");
     }
 
-    // ──────────── V10: Email Confirm Brute Force — HIGH ────────────
+    // ──────────── V10: Email Confirm Brute Force - HIGH ────────────
 
     [Fact]
     public async Task V10_01_ConfirmEmail_BruteForce_Returns429AfterLimit()
@@ -1013,7 +1013,7 @@ public class SecurityAuditTests
             "email confirmation should be rate-limited after too many wrong codes");
     }
 
-    // ──────────── V12: DM Messages Skip Sanitization — MEDIUM ────────────
+    // ──────────── V12: DM Messages Skip Sanitization - MEDIUM ────────────
 
     [Fact]
     public async Task V12_01_DmMessage_WithScript_IsHtmlEncoded()
@@ -1049,7 +1049,7 @@ public class SecurityAuditTests
             "DM messages must be HTML-encoded just like channel messages");
     }
 
-    // ──────────── V13: SVG Upload Stored XSS — MEDIUM ────────────
+    // ──────────── V13: SVG Upload Stored XSS - MEDIUM ────────────
 
     [Fact]
     public async Task V13_01_SvgUpload_Returns400()
@@ -1064,7 +1064,7 @@ public class SecurityAuditTests
             "SVG uploads should be rejected because SVGs can contain embedded scripts");
     }
 
-    // ──────────── V14: Kick User With Higher Role — MEDIUM ────────────
+    // ──────────── V14: Kick User With Higher Role - MEDIUM ────────────
 
     [Fact]
     public async Task V14_01_KickMember_WithHigherRole_Returns403()
@@ -1079,7 +1079,7 @@ public class SecurityAuditTests
             "moderator should not kick a user with a higher role position");
     }
 
-    // ──────────── V15: Timeout Owner + Higher Role — MEDIUM ────────────
+    // ──────────── V15: Timeout Owner + Higher Role - MEDIUM ────────────
 
     [Fact]
     public async Task V15_01_TimeoutServerOwner_Returns400()
@@ -1109,7 +1109,7 @@ public class SecurityAuditTests
             "moderator should not timeout a user with a higher role position");
     }
 
-    // ──────────── V16: Test Webhook SSRF — MEDIUM ────────────
+    // ──────────── V16: Test Webhook SSRF - MEDIUM ────────────
 
     [Fact]
     public async Task V16_01_TestWebhook_WithPrivateUrl_RejectsRequest()
@@ -1124,11 +1124,11 @@ public class SecurityAuditTests
             new { targetUrl = "https://example.com/webhook", eventTypes = new[] { "MessageCreated" } });
 
         // The outgoing-webhook feature must exist for SSRF protection to be meaningful.
-        // If the endpoint returns 404 or 405 the feature is not yet deployed — skip
+        // If the endpoint returns 404 or 405 the feature is not yet deployed - skip
         // explicitly so the test is not counted as a vacuous pass.
         if (!createResp.IsSuccessStatusCode)
         {
-            // Outgoing-webhook feature not deployed — cannot test SSRF protection
+            // Outgoing-webhook feature not deployed - cannot test SSRF protection
             return;
         }
 
@@ -1143,7 +1143,7 @@ public class SecurityAuditTests
             await db.SaveChangesAsync();
         }
 
-        // Test the webhook — should be rejected by SSRF protection
+        // Test the webhook - should be rejected by SSRF protection
         var testRequest = TestHelper.AuthRequest(HttpMethod.Put,
             $"/api/v1/servers/{serverId}/outgoing-webhooks/{webhookId}/test", owner.AccessToken);
         var testResp = await _fixture.Client.SendAsync(testRequest);
@@ -1159,7 +1159,7 @@ public class SecurityAuditTests
 
     // V18 & V19: Rate limiting on reset-password and login endpoints is verified by
     // the presence of .RequireRateLimiting("auth") on the endpoint mapping. The ASP.NET
-    // rate limiter middleware is framework code — integration testing it requires either
+    // rate limiter middleware is framework code - integration testing it requires either
     // a very low limit (which breaks all other auth tests sharing the fixture) or sending
     // thousands of requests. The production fix is the declarative attribute.
 

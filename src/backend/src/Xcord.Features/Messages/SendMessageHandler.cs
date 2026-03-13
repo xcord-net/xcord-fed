@@ -139,7 +139,7 @@ public sealed class SendMessageHandler(
         var hasContent = !string.IsNullOrWhiteSpace(request.Content);
 
         // Run through processing pipeline (skip automod/mentions for DM conversations and
-        // attachment-only messages — channel messages are sanitized inside MessageProcessor)
+        // attachment-only messages - channel messages are sanitized inside MessageProcessor)
         var deferredActions = new List<AutomodDeferredAction>();
         if (context.Type != ConversationType.DmChannel && hasContent)
         {
@@ -248,7 +248,7 @@ public sealed class SendMessageHandler(
                     .ExecuteUpdateAsync(s => s.SetProperty(rs => rs.MentionCount, rs => rs.MentionCount + 1), cancellationToken);
             }
 
-            // Write outbox event for new message — include full message data so the
+            // Write outbox event for new message - include full message data so the
             // client can render it immediately without a separate API fetch.
             await outboxWriter.WriteAsync(dbContext, "Message.Created", new
             {

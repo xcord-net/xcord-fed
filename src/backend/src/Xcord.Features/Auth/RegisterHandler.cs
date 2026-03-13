@@ -104,7 +104,7 @@ public sealed partial class RegisterHandler(
             return Error.Conflict("EMAIL_TAKEN", "Email is already registered");
         }
 
-        // Hash password (BCrypt, configurable work factor) — offloaded to Task.Run to avoid thread pool starvation
+        // Hash password (BCrypt, configurable work factor) - offloaded to Task.Run to avoid thread pool starvation
         var passwordHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(request.Password, _authOptions.BcryptWorkFactor));
 
         // Encrypt email

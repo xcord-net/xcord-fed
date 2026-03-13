@@ -368,7 +368,7 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
                         </span>
                         <Show when={event.scheduledEndTime}>
                           <span class="text-xcord-text-muted text-xs">
-                            — {formatEventTime(event.scheduledEndTime!)}
+                            - {formatEventTime(event.scheduledEndTime!)}
                           </span>
                         </Show>
                       </div>

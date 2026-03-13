@@ -36,11 +36,11 @@ public sealed class SnowflakeIdGeneratorTests
     [Fact]
     public void Constructor_ShouldAcceptValidWorkerId()
     {
-        // Act — boundary worker IDs should not throw
+        // Act - boundary worker IDs should not throw
         var generator1 = new SnowflakeIdGenerator(workerId: 0);
         var generator2 = new SnowflakeIdGenerator(workerId: 1023);
 
-        // Assert — generated IDs embed the correct worker ID
+        // Assert - generated IDs embed the correct worker ID
         var id1 = generator1.NextId();
         var id2 = generator2.NextId();
         var extractedWorkerId1 = (id1 >> 12) & 0x3FF;

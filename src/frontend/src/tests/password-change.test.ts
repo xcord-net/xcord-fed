@@ -127,11 +127,11 @@ describe('password-change', () => {
       // Act
       const result = await submitPasswordChange('oldpass123', 'newpass456', 'newpass456');
 
-      // Assert — success: true is the signal that drives form field clearing in the component
+      // Assert - success: true is the signal that drives form field clearing in the component
       expect(result.success).toBe(true);
       expect(result.error).toBe('');
 
-      // The API body must NOT contain confirmPassword — that field is client-only validation
+      // The API body must NOT contain confirmPassword - that field is client-only validation
       const callBody = JSON.parse(
         (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][1].body as string,
       );

@@ -17,7 +17,7 @@ public sealed class OutboxWriter : IOutboxWriter
     /// Shared serializer options that match the API's HTTP JSON config:
     /// Snowflake IDs (long) serialize as JSON strings and enums serialize as strings.
     /// This ensures clients receive IDs and enums in the same format they expect from
-    /// REST API responses — no normalization needed in frontend stores.
+    /// REST API responses - no normalization needed in frontend stores.
     /// </summary>
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {

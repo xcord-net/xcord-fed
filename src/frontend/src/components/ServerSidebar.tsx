@@ -67,7 +67,7 @@ export default function ServerSidebar() {
 
       <div class="w-8 h-0.5 bg-xcord-border" role="separator" />
 
-      {/* Loading skeleton — show while fetching servers */}
+      {/* Loading skeleton - show while fetching servers */}
       <Show when={serverStore.isLoading && serverStore.servers.length === 0}>
         <For each={[0, 1, 2]}>
           {() => (

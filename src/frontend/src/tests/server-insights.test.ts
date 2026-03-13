@@ -207,7 +207,7 @@ describe('ServerInsights', () => {
       // Act
       const result = formatInsightsDate('2026-01-15T00:00:00Z');
 
-      // Assert — must include the abbreviated month name and day number so chart axes are readable
+      // Assert - must include the abbreviated month name and day number so chart axes are readable
       expect(result).toMatch(/Jan/i);
       expect(result).toMatch(/15/);
       expect(result).not.toContain('Invalid');

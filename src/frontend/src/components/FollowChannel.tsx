@@ -112,7 +112,7 @@ export default function FollowChannel(props: FollowChannelProps) {
       );
       setFollows(data);
     } catch {
-      // Silently ignore — user may not have permission
+      // Silently ignore - user may not have permission
     }
   };
 

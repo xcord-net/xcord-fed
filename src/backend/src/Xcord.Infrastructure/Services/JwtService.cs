@@ -56,7 +56,7 @@ public sealed class JwtService : IJwtService
 
         if (encryptedKeySetting != null)
         {
-            // Already encrypted — nothing to do
+            // Already encrypted - nothing to do
             return;
         }
 

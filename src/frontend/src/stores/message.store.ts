@@ -124,7 +124,7 @@ export function useMessages() {
           }
           return m;
         });
-        // Deduplicate by ID — SignalR may have already delivered this message
+        // Deduplicate by ID - SignalR may have already delivered this message
         // before the HTTP POST response arrived, creating a duplicate.
         const seen = new Set<string>();
         store.setMessages(replaced.filter(m => {

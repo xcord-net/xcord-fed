@@ -65,7 +65,7 @@ public class MainHubTests
         {
             await connection.StartAsync().WaitAsync(TimeSpan.FromSeconds(2));
 
-            // Join the voice channel — this creates a VoiceState row in the DB
+            // Join the voice channel - this creates a VoiceState row in the DB
             await connection.InvokeAsync<JsonElement>("JoinVoiceChannel", voiceChannelId)
                 .WaitAsync(TimeSpan.FromSeconds(5));
 
@@ -229,14 +229,14 @@ public class MainHubTests
                 Interlocked.Increment(ref broadcastCount);
             });
 
-            // First typing call — should broadcast
+            // First typing call - should broadcast
             await senderConn.InvokeAsync("StartTyping", conversationId)
                 .WaitAsync(TimeSpan.FromSeconds(5));
 
             // Wait briefly for the first broadcast to arrive
             await Task.Delay(200);
 
-            // Second call within the rate limit window — should be throttled (no additional broadcast)
+            // Second call within the rate limit window - should be throttled (no additional broadcast)
             await senderConn.InvokeAsync("StartTyping", conversationId)
                 .WaitAsync(TimeSpan.FromSeconds(5));
 

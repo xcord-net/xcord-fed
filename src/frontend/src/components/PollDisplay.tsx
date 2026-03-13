@@ -108,7 +108,7 @@ export default function PollDisplay(props: PollDisplayProps) {
       await api.post(`/api/v1/polls/${props.pollId}/end`, {});
       setLocalPoll({ ...poll(), isClosed: true });
     } catch {
-      // swallow — show no error, state will remain
+      // swallow - show no error, state will remain
     } finally {
       setIsEndingPoll(false);
     }

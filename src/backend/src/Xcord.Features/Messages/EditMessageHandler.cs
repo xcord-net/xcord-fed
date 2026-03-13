@@ -149,7 +149,7 @@ public sealed class EditMessageHandler(
             dbContext.Mentions.Add(mention);
         }
 
-        // Write outbox event — include full message data so clients can update their
+        // Write outbox event - include full message data so clients can update their
         // message store immediately without a separate API fetch.
         await outboxWriter.WriteAsync(dbContext, "Message.Edited", new
         {

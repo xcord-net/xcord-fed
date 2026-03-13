@@ -413,7 +413,7 @@ public class BotInteractionTests
         outboxEvent!.Payload.Should().Contain("argsJson",
             "outbox payload should include the args field");
         // argsJson is stored as an escaped JSON string inside the payload,
-        // so keys like "user" appear as \"user\" — check for the unquoted values
+        // so keys like "user" appear as \"user\" - check for the unquoted values
         outboxEvent.Payload.Should().Contain("user",
             "outbox payload should preserve the user argument key");
         outboxEvent.Payload.Should().Contain("12345",

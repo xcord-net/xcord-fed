@@ -198,7 +198,7 @@ export default function EmojiManager(props: EmojiManagerProps) {
               />
             </Show>
             <label class="flex-1 bg-xcord-bg-tertiary text-xcord-text-muted rounded px-3 py-1.5 text-sm cursor-pointer hover:bg-xcord-bg-primary transition-colors">
-              {selectedFile() ? selectedFile()!.name : 'Choose image (PNG, GIF, WEBP — max 256 KB)'}
+              {selectedFile() ? selectedFile()!.name : 'Choose image (PNG, GIF, WEBP - max 256 KB)'}
               <input
                 type="file"
                 accept="image/png,image/gif,image/webp"

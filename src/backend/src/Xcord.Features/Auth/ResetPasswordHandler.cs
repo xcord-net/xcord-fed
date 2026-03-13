@@ -59,7 +59,7 @@ public sealed class ResetPasswordHandler(AppDbContext dbContext, IOptions<AuthOp
             return Error.Validation("INVALID_TOKEN", "Invalid or expired reset token");
         }
 
-        // Hash new password (BCrypt, configurable work factor) — offloaded to Task.Run to avoid thread pool starvation
+        // Hash new password (BCrypt, configurable work factor) - offloaded to Task.Run to avoid thread pool starvation
         resetToken.User.PasswordHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(request.NewPassword, _authOptions.BcryptWorkFactor));
 
         // Delete ALL refresh tokens for the user (force re-login everywhere)

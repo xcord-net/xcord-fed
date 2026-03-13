@@ -39,12 +39,12 @@ export default function ConnectedAccounts() {
       await api.delete(`/api/v1/users/@me/connected-accounts/${accountId}`);
       setAccounts((prev) => prev.filter((a) => a.id !== accountId));
     } catch {
-      // Swallow — UI will remain unchanged
+      // Swallow - UI will remain unchanged
     }
   };
 
   const handleConnect = (provider: string) => {
-    // OAuth redirect — opens the provider auth flow
+    // OAuth redirect - opens the provider auth flow
     window.location.href = `/api/v1/auth/connect/${provider.toLowerCase()}`;
   };
 

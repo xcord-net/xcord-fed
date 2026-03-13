@@ -19,7 +19,7 @@ public sealed class AttachmentConfiguration : IEntityTypeConfiguration<Attachmen
         builder.Property(a => a.Id)
             .ValueGeneratedNever();
 
-        // MessageId (optional FK to Message with Cascade — nullable for pre-message uploads)
+        // MessageId (optional FK to Message with Cascade - nullable for pre-message uploads)
         builder.Property(a => a.MessageId);
 
         builder.HasOne(a => a.Message)
@@ -64,7 +64,7 @@ public sealed class AttachmentConfiguration : IEntityTypeConfiguration<Attachmen
             .IsRequired()
             .HasDefaultValue(false);
 
-        // CreatedByUserId (nullable — null for legacy attachments)
+        // CreatedByUserId (nullable - null for legacy attachments)
         builder.Property(a => a.CreatedByUserId);
 
         // Timestamps

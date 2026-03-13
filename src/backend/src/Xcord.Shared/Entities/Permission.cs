@@ -19,7 +19,7 @@ public enum Permission : long
     BanMembers = 1L << 5,
     CreateInvite = 1L << 6,
 
-    // Messaging permissions — bit positions MUST match the frontend RoleManager PERMISSION_FLAGS
+    // Messaging permissions - bit positions MUST match the frontend RoleManager PERMISSION_FLAGS
     ManageMessages = 1L << 7,   // frontend bit 7
     SendMessages = 1L << 8,     // frontend bit 8
     EmbedLinks = 1L << 9,       // frontend bit 9

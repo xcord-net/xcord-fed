@@ -57,7 +57,7 @@ public sealed class GetAttachmentHandler(
         }
 
         // Verify the requesting user has access to the conversation containing this attachment.
-        // ReadMessageHistory permission is sufficient — if you can read the channel you can see attachments.
+        // ReadMessageHistory permission is sufficient - if you can read the channel you can see attachments.
         var contextResult = await conversationResolver.ResolveAsync(
             attachment.Message.ConversationId, userId, Permission.ReadMessageHistory, cancellationToken);
         if (contextResult.IsFailure) return contextResult.Error;

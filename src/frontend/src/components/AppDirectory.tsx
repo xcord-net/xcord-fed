@@ -107,7 +107,7 @@ export default function AppDirectory(props: AppDirectoryProps) {
     averageRating?: number;
   };
 
-  // Load directory on mount — backend returns an array directly
+  // Load directory on mount - backend returns an array directly
   createEffect(() => {
     setIsLoading(true);
     api

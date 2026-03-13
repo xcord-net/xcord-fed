@@ -52,7 +52,7 @@ export default function UserNotes() {
         setExistingNote(note);
         setNoteContent(note.content);
       } catch {
-        // No note yet — that's fine
+        // No note yet - that's fine
       }
     } catch {
       setLookupError('User not found. Check the username and try again.');
@@ -137,7 +137,7 @@ export default function UserNotes() {
         </Show>
       </div>
 
-      {/* Note editor — shown once a user is found */}
+      {/* Note editor - shown once a user is found */}
       <Show when={lookedUpUser()}>
         {(user) => (
           <div class="px-4 py-3">

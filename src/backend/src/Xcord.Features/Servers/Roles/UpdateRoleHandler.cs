@@ -164,7 +164,7 @@ public sealed class UpdateRoleHandler(
             "User {UserId} updated role {RoleName} (ID: {RoleId}) in server {ServerId}",
             userId, role.Name, role.Id, request.ServerId);
 
-        // Invalidate server and channel permission cache for every member who holds this role —
+        // Invalidate server and channel permission cache for every member who holds this role -
         // the role's permission bitfield (or position) may have changed, affecting their resolved permissions.
         await permissionService.InvalidateRoleMembersPermissionsAsync(request.RoleId, request.ServerId, cancellationToken);
 

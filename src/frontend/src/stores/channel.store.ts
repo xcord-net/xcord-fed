@@ -63,7 +63,7 @@ export function useChannels() {
         conversationId: String(channel.conversationId),
         categoryId: channel.categoryId ? String(channel.categoryId) : undefined,
       };
-      // Guard against duplicates — the SignalR Chat_ChannelCreated broadcast may
+      // Guard against duplicates - the SignalR Chat_ChannelCreated broadcast may
       // have already added this channel to the store while the HTTP response was
       // in flight.
       if (!store.channels().some((c) => c.id === normalized.id)) {
@@ -73,7 +73,7 @@ export function useChannels() {
     },
 
     addChannel(channel: Channel): void {
-      // Avoid duplicates — ignore if a channel with the same id already exists.
+      // Avoid duplicates - ignore if a channel with the same id already exists.
       if (store.channels().some((c) => c.id === channel.id)) return;
       store.setChannels([...store.channels(), channel]);
     },

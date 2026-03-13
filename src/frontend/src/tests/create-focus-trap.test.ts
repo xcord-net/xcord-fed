@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Extracted logic from createFocusTrap.ts — we test the pure algorithm, not
+// Extracted logic from createFocusTrap.ts - we test the pure algorithm, not
 // the Solid hook lifecycle.
 // ---------------------------------------------------------------------------
 
@@ -70,7 +70,7 @@ function appendTo(parent: HTMLElement, tag: string, attrs: Record<string, string
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('createFocusTrap — Tab wrap logic', () => {
+describe('createFocusTrap - Tab wrap logic', () => {
   beforeEach(() => {
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -86,7 +86,7 @@ describe('createFocusTrap — Tab wrap logic', () => {
     appendTo(container, 'button');
     const btn3 = appendTo(container, 'button') as HTMLButtonElement;
 
-    // Act — active element is the last focusable, pressing Tab (no shift)
+    // Act - active element is the last focusable, pressing Tab (no shift)
     const target = getTabWrapTarget(container, btn3, false);
 
     // Assert

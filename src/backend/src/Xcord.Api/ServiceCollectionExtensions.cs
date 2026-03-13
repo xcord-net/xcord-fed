@@ -46,7 +46,7 @@ public static class ServiceCollectionExtensions
             return ConnectionMultiplexer.Connect(cfg);
         });
 
-        // JSON serialization — explicit camelCase + converters
+        // JSON serialization - explicit camelCase + converters
         services.ConfigureHttpJsonOptions(options =>
         {
             options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;

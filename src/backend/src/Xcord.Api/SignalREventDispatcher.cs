@@ -38,7 +38,7 @@ public class SignalREventDispatcher : IEventDispatcher
             return;
         }
 
-        // Handle Bot interaction events — forward to the bot's webhook endpoint.
+        // Handle Bot interaction events - forward to the bot's webhook endpoint.
         // These are not dispatched via SignalR; they are HTTP POSTs to an external URL.
         if (eventType.StartsWith("Bot_"))
         {
@@ -92,7 +92,7 @@ public class SignalREventDispatcher : IEventDispatcher
             return;
         }
 
-        // Handle Channel events — routed to the whole server group so all members
+        // Handle Channel events - routed to the whole server group so all members
         // see sidebar updates without needing to be in a conversation group.
         if (eventType.StartsWith("Chat."))
         {
@@ -268,7 +268,7 @@ public class SignalREventDispatcher : IEventDispatcher
 
     private async Task DispatchNotifyEventAsync(string eventType, JsonElement root, JsonElement data)
     {
-        // Extract userId — Notify events target a single user's group
+        // Extract userId - Notify events target a single user's group
         if (!root.TryGetProperty("userId", out var userIdElement))
         {
             _logger.LogWarning("Notify event {EventType} payload missing userId, skipping dispatch", eventType);
@@ -343,7 +343,7 @@ public class SignalREventDispatcher : IEventDispatcher
         // Map event types to the SignalR method names that clients register listeners for.
         return eventType switch
         {
-            // Message events — names match the client's connection.on() registrations
+            // Message events - names match the client's connection.on() registrations
             "Message.Created" => "Chat_MessageCreated",
             "Message.Edited" => "Chat_MessageUpdated",
             "Message.Deleted" => "Chat_MessageDeleted",

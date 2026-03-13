@@ -2,7 +2,7 @@ namespace Xcord.Entities;
 
 /// <summary>
 /// Represents a single option in a poll.
-/// NOT soft-deleted — follows poll's lifecycle.
+/// NOT soft-deleted - follows poll's lifecycle.
 /// </summary>
 public sealed class PollOption
 {

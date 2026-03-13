@@ -102,7 +102,7 @@ public class WebhookTests
         var joinResponse = await _helper.JoinServerAsync(member.AccessToken, inviteCode);
         joinResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Member attempts to create a webhook (should fail — no ManageWebhooks permission)
+        // Member attempts to create a webhook (should fail - no ManageWebhooks permission)
         var response = await _helper.AuthPostAsync(
             $"/api/v1/servers/{ctx.ServerId}/webhooks",
             member.AccessToken,
@@ -140,7 +140,7 @@ public class WebhookTests
         var webhookId = createBody.GetProperty("id").ReadLong();
         var token = createBody.GetProperty("token").GetString()!;
 
-        // Execute the webhook (anonymous endpoint — no auth required)
+        // Execute the webhook (anonymous endpoint - no auth required)
         var executeResponse = await _fixture.Client.PostJsonAsync(
             $"/api/v1/webhooks/{webhookId}/{token}",
             new { content = "Hello from webhook!" });
@@ -547,7 +547,7 @@ public class WebhookTests
                 eventTypes = new[] { "MessageCreated" }
             });
 
-        // Creation succeeds — SSRF is blocked at delivery time
+        // Creation succeeds - SSRF is blocked at delivery time
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();

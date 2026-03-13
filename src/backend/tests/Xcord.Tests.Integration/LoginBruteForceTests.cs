@@ -52,7 +52,7 @@ public class LoginBruteForceTests
                 $"attempt {i + 1} should fail with 400");
         }
 
-        // 6th attempt — should now be locked out
+        // 6th attempt - should now be locked out
         var lockedResponse = await _fixture.Client.PostJsonAsync("/api/v1/auth/login", new
         {
             email,
@@ -107,7 +107,7 @@ public class LoginBruteForceTests
             });
         }
 
-        // Now login successfully — this should clear the counter
+        // Now login successfully - this should clear the counter
         var successResponse = await _fixture.Client.PostJsonAsync("/api/v1/auth/login", new
         {
             email,
@@ -123,7 +123,7 @@ public class LoginBruteForceTests
             password = "WrongPassword999!"
         });
         afterResetResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest,
-            "counter was reset by successful login — this attempt should be 400, not 429");
+            "counter was reset by successful login - this attempt should be 400, not 429");
     }
 
     // ──────────── Forgot-password rate limiting ────────────
@@ -137,7 +137,7 @@ public class LoginBruteForceTests
         // discovering registered emails by observing different response codes or
         // timing differences. This test verifies the anti-enumeration guarantee
         // for a known email by submitting the same request 5 times and asserting
-        // every response is 204 — not 400, 404, or 429.
+        // every response is 204 - not 400, 404, or 429.
         var id = Guid.NewGuid().ToString("N")[..12];
         var email = $"fpbrute_{id}@xcord.local";
         var password = "TestPassword123!";
@@ -151,13 +151,13 @@ public class LoginBruteForceTests
         });
 
         // Submit 5 consecutive forgot-password requests for the same known email.
-        // Every response must be 204 — a 400, 404, or inconsistent response would
+        // Every response must be 204 - a 400, 404, or inconsistent response would
         // leak account existence and break the anti-enumeration contract.
         for (var i = 1; i <= 5; i++)
         {
             var resp = await _fixture.Client.PostJsonAsync("/api/v1/auth/forgot-password", new { email });
             resp.StatusCode.Should().Be(HttpStatusCode.NoContent,
-                $"request {i} for a known email must return 204 — any other status code leaks account existence");
+                $"request {i} for a known email must return 204 - any other status code leaks account existence");
         }
     }
 

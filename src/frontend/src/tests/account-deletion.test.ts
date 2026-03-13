@@ -33,7 +33,7 @@ describe('account-deletion', () => {
     it('should display formatted deletion date when deletion is pending', () => {
       const scheduledDeletionAt = '2026-03-04T12:00:00Z';
       const formatted = formatDeletionDate(scheduledDeletionAt);
-      // Must be a human-readable date — not a raw ISO string and not empty.
+      // Must be a human-readable date - not a raw ISO string and not empty.
       // A locale-formatted date will contain a month name (e.g. "March") or
       // abbreviated month (e.g. "Mar") and must NOT look like an ISO timestamp.
       expect(formatted).not.toBe('');

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Extracted logic from Modal.tsx — we test the pure contracts (size mapping,
+// Extracted logic from Modal.tsx - we test the pure contracts (size mapping,
 // aria-label derivation, role, backdrop click logic), not component rendering.
 // ---------------------------------------------------------------------------
 
@@ -19,18 +19,18 @@ function sizeClass(size?: ModalSize): string {
   return SIZE_CLASS[size ?? 'md'];
 }
 
-/** Derives the accessible label — explicit aria-label takes priority, then title. */
+/** Derives the accessible label - explicit aria-label takes priority, then title. */
 function ariaLabel(explicitLabel?: string, title?: string): string | undefined {
   return explicitLabel ?? title;
 }
 
-/** Derives the dialog role — defaults to 'dialog'. */
+/** Derives the dialog role - defaults to 'dialog'. */
 function dialogRole(role?: 'dialog' | 'alertdialog'): 'dialog' | 'alertdialog' {
   return role ?? 'dialog';
 }
 
 /**
- * Backdrop click logic — the modal should only close when the click target
+ * Backdrop click logic - the modal should only close when the click target
  * IS the backdrop itself (target === currentTarget), not when a click on an
  * inner element bubbles up.
  */
@@ -47,7 +47,7 @@ function prefersReducedMotion(matchMediaResult: boolean): boolean {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('Modal — SIZE_CLASS mapping', () => {
+describe('Modal - SIZE_CLASS mapping', () => {
   it('sm maps to max-w-sm', () => {
     expect(sizeClass('sm')).toBe('max-w-sm');
   });
@@ -69,7 +69,7 @@ describe('Modal — SIZE_CLASS mapping', () => {
   });
 });
 
-describe('Modal — aria-label derivation', () => {
+describe('Modal - aria-label derivation', () => {
   it('uses explicit aria-label when provided', () => {
     // Act
     const label = ariaLabel('Custom Label', 'Dialog Title');
@@ -95,7 +95,7 @@ describe('Modal — aria-label derivation', () => {
   });
 });
 
-describe('Modal — role', () => {
+describe('Modal - role', () => {
   it('defaults to dialog', () => {
     expect(dialogRole(undefined)).toBe('dialog');
   });
@@ -106,7 +106,7 @@ describe('Modal — role', () => {
 
 });
 
-describe('Modal — backdrop click logic', () => {
+describe('Modal - backdrop click logic', () => {
   let backdrop: HTMLDivElement;
   let inner: HTMLDivElement;
 
@@ -130,7 +130,7 @@ describe('Modal — backdrop click logic', () => {
   });
 
   it('does not close when click target is an inner element', () => {
-    // Act — inner click bubbles up to backdrop as currentTarget
+    // Act - inner click bubbles up to backdrop as currentTarget
     const result = shouldCloseOnBackdropClick(inner, backdrop);
 
     // Assert
@@ -145,7 +145,7 @@ describe('Modal — backdrop click logic', () => {
       if (e.target === e.currentTarget) onClose();
     });
 
-    // Act — click directly on backdrop
+    // Act - click directly on backdrop
     backdrop.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
     // Assert
@@ -154,7 +154,7 @@ describe('Modal — backdrop click logic', () => {
 
 });
 
-describe('Modal — prefers-reduced-motion', () => {
+describe('Modal - prefers-reduced-motion', () => {
   it('returns true when reduced motion is preferred', () => {
     expect(prefersReducedMotion(true)).toBe(true);
   });

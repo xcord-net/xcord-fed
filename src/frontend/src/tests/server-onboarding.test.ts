@@ -298,7 +298,7 @@ describe('ServerOnboarding', () => {
         selectedChannelIds: [],
       });
 
-      // Assert — verify body includes rulesAccepted
+      // Assert - verify body includes rulesAccepted
       const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       const body = JSON.parse(callArgs[1].body);
       expect(body.rulesAccepted).toBe(true);

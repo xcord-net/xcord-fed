@@ -14,7 +14,7 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      // Always returns 204 — no information leakage about whether the email exists
+      // Always returns 204 - no information leakage about whether the email exists
       await api.post('/api/v1/auth/forgot-password', { email: email() });
       setSubmitted(true);
     } catch {

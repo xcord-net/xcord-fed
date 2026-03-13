@@ -4,7 +4,7 @@ public sealed class TierOptions
 {
     public const string SectionName = "Tier";
 
-    // Feature flags — default to true (permissive for standalone instances not managed by hub)
+    // Feature flags - default to true (permissive for standalone instances not managed by hub)
     public bool CanUseVoiceChannels { get; set; } = true;
     public bool CanUseVideoChannels { get; set; } = true;
     public bool CanCreateBots { get; set; } = true;
@@ -17,7 +17,7 @@ public sealed class TierOptions
     public bool CanUseSimulcast { get; set; }
     public bool CanUseRecording { get; set; }
 
-    // Resource limits — 0 means unlimited (for standalone instances)
+    // Resource limits - 0 means unlimited (for standalone instances)
     public int MaxUsers { get; set; }
     public int MaxServers { get; set; }
     public int MaxStorageMb { get; set; }
@@ -25,7 +25,7 @@ public sealed class TierOptions
     public int MaxVoiceConcurrency { get; set; }
     public int MaxVideoConcurrency { get; set; }
 
-    // Quality limits — 0 means unlimited (for standalone instances)
+    // Quality limits - 0 means unlimited (for standalone instances)
     public int MaxAudioBitrateKbps { get; set; }
     public int MaxVideoBitrateKbps { get; set; }
     public int MaxVideoWidth { get; set; }

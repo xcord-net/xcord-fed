@@ -3,7 +3,7 @@ import { api } from '../api/client';
 import { useAuth } from './auth.store';
 import type { DmChannel, DmGroup, DmGroupMember } from '../types/dm';
 
-// Raw DTO types returned by the backend — internal to the store.
+// Raw DTO types returned by the backend - internal to the store.
 interface RawDmMemberDto {
   userId: string;
   username: string;
@@ -66,7 +66,7 @@ export function useDms() {
     async loadDms(): Promise<void> {
       store.setIsLoading(true);
       try {
-        // Backend returns DmChannelDto[] — a flat array with a Members property.
+        // Backend returns DmChannelDto[] - a flat array with a Members property.
         // We map each entry to DmChannel (1:1) or DmGroup (group) based on isGroup.
         const raw = await api.get<RawDmChannelDto[]>('/api/v1/users/@me/dms');
         // Get current user ID from the auth store.

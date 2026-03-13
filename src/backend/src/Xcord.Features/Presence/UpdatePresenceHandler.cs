@@ -80,7 +80,7 @@ public sealed class UpdatePresenceHandler(
         var count = await db.StringIncrementAsync(rateLimitKey);
         if (count == 1)
         {
-            // First call in this window — set the expiry
+            // First call in this window - set the expiry
             await db.KeyExpireAsync(rateLimitKey, TimeSpan.FromSeconds(RateLimitWindowSeconds));
         }
 

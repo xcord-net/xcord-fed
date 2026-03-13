@@ -292,7 +292,7 @@ public class AuthFlowTests
         var response1 = await _fixture.Client.SendAsync(request1);
         response1.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Try to use the same token again (should fail — it was rotated)
+        // Try to use the same token again (should fail - it was rotated)
         var request2 = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/refresh");
         request2.Headers.Add("Cookie", $"refresh_token={refreshToken}");
         var response2 = await _fixture.Client.SendAsync(request2);

@@ -21,7 +21,7 @@ public sealed class FederationMessage
     public string RemoteMessageId { get; set; } = string.Empty;
 
     /// <summary>
-    /// Local message ID — the crossposted copy (FK to Message).
+    /// Local message ID - the crossposted copy (FK to Message).
     /// </summary>
     public long LocalMessageId { get; set; }
 

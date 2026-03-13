@@ -276,7 +276,7 @@ public class CallTests
             recipient.AccessToken);
         response1.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Try to decline again — call is no longer Ringing
+        // Try to decline again - call is no longer Ringing
         var response2 = await _helper.AuthPostAsync(
             $"/api/v1/calls/{callId}/decline",
             recipient.AccessToken);

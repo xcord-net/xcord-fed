@@ -130,7 +130,7 @@ public sealed class CreateOutgoingWebhookHandler(
             "User {UserId} created outgoing webhook {WebhookId} for server {ServerId}",
             userId, webhookId, request.ServerId);
 
-        // Return the plain-text secret once — it cannot be retrieved again
+        // Return the plain-text secret once - it cannot be retrieved again
         return new CreateOutgoingWebhookResponse(
             Id: webhook.Id,
             ServerId: webhook.ServerId,

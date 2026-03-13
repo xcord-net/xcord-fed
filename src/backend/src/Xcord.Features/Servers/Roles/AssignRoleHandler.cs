@@ -111,7 +111,7 @@ public sealed class AssignRoleHandler(
             "User {UserId} assigned role {RoleId} to user {TargetUserId} in server {ServerId}",
             userId, request.RoleId, request.TargetUserId, request.ServerId);
 
-        // Invalidate server and channel permission cache for the target user — their effective
+        // Invalidate server and channel permission cache for the target user - their effective
         // permissions have changed now that a new role has been assigned to them.
         await permissionService.InvalidateUserPermissionsAsync(request.TargetUserId, request.ServerId, cancellationToken);
 

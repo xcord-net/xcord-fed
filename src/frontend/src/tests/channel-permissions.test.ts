@@ -103,7 +103,7 @@ describe('ChannelPermissions', () => {
       // Act
       const result = permissionStateColor('Inherit');
 
-      // Assert — Inherit should return a muted/gray color class, visually distinct
+      // Assert - Inherit should return a muted/gray color class, visually distinct
       // from Allow (green) and Deny (red). Check for a muted token that proves
       // the design intent rather than just the absence of green/red.
       expect(result).not.toContain('green');
@@ -152,7 +152,7 @@ describe('ChannelPermissions', () => {
 
   describe('ALL_PERMISSIONS and PERMISSION_LABELS', () => {
     it('ALL_PERMISSIONS contains all required permission keys', () => {
-      // Assert — every permission that an admin needs to configure must be present.
+      // Assert - every permission that an admin needs to configure must be present.
       // A count floor would still pass even if critical permissions are removed.
       const requiredKeys: PermissionKey[] = [
         'ViewChannel',

@@ -6,7 +6,7 @@ namespace Xcord.Infrastructure.Data.Configurations;
 
 /// <summary>
 /// EF Core entity configuration for OutgoingWebhookDelivery.
-/// Note: This entity is NOT soft-deleted — it is hard-deleted by the cleanup service.
+/// Note: This entity is NOT soft-deleted - it is hard-deleted by the cleanup service.
 /// </summary>
 public sealed class OutgoingWebhookDeliveryConfiguration : IEntityTypeConfiguration<OutgoingWebhookDelivery>
 {
@@ -61,7 +61,7 @@ public sealed class OutgoingWebhookDeliveryConfiguration : IEntityTypeConfigurat
         builder.Property(d => d.CreatedAt)
             .IsRequired();
 
-        // OutgoingWebhook FK — cascade delete (delivery records removed with the webhook)
+        // OutgoingWebhook FK - cascade delete (delivery records removed with the webhook)
         // Note: IgnoreQueryFilters used in delivery service to load even soft-deleted webhooks
         builder.HasOne(d => d.Webhook)
             .WithMany()
@@ -80,6 +80,6 @@ public sealed class OutgoingWebhookDeliveryConfiguration : IEntityTypeConfigurat
         builder.HasIndex(d => d.CreatedAt)
             .HasDatabaseName("ix_outgoing_webhook_deliveries_created_at");
 
-        // NOTE: No soft-delete filter — this entity is hard-deleted after retention period
+        // NOTE: No soft-delete filter - this entity is hard-deleted after retention period
     }
 }

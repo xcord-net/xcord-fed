@@ -58,7 +58,7 @@ public sealed class BotTokenConfiguration : IEntityTypeConfiguration<BotToken>
         builder.Property(bt => bt.InteractionEndpointUrl)
             .HasMaxLength(2048);
 
-        // InteractionSigningKey (optional, bytea — encrypted at rest)
+        // InteractionSigningKey (optional, bytea - encrypted at rest)
         builder.Property(bt => bt.InteractionSigningKey)
             .HasColumnType("bytea");
 

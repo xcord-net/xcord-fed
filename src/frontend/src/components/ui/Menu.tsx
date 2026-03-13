@@ -25,17 +25,17 @@ function getMenuItems(container: HTMLElement): HTMLElement[] {
 }
 
 /**
- * Menu — a reusable dropdown / context-menu component.
+ * Menu - a reusable dropdown / context-menu component.
  *
  * Dropdown mode: pass `anchorRef` to position relative to a trigger element.
  * Context-menu mode: pass `position` (mouse coordinates) to position at a
  * specific point on the page.
  *
  * Keyboard navigation:
- *   ArrowDown / ArrowUp — moves focus between menu items
- *   Home / End           — jumps to first / last item
- *   Enter / Space        — activates the focused item
- *   Escape               — closes the menu
+ *   ArrowDown / ArrowUp - moves focus between menu items
+ *   Home / End           - jumps to first / last item
+ *   Enter / Space        - activates the focused item
+ *   Escape               - closes the menu
  *
  * Usage:
  *   <Menu open={isOpen()} onClose={() => setIsOpen(false)} anchorRef={buttonRef}>
@@ -126,7 +126,7 @@ export default function Menu(props: MenuProps) {
     });
   });
 
-  // Entrance animation — scale from 95% + fade over 150ms.
+  // Entrance animation - scale from 95% + fade over 150ms.
   createEffect(() => {
     if (!local.open) return;
     if (prefersReducedMotion()) return;
@@ -220,14 +220,14 @@ export default function Menu(props: MenuProps) {
 
   return (
     <Show when={local.open}>
-      {/* Click-outside overlay — transparent, covers the whole viewport */}
+      {/* Click-outside overlay - transparent, covers the whole viewport */}
       <div
         class="fixed inset-0 z-40"
         aria-hidden="true"
         onClick={() => local.onClose()}
       />
 
-      {/* Menu container — positioned absolutely via JS */}
+      {/* Menu container - positioned absolutely via JS */}
       <div
         ref={menuEl}
         role="menu"

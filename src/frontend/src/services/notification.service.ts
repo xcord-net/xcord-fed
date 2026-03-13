@@ -36,7 +36,7 @@ export function isTabFocused(): boolean {
 
 /**
  * Request browser Notification API permission.
- * Safe to call multiple times — resolves immediately if already granted/denied.
+ * Safe to call multiple times - resolves immediately if already granted/denied.
  */
 export async function requestPermission(): Promise<NotificationPermission> {
   if (typeof Notification === 'undefined') {
@@ -54,7 +54,7 @@ export async function requestPermission(): Promise<NotificationPermission> {
  */
 export function playSound(): void {
   try {
-    // Build a short sine-wave tone via AudioContext — no network fetch needed.
+    // Build a short sine-wave tone via AudioContext - no network fetch needed.
     const AudioContextCtor =
       (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext ??
       window.AudioContext;
@@ -85,7 +85,7 @@ export function playSound(): void {
     // AudioContext must be closed after the sound finishes to free resources.
     oscillator.onended = () => { ctx.close(); };
   } catch {
-    // Silently ignore — notification sound is non-critical.
+    // Silently ignore - notification sound is non-critical.
   }
 }
 
@@ -110,7 +110,7 @@ export function showDesktopNotification(
 }
 
 export interface NotificationContext {
-  /** ID of the current user — suppress own-message notifications. */
+  /** ID of the current user - suppress own-message notifications. */
   currentUserId: string | null;
   /** ConversationId currently displayed in the main pane. */
   activeConversationId: string | null;
@@ -148,7 +148,7 @@ export function handleNewMessageNotification(
     return;
   }
 
-  // 4. Tab focused and user is actively viewing this conversation — no noise.
+  // 4. Tab focused and user is actively viewing this conversation - no noise.
   if (isTabFocused() && ctx.activeConversationId === message.conversationId) {
     return;
   }

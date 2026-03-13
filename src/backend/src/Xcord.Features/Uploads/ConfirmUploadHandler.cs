@@ -38,7 +38,7 @@ public sealed class ConfirmUploadHandler(
             return Error.NotFound("ATTACHMENT_NOT_FOUND", "Attachment not found");
         }
 
-        // Verify ownership — only the user who created the upload can confirm it
+        // Verify ownership - only the user who created the upload can confirm it
         if (attachment.CreatedByUserId != null && attachment.CreatedByUserId != userId)
         {
             return Error.Forbidden("NOT_OWNER", "You can only confirm your own uploads");

@@ -98,7 +98,7 @@ public class ChannelEndpointTests
         var joinResponse = await _helper.JoinServerAsync(member.AccessToken, inviteCode);
         joinResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Member attempts to create a channel (should fail — no ManageChannels permission)
+        // Member attempts to create a channel (should fail - no ManageChannels permission)
         var response = await _helper.AuthPostAsync(
             $"/api/v1/servers/{serverId}/channels",
             member.AccessToken,

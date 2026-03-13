@@ -250,7 +250,7 @@ public class UploadTests
                 Id = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 FileName = "large-file.bin",
                 ContentType = "application/octet-stream",
-                FileSize = 50L * 1024 * 1024, // 50 MB — fills the quota
+                FileSize = 50L * 1024 * 1024, // 50 MB - fills the quota
                 S3Key = "test/large-file.bin",
                 IsConfirmed = true,
                 CreatedAt = DateTimeOffset.UtcNow
@@ -258,7 +258,7 @@ public class UploadTests
             await db.SaveChangesAsync();
         }
 
-        // Attempt to upload another file — should exceed quota
+        // Attempt to upload another file - should exceed quota
         var response = await _helper.AuthPostAsync(
             "/api/v1/uploads",
             user.AccessToken,
@@ -298,7 +298,7 @@ public class UploadTests
                 Id = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + 1,
                 FileName = "deleted-file.bin",
                 ContentType = "application/octet-stream",
-                FileSize = 50L * 1024 * 1024, // 50 MB — would fill the quota
+                FileSize = 50L * 1024 * 1024, // 50 MB - would fill the quota
                 S3Key = "test/deleted-file.bin",
                 IsConfirmed = true,
                 CreatedAt = DateTimeOffset.UtcNow,
@@ -339,7 +339,7 @@ public class UploadTests
     [Fact]
     public async Task GetAttachment_UserNotInServer_Returns403()
     {
-        // Arrange — owner creates a server + channel and sends a message
+        // Arrange - owner creates a server + channel and sends a message
         var owner = await _helper.RegisterUserAsync();
         var server = await _helper.CreateServerAsync(owner.AccessToken);
         var serverId = server.GetProperty("id").ReadLong();
@@ -372,12 +372,12 @@ public class UploadTests
         // Register a second user who never joins the server
         var outsider = await _helper.RegisterUserAsync();
 
-        // Act — outsider attempts to download the attachment
+        // Act - outsider attempts to download the attachment
         var response = await _helper.AuthGetAsync(
             $"/api/v1/attachments/{attachmentId}",
             outsider.AccessToken);
 
-        // Assert — must be 403 Forbidden, not 200 OK
+        // Assert - must be 403 Forbidden, not 200 OK
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 

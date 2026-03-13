@@ -163,7 +163,7 @@ public class SystemMessageTests
             $"/api/v1/servers/{serverId}/members/@me", member.AccessToken);
         leaveResponse.StatusCode.Should().Be(HttpStatusCode.NoContent, "leave should succeed");
 
-        // Fetch messages again — both MemberJoin and MemberLeave should now exist
+        // Fetch messages again - both MemberJoin and MemberLeave should now exist
         var messagesAfterLeave = await GetMessagesAsync(owner.AccessToken, systemConversationId);
         messagesAfterLeave.Should().HaveCount(2, "both MemberJoin and MemberLeave messages should exist");
 
@@ -194,7 +194,7 @@ public class SystemMessageTests
 
         var messages = await GetMessagesAsync(owner.AccessToken, systemConversationId);
 
-        // Newest is first — find the MemberLeave message
+        // Newest is first - find the MemberLeave message
         var leaveMessage = messages.First(m =>
             m.GetProperty("type").GetString() == "MemberLeave");
 

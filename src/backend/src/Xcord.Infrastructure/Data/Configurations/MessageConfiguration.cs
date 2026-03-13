@@ -28,7 +28,7 @@ public sealed class MessageConfiguration : IEntityTypeConfiguration<Message>
             .HasForeignKey(m => m.ConversationId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Composite index on (ConversationId, CreatedAt DESC) — the primary pattern for loading
+        // Composite index on (ConversationId, CreatedAt DESC) - the primary pattern for loading
         // message history (paginated, most-recent-first). CreatedAt is descending because queries
         // always order by newest first. A migration is required to apply this to the database.
         builder.HasIndex(m => new { m.ConversationId, m.CreatedAt })
@@ -54,7 +54,7 @@ public sealed class MessageConfiguration : IEntityTypeConfiguration<Message>
             .IsRequired()
             .HasMaxLength(4000);
 
-        // Metadata (stored as text — only serialized/deserialized in C#, no JSONB operators used)
+        // Metadata (stored as text - only serialized/deserialized in C#, no JSONB operators used)
         builder.Property(m => m.Metadata)
             .HasColumnType("text");
 

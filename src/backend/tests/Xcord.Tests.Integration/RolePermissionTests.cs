@@ -496,7 +496,7 @@ public class RolePermissionTests
         deniedBefore.StatusCode.Should().Be(HttpStatusCode.Forbidden,
             "member should not have ManageChannels before role is assigned");
 
-        // Act: assign the role — handler must invalidate the cached denial
+        // Act: assign the role - handler must invalidate the cached denial
         var assignResponse = await _helper.AuthPostAsync(
             $"/api/v1/servers/{serverId}/members/{member.UserId}/roles/{roleId}",
             owner.AccessToken
@@ -609,7 +609,7 @@ public class RolePermissionTests
         allowedBefore.StatusCode.Should().Be(HttpStatusCode.Created,
             "member should have ManageChannels after role assignment");
 
-        // Act: remove the role from the member — handler must invalidate the cached grant
+        // Act: remove the role from the member - handler must invalidate the cached grant
         var removeResponse = await _helper.AuthDeleteAsync(
             $"/api/v1/servers/{serverId}/members/{member.UserId}/roles/{roleId}",
             owner.AccessToken

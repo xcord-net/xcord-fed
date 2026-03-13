@@ -63,13 +63,13 @@ const store = createRoot(() => {
   };
 });
 
-// Module-level LiveKit room instance — one room per browser tab.
+// Module-level LiveKit room instance - one room per browser tab.
 let livekitRoom: Room | null = null;
 // SignalR connection reference injected by signalr.store after connecting.
 let signalrConnection: HubConnection | null = null;
 // True when the server-side VoiceState was successfully created. When this is
 // set, RoomEvent.Disconnected from a failed LiveKit connection attempt must NOT
-// clear currentChannelId — the user is still considered "in voice" on the server.
+// clear currentChannelId - the user is still considered "in voice" on the server.
 let serverSideJoined = false;
 // True when the user explicitly requested to leave (via leaveVoice or clearVoiceState).
 // When set, RoomEvent.Disconnected is allowed to clear the state.
@@ -317,7 +317,7 @@ export function useVoice() {
       store.setIsConnecting(true);
       serverSideJoined = false;
       intentionalLeave = false;
-      // Show VoicePanel immediately while connecting — optimistic update.
+      // Show VoicePanel immediately while connecting - optimistic update.
       store.setCurrentChannelId(channelId);
       store.setIsMuted(false);
       store.setIsDeafened(false);
@@ -326,19 +326,19 @@ export function useVoice() {
       try {
         // Ask the backend to provision our slot and issue a LiveKit token.
         serverJoinResult = await conn.invoke<JoinVoiceResponse>('JoinVoiceChannel', channelId);
-        // Server-side join succeeded — mark it so RoomEvent.Disconnected does not
+        // Server-side join succeeded - mark it so RoomEvent.Disconnected does not
         // clear VoicePanel if LiveKit connection subsequently fails.
         serverSideJoined = true;
       } catch (err) {
         console.error('Failed to join voice channel on server:', err);
         store.setError('Failed to connect to voice channel');
-        // Server-side join failed — revert the optimistic update.
+        // Server-side join failed - revert the optimistic update.
         store.setCurrentChannelId(null);
         store.setIsConnecting(false);
         return;
       }
 
-      // Server-side join succeeded — VoicePanel stays visible from this point.
+      // Server-side join succeeded - VoicePanel stays visible from this point.
       // Attempt to connect to LiveKit; a LiveKit failure is non-fatal.
       try {
         // Recreate the room when quality config is provided so publish defaults
@@ -375,7 +375,7 @@ export function useVoice() {
         }
         store.setParticipants(map);
       } catch (err) {
-        // LiveKit is unavailable or media access denied — the server-side VoiceState
+        // LiveKit is unavailable or media access denied - the server-side VoiceState
         // is still active. Show the VoicePanel without audio rather than hiding it.
         console.warn('LiveKit connection failed, voice panel running without audio:', err);
         store.setIsConnecting(false);
@@ -502,7 +502,7 @@ export function useVoice() {
         store.setIsScreenSharing(true);
         store.setScreenShareParticipantId(livekitRoom.localParticipant.identity);
       } catch (err) {
-        // User denied the browser prompt or an error occurred — not fatal.
+        // User denied the browser prompt or an error occurred - not fatal.
         console.warn('Screen share failed:', err);
         store.setIsScreenSharing(false);
       }

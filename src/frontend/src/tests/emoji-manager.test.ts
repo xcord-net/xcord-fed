@@ -195,7 +195,7 @@ describe('emoji-manager', () => {
         json: async () => newEmoji,
       });
 
-      // Act — simulate FormData upload via raw fetch (multipart)
+      // Act - simulate FormData upload via raw fetch (multipart)
       const formData = new FormData();
       formData.append('name', 'fresh_emoji');
       formData.append('image', new Blob(['pixels'], { type: 'image/png' }), 'emoji.png');

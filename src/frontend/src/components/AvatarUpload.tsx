@@ -183,7 +183,7 @@ export default function AvatarUpload(props: AvatarUploadProps) {
         </div>
       </Show>
 
-      {/* Avatar button — circular, clickable */}
+      {/* Avatar button - circular, clickable */}
       <div class="flex flex-col items-center gap-3">
         <button
           type="button"

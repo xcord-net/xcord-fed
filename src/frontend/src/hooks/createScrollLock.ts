@@ -1,6 +1,6 @@
 import { createEffect, onCleanup } from 'solid-js';
 
-// Module-level lock counter — supports multiple overlapping consumers
+// Module-level lock counter - supports multiple overlapping consumers
 // (e.g. a modal opened on top of another modal).
 let lockCount = 0;
 let savedOverflow = '';
@@ -34,7 +34,7 @@ function unlock() {
 }
 
 /**
- * createScrollLock — locks body scroll while `active()` returns true.
+ * createScrollLock - locks body scroll while `active()` returns true.
  *
  * Supports stacking: multiple callers can lock simultaneously; the body
  * scroll is only restored once every caller has released the lock.

@@ -105,7 +105,7 @@ public sealed class User : ISoftDeletable
     public DateTimeOffset? LastLoginAt { get; set; }
 
     /// <summary>
-    /// Scheduled deletion timestamp — set when user requests account deletion.
+    /// Scheduled deletion timestamp - set when user requests account deletion.
     /// Actual deletion occurs 14 days after this timestamp.
     /// </summary>
     public DateTimeOffset? ScheduledDeletionAt { get; set; }

@@ -24,7 +24,7 @@ builder.AddXcordServices();
 var app = builder.Build();
 
 // Bootstrap: migrate database, ensure RSA key pair, load key for JWT validation
-// Skip entirely in Testing environment — app.Services access triggers a premature host build
+// Skip entirely in Testing environment - app.Services access triggers a premature host build
 // in WebApplicationFactory's deferred host model, before test configuration is applied.
 // The test fixture handles DB schema, RSA keys, and JWT configuration directly.
 if (!app.Environment.IsEnvironment("Testing"))

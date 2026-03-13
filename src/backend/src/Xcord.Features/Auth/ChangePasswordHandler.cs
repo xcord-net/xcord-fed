@@ -49,13 +49,13 @@ public sealed class ChangePasswordHandler(AppDbContext dbContext, IOptions<AuthO
             return Error.NotFound("USER_NOT_FOUND", "User not found");
         }
 
-        // Verify current password — offloaded to Task.Run to avoid thread pool starvation
+        // Verify current password - offloaded to Task.Run to avoid thread pool starvation
         if (!await Task.Run(() => BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash)))
         {
             return Error.Validation("INVALID_PASSWORD", "Current password is incorrect");
         }
 
-        // Hash new password (BCrypt, configurable work factor) — offloaded to Task.Run to avoid thread pool starvation
+        // Hash new password (BCrypt, configurable work factor) - offloaded to Task.Run to avoid thread pool starvation
         user.PasswordHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(request.NewPassword, _authOptions.BcryptWorkFactor));
 
         // Delete ALL refresh tokens for the user (force re-login everywhere)

@@ -79,7 +79,7 @@ public sealed class ThumbnailProcessor : BackgroundService
 
         foreach (var attachment in pending)
         {
-            // Skip non-image content types — set a sentinel to avoid re-querying them.
+            // Skip non-image content types - set a sentinel to avoid re-querying them.
             if (!thumbnailService.IsImageContentType(attachment.ContentType))
             {
                 // Use an empty string as a sentinel: "not applicable, skip forever".

@@ -126,7 +126,7 @@ public class ModerationTests
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Verify ban is actually removed — GET /bans must not list the user any more
+        // Verify ban is actually removed - GET /bans must not list the user any more
         var bansResponse = await _helper.AuthGetAsync(
             $"/api/v1/servers/{serverId}/bans",
             owner.AccessToken);
@@ -230,7 +230,7 @@ public class ModerationTests
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Verify the timeout is actually cleared — no active (non-expired) timeout should exist
+        // Verify the timeout is actually cleared - no active (non-expired) timeout should exist
         // for this member in the database after removal
         await using var db = _fixture.CreateDbContext();
         var activeTimeout = await db.Timeouts

@@ -10,7 +10,7 @@ const FOCUSABLE_SELECTORS = [
 ].join(', ');
 
 /**
- * createFocusTrap — traps keyboard focus inside a container element while it
+ * createFocusTrap - traps keyboard focus inside a container element while it
  * is mounted, restores focus to the previously active element on cleanup, and
  * calls `onEscape` when the Escape key is pressed.
  *

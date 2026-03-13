@@ -18,7 +18,7 @@ public static class BootstrapService
         await db.Database.MigrateAsync();
         Log.Information("Database migrations applied");
 
-        // Bootstrap encryption key FIRST — RSA key encryption depends on it
+        // Bootstrap encryption key FIRST - RSA key encryption depends on it
         await InitializeEncryptionAsync(db, app, scope);
 
         // Ensure RSA key pair exists (private key encrypted at rest with DEK)
@@ -154,12 +154,12 @@ public static class BootstrapService
                 await db.SaveChangesAsync();
             }
             encKeyHolder.SetKey(configKey);
-            Log.Warning("Encryption key loaded from configuration WITHOUT envelope encryption — configure a KEK for production use");
+            Log.Warning("Encryption key loaded from configuration WITHOUT envelope encryption - configure a KEK for production use");
         }
         else if (plaintextDbKey != null)
         {
             encKeyHolder.SetKey(plaintextDbKey.Value);
-            Log.Warning("Encryption key loaded from database WITHOUT envelope encryption — configure a KEK for production use");
+            Log.Warning("Encryption key loaded from database WITHOUT envelope encryption - configure a KEK for production use");
         }
         else
         {
@@ -173,7 +173,7 @@ public static class BootstrapService
             });
             await db.SaveChangesAsync();
             encKeyHolder.SetKey(newKey);
-            Log.Warning("Generated new encryption key WITHOUT envelope encryption — configure a KEK for production use");
+            Log.Warning("Generated new encryption key WITHOUT envelope encryption - configure a KEK for production use");
         }
     }
 }

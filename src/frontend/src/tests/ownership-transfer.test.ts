@@ -106,7 +106,7 @@ describe('ownership-transfer', () => {
 
     it('should pass validation when server name has leading/trailing whitespace (trim applied)', () => {
       // The component trims the input before comparing, so "  My Server  " matches "My Server".
-      // This verifies the trim() behavior is present — without it the user would need to
+      // This verifies the trim() behavior is present - without it the user would need to
       // type the name with exact whitespace to match, which would be a confusing UX bug.
       const error = validateServerName('  My Server  ', 'My Server');
       expect(error).toBe('');

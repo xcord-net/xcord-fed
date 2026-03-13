@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Extracted logic from Menu.tsx — we test the pure algorithms (getMenuItems,
+// Extracted logic from Menu.tsx - we test the pure algorithms (getMenuItems,
 // keyboard navigation index logic, positioning/clamping), not the Solid
 // component lifecycle.
 // ---------------------------------------------------------------------------
@@ -15,7 +15,7 @@ function getMenuItems(container: HTMLElement): HTMLElement[] {
 }
 
 /**
- * Keyboard navigation index logic — given the current focused index and a key,
+ * Keyboard navigation index logic - given the current focused index and a key,
  * returns the new index that should receive focus.
  * Returns -1 if no navigation should occur.
  */
@@ -37,7 +37,7 @@ function getNextIndex(key: string, currentIndex: number, itemCount: number): num
 }
 
 /**
- * Positioning logic — clamp a menu to viewport, mirroring the clamping from
+ * Positioning logic - clamp a menu to viewport, mirroring the clamping from
  * the component's context-menu positioning mode.
  */
 function clampPosition(
@@ -56,7 +56,7 @@ function clampPosition(
     left = vw - menuWidth - margin;
   }
 
-  // Clamp bottom edge — flip above
+  // Clamp bottom edge - flip above
   if (top + menuHeight > vh - margin) {
     top = pos.y - menuHeight;
   }
@@ -141,7 +141,7 @@ function appendMenuItem(
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('Menu — getMenuItems', () => {
+describe('Menu - getMenuItems', () => {
   beforeEach(() => {
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -192,7 +192,7 @@ describe('Menu — getMenuItems', () => {
   });
 
   it('returns empty array when no menu items exist', () => {
-    // Arrange — container with non-menuitem children
+    // Arrange - container with non-menuitem children
     const div = document.createElement('div');
     div.textContent = 'Not a menu item';
     container.appendChild(div);
@@ -219,7 +219,7 @@ describe('Menu — getMenuItems', () => {
   });
 });
 
-describe('Menu — keyboard navigation index logic', () => {
+describe('Menu - keyboard navigation index logic', () => {
   it('ArrowDown moves to next item', () => {
     expect(getNextIndex('ArrowDown', 0, 5)).toBe(1);
     expect(getNextIndex('ArrowDown', 2, 5)).toBe(3);
@@ -262,12 +262,12 @@ describe('Menu — keyboard navigation index logic', () => {
     expect(getNextIndex('End', -1, 0)).toBe(-1);
   });
 
-  it('handles single item — ArrowDown wraps to itself', () => {
+  it('handles single item - ArrowDown wraps to itself', () => {
     expect(getNextIndex('ArrowDown', 0, 1)).toBe(0);
   });
 });
 
-describe('Menu — positioning (context-menu clamp)', () => {
+describe('Menu - positioning (context-menu clamp)', () => {
   const vw = 1024;
   const vh = 768;
   const menuW = 200;
@@ -286,32 +286,32 @@ describe('Menu — positioning (context-menu clamp)', () => {
   });
 
   it('clamps right edge when menu overflows viewport right', () => {
-    // Arrange — click near right edge
+    // Arrange - click near right edge
     const pos = { x: 900, y: 100 };
 
     // Act
     const result = clampPosition(pos, menuW, menuH, vw, vh);
 
-    // Assert — clamped to vw - menuW - margin
+    // Assert - clamped to vw - menuW - margin
     expect(result.left).toBe(1024 - 200 - 8);
   });
 
   it('flips above when menu overflows viewport bottom', () => {
-    // Arrange — click near bottom edge
+    // Arrange - click near bottom edge
     const pos = { x: 100, y: 600 };
 
     // Act
     const result = clampPosition(pos, menuW, menuH, vw, vh);
 
-    // Assert — flipped above: y - menuH
+    // Assert - flipped above: y - menuH
     expect(result.top).toBe(600 - 300);
   });
 
   it('clamps to margin when flipping would go off-screen top', () => {
-    // Arrange — near bottom AND near top (tiny viewport scenario)
+    // Arrange - near bottom AND near top (tiny viewport scenario)
     const pos = { x: 5, y: 100 };
 
-    // Act — menu is 300px tall, 100 - 300 = -200, should clamp to margin
+    // Act - menu is 300px tall, 100 - 300 = -200, should clamp to margin
     const result = clampPosition(pos, menuW, menuH, 1024, 200);
 
     // Assert
@@ -320,7 +320,7 @@ describe('Menu — positioning (context-menu clamp)', () => {
   });
 
   it('never goes below left margin', () => {
-    // Arrange — click at x=2 (less than margin of 8)
+    // Arrange - click at x=2 (less than margin of 8)
     const pos = { x: 2, y: 100 };
 
     // Act
@@ -331,7 +331,7 @@ describe('Menu — positioning (context-menu clamp)', () => {
   });
 });
 
-describe('Menu — anchor-based positioning with flip', () => {
+describe('Menu - anchor-based positioning with flip', () => {
   const vw = 1024;
   const vh = 768;
   const menuW = 200;
@@ -349,7 +349,7 @@ describe('Menu — anchor-based positioning with flip', () => {
   });
 
   it('bottom-end: positions below, flips left when menu wider than anchor', () => {
-    // Act — anchor.right(150) - menuW(200) = -50 < margin(8), so flips to anchor.left
+    // Act - anchor.right(150) - menuW(200) = -50 < margin(8), so flips to anchor.left
     const result = anchorPosition(anchor, menuW, menuH, vw, vh, 'bottom-end');
 
     // Assert
@@ -358,46 +358,46 @@ describe('Menu — anchor-based positioning with flip', () => {
   });
 
   it('flips to top when bottom overflows', () => {
-    // Arrange — anchor near bottom of viewport
+    // Arrange - anchor near bottom of viewport
     const lowAnchor = { top: 650, bottom: 690, left: 50, right: 150 };
 
     // Act
     const result = anchorPosition(lowAnchor, menuW, menuH, vw, vh, 'bottom-start');
 
-    // Assert — flipped: anchor.top - menuH
+    // Assert - flipped: anchor.top - menuH
     expect(result.top).toBe(650 - 150);
   });
 
   it('flips to bottom when top overflows', () => {
-    // Arrange — anchor near top of viewport
+    // Arrange - anchor near top of viewport
     const highAnchor = { top: 50, bottom: 90, left: 50, right: 150 };
 
-    // Act — top-start: would be 50 - 150 = -100
+    // Act - top-start: would be 50 - 150 = -100
     const result = anchorPosition(highAnchor, menuW, menuH, vw, vh, 'top-start');
 
-    // Assert — flipped to bottom
+    // Assert - flipped to bottom
     expect(result.top).toBe(90); // anchor.bottom
   });
 
   it('flips horizontal alignment when overflowing right', () => {
-    // Arrange — anchor near right edge
+    // Arrange - anchor near right edge
     const rightAnchor = { top: 100, bottom: 140, left: 870, right: 970 };
 
-    // Act — bottom-start: left=870, 870+200 > 1024-8
+    // Act - bottom-start: left=870, 870+200 > 1024-8
     const result = anchorPosition(rightAnchor, menuW, menuH, vw, vh, 'bottom-start');
 
-    // Assert — flipped: anchor.right - menuW
+    // Assert - flipped: anchor.right - menuW
     expect(result.left).toBe(970 - 200);
   });
 
   it('flips horizontal alignment when overflowing left', () => {
-    // Arrange — anchor near left edge, placement bottom-end
+    // Arrange - anchor near left edge, placement bottom-end
     const leftAnchor = { top: 100, bottom: 140, left: 10, right: 60 };
 
-    // Act — bottom-end: left = 60 - 200 = -140, flips to anchor.left
+    // Act - bottom-end: left = 60 - 200 = -140, flips to anchor.left
     const result = anchorPosition(leftAnchor, menuW, menuH, vw, vh, 'bottom-end');
 
-    // Assert — flipped to anchor.left
+    // Assert - flipped to anchor.left
     expect(result.left).toBe(10);
   });
 });

@@ -432,7 +432,7 @@ public class MainHub : Hub
                 .CountAsync(vs => vs.UserId != userId.Value);
             if (currentVoiceCount >= _tierOptions.MaxVoiceConcurrency)
             {
-                throw new HubException("Voice participant limit reached — upgrade your plan for more concurrent participants");
+                throw new HubException("Voice participant limit reached - upgrade your plan for more concurrent participants");
             }
         }
 
@@ -773,7 +773,7 @@ public class MainHub : Hub
                 .CountAsync(vs => vs.IsStreaming);
             if (activeStreamCount >= _tierOptions.MaxVideoConcurrency)
             {
-                throw new HubException("Video stream limit reached — upgrade your plan for more concurrent streams");
+                throw new HubException("Video stream limit reached - upgrade your plan for more concurrent streams");
             }
         }
 

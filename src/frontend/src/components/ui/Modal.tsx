@@ -29,7 +29,7 @@ interface ModalProps {
 }
 
 /**
- * Modal — a reusable, accessible modal dialog.
+ * Modal - a reusable, accessible modal dialog.
  *
  * - Traps keyboard focus inside the dialog while open.
  * - Locks body scroll, compensating for scrollbar width.
@@ -60,7 +60,7 @@ export default function Modal(props: ModalProps) {
   // Lock body scroll while the modal is open.
   createScrollLock(() => local.open);
 
-  // Manage focus trap — only active while the modal is mounted (i.e. open).
+  // Manage focus trap - only active while the modal is mounted (i.e. open).
   createFocusTrap(() => dialogRef, { onEscape: () => local.onClose() });
 
   // If an initialFocusRef is provided, move focus there after mount.

@@ -75,7 +75,7 @@ describe('file-upload', () => {
       // Act
       const result = await performUpload(file, makeMockXhrFactory());
 
-      // Assert — first fetch call is the initiate request
+      // Assert - first fetch call is the initiate request
       expect(globalThis.fetch).toHaveBeenCalledWith(
         '/api/v1/uploads',
         expect.objectContaining({
@@ -128,7 +128,7 @@ describe('file-upload', () => {
       // Act
       await performUpload(file, makeMockXhrFactory());
 
-      // Assert — second fetch call is the confirm request
+      // Assert - second fetch call is the confirm request
       expect(globalThis.fetch).toHaveBeenNthCalledWith(
         2,
         `/api/v1/attachments/${attachmentId}/confirm`,

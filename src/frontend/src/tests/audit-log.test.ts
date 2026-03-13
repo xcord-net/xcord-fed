@@ -68,7 +68,7 @@ describe('audit-log', () => {
     });
 
     it('includes all entry fields in response', async () => {
-      // Arrange — server returns a response that omits optional fields but includes all required ones
+      // Arrange - server returns a response that omits optional fields but includes all required ones
       const serverResponse = {
         id: 'e-99',
         actionType: 'MemberBan',
@@ -85,12 +85,12 @@ describe('audit-log', () => {
         json: async () => [serverResponse],
       });
 
-      // Act — verify the api client does not drop or rename any fields
+      // Act - verify the api client does not drop or rename any fields
       const result = await api.get<AuditLogEntry[]>(
         '/api/v1/servers/server-1/audit-log?limit=50',
       );
 
-      // Assert — every required AuditLogEntry field survives the round-trip through api.get
+      // Assert - every required AuditLogEntry field survives the round-trip through api.get
       expect(result).toHaveLength(1);
       const e = result[0];
       // Identity fields
@@ -197,7 +197,7 @@ describe('audit-log', () => {
       // Act
       const result = formatTimestamp(iso);
 
-      // Assert — should not throw and should return a non-empty string
+      // Assert - should not throw and should return a non-empty string
       expect(result.length).toBeGreaterThan(0);
     });
   });

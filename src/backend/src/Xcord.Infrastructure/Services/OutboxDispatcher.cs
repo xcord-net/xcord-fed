@@ -61,7 +61,7 @@ public sealed class OutboxDispatcher : BackgroundService
     }
 
     // -------------------------------------------------------------------------
-    // pg_notify listener — wakes immediately when a new outbox row is inserted
+    // pg_notify listener - wakes immediately when a new outbox row is inserted
     // -------------------------------------------------------------------------
 
     private async Task RunListenerAsync(CancellationToken stoppingToken)
@@ -104,7 +104,7 @@ public sealed class OutboxDispatcher : BackgroundService
 
         conn.Notification += (_, args) =>
         {
-            _logger.LogDebug("Received pg_notify on channel '{Channel}' — triggering immediate batch", args.Channel);
+            _logger.LogDebug("Received pg_notify on channel '{Channel}' - triggering immediate batch", args.Channel);
         };
 
         await using (var cmd = new NpgsqlCommand($"LISTEN {NotifyChannel}", conn))
@@ -119,7 +119,7 @@ public sealed class OutboxDispatcher : BackgroundService
             // WaitAsync returns when a notification arrives OR the timeout elapses.
             // We use a short timeout so we don't block indefinitely while waiting for
             // the cancellation token to be honoured, but we don't expect it to be the
-            // primary trigger — pg_notify fires as soon as the transaction commits.
+            // primary trigger - pg_notify fires as soon as the transaction commits.
             await conn.WaitAsync(stoppingToken);
 
             if (stoppingToken.IsCancellationRequested)
@@ -141,7 +141,7 @@ public sealed class OutboxDispatcher : BackgroundService
     }
 
     // -------------------------------------------------------------------------
-    // Fallback poller — catches any notifications that were missed
+    // Fallback poller - catches any notifications that were missed
     // -------------------------------------------------------------------------
 
     private async Task RunFallbackPollerAsync(CancellationToken stoppingToken)
@@ -169,7 +169,7 @@ public sealed class OutboxDispatcher : BackgroundService
     }
 
     // -------------------------------------------------------------------------
-    // Core batch processor — shared by both the listener and the fallback poller
+    // Core batch processor - shared by both the listener and the fallback poller
     // -------------------------------------------------------------------------
 
     private async Task ProcessBatchAsync(CancellationToken cancellationToken)

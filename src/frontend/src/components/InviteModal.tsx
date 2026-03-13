@@ -94,7 +94,7 @@ export default function InviteModal(props: InviteModalProps) {
       if (copyTimeoutId !== undefined) clearTimeout(copyTimeoutId);
       copyTimeoutId = setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Clipboard write failed — silently ignore
+      // Clipboard write failed - silently ignore
     }
   };
 

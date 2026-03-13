@@ -59,7 +59,7 @@ public class PermissionCachingTests
     [Fact]
     public async Task ServerPermissionCheck_FirstCall_CreatesRedisKey()
     {
-        // Arrange — create owner (who has all permissions) and derive the cache key
+        // Arrange - create owner (who has all permissions) and derive the cache key
         var owner = await _helper.RegisterUserAsync();
         var server = await _helper.CreateServerAsync(owner.AccessToken);
         var serverId = server.GetProperty("id").ReadLong();
@@ -73,7 +73,7 @@ public class PermissionCachingTests
         await db.KeyDeleteAsync(serverCacheKey);
         (await db.KeyExistsAsync(serverCacheKey)).Should().BeFalse("key must not exist before the first permission check");
 
-        // Act — POST to create a channel; CreateChannelHandler calls
+        // Act - POST to create a channel; CreateChannelHandler calls
         // permissionService.EnsureServerPermission → GetServerPermissions → caches the result.
         var response = await _helper.AuthPostAsync(
             $"/api/v1/servers/{serverId}/channels",
@@ -83,7 +83,7 @@ public class PermissionCachingTests
         response.StatusCode.Should().Be(HttpStatusCode.Created,
             "owner should be able to create a channel (all permissions granted)");
 
-        // Assert — Redis key must exist with a parseable long value
+        // Assert - Redis key must exist with a parseable long value
         var keyExists = await db.KeyExistsAsync(serverCacheKey);
         keyExists.Should().BeTrue("PermissionService must write a cache entry after the first server permission check");
 
@@ -103,7 +103,7 @@ public class PermissionCachingTests
     [Fact]
     public async Task ServerPermissionCheck_SecondCall_IsServedFromRedis()
     {
-        // Arrange — create server and invite a regular member
+        // Arrange - create server and invite a regular member
         var owner = await _helper.RegisterUserAsync();
         var server = await _helper.CreateServerAsync(owner.AccessToken);
         var serverId = server.GetProperty("id").ReadLong();
@@ -130,14 +130,14 @@ public class PermissionCachingTests
         // A real DB query would still return the @everyone permissions (no ManageChannels).
         await db.StringSetAsync(serverCacheKey, ManageChannelsPermission.ToString(), TimeSpan.FromSeconds(60));
 
-        // Act — same call, same member.  PermissionService finds the key in Redis and
+        // Act - same call, same member.  PermissionService finds the key in Redis and
         // returns ManageChannels without querying the DB.
         var cachedResponse = await _helper.AuthPostAsync(
             $"/api/v1/servers/{serverId}/channels",
             member.AccessToken,
             new { name = "cache-granted-channel", type = 0 });
 
-        // Assert — the call succeeded because Redis granted ManageChannels
+        // Assert - the call succeeded because Redis granted ManageChannels
         cachedResponse.StatusCode.Should().Be(HttpStatusCode.Created,
             "PermissionService must serve permissions from the Redis cache, not re-query the DB");
     }
@@ -153,7 +153,7 @@ public class PermissionCachingTests
     [Fact]
     public async Task ServerPermissionCheck_AfterCacheExpiry_QueriesDbAgain()
     {
-        // Arrange — create server and invite a regular member
+        // Arrange - create server and invite a regular member
         var owner = await _helper.RegisterUserAsync();
         var server = await _helper.CreateServerAsync(owner.AccessToken);
         var serverId = server.GetProperty("id").ReadLong();
@@ -178,14 +178,14 @@ public class PermissionCachingTests
         warmResponse.StatusCode.Should().Be(HttpStatusCode.Created,
             "the planted ManageChannels value in Redis must be served while the cache is warm");
 
-        // Force cache expiry — avoids waiting the real 60-second TTL
+        // Force cache expiry - avoids waiting the real 60-second TTL
         await db.KeyExpireAsync(serverCacheKey, TimeSpan.FromMilliseconds(1));
         await Task.Delay(50); // Allow Redis to process the expiry
 
         // Confirm the key is gone
         (await db.KeyExistsAsync(serverCacheKey)).Should().BeFalse("cache key must have expired before we proceed");
 
-        // Act — call again; cache is empty so PermissionService must query the DB.
+        // Act - call again; cache is empty so PermissionService must query the DB.
         // The DB has no ManageChannels for this member → 403.
         var expiredResponse = await _helper.AuthPostAsync(
             $"/api/v1/servers/{serverId}/channels",
@@ -218,7 +218,7 @@ public class PermissionCachingTests
     [Fact]
     public async Task ChannelPermissionCheck_FirstCall_CreatesRedisKey()
     {
-        // Arrange — create owner, server, and channel
+        // Arrange - create owner, server, and channel
         var owner = await _helper.RegisterUserAsync();
         var server = await _helper.CreateServerAsync(owner.AccessToken);
         var serverId = server.GetProperty("id").ReadLong();
@@ -234,13 +234,13 @@ public class PermissionCachingTests
         await db.KeyDeleteAsync(channelCacheKey);
         (await db.KeyExistsAsync(channelCacheKey)).Should().BeFalse("key must not exist before the first permission check");
 
-        // Act — GET /api/v1/channels/{channelId} calls EnsureChannelPermission
+        // Act - GET /api/v1/channels/{channelId} calls EnsureChannelPermission
         var response = await _helper.AuthGetAsync(
             $"/api/v1/channels/{channelId}", owner.AccessToken);
         response.StatusCode.Should().Be(HttpStatusCode.OK,
             "owner should be able to view the channel");
 
-        // Assert — channel cache key must now exist
+        // Assert - channel cache key must now exist
         var keyExists = await db.KeyExistsAsync(channelCacheKey);
         keyExists.Should().BeTrue("PermissionService must write a cache entry after the first channel permission check");
 
@@ -261,7 +261,7 @@ public class PermissionCachingTests
     [Fact]
     public async Task ChannelPermissionCheck_SecondCall_IsServedFromRedis()
     {
-        // Arrange — create server and invite a member
+        // Arrange - create server and invite a member
         var owner = await _helper.RegisterUserAsync();
         var server = await _helper.CreateServerAsync(owner.AccessToken);
         var serverId = server.GetProperty("id").ReadLong();
@@ -306,12 +306,12 @@ public class PermissionCachingTests
         // the original permissions (which include ViewChannels).  Confirm it is still there.
         (await db.KeyExistsAsync(channelCacheKey)).Should().BeTrue("channel cache must still be populated from the first call");
 
-        // Act — second call, same member.  The DB now says no ViewChannels,
+        // Act - second call, same member.  The DB now says no ViewChannels,
         // but the channel cache still holds the original permissions.
         var cachedResponse = await _helper.AuthGetAsync(
             $"/api/v1/channels/{channelId}", member.AccessToken);
 
-        // Assert — still 200, meaning the cached value (ViewChannels) was used
+        // Assert - still 200, meaning the cached value (ViewChannels) was used
         cachedResponse.StatusCode.Should().Be(HttpStatusCode.OK,
             "PermissionService must serve the channel permission from Redis cache, not re-query the DB");
     }
@@ -323,7 +323,7 @@ public class PermissionCachingTests
     [Fact]
     public async Task ChannelPermissionCheck_AfterCacheExpiry_QueriesDbAgain()
     {
-        // Arrange — create server and invite a member
+        // Arrange - create server and invite a member
         var owner = await _helper.RegisterUserAsync();
         var server = await _helper.CreateServerAsync(owner.AccessToken);
         var serverId = server.GetProperty("id").ReadLong();
@@ -340,7 +340,7 @@ public class PermissionCachingTests
         using var redis = ConnectionMultiplexer.Connect(_fixture.RedisConnectionString);
         var db = redis.GetDatabase();
 
-        // First call — populates the cache with ViewChannels permissions
+        // First call - populates the cache with ViewChannels permissions
         var firstResponse = await _helper.AuthGetAsync(
             $"/api/v1/channels/{channelId}", member.AccessToken);
         firstResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -366,7 +366,7 @@ public class PermissionCachingTests
         (await db.KeyExistsAsync(channelCacheKey)).Should().BeFalse("channel cache key must have expired");
         (await db.KeyExistsAsync(serverCacheKey)).Should().BeFalse("server cache key must have expired");
 
-        // Act — call again; cache is empty so PermissionService must query the DB.
+        // Act - call again; cache is empty so PermissionService must query the DB.
         // DB now has no ViewChannels for @everyone → 403.
         var expiredResponse = await _helper.AuthGetAsync(
             $"/api/v1/channels/{channelId}", member.AccessToken);

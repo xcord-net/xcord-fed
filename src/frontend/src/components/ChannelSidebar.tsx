@@ -406,7 +406,7 @@ export default function ChannelSidebar() {
                   serverStore.leaveServer(sid)
                     .then(() => navigate('/channels/me'))
                     .catch(() => {
-                      // Owner cannot leave — backend rejects with OWNER_CANNOT_LEAVE.
+                      // Owner cannot leave - backend rejects with OWNER_CANNOT_LEAVE.
                       // Stay on the server page instead of navigating away.
                     });
                 }

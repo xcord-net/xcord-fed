@@ -178,7 +178,7 @@ export default function ChannelReorder(props: ChannelReorderProps) {
       <For each={sortedCategories()}>
         {(category) => (
           <div>
-            {/* Category header — draggable */}
+            {/* Category header - draggable */}
             <div
               class={categoryRowClass(category)}
               draggable={true}

@@ -91,7 +91,7 @@ public sealed class SnowflakeIdGenerator
 
 /// <summary>
 /// JSON converter for Snowflake IDs to serialize as strings.
-/// Registered globally — affects ALL long fields. Use <see cref="LongAsNumberConverter"/>
+/// Registered globally - affects ALL long fields. Use <see cref="LongAsNumberConverter"/>
 /// on non-ID long properties (e.g. permission bitmasks, file sizes) to override.
 /// </summary>
 public sealed class SnowflakeJsonConverter : JsonConverter<long>

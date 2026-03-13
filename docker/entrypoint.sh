@@ -6,7 +6,7 @@ APPSETTINGS_PATH="/app/appsettings.Production.json"
 
 # XCORD_CONFIG_INLINE is a developer escape hatch that allows the config JSON
 # to be passed as an environment variable instead of a Docker secret file.
-# NOTE: this is NOT used by the hub provisioner in production — the hub creates
+# NOTE: this is NOT used by the hub provisioner in production - the hub creates
 # a Docker secret and mounts it at /run/secrets/xcord-config instead, which
 # prevents sensitive credentials from appearing in `docker inspect` output.
 if [ -n "${XCORD_CONFIG_INLINE:-}" ]; then

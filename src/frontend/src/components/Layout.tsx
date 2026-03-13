@@ -148,7 +148,7 @@ export default function Layout() {
       });
     }
 
-    // Always keep the active conversation ID current — used by Chat_MessageCreated
+    // Always keep the active conversation ID current - used by Chat_MessageCreated
     // handler to determine which conversation is currently being viewed.
     if (conversationChanged) {
       signalR.setActiveConversationId(convId ?? null);

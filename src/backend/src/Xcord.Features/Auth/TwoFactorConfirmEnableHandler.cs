@@ -91,7 +91,7 @@ public sealed class TwoFactorConfirmEnableHandler(AppDbContext dbContext, Snowfl
             var formatted = $"{rawCode[..4]}-{rawCode[4..]}";
             plaintextCodes.Add(formatted);
 
-            // Hash without hyphen — offloaded to Task.Run to avoid thread pool starvation
+            // Hash without hyphen - offloaded to Task.Run to avoid thread pool starvation
             var codeHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(rawCode, _authOptions.BcryptWorkFactor));
 
             dbContext.TwoFactorBackupCodes.Add(new TwoFactorBackupCode

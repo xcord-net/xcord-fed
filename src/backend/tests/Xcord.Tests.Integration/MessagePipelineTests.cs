@@ -342,7 +342,7 @@ public class MessagePipelineTests
             await db.SaveChangesAsync();
         }
 
-        // Send message with the keyword — should NOT be blocked since rule is disabled
+        // Send message with the keyword - should NOT be blocked since rule is disabled
         var message = await _helper.SendMessageAsync(
             token, conversationId, "This contains shouldnotblock");
 
@@ -356,7 +356,7 @@ public class MessagePipelineTests
     {
         var (serverId, conversationId, token) = await SetupServerWithChannel();
 
-        // Create keyword rule with DELETE action (deferred — message is persisted then deleted)
+        // Create keyword rule with DELETE action (deferred - message is persisted then deleted)
         await using (var db = _fixture.CreateDbContext())
         {
             db.AutomodRules.Add(new AutomodRule
@@ -375,7 +375,7 @@ public class MessagePipelineTests
             await db.SaveChangesAsync();
         }
 
-        // Send message — should succeed (message persisted) but then be soft-deleted
+        // Send message - should succeed (message persisted) but then be soft-deleted
         var message = await _helper.SendMessageAsync(token, conversationId, "Please deletethis now");
         var messageId = message.GetProperty("id").ReadLong();
 

@@ -65,12 +65,12 @@ export default function MessageCompose(props: MessageComposeProps) {
   let textareaRef: HTMLTextAreaElement | undefined;
   let fileInputRef: HTMLInputElement | undefined;
   let slowModeTimer: ReturnType<typeof setInterval> | undefined;
-  // Throttle typing events — send at most once every 3 seconds.
+  // Throttle typing events - send at most once every 3 seconds.
   let lastTypingSentAt = 0;
 
   // Reset slow mode countdown when channel changes
   createEffect(() => {
-    // Track the channelId — when it changes, reset the countdown
+    // Track the channelId - when it changes, reset the countdown
     const _channelId = props.channelId;
     void _channelId;
     setSlowModeCountdown(0);

@@ -50,7 +50,7 @@ export default function App() {
 
   return (
     <ErrorBoundary fallback={AppErrorFallback}>
-      {/* Suspension overlay — shown when the server sends System_ShuttingDown */}
+      {/* Suspension overlay - shown when the server sends System_ShuttingDown */}
       <Show when={signalR.suspensionReason !== null}>
         <div role="alert" aria-live="assertive" aria-label="Server suspended" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-xcord-bg-primary/95 text-xcord-text-primary gap-4">
           <div class="flex flex-col items-center gap-3 max-w-md text-center px-6">

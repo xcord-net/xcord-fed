@@ -152,7 +152,7 @@ public sealed class AttachmentThumbnailTests : IAsyncLifetime
     [Fact]
     public async Task GenerateThumbnail_LargeImage_PopulatesThumbnailS3Key()
     {
-        // Arrange — create a 600×600 image (larger than the 400×400 max thumbnail size)
+        // Arrange - create a 600×600 image (larger than the 400×400 max thumbnail size)
         const int SourceWidth = 600;
         const int SourceHeight = 600;
         var imageBytes = CreateTestImageBytes(SourceWidth, SourceHeight);
@@ -178,7 +178,7 @@ public sealed class AttachmentThumbnailTests : IAsyncLifetime
         _db.Attachments.Add(attachment);
         await _db.SaveChangesAsync();
 
-        // Act — invoke the thumbnail generation logic directly (same logic as ThumbnailProcessor).
+        // Act - invoke the thumbnail generation logic directly (same logic as ThumbnailProcessor).
         const int MaxWidth = 400;
         const int MaxHeight = 400;
 
@@ -194,7 +194,7 @@ public sealed class AttachmentThumbnailTests : IAsyncLifetime
         attachment.ThumbnailS3Key = thumbnailKey;
         await _db.SaveChangesAsync();
 
-        // Assert 1 — ThumbnailS3Key is populated on the entity in the DB.
+        // Assert 1 - ThumbnailS3Key is populated on the entity in the DB.
         var persisted = await _db.Attachments
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == attachmentId);
@@ -202,11 +202,11 @@ public sealed class AttachmentThumbnailTests : IAsyncLifetime
         persisted!.ThumbnailS3Key.Should().NotBeNullOrEmpty();
         persisted.ThumbnailS3Key.Should().Be(thumbnailKey);
 
-        // Assert 2 — the thumbnail object actually exists in MinIO.
+        // Assert 2 - the thumbnail object actually exists in MinIO.
         var thumbnailExists = await _storage.ExistsAsync(thumbnailKey);
         thumbnailExists.Should().BeTrue("thumbnail file must exist in storage after generation");
 
-        // Assert 3 — thumbnail dimensions are smaller than the original
+        // Assert 3 - thumbnail dimensions are smaller than the original
         //             (600×600 image resized to fit within 400×400 box).
         result.Width.Should().BeLessThan(SourceWidth,
             "thumbnail width must be smaller than the 600px source");
@@ -219,7 +219,7 @@ public sealed class AttachmentThumbnailTests : IAsyncLifetime
     [Fact]
     public async Task GenerateThumbnail_SmallImage_ThumbnailS3KeyStillPopulated()
     {
-        // Arrange — small image already within thumbnail bounds (100×100).
+        // Arrange - small image already within thumbnail bounds (100×100).
         const int SourceWidth = 100;
         const int SourceHeight = 100;
         var imageBytes = CreateTestImageBytes(SourceWidth, SourceHeight);
@@ -257,7 +257,7 @@ public sealed class AttachmentThumbnailTests : IAsyncLifetime
         attachment.ThumbnailS3Key = thumbnailKey;
         await _db.SaveChangesAsync();
 
-        // Assert — ThumbnailS3Key is populated and the file exists in MinIO.
+        // Assert - ThumbnailS3Key is populated and the file exists in MinIO.
         var persisted = await _db.Attachments
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == attachmentId);
@@ -267,7 +267,7 @@ public sealed class AttachmentThumbnailTests : IAsyncLifetime
         var thumbnailExists = await _storage.ExistsAsync(thumbnailKey);
         thumbnailExists.Should().BeTrue("thumbnail file must exist in storage");
 
-        // Small image is not resized — thumbnail dimensions equal source dimensions.
+        // Small image is not resized - thumbnail dimensions equal source dimensions.
         result.Width.Should().Be(SourceWidth);
         result.Height.Should().Be(SourceHeight);
     }
@@ -284,7 +284,7 @@ public sealed class AttachmentThumbnailTests : IAsyncLifetime
     [Fact]
     public async Task GenerateThumbnail_JpegImage_ProducesJpegOutput()
     {
-        // Arrange — JPEG input should also produce a JPEG thumbnail.
+        // Arrange - JPEG input should also produce a JPEG thumbnail.
         const int SourceWidth = 500;
         const int SourceHeight = 300;
         var pngBytes = CreateTestImageBytes(SourceWidth, SourceHeight);
@@ -300,7 +300,7 @@ public sealed class AttachmentThumbnailTests : IAsyncLifetime
         // Act
         var result = await _thumbnailService.GenerateThumbnailAsync(jpegBytes, contentType, 400, 400);
 
-        // Assert — output should be non-empty JPEG bytes.
+        // Assert - output should be non-empty JPEG bytes.
         result.Bytes.Should().NotBeEmpty();
         result.Width.Should().BeLessThanOrEqualTo(400);
         result.Height.Should().BeLessThanOrEqualTo(400);

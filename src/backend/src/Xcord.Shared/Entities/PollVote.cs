@@ -3,7 +3,7 @@ namespace Xcord.Entities;
 /// <summary>
 /// Represents a user's vote on a poll option.
 /// Composite PK: PollOptionId + UserId.
-/// NOT soft-deleted — hard-deleted on vote retraction.
+/// NOT soft-deleted - hard-deleted on vote retraction.
 /// </summary>
 public sealed class PollVote
 {

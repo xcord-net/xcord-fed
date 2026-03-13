@@ -63,7 +63,7 @@ public sealed class JoinByInviteHandler(
 
         if (alreadyMember)
         {
-            // User is already a member — consume the invite use so max-uses accounting
+            // User is already a member - consume the invite use so max-uses accounting
             // remains correct (otherwise a member re-clicking an invite would let extra
             // users join a 1-use link without decrementing the counter).
             invite.Uses++;
@@ -96,7 +96,7 @@ public sealed class JoinByInviteHandler(
 
         // Create ReadState rows for all text/forum channels in the server so the
         // unread notification system can track messages the new member hasn't seen.
-        // Skip any that already exist (e.g. user rejoining after a ban — ReadState rows
+        // Skip any that already exist (e.g. user rejoining after a ban - ReadState rows
         // are not deleted when a member is banned, so they may still be present).
         var channelConversationIds = await dbContext.Channels
             .AsNoTracking()

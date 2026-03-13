@@ -2,7 +2,7 @@ namespace Xcord.Entities;
 
 /// <summary>
 /// Private note about another user, visible only to the note author.
-/// Uses unique constraint on (AuthorId, TargetUserId) — one note per target user.
+/// Uses unique constraint on (AuthorId, TargetUserId) - one note per target user.
 /// </summary>
 public sealed class UserNote : ISoftDeletable
 {

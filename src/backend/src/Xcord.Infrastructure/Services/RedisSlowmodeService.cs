@@ -39,11 +39,11 @@ public sealed class RedisSlowmodeService : ISlowmodeService
 
         if (set)
         {
-            // Key did not exist — the user is allowed to send; cooldown window now starts.
+            // Key did not exist - the user is allowed to send; cooldown window now starts.
             return 0;
         }
 
-        // Key already existed — the user is still in cooldown.
+        // Key already existed - the user is still in cooldown.
         // Calculate remaining seconds from the key TTL.
         var ttl = await db.KeyTimeToLiveAsync(key);
         var remaining = ttl.HasValue ? (int)Math.Ceiling(ttl.Value.TotalSeconds) : slowModeSeconds;
