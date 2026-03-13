@@ -113,17 +113,13 @@ public sealed class AutomodService : IAutomodService
         }
 
         // Check channel exemption
-        if (!string.IsNullOrEmpty(rule.ExemptChannelIds))
-        {
-            var exemptChannels = rule.ExemptChannelIds
+        if (!string.IsNullOrEmpty(rule.ExemptChannelIds) &&
+            rule.ExemptChannelIds
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(long.Parse)
-                .ToHashSet();
-
-            if (exemptChannels.Contains(channelId))
-            {
-                return true;
-            }
+                .Contains(channelId))
+        {
+            return true;
         }
 
         // Check role exemption

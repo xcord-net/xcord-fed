@@ -145,18 +145,17 @@ public sealed class EmbedExtractor : BackgroundService
 
         var embedResults = await Task.WhenAll(extractionTasks);
 
-        var embedPosition = 0;
-        foreach (var embed in embedResults.Where(e => e != null))
-        {
-            embed!.Position = embedPosition++;
-            context.Embeds.Add(embed);
-        }
+        var embeds = embedResults
+            .Where(e => e != null)
+            .Select((embed, idx) => { embed!.Position = idx; return embed; })
+            .ToList();
+        embeds.ForEach(embed => context.Embeds.Add(embed!));
 
         // Mark message as processed
         message.EmbedsProcessed = true;
 
         // Write outbox event if any embeds were created
-        if (embedPosition > 0)
+        if (embeds.Count > 0)
         {
             await outboxWriter.WriteAsync(
                 context,

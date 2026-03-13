@@ -165,10 +165,7 @@ public sealed class BanMemberHandler(
                     && m.CreatedAt >= cutoffDate)
                 .ToListAsync(cancellationToken);
 
-            foreach (var message in messagesToDelete)
-            {
-                message.DeletedAt = now;
-            }
+            messagesToDelete.ForEach(message => message.DeletedAt = now);
         }
 
         // Create audit log

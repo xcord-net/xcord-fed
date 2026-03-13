@@ -64,10 +64,7 @@ public sealed class BulkDeleteMessagesHandler(
 
         // Soft delete all messages in a single transaction
         var now = DateTimeOffset.UtcNow;
-        foreach (var message in messages)
-        {
-            message.DeletedAt = now;
-        }
+        messages.ForEach(message => message.DeletedAt = now);
 
         // Write outbox event
         await outboxWriter.WriteAsync(dbContext, "Message.BulkDeleted", new

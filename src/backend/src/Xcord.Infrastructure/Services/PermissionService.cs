@@ -132,10 +132,9 @@ public sealed class PermissionService : IPermissionService
         long permissions = everyoneRole?.Permissions ?? 0L;
 
         // Step 5: OR all assigned role permissions using the already-loaded role list (no extra DB query)
-        foreach (var role in allServerRoles.Where(r => memberRoleIds.Contains(r.Id)))
-        {
-            permissions |= role.Permissions;
-        }
+        permissions |= allServerRoles
+            .Where(r => memberRoleIds.Contains(r.Id))
+            .Aggregate(0L, (acc, role) => acc | role.Permissions);
 
         // Step 6: If user has Administrator, grant all permissions
         if ((permissions & (long)Permission.Administrator) != 0)
