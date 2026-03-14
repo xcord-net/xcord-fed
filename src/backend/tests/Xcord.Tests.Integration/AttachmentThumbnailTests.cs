@@ -8,12 +8,11 @@ using Microsoft.Extensions.Options;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
-using Testcontainers.Minio;
-using Testcontainers.PostgreSql;
 using Xcord.Entities;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
+using Xcord.Tests.Integration.Fixtures;
 using Xunit;
 
 namespace Xcord.Tests.Integration;
@@ -24,85 +23,46 @@ namespace Xcord.Tests.Integration;
 /// attachments and stores them in S3/MinIO, and that the Attachment entity is
 /// updated with a non-null ThumbnailS3Key.
 /// </summary>
-public sealed class AttachmentThumbnailTests : IAsyncLifetime
+[Collection("SharedInfra")]
+public sealed class AttachmentThumbnailTests
 {
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
-        .WithImage("postgres:17-alpine")
-        .WithDatabase("xcord_test")
-        .WithUsername("xcord_test")
-        .WithPassword("xcord_test")
-        .Build();
-
-    private readonly MinioContainer _minio = new MinioBuilder()
-        .WithImage("minio/minio:latest")
-        .Build();
-
-    private AppDbContext _db = null!;
-    private IStorageService _storage = null!;
-    private IThumbnailService _thumbnailService = null!;
+    private readonly string _connectionString;
+    private readonly IStorageService _storage;
+    private readonly IThumbnailService _thumbnailService;
 
     private const string TestBucket = "xcord-test";
+    private static int _dbCounter;
 
-    public async Task InitializeAsync()
+    public AttachmentThumbnailTests(SharedInfraFixture fixture)
     {
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-        await Task.WhenAll(
-            _postgres.StartAsync(cts.Token),
-            _minio.StartAsync(cts.Token)
-        );
+        var dbName = $"xcord_thumbnail_{Interlocked.Increment(ref _dbCounter)}";
+        _connectionString = fixture.CreateDatabaseAsync(dbName).GetAwaiter().GetResult();
 
-        // Set up the DB context and schema.
-        var dbOptions = new DbContextOptionsBuilder<AppDbContext>()
-            .UseNpgsql(_postgres.GetConnectionString())
-            .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning))
-            .Options;
-        _db = new AppDbContext(dbOptions);
-        await _db.Database.EnsureCreatedAsync();
-
-        // Set up S3StorageService pointing at the MinIO test container.
         var storageOptions = Options.Create(new StorageOptions
         {
-            Endpoint = _minio.GetConnectionString(),
-            AccessKey = _minio.GetAccessKey(),
-            SecretKey = _minio.GetSecretKey(),
+            Endpoint = fixture.MinioConnectionString,
+            AccessKey = fixture.MinioAccessKey,
+            SecretKey = fixture.MinioSecretKey,
             Bucket = TestBucket,
         });
         _storage = new S3StorageService(storageOptions, NullLogger<S3StorageService>.Instance);
 
-        // Ensure the test bucket exists by uploading a sentinel object.
-        await EnsureBucketAsync();
+        // Ensure the test bucket exists
+        EnsureBucketAsync(fixture).GetAwaiter().GetResult();
 
         _thumbnailService = new ImageSharpThumbnailService(NullLogger<ImageSharpThumbnailService>.Instance);
     }
 
-    public async Task DisposeAsync()
-    {
-        await _db.DisposeAsync();
-        await Task.WhenAll(
-            _postgres.DisposeAsync().AsTask(),
-            _minio.DisposeAsync().AsTask()
-        );
-    }
-
-    // ──────────────────────────────────────────────────────────────
-    // Helpers
-    // ──────────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Creates a MinIO bucket for the test using the AWS SDK directly.
-    /// S3StorageService auto-creates the bucket on first use, but calling a
-    /// non-existent bucket method first is simpler than relying on that side effect.
-    /// </summary>
-    private async Task EnsureBucketAsync()
+    private static async Task EnsureBucketAsync(SharedInfraFixture fixture)
     {
         var config = new AmazonS3Config
         {
-            ServiceURL = _minio.GetConnectionString(),
+            ServiceURL = fixture.MinioConnectionString,
             ForcePathStyle = true,
         };
         using var s3 = new AmazonS3Client(
-            _minio.GetAccessKey(),
-            _minio.GetSecretKey(),
+            fixture.MinioAccessKey,
+            fixture.MinioSecretKey,
             config);
 
         var bucketExists = await Amazon.S3.Util.AmazonS3Util.DoesS3BucketExistV2Async(s3, TestBucket);
@@ -110,6 +70,19 @@ public sealed class AttachmentThumbnailTests : IAsyncLifetime
         {
             await s3.PutBucketAsync(new PutBucketRequest { BucketName = TestBucket });
         }
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // Helpers
+    // ──────────────────────────────────────────────────────────────
+
+    private AppDbContext CreateDbContext()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseNpgsql(_connectionString)
+            .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning))
+            .Options;
+        return new AppDbContext(options);
     }
 
     /// <summary>
@@ -136,15 +109,6 @@ public sealed class AttachmentThumbnailTests : IAsyncLifetime
         return ms.ToArray();
     }
 
-    /// <summary>
-    /// Builds the thumbnail S3 key that ThumbnailProcessor would use.
-    /// </summary>
-    private static string ExpectedThumbnailKey(long attachmentId)
-    {
-        var now = DateTimeOffset.UtcNow;
-        return $"thumbnails/{now:yyyy}/{now:MM}/{attachmentId}.jpg";
-    }
-
     // ──────────────────────────────────────────────────────────────
     // Tests
     // ──────────────────────────────────────────────────────────────
@@ -164,6 +128,7 @@ public sealed class AttachmentThumbnailTests : IAsyncLifetime
         await _storage.UploadAsync(s3Key, imageBytes, contentType);
 
         // Create an Attachment entity that is confirmed and awaiting thumbnail generation.
+        await using var db = CreateDbContext();
         var attachment = new Attachment
         {
             Id = attachmentId,
@@ -175,8 +140,8 @@ public sealed class AttachmentThumbnailTests : IAsyncLifetime
             ThumbnailS3Key = null,
             CreatedAt = DateTimeOffset.UtcNow,
         };
-        _db.Attachments.Add(attachment);
-        await _db.SaveChangesAsync();
+        db.Attachments.Add(attachment);
+        await db.SaveChangesAsync();
 
         // Act - invoke the thumbnail generation logic directly (same logic as ThumbnailProcessor).
         const int MaxWidth = 400;
@@ -192,10 +157,10 @@ public sealed class AttachmentThumbnailTests : IAsyncLifetime
         await _storage.UploadAsync(thumbnailKey, result.Bytes, "image/jpeg");
 
         attachment.ThumbnailS3Key = thumbnailKey;
-        await _db.SaveChangesAsync();
+        await db.SaveChangesAsync();
 
         // Assert 1 - ThumbnailS3Key is populated on the entity in the DB.
-        var persisted = await _db.Attachments
+        var persisted = await db.Attachments
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == attachmentId);
         persisted.Should().NotBeNull();
@@ -229,6 +194,7 @@ public sealed class AttachmentThumbnailTests : IAsyncLifetime
         var s3Key = $"attachments/test/{attachmentId}/small-image.png";
         await _storage.UploadAsync(s3Key, imageBytes, contentType);
 
+        await using var db = CreateDbContext();
         var attachment = new Attachment
         {
             Id = attachmentId,
@@ -240,8 +206,8 @@ public sealed class AttachmentThumbnailTests : IAsyncLifetime
             ThumbnailS3Key = null,
             CreatedAt = DateTimeOffset.UtcNow,
         };
-        _db.Attachments.Add(attachment);
-        await _db.SaveChangesAsync();
+        db.Attachments.Add(attachment);
+        await db.SaveChangesAsync();
 
         // Act
         const int MaxWidth = 400;
@@ -255,10 +221,10 @@ public sealed class AttachmentThumbnailTests : IAsyncLifetime
         await _storage.UploadAsync(thumbnailKey, result.Bytes, "image/jpeg");
 
         attachment.ThumbnailS3Key = thumbnailKey;
-        await _db.SaveChangesAsync();
+        await db.SaveChangesAsync();
 
         // Assert - ThumbnailS3Key is populated and the file exists in MinIO.
-        var persisted = await _db.Attachments
+        var persisted = await db.Attachments
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == attachmentId);
         persisted.Should().NotBeNull();

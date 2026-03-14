@@ -7,13 +7,12 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
-using Testcontainers.PostgreSql;
-using Testcontainers.Redis;
 using Xcord.Entities;
 using Xcord.Features.Auth;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
+using Xcord.Tests.Integration.Fixtures;
 using Xunit;
 
 namespace Xcord.Tests.Integration;
@@ -23,51 +22,22 @@ namespace Xcord.Tests.Integration;
 /// Verifies the password reset flow: token creation in DB, outbox entry written,
 /// and full reset flow using a real PostgreSQL instance via Testcontainers.
 /// </summary>
+[Collection("SharedInfra")]
 [Trait("Category", "Auth")]
-public sealed class ForgotPasswordHandlerTests : IAsyncLifetime
+public sealed class ForgotPasswordHandlerTests
 {
-    private PostgreSqlContainer? _postgres;
-    private RedisContainer? _redisContainer;
-    private IConnectionMultiplexer? _redisMultiplexer;
-    private string _connectionString = string.Empty;
+    private readonly SharedInfraFixture _fixture;
+    private readonly string _connectionString;
 
     private const string TestEncryptionKey = "test-encryption-key-for-integration-tests";
     private const string TestRedisPrefix = "xcord-fptest";
+    private static int _dbCounter;
 
-    // ─── IAsyncLifetime ──────────────────────────────────────────────────────
-
-    public async Task InitializeAsync()
+    public ForgotPasswordHandlerTests(SharedInfraFixture fixture)
     {
-        _postgres = new PostgreSqlBuilder()
-            .WithImage("postgres:17-alpine")
-            .WithDatabase("xcord_forgotpw_test")
-            .WithUsername("postgres")
-            .WithPassword("postgres")
-            .Build();
-
-        _redisContainer = new RedisBuilder()
-            .WithImage("redis:7-alpine")
-            .Build();
-
-        await Task.WhenAll(
-            _postgres.StartAsync(),
-            _redisContainer.StartAsync());
-
-        _connectionString = _postgres.GetConnectionString();
-        _redisMultiplexer = await ConnectionMultiplexer.ConnectAsync(_redisContainer.GetConnectionString());
-
-        // Apply schema
-        await using var ctx = CreateDbContext();
-        await ctx.Database.EnsureCreatedAsync();
-    }
-
-    public async Task DisposeAsync()
-    {
-        _redisMultiplexer?.Dispose();
-        if (_postgres is not null)
-            await _postgres.DisposeAsync();
-        if (_redisContainer is not null)
-            await _redisContainer.DisposeAsync();
+        _fixture = fixture;
+        var dbName = $"xcord_forgotpw_{Interlocked.Increment(ref _dbCounter)}";
+        _connectionString = fixture.CreateDatabaseAsync(dbName).GetAwaiter().GetResult();
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
@@ -129,9 +99,11 @@ public sealed class ForgotPasswordHandlerTests : IAsyncLifetime
 
         var redisOptions = Options.Create(new RedisOptions
         {
-            ConnectionString = _redisContainer!.GetConnectionString(),
+            ConnectionString = _fixture.RedisConnectionString,
             ChannelPrefix = TestRedisPrefix
         });
+
+        var redisMultiplexer = ConnectionMultiplexer.Connect(_fixture.RedisConnectionString);
 
         var snowflake = new SnowflakeIdGenerator(8);
         var outboxWriter = new OutboxWriter(new SnowflakeIdGenerator(9));
@@ -147,7 +119,7 @@ public sealed class ForgotPasswordHandlerTests : IAsyncLifetime
             outboxWriter,
             instanceOptions,
             httpContextAccessor,
-            _redisMultiplexer!,
+            redisMultiplexer,
             redisOptions);
     }
 
