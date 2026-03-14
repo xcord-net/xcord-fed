@@ -206,6 +206,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseSetting("Email:SmtpPort", "25");
         builder.UseSetting("Email:FromAddress", "test@xcord.local");
         builder.UseSetting("Email:FromName", "Xcord Test");
+        builder.UseSetting("Auth:BcryptWorkFactor", "4");
         builder.UseSetting("Cors:AllowedOrigins:0", "http://localhost:3000");
         builder.UseSetting("InternalApi:Key", "test-internal-api-key-for-integration");
         builder.UseSetting("Federation:RequireSignatureVerification", "false");
