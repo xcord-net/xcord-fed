@@ -21,13 +21,90 @@ case "$CMD" in
     dev)
         ;; # fall through
     *)
-        echo "Usage: $(basename "$0") [dev|down]"
+        echo "Usage: $(basename "$0") [dev|down] [--tier free|basic|pro|enterprise]"
         echo ""
         echo "  dev    Start isolated fed instance with hot-reload (default)"
         echo "  down   Stop and remove infrastructure containers + volumes"
+        echo ""
+        echo "Options:"
+        echo "  --tier <name>  Simulate hub tier constraints (default: unlimited/standalone)"
+        echo "                 free       10 users, 3 servers, no monetization"
+        echo "                 basic      50 users, 10 servers, no monetization"
+        echo "                 pro        200 users, 50 servers, monetization enabled"
+        echo "                 enterprise 500 users, 100 servers, monetization enabled"
         exit 0
         ;;
 esac
+
+# ── Parse options ────────────────────────────────────────────────────────────
+
+TIER=""
+shift || true
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --tier)
+            TIER="${2:-}"
+            shift 2 || { echo "Error: --tier requires a value"; exit 1; }
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+done
+
+# ── Tier environment variables ───────────────────────────────────────────────
+
+TIER_ENV=()
+TIER_LABEL="standalone (unlimited)"
+if [ -n "$TIER" ]; then
+    case "$TIER" in
+        free)
+            TIER_LABEL="Free"
+            TIER_ENV=(
+                "Tier__MaxUsers=10" "Tier__MaxServers=3" "Tier__MaxStorageMb=512"
+                "Tier__MaxRateLimit=30" "Tier__MaxVoiceConcurrency=5" "Tier__MaxVideoConcurrency=3"
+                "Tier__CanUseVoiceChannels=false" "Tier__CanUseVideoChannels=false"
+                "Tier__CanUseHdVideo=false" "Tier__CanUseSimulcast=false" "Tier__CanUseRecording=false"
+                "Tier__CanUseMemberTiers=false"
+            )
+            ;;
+        basic)
+            TIER_LABEL="Basic"
+            TIER_ENV=(
+                "Tier__MaxUsers=50" "Tier__MaxServers=10" "Tier__MaxStorageMb=2048"
+                "Tier__MaxRateLimit=60" "Tier__MaxVoiceConcurrency=15" "Tier__MaxVideoConcurrency=10"
+                "Tier__CanUseVoiceChannels=false" "Tier__CanUseVideoChannels=false"
+                "Tier__CanUseHdVideo=false" "Tier__CanUseSimulcast=false" "Tier__CanUseRecording=false"
+                "Tier__CanUseMemberTiers=false"
+            )
+            ;;
+        pro)
+            TIER_LABEL="Pro"
+            TIER_ENV=(
+                "Tier__MaxUsers=200" "Tier__MaxServers=50" "Tier__MaxStorageMb=10240"
+                "Tier__MaxRateLimit=200" "Tier__MaxVoiceConcurrency=60" "Tier__MaxVideoConcurrency=40"
+                "Tier__CanUseVoiceChannels=true" "Tier__CanUseVideoChannels=true"
+                "Tier__CanUseHdVideo=true" "Tier__CanUseSimulcast=true" "Tier__CanUseRecording=true"
+                "Tier__CanUseMemberTiers=true"
+            )
+            ;;
+        enterprise)
+            TIER_LABEL="Enterprise"
+            TIER_ENV=(
+                "Tier__MaxUsers=500" "Tier__MaxServers=100" "Tier__MaxStorageMb=25600"
+                "Tier__MaxRateLimit=500" "Tier__MaxVoiceConcurrency=100" "Tier__MaxVideoConcurrency=50"
+                "Tier__CanUseVoiceChannels=true" "Tier__CanUseVideoChannels=true"
+                "Tier__CanUseHdVideo=true" "Tier__CanUseSimulcast=true" "Tier__CanUseRecording=true"
+                "Tier__CanUseMemberTiers=true"
+            )
+            ;;
+        *)
+            echo "Unknown tier: $TIER (valid: free, basic, pro, enterprise)"
+            exit 1
+            ;;
+    esac
+fi
 
 # ── Dev mode ─────────────────────────────────────────────────────────────────
 # Infrastructure in Docker, backend (dotnet watch) and frontend (vite dev)
@@ -88,6 +165,11 @@ trap cleanup EXIT
 
 # ── Backend: dotnet watch ────────────────────────────────────────────────────
 
+# Export tier env vars so dotnet picks them up via .NET configuration binding
+for kv in "${TIER_ENV[@]+"${TIER_ENV[@]}"}"; do
+    [ -n "$kv" ] && export "$kv"
+done
+
 ASPNETCORE_ENVIRONMENT=Development \
 ASPNETCORE_URLS="http://0.0.0.0:5041" \
 dotnet watch run --project "$BACKEND_PROJECT" 2>&1 | \
@@ -99,12 +181,15 @@ dotnet watch run --project "$BACKEND_PROJECT" 2>&1 | \
     sed -u "s/^/${BLUE}[frontend]${NC} /" &
 
 echo "================================================================"
-echo "  Fed dev mode is running"
+echo "  Fed dev mode is running  (tier: $TIER_LABEL)"
 echo ""
 echo "  Frontend:       http://localhost:3000"
 echo "  Backend API:    http://localhost:5041"
 echo "  Mailpit:        http://localhost:8025"
 echo "  MinIO console:  http://localhost:9001"
+echo ""
+echo "  Postgres:       xcord / xcord_dev  (localhost:5432)"
+echo "  MinIO:          minioadmin / minioadmin"
 echo ""
 echo "  Press Ctrl-C to stop everything."
 echo "================================================================"
