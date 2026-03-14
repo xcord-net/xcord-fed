@@ -2,7 +2,7 @@ using Xcord;
 
 namespace Xcord.Entities;
 
-public sealed class MemberSubscriptionTier : ISoftDeletable
+public sealed class Tier : ISoftDeletable
 {
     public long Id { get; set; }
     public long ServerId { get; set; }
@@ -10,7 +10,7 @@ public sealed class MemberSubscriptionTier : ISoftDeletable
     public string? Description { get; set; }
     public int PriceMonthly { get; set; }
     public string Currency { get; set; } = "usd";
-    public string RoleIdsJson { get; set; } = "[]";
+    public string GroupIdsJson { get; set; } = "[]";
     public bool IsActive { get; set; } = true;
     public int Position { get; set; }
     public DateTimeOffset CreatedAt { get; set; }

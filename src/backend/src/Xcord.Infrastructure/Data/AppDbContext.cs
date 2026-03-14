@@ -23,8 +23,8 @@ public sealed class AppDbContext : DbContext
     public DbSet<Server> Servers => Set<Server>();
     public DbSet<ServerMember> ServerMembers => Set<ServerMember>();
     public DbSet<Invite> Invites => Set<Invite>();
-    public DbSet<Role> Roles => Set<Role>();
-    public DbSet<MemberRole> MemberRoles => Set<MemberRole>();
+    public DbSet<Group> Groups => Set<Group>();
+    public DbSet<MemberGroup> MemberGroups => Set<MemberGroup>();
     public DbSet<ChannelPermissionOverride> ChannelPermissionOverrides => Set<ChannelPermissionOverride>();
     public DbSet<Conversation> Conversations => Set<Conversation>();
     public DbSet<Category> Categories => Set<Category>();
@@ -84,7 +84,7 @@ public sealed class AppDbContext : DbContext
     public DbSet<UserNote> UserNotes => Set<UserNote>();
 
     // Member subscription billing
-    public DbSet<MemberSubscriptionTier> MemberSubscriptionTiers => Set<MemberSubscriptionTier>();
+    public DbSet<Tier> Tiers => Set<Tier>();
     public DbSet<MemberSubscription> MemberSubscriptions => Set<MemberSubscription>();
     public DbSet<ServerBillingConfig> ServerBillingConfigs => Set<ServerBillingConfig>();
 

@@ -14,7 +14,7 @@ public sealed class ServerTemplateConfiguration : IEntityTypeConfiguration<Serve
         builder.Property(t => t.Name).IsRequired().HasMaxLength(100);
         builder.Property(t => t.Description).HasMaxLength(1024);
         builder.Property(t => t.ChannelData).IsRequired().HasColumnType("jsonb");
-        builder.Property(t => t.RoleData).IsRequired().HasColumnType("jsonb");
+        builder.Property(t => t.GroupData).IsRequired().HasColumnType("jsonb");
         builder.Property(t => t.UsageCount).HasDefaultValue(0);
         builder.Property(t => t.CreatedAt).IsRequired();
         builder.HasOne(t => t.SourceServer).WithMany().HasForeignKey(t => t.SourceServerId).OnDelete(DeleteBehavior.SetNull);

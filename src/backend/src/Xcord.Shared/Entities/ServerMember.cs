@@ -39,5 +39,5 @@ public sealed class ServerMember : ISoftDeletable
     // Navigation properties
     public User User { get; set; } = null!;
     public Server Server { get; set; } = null!;
-    public ICollection<MemberRole> MemberRoles { get; set; } = new List<MemberRole>();
+    public ICollection<MemberGroup> MemberGroups { get; set; } = new List<MemberGroup>();
 }

@@ -9,7 +9,7 @@ public sealed class ServerTemplate : ISoftDeletable
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string ChannelData { get; set; } = "[]";
-    public string RoleData { get; set; } = "[]";
+    public string GroupData { get; set; } = "[]";
     public int UsageCount { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }

@@ -6,9 +6,9 @@ namespace Xcord.Entities;
 public enum OverrideTargetType
 {
     /// <summary>
-    /// Override targets a role.
+    /// Override targets a group.
     /// </summary>
-    Role = 0,
+    Group = 0,
 
     /// <summary>
     /// Override targets a specific user.

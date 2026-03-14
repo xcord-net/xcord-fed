@@ -1,63 +1,56 @@
-using Xcord;
-
 namespace Xcord.Entities;
 
 /// <summary>
-/// Represents a role in a server.
-/// Roles define permission sets that can be assigned to members.
-/// Every server has an @everyone role (IsEveryone=true) that applies to all members.
+/// Role bitfield flags (64-bit).
+/// Bit layout is shared between the backend and the GroupManager UI to ensure
+/// groups created via the UI have the correct backend-enforced roles.
 /// </summary>
-public sealed class Role : ISoftDeletable
+[Flags]
+public enum Role : long
 {
-    /// <summary>
-    /// Unique Snowflake identifier.
-    /// </summary>
-    public long Id { get; set; }
+    // General / administrative (bits 0-6)
+    ViewChannels = 1L << 0,
+    ManageServer = 1L << 1,
+    ManageGroups = 1L << 2,       // was ManageRoles
+    ManageChannels = 1L << 3,
+    KickMembers = 1L << 4,
+    BanMembers = 1L << 5,
+    CreateInvite = 1L << 6,
 
-    /// <summary>
-    /// Server ID (FK to Server, Cascade delete).
-    /// </summary>
-    public long ServerId { get; set; }
+    // Messaging (bits 7-11)
+    ManageMessages = 1L << 7,
+    SendMessages = 1L << 8,
+    EmbedLinks = 1L << 9,
+    AttachFiles = 1L << 10,
+    ReadMessageHistory = 1L << 11,
 
-    /// <summary>
-    /// Role name (max 100 characters).
-    /// </summary>
-    public string Name { get; set; } = string.Empty;
+    // Extended (bits 12-26)
+    UseExternalEmojis = 1L << 12,
+    Connect = 1L << 13,
+    Speak = 1L << 14,
+    MuteMembers = 1L << 15,
+    DeafenMembers = 1L << 16,
+    MoveMembers = 1L << 17,
+    Video = 1L << 18,
+    ShareScreen = 1L << 19,
+    SendMessagesInThreads = 1L << 20,
+    CreatePublicThreads = 1L << 21,
+    CreatePrivateThreads = 1L << 22,
+    AddReactions = 1L << 23,
+    MentionEveryone = 1L << 24,
+    ChangeNickname = 1L << 25,
+    ManageNicknames = 1L << 26,
 
-    /// <summary>
-    /// Role color in hex format (e.g., "#FF5733", max 7 characters).
-    /// Null means no color.
-    /// </summary>
-    public string? Color { get; set; }
+    // Moderation (bits 27-34)
+    TimeoutMembers = 1L << 27,
+    ManageEmojis = 1L << 28,
+    ManageStickers = 1L << 29,
+    ManageWebhooks = 1L << 30,
+    ManageEvents = 1L << 31,
+    CreatePolls = 1L << 32,
+    ManageReports = 1L << 33,
+    ManageAutomod = 1L << 34,
 
-    /// <summary>
-    /// Permission bitfield (64-bit).
-    /// </summary>
-    public long Permissions { get; set; }
-
-    /// <summary>
-    /// Role position for hierarchy (higher = more important).
-    /// Used for permission override precedence and display order.
-    /// </summary>
-    public int Position { get; set; }
-
-    /// <summary>
-    /// True if this is the @everyone role (one per server).
-    /// The @everyone role cannot be deleted and applies to all members.
-    /// </summary>
-    public bool IsEveryone { get; set; }
-
-    /// <summary>
-    /// Role creation timestamp.
-    /// </summary>
-    public DateTimeOffset CreatedAt { get; set; }
-
-    /// <summary>
-    /// Soft delete timestamp (implements ISoftDeletable).
-    /// </summary>
-    public DateTimeOffset? DeletedAt { get; set; }
-
-    // Navigation properties
-    public Server Server { get; set; } = null!;
-    public ICollection<MemberRole> MemberRoles { get; set; } = new List<MemberRole>();
+    // Administrator super-permission (bit 62)
+    Administrator = 1L << 62
 }

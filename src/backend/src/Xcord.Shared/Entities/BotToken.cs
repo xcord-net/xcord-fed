@@ -32,9 +32,9 @@ public sealed class BotToken : ISoftDeletable
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Permission bitfield cap - limits what permissions the bot can use.
+    /// Role bitfield cap - limits what roles the bot can use.
     /// </summary>
-    public long Permissions { get; set; }
+    public long Roles { get; set; }
 
     /// <summary>
     /// Whether this token has been revoked.

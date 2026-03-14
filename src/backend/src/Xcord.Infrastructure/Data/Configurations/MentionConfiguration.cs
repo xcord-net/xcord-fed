@@ -38,12 +38,12 @@ public sealed class MentionConfiguration : IEntityTypeConfiguration<Mention>
             .HasForeignKey(m => m.MentionedUserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // MentionedRoleId (nullable, FK to Role)
-        builder.Property(m => m.MentionedRoleId);
+        // MentionedGroupId (nullable, FK to Group)
+        builder.Property(m => m.MentionedGroupId);
 
-        builder.HasOne(m => m.MentionedRole)
+        builder.HasOne(m => m.MentionedGroup)
             .WithMany()
-            .HasForeignKey(m => m.MentionedRoleId)
+            .HasForeignKey(m => m.MentionedGroupId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // IsEveryone (required, default false)

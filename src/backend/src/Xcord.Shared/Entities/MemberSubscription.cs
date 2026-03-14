@@ -19,7 +19,7 @@ public sealed class MemberSubscription : ISoftDeletable
     // Navigation properties
     public User User { get; set; } = null!;
     public Server Server { get; set; } = null!;
-    public MemberSubscriptionTier Tier { get; set; } = null!;
+    public Tier Tier { get; set; } = null!;
 }
 
 public enum MemberSubscriptionStatus

@@ -38,8 +38,8 @@ public sealed class BotTokenConfiguration : IEntityTypeConfiguration<BotToken>
             .IsRequired()
             .HasMaxLength(100);
 
-        // Permissions (required, bitfield)
-        builder.Property(bt => bt.Permissions)
+        // Roles (required, bitfield)
+        builder.Property(bt => bt.Roles)
             .IsRequired();
 
         // IsRevoked (required, default false)

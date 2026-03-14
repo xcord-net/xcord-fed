@@ -23,10 +23,10 @@ public sealed class Mention
     public long? MentionedUserId { get; set; }
 
     /// <summary>
-    /// Mentioned role ID (FK to Role, nullable).
+    /// Mentioned group ID (FK to Group, nullable).
     /// Null if this is a user or @everyone mention.
     /// </summary>
-    public long? MentionedRoleId { get; set; }
+    public long? MentionedGroupId { get; set; }
 
     /// <summary>
     /// Whether this is an @everyone mention.
@@ -36,5 +36,5 @@ public sealed class Mention
     // Navigation properties
     public Message Message { get; set; } = null!;
     public User? MentionedUser { get; set; }
-    public Role? MentionedRole { get; set; }
+    public Group? MentionedGroup { get; set; }
 }

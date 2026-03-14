@@ -45,7 +45,13 @@ public sealed class Invite : ISoftDeletable
     /// </summary>
     public DateTimeOffset? DeletedAt { get; set; }
 
+    /// <summary>
+    /// Optional group ID to auto-assign when the invite is used.
+    /// </summary>
+    public long? GroupId { get; set; }
+
     // Navigation properties
     public Server Server { get; set; } = null!;
     public User? CreatedBy { get; set; }
+    public Group? Group { get; set; }
 }

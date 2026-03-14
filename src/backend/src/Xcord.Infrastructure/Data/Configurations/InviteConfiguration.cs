@@ -55,6 +55,14 @@ public sealed class InviteConfiguration : IEntityTypeConfiguration<Invite>
         // Soft delete (DeletedAt, implements ISoftDeletable)
         builder.Property(i => i.DeletedAt);
 
+        // GroupId (optional, FK to Group with SetNull)
+        builder.Property(i => i.GroupId);
+
+        builder.HasOne(i => i.Group)
+            .WithMany()
+            .HasForeignKey(i => i.GroupId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // Indexes
         builder.HasIndex(i => i.ServerId);
         builder.HasIndex(i => i.ExpiresAt);
