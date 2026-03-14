@@ -10,11 +10,13 @@ COPY src/backend/src/Xcord.Api/Xcord.Api.csproj src/backend/src/Xcord.Api/
 COPY src/backend/src/Xcord.Features/Xcord.Features.csproj src/backend/src/Xcord.Features/
 COPY src/backend/src/Xcord.Infrastructure/Xcord.Infrastructure.csproj src/backend/src/Xcord.Infrastructure/
 COPY src/backend/src/Xcord.Shared/Xcord.Shared.csproj src/backend/src/Xcord.Shared/
+COPY xcord-common/src/Xcord.Common/Xcord.Common.csproj xcord-common/src/Xcord.Common/
 
 # Restore dependencies
 RUN dotnet restore src/backend/src/Xcord.Api/Xcord.Api.csproj
 
 # Copy full source
+COPY xcord-common/ xcord-common/
 COPY src/backend/ src/backend/
 
 # Publish

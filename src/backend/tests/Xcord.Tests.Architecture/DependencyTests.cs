@@ -49,7 +49,7 @@ public sealed class DependencyTests
     public void Shared_ShouldNotDependOnAnyLayer()
     {
         // Arrange
-        var assembly = typeof(Xcord.Error).Assembly;
+        var assembly = typeof(Xcord.DomainAssemblyMarker).Assembly;
 
         // Act
         var result = Types.InAssembly(assembly)

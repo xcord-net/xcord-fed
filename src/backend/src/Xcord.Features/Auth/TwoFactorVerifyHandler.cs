@@ -208,7 +208,7 @@ public sealed class TwoFactorVerifyHandler(
 
         // Complete login: create refresh token
         var refreshTokenValue = TokenHelper.GenerateToken();
-        var refreshTokenHash = HashToken(refreshTokenValue);
+        var refreshTokenHash = TokenHelper.HashToken(refreshTokenValue);
         var now = DateTimeOffset.UtcNow;
 
         var refreshToken = new Entities.RefreshToken
@@ -227,21 +227,6 @@ public sealed class TwoFactorVerifyHandler(
         var accessToken = jwtService.GenerateAccessToken(user.Id, user.IsAdmin, user.EmailConfirmed, user.IsBot);
 
         return new TwoFactorVerifyResponse(user.Id, user.Username, accessToken, user.EmailConfirmed, refreshTokenValue);
-    }
-
-    private static string GenerateRefreshToken()
-    {
-        var randomBytes = new byte[32];
-        using var rng = RandomNumberGenerator.Create();
-        rng.GetBytes(randomBytes);
-        return Convert.ToBase64String(randomBytes);
-    }
-
-    private static string HashToken(string token)
-    {
-        using var sha256 = System.Security.Cryptography.SHA256.Create();
-        var hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(token));
-        return Convert.ToHexString(hashBytes);
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
