@@ -163,6 +163,9 @@ public static class ServiceCollectionExtensions
         Bind<OutboxOptions>(OutboxOptions.SectionName);
         Bind<AuthOptions>(AuthOptions.SectionName);
 
+        // Admin options are optional - hub-managed instances get admin via provisioning
+        services.AddOptions<AdminOptions>().Bind(config.GetSection(AdminOptions.SectionName));
+
         // Tier options default to permissive when not provided (standalone instances)
         services.AddOptions<TierOptions>().Bind(config.GetSection(TierOptions.SectionName));
 

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Serilog;
 using Xcord.Entities;
 using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
 
 namespace Xcord.Api;
@@ -43,6 +44,57 @@ public static class BootstrapService
         {
             currentOptions.TokenValidationParameters.IssuerSigningKey = rsaKey.GetPublicKey();
         }
+
+        // Seed admin account if it doesn't exist yet
+        await SeedAdminAsync(db, scope);
+    }
+
+    private static async Task SeedAdminAsync(AppDbContext db, IServiceScope scope)
+    {
+        var adminOptions = scope.ServiceProvider.GetRequiredService<IOptions<AdminOptions>>().Value;
+
+        if (string.IsNullOrWhiteSpace(adminOptions.Email) ||
+            string.IsNullOrWhiteSpace(adminOptions.Password) ||
+            string.IsNullOrWhiteSpace(adminOptions.Username))
+        {
+            return; // No admin config, skip seeding
+        }
+
+        var encryptionService = scope.ServiceProvider.GetRequiredService<IEncryptionService>();
+        var snowflakeGenerator = scope.ServiceProvider.GetRequiredService<SnowflakeIdGenerator>();
+
+        // Check if admin already exists by email hash
+        var emailHash = encryptionService.ComputeHmac(adminOptions.Email.ToLowerInvariant());
+        var adminExists = await db.Users.AnyAsync(u => u.EmailHash == emailHash);
+
+        if (adminExists)
+        {
+            return; // Admin already exists
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var passwordHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(adminOptions.Password, 12));
+
+        var admin = new User
+        {
+            Id = snowflakeGenerator.NextId(),
+            Username = adminOptions.Username,
+            DisplayName = adminOptions.Username,
+            Email = encryptionService.Encrypt(adminOptions.Email.ToLowerInvariant()),
+            EmailHash = emailHash,
+            PasswordHash = passwordHash,
+            EmailConfirmed = true,
+            TwoFactorEnabled = false,
+            IsAdmin = true,
+            IsBot = false,
+            IsDisabled = false,
+            CreatedAt = now,
+            LastLoginAt = now
+        };
+
+        db.Users.Add(admin);
+        await db.SaveChangesAsync();
+        Log.Information("Admin account seeded: {Username}", adminOptions.Username);
     }
 
     private static async Task InitializeEncryptionAsync(AppDbContext db, WebApplication app, IServiceScope scope)
