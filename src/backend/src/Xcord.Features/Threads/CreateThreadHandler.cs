@@ -37,7 +37,7 @@ public sealed record CreateThreadResponse(
 public sealed class CreateThreadHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     ILogger<CreateThreadHandler> logger)
     : IRequestHandler<CreateThreadRequest, Result<CreateThreadResponse>>, IValidatable<CreateThreadRequest>
@@ -88,10 +88,10 @@ public sealed class CreateThreadHandler(
         }
 
         // Check CreatePublicThreads permission
-        var permissionResult = await permissionService.EnsureChannelPermission(
+        var permissionResult = await roleService.EnsureChannelRole(
             userId,
             channel.Id,
-            Permission.CreatePublicThreads);
+            Role.CreatePublicThreads);
 
         if (permissionResult.IsFailure)
         {

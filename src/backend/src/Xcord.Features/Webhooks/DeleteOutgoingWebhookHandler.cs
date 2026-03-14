@@ -18,7 +18,7 @@ public sealed record DeleteOutgoingWebhookCommand(
 public sealed class DeleteOutgoingWebhookHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ILogger<DeleteOutgoingWebhookHandler> logger)
     : IRequestHandler<DeleteOutgoingWebhookCommand, Result<bool>>,
       IValidatable<DeleteOutgoingWebhookCommand>
@@ -51,8 +51,8 @@ public sealed class DeleteOutgoingWebhookHandler(
             return Error.NotFound("SERVER_NOT_FOUND", "Server not found");
 
         // Check ManageWebhooks permission
-        var permissionResult = await permissionService.EnsureServerPermission(
-            userId, request.ServerId, Permission.ManageWebhooks);
+        var permissionResult = await roleService.EnsureServerRole(
+            userId, request.ServerId, Role.ManageWebhooks);
 
         if (permissionResult.IsFailure)
             return Error.Forbidden("MISSING_PERMISSIONS", "You do not have permission to manage webhooks in this server");

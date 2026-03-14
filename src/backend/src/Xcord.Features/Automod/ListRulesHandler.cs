@@ -19,7 +19,7 @@ public sealed record ListRulesResponse(
 
 public sealed class ListRulesHandler(
     AppDbContext dbContext,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService)
     : IRequestHandler<ListRulesQuery, Result<ListRulesResponse>>
 {
@@ -40,10 +40,10 @@ public sealed class ListRulesHandler(
         }
 
         // Check ManageAutomod permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             request.ServerId,
-            Permission.ManageAutomod);
+            Role.ManageAutomod);
 
         if (permissionResult.IsFailure)
         {

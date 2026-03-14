@@ -44,7 +44,7 @@ public sealed class GetMessageHandler(
 
         // Resolve conversation and check permissions
         var contextResult = await conversationResolver.ResolveAsync(
-            request.ConversationId, userId, Permission.ReadMessageHistory, cancellationToken);
+            request.ConversationId, userId, Role.ReadMessageHistory, cancellationToken);
         if (contextResult.IsFailure) return contextResult.Error;
 
         // For now, we only support Channel conversations

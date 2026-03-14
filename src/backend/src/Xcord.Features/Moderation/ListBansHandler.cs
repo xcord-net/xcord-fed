@@ -25,7 +25,7 @@ public sealed record BanDto(
 public sealed class ListBansHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService)
+    IRoleService roleService)
     : IRequestHandler<ListBansQuery, Result<List<BanDto>>>
 {
     public async Task<Result<List<BanDto>>> Handle(ListBansQuery request, CancellationToken cancellationToken)
@@ -35,10 +35,10 @@ public sealed class ListBansHandler(
         var userId = userIdResult.Value;
 
         // Check if user has BanMembers permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             request.ServerId,
-            Permission.BanMembers);
+            Role.BanMembers);
 
         if (permissionResult.IsFailure)
         {

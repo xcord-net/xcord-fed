@@ -28,7 +28,7 @@ public sealed class CreateStickerPackHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ILogger<CreateStickerPackHandler> logger)
     : IRequestHandler<CreateStickerPackCommand, Result<CreateStickerPackResponse>>, IValidatable<CreateStickerPackCommand>
 {
@@ -74,18 +74,18 @@ public sealed class CreateStickerPackHandler(
         }
 
         // Check ManageStickers permission (or ManageEmojis as fallback)
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             request.ServerId,
-            Permission.ManageStickers);
+            Role.ManageStickers);
 
         if (permissionResult.IsFailure)
         {
             // Try ManageEmojis as alternative
-            var altPermissionResult = await permissionService.EnsureServerPermission(
+            var altPermissionResult = await roleService.EnsureServerRole(
                 userId,
                 request.ServerId,
-                Permission.ManageEmojis);
+                Role.ManageEmojis);
 
             if (altPermissionResult.IsFailure)
             {

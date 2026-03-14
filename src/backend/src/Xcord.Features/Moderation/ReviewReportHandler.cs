@@ -27,7 +27,7 @@ public sealed record ReviewReportResponse(
 public sealed class ReviewReportHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
+    IRoleService roleService,
     SnowflakeIdGenerator snowflakeGenerator,
     ILogger<ReviewReportHandler> logger)
     : IRequestHandler<ReviewReportCommand, Result<ReviewReportResponse>>, IValidatable<ReviewReportCommand>
@@ -64,10 +64,10 @@ public sealed class ReviewReportHandler(
         var reviewerId = userIdResult.Value;
 
         // Check if user has ManageReports permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             reviewerId,
             request.ServerId,
-            Permission.ManageReports);
+            Role.ManageReports);
 
         if (permissionResult.IsFailure)
         {

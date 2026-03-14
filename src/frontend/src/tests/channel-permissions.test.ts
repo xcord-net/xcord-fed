@@ -16,7 +16,7 @@ import {
 // ---- Test data ----
 
 const makeOverride = (overrides?: Partial<PermissionOverride>): PermissionOverride => ({
-  subjectType: 'Role',
+  subjectType: 'Group',
   subjectId: 'role-1',
   subjectName: '@everyone',
   permissions: createDefaultPermissions(),
@@ -25,8 +25,8 @@ const makeOverride = (overrides?: Partial<PermissionOverride>): PermissionOverri
 
 const makePermissionsData = (overrides?: Partial<ChannelPermissionsData>): ChannelPermissionsData => ({
   overrides: [
-    makeOverride({ subjectId: 'role-1', subjectName: '@everyone', subjectType: 'Role' }),
-    makeOverride({ subjectId: 'role-2', subjectName: 'Moderator', subjectType: 'Role' }),
+    makeOverride({ subjectId: 'role-1', subjectName: '@everyone', subjectType: 'Group' }),
+    makeOverride({ subjectId: 'role-2', subjectName: 'Moderator', subjectType: 'Group' }),
     makeOverride({ subjectId: 'user-1', subjectName: 'Alice', subjectType: 'Member' }),
   ],
   ...overrides,

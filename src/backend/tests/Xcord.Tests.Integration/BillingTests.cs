@@ -32,10 +32,10 @@ public class BillingTests
 
     private async Task<JsonElement> CreateTierAsync(
         string accessToken, long serverId,
-        string name = "Premium", int priceMonthly = 500, long[]? roleIds = null)
+        string name = "Premium", int priceMonthly = 500, long[]? groupIds = null)
     {
         var response = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{serverId}/subscription-tiers",
+            $"/api/v1/servers/{serverId}/tiers",
             accessToken,
             new
             {
@@ -43,7 +43,7 @@ public class BillingTests
                 description = $"Description for {name}",
                 priceMonthly,
                 currency = "usd",
-                roleIds = roleIds ?? Array.Empty<long>()
+                groupIds = groupIds ?? Array.Empty<long>()
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.Created,
@@ -52,17 +52,17 @@ public class BillingTests
         return await response.ReadAsJsonAsync<JsonElement>();
     }
 
-    private async Task<long> CreateRoleAsync(string accessToken, long serverId, string name = "Subscriber")
+    private async Task<long> CreateGroupAsync(string accessToken, long serverId, string name = "Subscriber")
     {
         var response = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{serverId}/roles",
+            $"/api/v1/servers/{serverId}/groups",
             accessToken,
-            new { name, color = "#00FF00", permissions = 0, position = 1 });
+            new { name, color = "#00FF00", roles = 0, position = 1 });
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var role = await response.ReadAsJsonAsync<JsonElement>();
-        return role.GetProperty("id").ReadLong();
+        var group = await response.ReadAsJsonAsync<JsonElement>();
+        return group.GetProperty("id").ReadLong();
     }
 
     private sealed record BillingTestContext(AuthenticatedUser Owner, long ServerId);
@@ -70,19 +70,23 @@ public class BillingTests
     // ──────────── List Subscription Tiers ────────────
 
     [Fact]
-    public async Task ListTiers_NoTiers_ReturnsEmptyList()
+    public async Task ListTiers_NewServer_ReturnsDefaultTiers()
     {
         var ctx = await SetupAsync();
 
         var response = await _helper.AuthGetAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers",
+            $"/api/v1/servers/{ctx.ServerId}/tiers",
             ctx.Owner.AccessToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         var tiers = body.GetProperty("tiers").EnumerateArray().ToList();
-        tiers.Should().BeEmpty();
+        tiers.Should().HaveCount(3, "new server should have 3 default tiers (Supporter, Pro, VIP)");
+
+        tiers[0].GetProperty("name").GetString().Should().Be("Supporter");
+        tiers[1].GetProperty("name").GetString().Should().Be("Pro");
+        tiers[2].GetProperty("name").GetString().Should().Be("VIP");
     }
 
     [Fact]
@@ -90,27 +94,33 @@ public class BillingTests
     {
         var ctx = await SetupAsync();
 
-        // Create two tiers
+        // Create two tiers (on top of the 3 defaults: Supporter, Pro, VIP)
         await CreateTierAsync(ctx.Owner.AccessToken, ctx.ServerId, "Bronze", 300);
         await CreateTierAsync(ctx.Owner.AccessToken, ctx.ServerId, "Silver", 700);
 
         var response = await _helper.AuthGetAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers",
+            $"/api/v1/servers/{ctx.ServerId}/tiers",
             ctx.Owner.AccessToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         var tiers = body.GetProperty("tiers").EnumerateArray().ToList();
-        tiers.Should().HaveCount(2);
+        tiers.Should().HaveCount(5, "3 defaults + 2 custom tiers");
 
-        tiers[0].GetProperty("name").GetString().Should().Be("Bronze");
-        tiers[0].GetProperty("priceMonthly").GetInt32().Should().Be(300);
-        tiers[0].GetProperty("position").GetInt32().Should().Be(0);
+        // Defaults at positions 0, 1, 2
+        tiers[0].GetProperty("name").GetString().Should().Be("Supporter");
+        tiers[1].GetProperty("name").GetString().Should().Be("Pro");
+        tiers[2].GetProperty("name").GetString().Should().Be("VIP");
 
-        tiers[1].GetProperty("name").GetString().Should().Be("Silver");
-        tiers[1].GetProperty("priceMonthly").GetInt32().Should().Be(700);
-        tiers[1].GetProperty("position").GetInt32().Should().Be(1);
+        // Custom tiers at positions 3, 4
+        tiers[3].GetProperty("name").GetString().Should().Be("Bronze");
+        tiers[3].GetProperty("priceMonthly").GetInt32().Should().Be(300);
+        tiers[3].GetProperty("position").GetInt32().Should().Be(3);
+
+        tiers[4].GetProperty("name").GetString().Should().Be("Silver");
+        tiers[4].GetProperty("priceMonthly").GetInt32().Should().Be(700);
+        tiers[4].GetProperty("position").GetInt32().Should().Be(4);
     }
 
     [Fact]
@@ -123,7 +133,7 @@ public class BillingTests
         var tierId = tier.GetProperty("id").ReadLong();
 
         await _helper.AuthPatchAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers/{tierId}",
+            $"/api/v1/servers/{ctx.ServerId}/tiers/{tierId}",
             ctx.Owner.AccessToken,
             new { isActive = false });
 
@@ -131,15 +141,16 @@ public class BillingTests
         await CreateTierAsync(ctx.Owner.AccessToken, ctx.ServerId, "Active", 300);
 
         var response = await _helper.AuthGetAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers",
+            $"/api/v1/servers/{ctx.ServerId}/tiers",
             ctx.Owner.AccessToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         var tiers = body.GetProperty("tiers").EnumerateArray().ToList();
-        tiers.Should().HaveCount(1);
-        tiers[0].GetProperty("name").GetString().Should().Be("Active");
+        tiers.Should().HaveCount(4, "3 defaults + 1 active custom (deactivated excluded)");
+        tiers.Should().NotContain(t => t.GetProperty("name").GetString() == "Deactivated");
+        tiers.Should().Contain(t => t.GetProperty("name").GetString() == "Active");
     }
 
     [Fact]
@@ -148,7 +159,7 @@ public class BillingTests
         var owner = await _helper.RegisterUserAsync();
 
         var response = await _helper.AuthGetAsync(
-            "/api/v1/servers/999999999999/subscription-tiers",
+            "/api/v1/servers/999999999999/tiers",
             owner.AccessToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -160,7 +171,7 @@ public class BillingTests
         var ctx = await SetupAsync();
 
         var response = await _fixture.Client.GetAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers");
+            $"/api/v1/servers/{ctx.ServerId}/tiers");
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -173,7 +184,7 @@ public class BillingTests
         var ctx = await SetupAsync();
 
         var response = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers",
+            $"/api/v1/servers/{ctx.ServerId}/tiers",
             ctx.Owner.AccessToken,
             new
             {
@@ -181,7 +192,7 @@ public class BillingTests
                 description = "Gold tier benefits",
                 priceMonthly = 999,
                 currency = "usd",
-                roleIds = Array.Empty<long>()
+                groupIds = Array.Empty<long>()
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -194,32 +205,32 @@ public class BillingTests
         body.GetProperty("priceMonthly").GetInt32().Should().Be(999);
         body.GetProperty("currency").GetString().Should().Be("usd");
         body.GetProperty("isActive").GetBoolean().Should().BeTrue();
-        body.GetProperty("position").GetInt32().Should().Be(0);
+        body.GetProperty("position").GetInt32().Should().Be(3, "3 default tiers at positions 0-2");
     }
 
     [Fact]
-    public async Task CreateTier_WithRoleIds_ReturnsTierWithRoles()
+    public async Task CreateTier_WithGroupIds_ReturnsTierWithGroups()
     {
         var ctx = await SetupAsync();
-        var roleId = await CreateRoleAsync(ctx.Owner.AccessToken, ctx.ServerId, "Subscriber");
+        var groupId = await CreateGroupAsync(ctx.Owner.AccessToken, ctx.ServerId, "Subscriber");
 
         var response = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers",
+            $"/api/v1/servers/{ctx.ServerId}/tiers",
             ctx.Owner.AccessToken,
             new
             {
-                name = "Role Tier",
+                name = "Group Tier",
                 priceMonthly = 500,
                 currency = "usd",
-                roleIds = new[] { roleId }
+                groupIds = new[] { groupId }
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
-        var roleIds = body.GetProperty("roleIds").EnumerateArray()
+        var groupIds = body.GetProperty("groupIds").EnumerateArray()
             .Select(r => r.ReadLong()).ToList();
-        roleIds.Should().Contain(roleId);
+        groupIds.Should().Contain(groupId);
     }
 
     [Fact]
@@ -228,14 +239,14 @@ public class BillingTests
         var ctx = await SetupAsync();
 
         var response = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers",
+            $"/api/v1/servers/{ctx.ServerId}/tiers",
             ctx.Owner.AccessToken,
             new
             {
                 name = "Cheap",
                 priceMonthly = 50, // Below $1.00 minimum (100 cents)
                 currency = "usd",
-                roleIds = Array.Empty<long>()
+                groupIds = Array.Empty<long>()
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -247,14 +258,14 @@ public class BillingTests
         var ctx = await SetupAsync();
 
         var response = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers",
+            $"/api/v1/servers/{ctx.ServerId}/tiers",
             ctx.Owner.AccessToken,
             new
             {
                 name = "Expensive",
                 priceMonthly = 200_000, // Above $1000.00 maximum (100000 cents)
                 currency = "usd",
-                roleIds = Array.Empty<long>()
+                groupIds = Array.Empty<long>()
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -266,14 +277,14 @@ public class BillingTests
         var ctx = await SetupAsync();
 
         var response = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers",
+            $"/api/v1/servers/{ctx.ServerId}/tiers",
             ctx.Owner.AccessToken,
             new
             {
                 name = "",
                 priceMonthly = 500,
                 currency = "usd",
-                roleIds = Array.Empty<long>()
+                groupIds = Array.Empty<long>()
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -285,14 +296,14 @@ public class BillingTests
         var ctx = await SetupAsync();
 
         var response = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers",
+            $"/api/v1/servers/{ctx.ServerId}/tiers",
             ctx.Owner.AccessToken,
             new
             {
                 name = new string('A', 101), // Exceeds 100-character limit
                 priceMonthly = 500,
                 currency = "usd",
-                roleIds = Array.Empty<long>()
+                groupIds = Array.Empty<long>()
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -308,14 +319,14 @@ public class BillingTests
         await _helper.JoinServerAsync(member.AccessToken, inviteCode);
 
         var response = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers",
+            $"/api/v1/servers/{ctx.ServerId}/tiers",
             member.AccessToken,
             new
             {
                 name = "Forbidden Tier",
                 priceMonthly = 500,
                 currency = "usd",
-                roleIds = Array.Empty<long>()
+                groupIds = Array.Empty<long>()
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
@@ -327,14 +338,14 @@ public class BillingTests
         var owner = await _helper.RegisterUserAsync();
 
         var response = await _helper.AuthPostAsync(
-            "/api/v1/servers/999999999999/subscription-tiers",
+            "/api/v1/servers/999999999999/tiers",
             owner.AccessToken,
             new
             {
                 name = "Orphaned",
                 priceMonthly = 500,
                 currency = "usd",
-                roleIds = Array.Empty<long>()
+                groupIds = Array.Empty<long>()
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -347,13 +358,13 @@ public class BillingTests
 
         // Omit currency field to test default
         var response = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers",
+            $"/api/v1/servers/{ctx.ServerId}/tiers",
             ctx.Owner.AccessToken,
             new
             {
                 name = "Default Currency",
                 priceMonthly = 500,
-                roleIds = Array.Empty<long>()
+                groupIds = Array.Empty<long>()
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -367,13 +378,14 @@ public class BillingTests
     {
         var ctx = await SetupAsync();
 
+        // 3 default tiers at positions 0, 1, 2
         var tier1 = await CreateTierAsync(ctx.Owner.AccessToken, ctx.ServerId, "Tier One", 300);
         var tier2 = await CreateTierAsync(ctx.Owner.AccessToken, ctx.ServerId, "Tier Two", 500);
         var tier3 = await CreateTierAsync(ctx.Owner.AccessToken, ctx.ServerId, "Tier Three", 800);
 
-        tier1.GetProperty("position").GetInt32().Should().Be(0);
-        tier2.GetProperty("position").GetInt32().Should().Be(1);
-        tier3.GetProperty("position").GetInt32().Should().Be(2);
+        tier1.GetProperty("position").GetInt32().Should().Be(3);
+        tier2.GetProperty("position").GetInt32().Should().Be(4);
+        tier3.GetProperty("position").GetInt32().Should().Be(5);
     }
 
     [Fact]
@@ -381,22 +393,22 @@ public class BillingTests
     {
         var ctx = await SetupAsync();
 
-        // Create 10 tiers (the maximum)
-        for (var i = 0; i < 10; i++)
+        // 3 default tiers already exist, create 7 more to reach the limit of 10
+        for (var i = 0; i < 7; i++)
         {
             await CreateTierAsync(ctx.Owner.AccessToken, ctx.ServerId, $"Tier {i}", 100 + i * 100);
         }
 
-        // The 11th should fail
+        // The 11th (3 defaults + 7 + 1) should fail
         var response = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers",
+            $"/api/v1/servers/{ctx.ServerId}/tiers",
             ctx.Owner.AccessToken,
             new
             {
                 name = "Overflow Tier",
                 priceMonthly = 500,
                 currency = "usd",
-                roleIds = Array.Empty<long>()
+                groupIds = Array.Empty<long>()
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -412,7 +424,7 @@ public class BillingTests
         var tierId = tier.GetProperty("id").ReadLong();
 
         var response = await _helper.AuthPatchAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers/{tierId}",
+            $"/api/v1/servers/{ctx.ServerId}/tiers/{tierId}",
             ctx.Owner.AccessToken,
             new { name = "Renamed" });
 
@@ -431,7 +443,7 @@ public class BillingTests
         var tierId = tier.GetProperty("id").ReadLong();
 
         var response = await _helper.AuthPatchAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers/{tierId}",
+            $"/api/v1/servers/{ctx.ServerId}/tiers/{tierId}",
             ctx.Owner.AccessToken,
             new { priceMonthly = 999 });
 
@@ -450,7 +462,7 @@ public class BillingTests
         tier.GetProperty("isActive").GetBoolean().Should().BeTrue();
 
         var response = await _helper.AuthPatchAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers/{tierId}",
+            $"/api/v1/servers/{ctx.ServerId}/tiers/{tierId}",
             ctx.Owner.AccessToken,
             new { isActive = false });
 
@@ -469,13 +481,13 @@ public class BillingTests
 
         // Deactivate
         await _helper.AuthPatchAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers/{tierId}",
+            $"/api/v1/servers/{ctx.ServerId}/tiers/{tierId}",
             ctx.Owner.AccessToken,
             new { isActive = false });
 
         // Reactivate
         var response = await _helper.AuthPatchAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers/{tierId}",
+            $"/api/v1/servers/{ctx.ServerId}/tiers/{tierId}",
             ctx.Owner.AccessToken,
             new { isActive = true });
 
@@ -486,25 +498,25 @@ public class BillingTests
     }
 
     [Fact]
-    public async Task UpdateTier_RoleIds_ReturnsUpdatedRoles()
+    public async Task UpdateTier_GroupIds_ReturnsUpdatedGroups()
     {
         var ctx = await SetupAsync();
-        var tier = await CreateTierAsync(ctx.Owner.AccessToken, ctx.ServerId, "Role Tier", 500);
+        var tier = await CreateTierAsync(ctx.Owner.AccessToken, ctx.ServerId, "Group Tier", 500);
         var tierId = tier.GetProperty("id").ReadLong();
 
-        var roleId = await CreateRoleAsync(ctx.Owner.AccessToken, ctx.ServerId, "New Role");
+        var groupId = await CreateGroupAsync(ctx.Owner.AccessToken, ctx.ServerId, "New Group");
 
         var response = await _helper.AuthPatchAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers/{tierId}",
+            $"/api/v1/servers/{ctx.ServerId}/tiers/{tierId}",
             ctx.Owner.AccessToken,
-            new { roleIds = new[] { roleId } });
+            new { groupIds = new[] { groupId } });
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
-        var roleIds = body.GetProperty("roleIds").EnumerateArray()
+        var groupIds = body.GetProperty("groupIds").EnumerateArray()
             .Select(r => r.ReadLong()).ToList();
-        roleIds.Should().Contain(roleId);
+        groupIds.Should().Contain(groupId);
     }
 
     [Fact]
@@ -520,7 +532,7 @@ public class BillingTests
         var tierId = tier.GetProperty("id").ReadLong();
 
         var response = await _helper.AuthPatchAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers/{tierId}",
+            $"/api/v1/servers/{ctx.ServerId}/tiers/{tierId}",
             member.AccessToken,
             new { name = "Hacked" });
 
@@ -533,7 +545,7 @@ public class BillingTests
         var ctx = await SetupAsync();
 
         var response = await _helper.AuthPatchAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers/999999999999",
+            $"/api/v1/servers/{ctx.ServerId}/tiers/999999999999",
             ctx.Owner.AccessToken,
             new { name = "Ghost" });
 
@@ -550,14 +562,14 @@ public class BillingTests
         var tierId = tier.GetProperty("id").ReadLong();
 
         var response = await _helper.AuthDeleteAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers/{tierId}",
+            $"/api/v1/servers/{ctx.ServerId}/tiers/{tierId}",
             ctx.Owner.AccessToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify it no longer appears in the active tier list
         var listResponse = await _helper.AuthGetAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers",
+            $"/api/v1/servers/{ctx.ServerId}/tiers",
             ctx.Owner.AccessToken);
 
         var body = await listResponse.ReadAsJsonAsync<JsonElement>();
@@ -581,7 +593,7 @@ public class BillingTests
         var tierId = tier.GetProperty("id").ReadLong();
 
         var response = await _helper.AuthDeleteAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers/{tierId}",
+            $"/api/v1/servers/{ctx.ServerId}/tiers/{tierId}",
             member.AccessToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
@@ -593,7 +605,7 @@ public class BillingTests
         var ctx = await SetupAsync();
 
         var response = await _helper.AuthDeleteAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers/999999999999",
+            $"/api/v1/servers/{ctx.ServerId}/tiers/999999999999",
             ctx.Owner.AccessToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -700,7 +712,7 @@ public class BillingTests
         var tierId = tier.GetProperty("id").ReadLong();
 
         await _helper.AuthPatchAsync(
-            $"/api/v1/servers/{ctx.ServerId}/subscription-tiers/{tierId}",
+            $"/api/v1/servers/{ctx.ServerId}/tiers/{tierId}",
             ctx.Owner.AccessToken,
             new { isActive = false });
 
@@ -744,7 +756,7 @@ public class BillingTests
     }
 
     [Fact]
-    public async Task Subscribe_WithTierRoles_AssignsRolesAutomatically()
+    public async Task Subscribe_WithTierGroups_AssignsGroupsAutomatically()
     {
         var ctx = await SetupAsync();
         var member = await _helper.RegisterUserAsync();
@@ -752,9 +764,9 @@ public class BillingTests
         var inviteCode = await _helper.CreateInviteAsync(ctx.Owner.AccessToken, ctx.ServerId);
         await _helper.JoinServerAsync(member.AccessToken, inviteCode);
 
-        // Create a role and a tier that grants that role
-        var roleId = await CreateRoleAsync(ctx.Owner.AccessToken, ctx.ServerId, "Subscriber Role");
-        var tier = await CreateTierAsync(ctx.Owner.AccessToken, ctx.ServerId, "Role Tier", 500, new[] { roleId });
+        // Create a group and a tier that grants that group
+        var groupId = await CreateGroupAsync(ctx.Owner.AccessToken, ctx.ServerId, "Subscriber Group");
+        var tier = await CreateTierAsync(ctx.Owner.AccessToken, ctx.ServerId, "Group Tier", 500, new[] { groupId });
         var tierId = tier.GetProperty("id").ReadLong();
 
         // Member subscribes
@@ -765,7 +777,7 @@ public class BillingTests
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Verify the role was auto-assigned by checking the member's server profile
+        // Verify the group was auto-assigned by checking the member's server profile
         var memberResponse = await _helper.AuthGetAsync(
             $"/api/v1/servers/{ctx.ServerId}/members/{member.UserId}",
             member.AccessToken);
@@ -773,10 +785,10 @@ public class BillingTests
         memberResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var memberBody = await memberResponse.ReadAsJsonAsync<JsonElement>();
-        var memberRoleIds = memberBody.GetProperty("roleIds").EnumerateArray()
+        var memberGroupIds = memberBody.GetProperty("groupIds").EnumerateArray()
             .Select(r => r.ReadLong()).ToList();
-        memberRoleIds.Should().Contain(roleId,
-            "subscribing to a tier with roles should auto-assign those roles");
+        memberGroupIds.Should().Contain(groupId,
+            "subscribing to a tier with groups should auto-assign those groups");
     }
 
     // ──────────── Get Member Subscription ────────────
@@ -895,7 +907,7 @@ public class BillingTests
     }
 
     [Fact]
-    public async Task CancelSubscription_RemovesTierRoles()
+    public async Task CancelSubscription_RemovesTierGroups()
     {
         var ctx = await SetupAsync();
         var member = await _helper.RegisterUserAsync();
@@ -903,38 +915,38 @@ public class BillingTests
         var inviteCode = await _helper.CreateInviteAsync(ctx.Owner.AccessToken, ctx.ServerId);
         await _helper.JoinServerAsync(member.AccessToken, inviteCode);
 
-        // Create role + tier that grants it
-        var roleId = await CreateRoleAsync(ctx.Owner.AccessToken, ctx.ServerId, "Cancel Role Test");
-        var tier = await CreateTierAsync(ctx.Owner.AccessToken, ctx.ServerId, "Role Cancel", 500, new[] { roleId });
+        // Create group + tier that grants it
+        var groupId = await CreateGroupAsync(ctx.Owner.AccessToken, ctx.ServerId, "Cancel Group Test");
+        var tier = await CreateTierAsync(ctx.Owner.AccessToken, ctx.ServerId, "Group Cancel", 500, new[] { groupId });
         var tierId = tier.GetProperty("id").ReadLong();
 
-        // Subscribe (should auto-assign role)
+        // Subscribe (should auto-assign group)
         await _helper.AuthPostAsync(
             $"/api/v1/servers/{ctx.ServerId}/subscribe",
             member.AccessToken,
             new { tierId });
 
-        // Verify role was assigned
+        // Verify group was assigned
         var memberBefore = await _helper.AuthGetAsync(
             $"/api/v1/servers/{ctx.ServerId}/members/{member.UserId}",
             member.AccessToken);
         var beforeBody = await memberBefore.ReadAsJsonAsync<JsonElement>();
-        beforeBody.GetProperty("roleIds").EnumerateArray()
-            .Select(r => r.ReadLong()).Should().Contain(roleId);
+        beforeBody.GetProperty("groupIds").EnumerateArray()
+            .Select(r => r.ReadLong()).Should().Contain(groupId);
 
-        // Cancel subscription (should remove role)
+        // Cancel subscription (should remove group)
         await _helper.AuthPostAsync(
             $"/api/v1/servers/{ctx.ServerId}/subscription/cancel",
             member.AccessToken);
 
-        // Verify role was removed
+        // Verify group was removed
         var memberAfter = await _helper.AuthGetAsync(
             $"/api/v1/servers/{ctx.ServerId}/members/{member.UserId}",
             member.AccessToken);
         var afterBody = await memberAfter.ReadAsJsonAsync<JsonElement>();
-        afterBody.GetProperty("roleIds").EnumerateArray()
-            .Select(r => r.ReadLong()).Should().NotContain(roleId,
-            "tier roles should be removed when subscription is cancelled");
+        afterBody.GetProperty("groupIds").EnumerateArray()
+            .Select(r => r.ReadLong()).Should().NotContain(groupId,
+            "tier groups should be removed when subscription is cancelled");
     }
 
     [Fact]

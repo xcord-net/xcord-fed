@@ -14,13 +14,14 @@ namespace Xcord.Features.Servers;
 public sealed record CreateInviteCommand(
     long ServerId,
     int? MaxUses,
-    DateTimeOffset? ExpiresAt
+    DateTimeOffset? ExpiresAt,
+    long? GroupId
 );
 
 public sealed class CreateInviteHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ILogger<CreateInviteHandler> logger)
     : IRequestHandler<CreateInviteCommand, Result<InviteDto>>, IValidatable<CreateInviteCommand>
 {
@@ -64,10 +65,31 @@ public sealed class CreateInviteHandler(
         }
 
         // Check CreateInvite permission
-        var permResult = await permissionService.EnsureServerPermission(userId, request.ServerId, Permission.CreateInvite);
+        var permResult = await roleService.EnsureServerRole(userId, request.ServerId, Role.CreateInvite);
         if (permResult.IsFailure)
         {
             return Error.Forbidden("MISSING_PERMISSION", "You do not have permission to create invites");
+        }
+
+        // Validate GroupId if provided
+        if (request.GroupId.HasValue)
+        {
+            // Require ManageGroups permission to set invite auto-assignment
+            var groupPermResult = await roleService.EnsureServerRole(userId, request.ServerId, Role.ManageGroups);
+            if (groupPermResult.IsFailure)
+            {
+                return Error.Forbidden("MISSING_PERMISSION", "You need ManageGroups permission to assign a group to an invite");
+            }
+
+            // Verify the group exists in this server
+            var groupExists = await dbContext.Groups
+                .AsNoTracking()
+                .AnyAsync(g => g.Id == request.GroupId.Value && g.ServerId == request.ServerId && !g.IsEveryone, cancellationToken);
+
+            if (!groupExists)
+            {
+                return Error.NotFound("GROUP_NOT_FOUND", "The specified group was not found in this server");
+            }
         }
 
         // Generate unique 8-character alphanumeric code
@@ -95,6 +117,7 @@ public sealed class CreateInviteHandler(
             MaxUses = request.MaxUses,
             Uses = 0,
             ExpiresAt = request.ExpiresAt,
+            GroupId = request.GroupId,
             CreatedAt = now
         };
 
@@ -112,7 +135,8 @@ public sealed class CreateInviteHandler(
             MaxUses: invite.MaxUses,
             Uses: invite.Uses,
             ExpiresAt: invite.ExpiresAt,
-            CreatedAt: invite.CreatedAt
+            CreatedAt: invite.CreatedAt,
+            GroupId: invite.GroupId
         );
     }
 
@@ -143,7 +167,8 @@ public sealed class CreateInviteHandler(
             var command = new CreateInviteCommand(
                 ServerId: id,
                 MaxUses: request.MaxUses,
-                ExpiresAt: request.ExpiresAt
+                ExpiresAt: request.ExpiresAt,
+                GroupId: request.GroupId
             );
 
             return await handler.ExecuteAsync(command, ct);

@@ -16,7 +16,7 @@ public sealed record CreateBotCommand(
     string Username,
     string DisplayName,
     string TokenName,
-    long Permissions
+    long Roles
 );
 
 public sealed class CreateBotHandler(
@@ -63,9 +63,9 @@ public sealed class CreateBotHandler(
             return Error.Validation("VALIDATION_ERROR", "Token name must not exceed 100 characters");
         }
 
-        if (request.Permissions < 0)
+        if (request.Roles < 0)
         {
-            return Error.Validation("VALIDATION_ERROR", "Permissions must be a non-negative value");
+            return Error.Validation("VALIDATION_ERROR", "Roles must be a non-negative value");
         }
 
         return null;
@@ -120,7 +120,7 @@ public sealed class CreateBotHandler(
             TokenHash = tokenHash,
             UserId = userId,
             Name = request.TokenName,
-            Permissions = request.Permissions,
+            Roles = request.Roles,
             IsRevoked = false,
             CreatedAt = now,
             LastUsedAt = null
@@ -141,7 +141,7 @@ public sealed class CreateBotHandler(
             TokenId: botToken.Id,
             TokenName: botToken.Name,
             RawToken: rawToken, // Return raw token only once
-            Permissions: botToken.Permissions,
+            Roles: botToken.Roles,
             CreatedAt: botToken.CreatedAt
         );
     }

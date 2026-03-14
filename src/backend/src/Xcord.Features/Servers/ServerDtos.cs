@@ -39,10 +39,12 @@ public sealed record InviteDto(
     int? MaxUses,
     int Uses,
     DateTimeOffset? ExpiresAt,
-    DateTimeOffset CreatedAt
+    DateTimeOffset CreatedAt,
+    long? GroupId
 );
 
 public sealed record CreateInviteRequest(
     int? MaxUses,
-    DateTimeOffset? ExpiresAt
+    DateTimeOffset? ExpiresAt,
+    long? GroupId
 );

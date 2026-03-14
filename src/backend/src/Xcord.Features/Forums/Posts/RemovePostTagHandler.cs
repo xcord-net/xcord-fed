@@ -20,7 +20,7 @@ public sealed record RemovePostTagCommand(
 
 public sealed class RemovePostTagHandler(
     AppDbContext dbContext,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     ILogger<RemovePostTagHandler> logger)
     : IRequestHandler<RemovePostTagCommand, Result<bool>>
@@ -50,10 +50,10 @@ public sealed class RemovePostTagHandler(
 
         if (!isAuthor)
         {
-            var permissionResult = await permissionService.EnsureChannelPermission(
+            var permissionResult = await roleService.EnsureChannelRole(
                 userId,
                 request.ChannelId,
-                Permission.ManageChannels);
+                Role.ManageChannels);
 
             if (permissionResult.IsFailure)
             {

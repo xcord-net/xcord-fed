@@ -33,7 +33,7 @@ public sealed record ReportDto(
 public sealed class ListReportsHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService)
+    IRoleService roleService)
     : IRequestHandler<ListReportsQuery, Result<List<ReportDto>>>
 {
     public async Task<Result<List<ReportDto>>> Handle(ListReportsQuery request, CancellationToken cancellationToken)
@@ -43,10 +43,10 @@ public sealed class ListReportsHandler(
         var userId = userIdResult.Value;
 
         // Check if user has ManageReports permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             request.ServerId,
-            Permission.ManageReports);
+            Role.ManageReports);
 
         if (permissionResult.IsFailure)
         {

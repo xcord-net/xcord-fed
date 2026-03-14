@@ -6,29 +6,31 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text.RegularExpressions;
 using Xcord.Entities;
+using XcordGroup = Xcord.Entities.Group;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Servers;
 
-public sealed record CreateRoleCommand(
+public sealed record CreateGroupCommand(
     long ServerId,
     string Name,
     string? Color,
-    long Permissions,
-    int Position
+    long Roles,
+    int Position,
+    string? LimitsJson
 );
 
-public sealed class CreateRoleHandler(
+public sealed class CreateGroupHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
-    ILogger<CreateRoleHandler> logger)
-    : IRequestHandler<CreateRoleCommand, Result<RoleDto>>, IValidatable<CreateRoleCommand>
+    IRoleService roleService,
+    ILogger<CreateGroupHandler> logger)
+    : IRequestHandler<CreateGroupCommand, Result<GroupDto>>, IValidatable<CreateGroupCommand>
 {
-    public Error? Validate(CreateRoleCommand request)
+    public Error? Validate(CreateGroupCommand request)
     {
         if (request.ServerId <= 0)
         {
@@ -58,9 +60,9 @@ public sealed class CreateRoleHandler(
             }
         }
 
-        if (request.Permissions < 0)
+        if (request.Roles < 0)
         {
-            return Error.Validation("VALIDATION_ERROR", "Permissions must be greater than or equal to 0");
+            return Error.Validation("VALIDATION_ERROR", "Roles must be greater than or equal to 0");
         }
 
         if (request.Position < 0)
@@ -71,7 +73,7 @@ public sealed class CreateRoleHandler(
         return null;
     }
 
-    public async Task<Result<RoleDto>> Handle(CreateRoleCommand request, CancellationToken cancellationToken)
+    public async Task<Result<GroupDto>> Handle(CreateGroupCommand request, CancellationToken cancellationToken)
     {
         var userIdResult = currentUserService.GetCurrentUserId();
         if (userIdResult.IsFailure) return userIdResult.Error;
@@ -87,99 +89,102 @@ public sealed class CreateRoleHandler(
             return Error.NotFound("SERVER_NOT_FOUND", "Server not found");
         }
 
-        // Check ManageRoles permission
-        var permissionCheck = await permissionService.EnsureServerPermission(
+        // Check ManageGroups permission
+        var permissionCheck = await roleService.EnsureServerRole(
             userId,
             request.ServerId,
-            Permission.ManageRoles);
+            Role.ManageGroups);
 
         if (permissionCheck.IsFailure)
         {
             return permissionCheck.Error;
         }
 
-        // Role hierarchy check: caller cannot create a role with permissions they don't have
-        var callerPermissions = await permissionService.GetServerPermissions(userId, request.ServerId);
-        if (callerPermissions != long.MaxValue) // Owner bypasses all checks
+        // Role hierarchy check: caller cannot create a group with roles they don't have
+        var callerRoles = await roleService.GetServerRoles(userId, request.ServerId);
+        if (callerRoles != long.MaxValue) // Owner bypasses all checks
         {
-            // Cannot grant permissions the caller doesn't possess
-            var escalatedBits = request.Permissions & ~callerPermissions;
+            // Cannot grant roles the caller doesn't possess
+            var escalatedBits = request.Roles & ~callerRoles;
             if (escalatedBits != 0)
             {
                 return Error.Forbidden("PERMISSION_ESCALATION",
-                    "You cannot create a role with permissions you do not have");
+                    "You cannot create a group with roles you do not have");
             }
 
-            // Cannot create a role at or above caller's highest role position
-            var callerHighestPosition = await permissionService.GetHighestRolePosition(userId, request.ServerId);
+            // Cannot create a group at or above caller's highest group position
+            var callerHighestPosition = await roleService.GetHighestGroupPosition(userId, request.ServerId);
             if (request.Position >= callerHighestPosition)
             {
                 return Error.Forbidden("ROLE_HIERARCHY",
-                    "You cannot create a role at or above your highest role position");
+                    "You cannot create a group at or above your highest group position");
             }
         }
 
         var now = DateTimeOffset.UtcNow;
 
-        // Create role
-        var roleId = snowflakeGenerator.NextId();
-        var role = new Role
+        // Create group
+        var groupId = snowflakeGenerator.NextId();
+        var group = new XcordGroup
         {
-            Id = roleId,
+            Id = groupId,
             ServerId = request.ServerId,
             Name = request.Name,
             Color = request.Color,
-            Permissions = request.Permissions,
+            Roles = request.Roles,
             Position = request.Position,
             IsEveryone = false,
+            LimitsJson = request.LimitsJson,
             CreatedAt = now
         };
 
-        dbContext.Roles.Add(role);
+        dbContext.Groups.Add(group);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(
-            "User {UserId} created role {RoleName} (ID: {RoleId}) in server {ServerId}",
-            userId, role.Name, roleId, request.ServerId);
+            "User {UserId} created group {GroupName} (ID: {GroupId}) in server {ServerId}",
+            userId, group.Name, groupId, request.ServerId);
 
-        // No cache invalidation needed: a freshly created role has no members yet,
-        // so no cached permission entries are stale.
+        // No cache invalidation needed: a freshly created group has no members yet,
+        // so no cached role entries are stale.
 
-        return new RoleDto(
-            Id: role.Id,
-            ServerId: role.ServerId,
-            Name: role.Name,
-            Color: role.Color,
-            Permissions: role.Permissions,
-            Position: role.Position,
-            IsEveryone: role.IsEveryone,
-            CreatedAt: role.CreatedAt
+        return new GroupDto(
+            Id: group.Id,
+            ServerId: group.ServerId,
+            Name: group.Name,
+            Color: group.Color,
+            Roles: group.Roles,
+            Position: group.Position,
+            IsEveryone: group.IsEveryone,
+            LimitsJson: group.LimitsJson,
+            CreatedAt: group.CreatedAt
         );
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
     {
-        return app.MapPost("/api/v1/servers/{serverId}/roles", async (
+        return app.MapPost("/api/v1/servers/{serverId}/groups", async (
             [FromRoute] long serverId,
-            [FromBody] CreateRoleRequest request,
-            IRequestHandler<CreateRoleCommand, Result<RoleDto>> handler,
+            [FromBody] CreateGroupRequest request,
+            IRequestHandler<CreateGroupCommand, Result<GroupDto>> handler,
             CancellationToken ct) =>
         {
-            var command = new CreateRoleCommand(
+            var command = new CreateGroupCommand(
                 ServerId: serverId,
                 Name: request.Name,
                 Color: request.Color,
-                Permissions: request.Permissions,
-                Position: request.Position
+                Roles: request.Roles,
+                Position: request.Position,
+                LimitsJson: request.LimitsJson
             );
 
             return await handler.ExecuteAsync(command, ct,
-                role => Results.Created($"/api/v1/servers/{serverId}/roles/{role.Id}", role));
+                group => Results.Created($"/api/v1/servers/{serverId}/groups/{group.Id}", group));
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
-        .WithTags("Roles")
-        .WithName("CreateRole")
-        .Produces<RoleDto>(StatusCodes.Status201Created)
+        .WithTags("Groups")
+        .WithName("CreateGroup")
+        .Produces<GroupDto>(StatusCodes.Status201Created)
         .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
         .Produces<ProblemDetails>(StatusCodes.Status403Forbidden)
         .Produces<ProblemDetails>(StatusCodes.Status404NotFound);

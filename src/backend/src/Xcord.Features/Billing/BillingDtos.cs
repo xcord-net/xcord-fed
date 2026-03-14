@@ -2,31 +2,31 @@ using Xcord.Entities;
 
 namespace Xcord.Features.Billing;
 
-public sealed record SubscriptionTierDto(
+public sealed record TierDto(
     string Id,
     string ServerId,
     string Name,
     string? Description,
     int PriceMonthly,
     string Currency,
-    long[] RoleIds,
+    long[] GroupIds,
     bool IsActive,
     int Position
 );
 
-public sealed record CreateSubscriptionTierRequest(
+public sealed record CreateTierRequest(
     string Name,
     string? Description,
     int PriceMonthly,
     string? Currency,
-    long[]? RoleIds
+    long[]? GroupIds
 );
 
-public sealed record UpdateSubscriptionTierRequest(
+public sealed record UpdateTierRequest(
     string? Name,
     string? Description,
     int? PriceMonthly,
-    long[]? RoleIds,
+    long[]? GroupIds,
     bool? IsActive
 );
 

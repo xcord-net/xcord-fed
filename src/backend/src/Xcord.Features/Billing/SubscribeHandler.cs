@@ -53,7 +53,7 @@ public sealed class SubscribeHandler(
         if (!isMember)
             return Error.Forbidden("NOT_MEMBER", "You must be a member of this server to subscribe");
 
-        var tier = await dbContext.MemberSubscriptionTiers
+        var tier = await dbContext.Tiers
             .AsNoTracking()
             .FirstOrDefaultAsync(t => t.Id == request.TierId && t.ServerId == request.ServerId && t.IsActive,
                 cancellationToken);
@@ -126,23 +126,23 @@ public sealed class SubscribeHandler(
 
         dbContext.MemberSubscriptions.Add(subscription);
 
-        // Auto-assign tier roles
-        var roleIds = JsonSerializer.Deserialize<long[]>(tier.RoleIdsJson) ?? [];
-        foreach (var roleId in roleIds)
+        // Auto-assign tier groups
+        var groupIds = JsonSerializer.Deserialize<long[]>(tier.GroupIdsJson) ?? [];
+        foreach (var groupId in groupIds)
         {
-            var roleExists = await dbContext.Roles.AnyAsync(r => r.Id == roleId && r.ServerId == request.ServerId, cancellationToken);
-            if (!roleExists) continue;
+            var groupExists = await dbContext.Groups.AnyAsync(g => g.Id == groupId && g.ServerId == request.ServerId, cancellationToken);
+            if (!groupExists) continue;
 
-            var alreadyHasRole = await dbContext.MemberRoles
-                .AnyAsync(mr => mr.UserId == userId && mr.ServerId == request.ServerId && mr.RoleId == roleId, cancellationToken);
+            var alreadyHasGroup = await dbContext.MemberGroups
+                .AnyAsync(mg => mg.UserId == userId && mg.ServerId == request.ServerId && mg.GroupId == groupId, cancellationToken);
 
-            if (!alreadyHasRole)
+            if (!alreadyHasGroup)
             {
-                dbContext.MemberRoles.Add(new MemberRole
+                dbContext.MemberGroups.Add(new MemberGroup
                 {
                     UserId = userId,
                     ServerId = request.ServerId,
-                    RoleId = roleId
+                    GroupId = groupId
                 });
             }
         }

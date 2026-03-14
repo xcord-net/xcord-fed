@@ -25,6 +25,6 @@ export interface NotificationSettingDto {
   channelId: string | null;
   level: NotificationLevel;
   suppressEveryone: boolean;
-  suppressRoles: boolean;
+  suppressGroups: boolean;
   muteUntil: string | null;
 }

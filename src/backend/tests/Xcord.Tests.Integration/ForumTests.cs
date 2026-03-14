@@ -700,7 +700,7 @@ public class ForumTests
         postTags.Should().Contain("verified-tag");
     }
 
-    // ──────────── Permission Checks (Non-Owner Access) ────────────
+    // ──────────── Role Checks (Non-Owner Access) ────────────
 
     [Fact]
     public async Task CreateForumTag_AsNonOwnerMember_Returns403()

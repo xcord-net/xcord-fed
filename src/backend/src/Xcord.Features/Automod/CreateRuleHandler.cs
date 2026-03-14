@@ -26,7 +26,7 @@ public sealed record CreateRuleCommand(
 public sealed class CreateRuleHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     ILogger<CreateRuleHandler> logger)
     : IRequestHandler<CreateRuleCommand, Result<AutomodRuleDto>>, IValidatable<CreateRuleCommand>
@@ -78,10 +78,10 @@ public sealed class CreateRuleHandler(
         }
 
         // Check ManageAutomod permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             request.ServerId,
-            Permission.ManageAutomod);
+            Role.ManageAutomod);
 
         if (permissionResult.IsFailure)
         {

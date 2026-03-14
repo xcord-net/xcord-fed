@@ -33,7 +33,7 @@ public sealed class CreateOutgoingWebhookHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
+    IRoleService roleService,
     IEncryptionService encryptionService,
     ILogger<CreateOutgoingWebhookHandler> logger)
     : IRequestHandler<CreateOutgoingWebhookCommand, Result<CreateOutgoingWebhookResponse>>,
@@ -87,8 +87,8 @@ public sealed class CreateOutgoingWebhookHandler(
             return Error.NotFound("SERVER_NOT_FOUND", "Server not found");
 
         // Check ManageWebhooks permission
-        var permissionResult = await permissionService.EnsureServerPermission(
-            userId, request.ServerId, Permission.ManageWebhooks);
+        var permissionResult = await roleService.EnsureServerRole(
+            userId, request.ServerId, Role.ManageWebhooks);
 
         if (permissionResult.IsFailure)
             return Error.Forbidden("MISSING_PERMISSIONS", "You do not have permission to manage webhooks in this server");

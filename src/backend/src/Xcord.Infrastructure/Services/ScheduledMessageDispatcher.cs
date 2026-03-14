@@ -54,7 +54,7 @@ public sealed class ScheduledMessageDispatcher : BackgroundService
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var snowflakeGenerator = scope.ServiceProvider.GetRequiredService<SnowflakeIdGenerator>();
         var outboxWriter = scope.ServiceProvider.GetRequiredService<IOutboxWriter>();
-        var permissionService = scope.ServiceProvider.GetRequiredService<IPermissionService>();
+        var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
 
         var now = DateTimeOffset.UtcNow;
 
@@ -74,7 +74,7 @@ public sealed class ScheduledMessageDispatcher : BackgroundService
         foreach (var scheduled in dueMessages)
         {
             await DispatchOneAsync(
-                dbContext, snowflakeGenerator, outboxWriter, permissionService,
+                dbContext, snowflakeGenerator, outboxWriter, roleService,
                 scheduled, cancellationToken);
         }
     }
@@ -83,7 +83,7 @@ public sealed class ScheduledMessageDispatcher : BackgroundService
         AppDbContext dbContext,
         SnowflakeIdGenerator snowflakeGenerator,
         IOutboxWriter outboxWriter,
-        IPermissionService permissionService,
+        IRoleService roleService,
         ScheduledMessage scheduled,
         CancellationToken cancellationToken)
     {
@@ -104,8 +104,8 @@ public sealed class ScheduledMessageDispatcher : BackgroundService
         }
 
         // Verify the author still has SendMessages permission in the channel.
-        var permissionResult = await permissionService.EnsureChannelPermission(
-            scheduled.AuthorId, channel.Id, Permission.SendMessages);
+        var permissionResult = await roleService.EnsureChannelRole(
+            scheduled.AuthorId, channel.Id, Role.SendMessages);
 
         if (permissionResult.IsFailure)
         {

@@ -49,7 +49,8 @@ public sealed class ListInvitesHandler(
                 i.MaxUses,
                 i.Uses,
                 i.ExpiresAt,
-                i.CreatedAt
+                i.CreatedAt,
+                i.GroupId
             ))
             .ToListAsync(cancellationToken);
 

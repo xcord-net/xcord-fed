@@ -26,7 +26,7 @@ public sealed record UpdateRuleCommand(
 
 public sealed class UpdateRuleHandler(
     AppDbContext dbContext,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     ILogger<UpdateRuleHandler> logger)
     : IRequestHandler<UpdateRuleCommand, Result<AutomodRuleDto>>
@@ -38,10 +38,10 @@ public sealed class UpdateRuleHandler(
         var userId = userIdResult.Value;
 
         // Check ManageAutomod permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             request.ServerId,
-            Permission.ManageAutomod);
+            Role.ManageAutomod);
 
         if (permissionResult.IsFailure)
         {

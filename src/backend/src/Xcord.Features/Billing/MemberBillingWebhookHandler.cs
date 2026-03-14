@@ -124,19 +124,19 @@ public sealed class MemberBillingWebhookHandler(
         memberSub.Status = MemberSubscriptionStatus.Cancelled;
         memberSub.CancelledAt = DateTimeOffset.UtcNow;
 
-        // Remove tier roles
-        var roleIds = JsonSerializer.Deserialize<long[]>(memberSub.Tier.RoleIdsJson) ?? [];
-        foreach (var roleId in roleIds)
+        // Remove tier groups
+        var groupIds = JsonSerializer.Deserialize<long[]>(memberSub.Tier.GroupIdsJson) ?? [];
+        foreach (var groupId in groupIds)
         {
-            var memberRole = await dbContext.MemberRoles
-                .FirstOrDefaultAsync(mr => mr.UserId == memberSub.UserId && mr.ServerId == memberSub.ServerId && mr.RoleId == roleId, ct);
+            var memberGroup = await dbContext.MemberGroups
+                .FirstOrDefaultAsync(mg => mg.UserId == memberSub.UserId && mg.ServerId == memberSub.ServerId && mg.GroupId == groupId, ct);
 
-            if (memberRole != null)
-                dbContext.MemberRoles.Remove(memberRole);
+            if (memberGroup != null)
+                dbContext.MemberGroups.Remove(memberGroup);
         }
 
         await dbContext.SaveChangesAsync(ct);
-        logger.LogInformation("Member subscription {SubscriptionId} deleted, roles removed", subscription.Id);
+        logger.LogInformation("Member subscription {SubscriptionId} deleted, groups removed", subscription.Id);
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)

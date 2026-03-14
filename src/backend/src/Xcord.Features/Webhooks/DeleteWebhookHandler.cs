@@ -19,7 +19,7 @@ public sealed record DeleteWebhookCommand(
 public sealed class DeleteWebhookHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ILogger<DeleteWebhookHandler> logger)
     : IRequestHandler<DeleteWebhookCommand, Result<bool>>, IValidatable<DeleteWebhookCommand>
 {
@@ -75,10 +75,10 @@ public sealed class DeleteWebhookHandler(
         }
 
         // Check ManageWebhooks permission
-        var permissionResult = await permissionService.EnsureChannelPermission(
+        var permissionResult = await roleService.EnsureChannelRole(
             userId,
             webhook.ChannelId,
-            Permission.ManageWebhooks);
+            Role.ManageWebhooks);
 
         if (permissionResult.IsFailure)
         {

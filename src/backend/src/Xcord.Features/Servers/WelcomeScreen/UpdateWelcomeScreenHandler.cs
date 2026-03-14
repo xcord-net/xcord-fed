@@ -14,7 +14,7 @@ public sealed record UpdateWelcomeScreenRequest(string? Description, bool IsEnab
 
 public sealed class UpdateWelcomeScreenHandler(
     AppDbContext dbContext, SnowflakeIdGenerator snowflakeGenerator,
-    ICurrentUserService currentUserService, IPermissionService permissionService)
+    ICurrentUserService currentUserService, IRoleService roleService)
     : IRequestHandler<UpdateWelcomeScreenCommand, Result<WelcomeScreenResponse>>
 {
     public async Task<Result<WelcomeScreenResponse>> Handle(UpdateWelcomeScreenCommand request, CancellationToken ct)
@@ -23,7 +23,7 @@ public sealed class UpdateWelcomeScreenHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        var perm = await permissionService.EnsureServerPermission(userId, request.ServerId, Permission.ManageServer);
+        var perm = await roleService.EnsureServerRole(userId, request.ServerId, Role.ManageServer);
         if (perm.IsFailure) return Error.Forbidden("MISSING_PERMISSIONS", "You do not have permission");
 
         var now = DateTimeOffset.UtcNow;

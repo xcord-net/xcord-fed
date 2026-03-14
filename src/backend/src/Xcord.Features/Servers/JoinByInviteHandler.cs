@@ -29,6 +29,7 @@ public sealed class JoinByInviteHandler(
         // Find invite with server
         var invite = await dbContext.Invites
             .Include(i => i.Server)
+            .Include(i => i.Group)
             .FirstOrDefaultAsync(i => i.Code == request.InviteCode, cancellationToken);
 
         if (invite == null)
@@ -93,6 +94,23 @@ public sealed class JoinByInviteHandler(
         };
 
         dbContext.ServerMembers.Add(serverMember);
+
+        // Auto-assign group from invite if configured
+        if (invite.GroupId.HasValue)
+        {
+            var existingAssignment = await dbContext.MemberGroups
+                .AnyAsync(mg => mg.UserId == userId && mg.ServerId == invite.ServerId && mg.GroupId == invite.GroupId.Value, cancellationToken);
+
+            if (!existingAssignment)
+            {
+                dbContext.MemberGroups.Add(new MemberGroup
+                {
+                    UserId = userId,
+                    ServerId = invite.ServerId,
+                    GroupId = invite.GroupId.Value
+                });
+            }
+        }
 
         // Create ReadState rows for all text/forum channels in the server so the
         // unread notification system can track messages the new member hasn't seen.

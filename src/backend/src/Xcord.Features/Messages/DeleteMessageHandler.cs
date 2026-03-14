@@ -19,7 +19,7 @@ public sealed record DeleteMessageRequest(
 public sealed class DeleteMessageHandler(
     AppDbContext dbContext,
     IConversationResolver conversationResolver,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     IOutboxWriter outboxWriter,
     ILogger<DeleteMessageHandler> logger)
@@ -58,10 +58,10 @@ public sealed class DeleteMessageHandler(
 
         if (!isAuthor)
         {
-            var permissionResult = await permissionService.EnsureChannelPermission(
+            var permissionResult = await roleService.EnsureChannelRole(
                 userId,
                 context.ChannelId,
-                Permission.ManageMessages);
+                Role.ManageMessages);
 
             hasManagePermission = permissionResult.IsSuccess;
         }

@@ -3,26 +3,27 @@ import { api } from '../api/client';
 import Modal from './ui/Modal';
 import { getErrorMessage } from '../utils/errors';
 
-interface Role {
+interface Group {
   id: string;
   serverId: string;
   name: string;
   color: string;
-  permissions: number;
+  roles: number;
   position: number;
   isHoisted: boolean;
   isMentionable: boolean;
+  limitsJson?: string;
 }
 
-interface RoleManagerProps {
+interface GroupManagerProps {
   serverId: string;
 }
 
-// Common permission bit flags
-const PERMISSION_FLAGS: { label: string; bit: number }[] = [
-  { label: 'Administrator', bit: 1 << 0 },
+// Common role bit flags (matching the backend Role enum)
+const ROLE_FLAGS: { label: string; bit: number }[] = [
+  { label: 'View Channels', bit: 1 << 0 },
   { label: 'Manage Server', bit: 1 << 1 },
-  { label: 'Manage Roles', bit: 1 << 2 },
+  { label: 'Manage Groups', bit: 1 << 2 },
   { label: 'Manage Channels', bit: 1 << 3 },
   { label: 'Kick Members', bit: 1 << 4 },
   { label: 'Ban Members', bit: 1 << 5 },
@@ -38,6 +39,19 @@ const PERMISSION_FLAGS: { label: string; bit: number }[] = [
   { label: 'Mute Members', bit: 1 << 15 },
   { label: 'Deafen Members', bit: 1 << 16 },
   { label: 'Move Members', bit: 1 << 17 },
+  { label: 'Video', bit: 1 << 18 },
+  { label: 'Share Screen', bit: 1 << 19 },
+  { label: 'Send Messages in Threads', bit: 1 << 20 },
+  { label: 'Create Public Threads', bit: 1 << 21 },
+  { label: 'Create Private Threads', bit: 1 << 22 },
+  { label: 'Add Reactions', bit: 1 << 23 },
+  { label: 'Mention Everyone', bit: 1 << 24 },
+  { label: 'Change Nickname', bit: 1 << 25 },
+  { label: 'Manage Nicknames', bit: 1 << 26 },
+  { label: 'Timeout Members', bit: 1 << 27 },
+  { label: 'Manage Emojis', bit: 1 << 28 },
+  { label: 'Manage Stickers', bit: 1 << 29 },
+  { label: 'Manage Webhooks', bit: 1 << 30 },
 ];
 
 const PRESET_COLORS = [
@@ -46,137 +60,137 @@ const PRESET_COLORS = [
   '#cf5050', '#e0a44a', '#8a8ea0', '#ffffff', '#000000',
 ];
 
-export function hasPermission(perms: number, bit: number): boolean {
-  return (perms & bit) !== 0;
+export function hasRole(roles: number, bit: number): boolean {
+  return (roles & bit) !== 0;
 }
 
-export function togglePermission(perms: number, bit: number): number {
-  return perms ^ bit;
+export function toggleRole(roles: number, bit: number): number {
+  return roles ^ bit;
 }
 
-export default function RoleManager(props: RoleManagerProps) {
-  const [roles, setRoles] = createSignal<Role[]>([]);
+export default function GroupManager(props: GroupManagerProps) {
+  const [groups, setGroups] = createSignal<Group[]>([]);
   const [isLoading, setIsLoading] = createSignal(false);
   const [error, setError] = createSignal<string | null>(null);
 
-  // Selected role for editing
-  const [selectedRoleId, setSelectedRoleId] = createSignal<string | null>(null);
+  // Selected group for editing
+  const [selectedGroupId, setSelectedGroupId] = createSignal<string | null>(null);
   const [editName, setEditName] = createSignal('');
   const [editColor, setEditColor] = createSignal('#d4943a');
-  const [editPermissions, setEditPermissions] = createSignal(0);
+  const [editRoles, setEditRoles] = createSignal(0);
   const [isSaving, setIsSaving] = createSignal(false);
   const [saveSuccess, setSaveSuccess] = createSignal('');
   const [saveError, setSaveError] = createSignal('');
 
-  // Create role form
+  // Create group form
   const [showCreateForm, setShowCreateForm] = createSignal(false);
-  const [newRoleName, setNewRoleName] = createSignal('');
+  const [newGroupName, setNewGroupName] = createSignal('');
   const [isCreating, setIsCreating] = createSignal(false);
 
   // Delete confirmation
   const [showDeleteConfirm, setShowDeleteConfirm] = createSignal(false);
   const [isDeleting, setIsDeleting] = createSignal(false);
 
-  const selectedRole = () => roles().find((r) => r.id === selectedRoleId());
+  const selectedGroup = () => groups().find((g) => g.id === selectedGroupId());
 
-  async function loadRoles() {
+  async function loadGroups() {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await api.get<Role[]>(`/api/v1/servers/${props.serverId}/roles`);
-      setRoles(result.map((r) => ({ ...r, id: String(r.id) })));
+      const result = await api.get<Group[]>(`/api/v1/servers/${props.serverId}/groups`);
+      setGroups(result.map((g) => ({ ...g, id: String(g.id) })));
     } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Failed to load roles.'));
+      setError(getErrorMessage(err, 'Failed to load groups.'));
     } finally {
       setIsLoading(false);
     }
   }
 
-  function selectRole(role: Role) {
-    setSelectedRoleId(role.id);
-    setEditName(role.name);
-    setEditColor(role.color || '#d4943a');
-    setEditPermissions(role.permissions);
+  function selectGroup(group: Group) {
+    setSelectedGroupId(group.id);
+    setEditName(group.name);
+    setEditColor(group.color || '#d4943a');
+    setEditRoles(group.roles);
     setSaveSuccess('');
     setSaveError('');
   }
 
-  async function handleSaveRole(e: Event) {
+  async function handleSaveGroup(e: Event) {
     e.preventDefault();
-    const roleId = selectedRoleId();
-    if (!roleId) return;
+    const groupId = selectedGroupId();
+    if (!groupId) return;
 
     setIsSaving(true);
     setSaveSuccess('');
     setSaveError('');
 
     try {
-      const updated = await api.patch<Role>(
-        `/api/v1/servers/${props.serverId}/roles/${roleId}`,
-        { name: editName().trim(), color: editColor(), permissions: editPermissions() }
+      const updated = await api.patch<Group>(
+        `/api/v1/servers/${props.serverId}/groups/${groupId}`,
+        { name: editName().trim(), color: editColor(), roles: editRoles() }
       );
-      const updatedRole = { ...updated, id: String(updated.id) };
-      setRoles(roles().map((r) => (r.id === roleId ? updatedRole : r)));
-      setSaveSuccess('Role saved successfully.');
+      const updatedGroup = { ...updated, id: String(updated.id) };
+      setGroups(groups().map((g) => (g.id === groupId ? updatedGroup : g)));
+      setSaveSuccess('Group saved successfully.');
     } catch (err: unknown) {
-      setSaveError(getErrorMessage(err, 'Failed to save role.'));
+      setSaveError(getErrorMessage(err, 'Failed to save group.'));
     } finally {
       setIsSaving(false);
     }
   }
 
-  async function handleCreateRole(e: Event) {
+  async function handleCreateGroup(e: Event) {
     e.preventDefault();
-    const name = newRoleName().trim();
+    const name = newGroupName().trim();
     if (!name) return;
 
     setIsCreating(true);
     setError(null);
 
     try {
-      const created = await api.post<Role>(`/api/v1/servers/${props.serverId}/roles`, { name });
-      const newRole = { ...created, id: String(created.id) };
-      setRoles([...roles(), newRole]);
-      setNewRoleName('');
+      const created = await api.post<Group>(`/api/v1/servers/${props.serverId}/groups`, { name });
+      const newGroup = { ...created, id: String(created.id) };
+      setGroups([...groups(), newGroup]);
+      setNewGroupName('');
       setShowCreateForm(false);
-      selectRole(newRole);
+      selectGroup(newGroup);
     } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Failed to create role.'));
+      setError(getErrorMessage(err, 'Failed to create group.'));
     } finally {
       setIsCreating(false);
     }
   }
 
-  async function handleDeleteRole(roleId: string) {
+  async function handleDeleteGroup(groupId: string) {
     setIsDeleting(true);
     try {
-      await api.delete(`/api/v1/servers/${props.serverId}/roles/${roleId}`);
-      setRoles(roles().filter((r) => r.id !== roleId));
-      if (selectedRoleId() === roleId) {
-        setSelectedRoleId(null);
+      await api.delete(`/api/v1/servers/${props.serverId}/groups/${groupId}`);
+      setGroups(groups().filter((g) => g.id !== groupId));
+      if (selectedGroupId() === groupId) {
+        setSelectedGroupId(null);
       }
     } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Failed to delete role.'));
+      setError(getErrorMessage(err, 'Failed to delete group.'));
     } finally {
       setIsDeleting(false);
     }
   }
 
   onMount(() => {
-    loadRoles();
+    loadGroups();
   });
 
   return (
     <div class="flex flex-col h-full bg-xcord-bg-secondary">
       {/* Header */}
       <div class="px-4 py-3 border-b border-xcord-border flex items-center justify-between">
-        <h2 class="text-xcord-text-primary font-bold text-xl">Roles</h2>
+        <h2 class="text-xcord-text-primary font-bold text-xl">Groups</h2>
         <button
           type="button"
           onClick={() => { setShowCreateForm(true); setSaveSuccess(''); setSaveError(''); }}
           class="px-3 py-1.5 bg-xcord-brand hover:bg-xcord-brand-hover text-white text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
         >
-          Create Role
+          Create Group
         </button>
       </div>
 
@@ -187,39 +201,39 @@ export default function RoleManager(props: RoleManagerProps) {
       </Show>
 
       <div class="flex flex-1 min-h-0">
-        {/* Role list */}
+        {/* Group list */}
         <div class="w-56 border-r border-xcord-border overflow-y-auto flex-shrink-0">
           <Show when={isLoading()}>
             <div class="flex items-center justify-center h-24">
-              <p class="text-xcord-text-muted text-sm">Loading roles...</p>
+              <p class="text-xcord-text-muted text-sm">Loading groups...</p>
             </div>
           </Show>
 
-          <Show when={!isLoading() && roles().length === 0}>
+          <Show when={!isLoading() && groups().length === 0}>
             <div class="flex flex-col items-center justify-center py-8 text-center">
-              <p class="text-xcord-text-muted text-sm">No roles yet.</p>
+              <p class="text-xcord-text-muted text-sm">No groups yet.</p>
             </div>
           </Show>
 
-          <For each={roles()}>
-            {(role) => (
+          <For each={groups()}>
+            {(group) => (
               <button
                 type="button"
-                onClick={() => { selectRole(role); setShowCreateForm(false); }}
+                onClick={() => { selectGroup(group); setShowCreateForm(false); }}
                 class={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none ${
-                  selectedRoleId() === role.id
+                  selectedGroupId() === group.id
                     ? 'bg-xcord-bg-primary text-white'
                     : 'text-xcord-text-secondary hover:bg-xcord-bg-primary/50 hover:text-white'
                 }`}
-                aria-pressed={selectedRoleId() === role.id}
+                aria-pressed={selectedGroupId() === group.id}
               >
                 {/* Color dot */}
                 <span
                   class="w-3 h-3 rounded-full flex-shrink-0"
-                  style={{ 'background-color': role.color || '#d4943a' }}
+                  style={{ 'background-color': group.color || '#d4943a' }}
                   aria-hidden="true"
                 />
-                <span class="truncate text-sm">{role.name}</span>
+                <span class="truncate text-sm">{group.name}</span>
               </button>
             )}
           </For>
@@ -227,23 +241,23 @@ export default function RoleManager(props: RoleManagerProps) {
 
         {/* Editor pane */}
         <div class="flex-1 overflow-y-auto">
-          {/* Create role form */}
+          {/* Create group form */}
           <Show when={showCreateForm()}>
-            <form onSubmit={handleCreateRole} class="px-5 py-4 border-b border-xcord-border">
-              <h3 class="text-white font-semibold mb-3">Create New Role</h3>
+            <form onSubmit={handleCreateGroup} class="px-5 py-4 border-b border-xcord-border">
+              <h3 class="text-white font-semibold mb-3">Create New Group</h3>
               <div class="mb-3">
-                <label for="new-role-name" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
-                  Role Name <span class="text-red-400">*</span>
+                <label for="new-group-name" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
+                  Group Name <span class="text-red-400">*</span>
                 </label>
                 <input
-                  id="new-role-name"
+                  id="new-group-name"
                   type="text"
                   required
                   maxlength="100"
-                  value={newRoleName()}
-                  onInput={(e) => setNewRoleName(e.currentTarget.value)}
+                  value={newGroupName()}
+                  onInput={(e) => setNewGroupName(e.currentTarget.value)}
                   class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
-                  placeholder="New Role"
+                  placeholder="New Group"
                 />
               </div>
               <div class="flex gap-2">
@@ -256,7 +270,7 @@ export default function RoleManager(props: RoleManagerProps) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setShowCreateForm(false); setNewRoleName(''); }}
+                  onClick={() => { setShowCreateForm(false); setNewGroupName(''); }}
                   class="px-4 py-1.5 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
                 >
                   Cancel
@@ -265,12 +279,12 @@ export default function RoleManager(props: RoleManagerProps) {
             </form>
           </Show>
 
-          {/* Role edit form */}
-          <Show when={selectedRole() && !showCreateForm()}>
-            {(role) => (
-              <form onSubmit={handleSaveRole} class="px-5 py-4">
+          {/* Group edit form */}
+          <Show when={selectedGroup() && !showCreateForm()}>
+            {(group) => (
+              <form onSubmit={handleSaveGroup} class="px-5 py-4">
                 <div class="flex items-center justify-between mb-5">
-                  <h3 class="text-white font-semibold">Edit Role</h3>
+                  <h3 class="text-white font-semibold">Edit Group</h3>
 
                   {/* Delete button */}
                   <button
@@ -278,17 +292,17 @@ export default function RoleManager(props: RoleManagerProps) {
                     onClick={() => setShowDeleteConfirm(true)}
                     class="text-red-400 hover:text-red-300 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none rounded"
                   >
-                    Delete Role
+                    Delete Group
                   </button>
                 </div>
 
-                {/* Role name */}
+                {/* Group name */}
                 <div class="mb-5">
-                  <label for="edit-role-name" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
-                    Role Name
+                  <label for="edit-group-name" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
+                    Group Name
                   </label>
                   <input
-                    id="edit-role-name"
+                    id="edit-group-name"
                     type="text"
                     required
                     maxlength="100"
@@ -301,7 +315,7 @@ export default function RoleManager(props: RoleManagerProps) {
                 {/* Color picker */}
                 <div class="mb-5">
                   <label class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-2">
-                    Role Color
+                    Group Color
                   </label>
 
                   {/* Preset color swatches */}
@@ -345,23 +359,23 @@ export default function RoleManager(props: RoleManagerProps) {
                   </div>
                 </div>
 
-                {/* Permissions */}
+                {/* Roles (permission flags) */}
                 <div class="mb-5">
                   <label class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-2">
-                    Permissions
+                    Roles
                   </label>
                   <div class="space-y-2">
-                    <For each={PERMISSION_FLAGS}>
-                      {(perm) => (
+                    <For each={ROLE_FLAGS}>
+                      {(flag) => (
                         <label class="flex items-center gap-3 cursor-pointer group">
                           <input
                             type="checkbox"
-                            checked={hasPermission(editPermissions(), perm.bit)}
-                            onChange={() => setEditPermissions(togglePermission(editPermissions(), perm.bit))}
+                            checked={hasRole(editRoles(), flag.bit)}
+                            onChange={() => setEditRoles(toggleRole(editRoles(), flag.bit))}
                             class="w-4 h-4 rounded border-xcord-border bg-xcord-bg-tertiary text-xcord-brand focus-visible:ring-2 focus-visible:ring-xcord-brand cursor-pointer"
                           />
                           <span class="text-sm text-xcord-text-secondary group-hover:text-xcord-text-primary transition-colors">
-                            {perm.label}
+                            {flag.label}
                           </span>
                         </label>
                       )}
@@ -396,9 +410,9 @@ export default function RoleManager(props: RoleManagerProps) {
           </Show>
 
           {/* Empty state */}
-          <Show when={!selectedRole() && !showCreateForm()}>
+          <Show when={!selectedGroup() && !showCreateForm()}>
             <div class="flex flex-col items-center justify-center py-8 text-center">
-              <p class="text-xcord-text-muted text-sm">Select a role to edit, or create a new one.</p>
+              <p class="text-xcord-text-muted text-sm">Select a group to edit, or create a new one.</p>
             </div>
           </Show>
         </div>
@@ -407,13 +421,13 @@ export default function RoleManager(props: RoleManagerProps) {
       <Modal
         open={showDeleteConfirm()}
         onClose={() => setShowDeleteConfirm(false)}
-        title="Delete Role"
+        title="Delete Group"
         size="sm"
         role="alertdialog"
       >
         <div class="p-6">
           <p class="text-xcord-text-secondary text-sm mb-4">
-            Are you sure you want to delete the role "{selectedRole()?.name}"? Members with this role will lose its permissions.
+            Are you sure you want to delete the group "{selectedGroup()?.name}"? Members with this group will lose its roles.
           </p>
           <div class="flex justify-end gap-3">
             <button
@@ -426,7 +440,7 @@ export default function RoleManager(props: RoleManagerProps) {
               class="px-4 py-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded transition-colors disabled:opacity-50"
               disabled={isDeleting()}
               onClick={() => {
-                handleDeleteRole(selectedRoleId()!);
+                handleDeleteGroup(selectedGroupId()!);
                 setShowDeleteConfirm(false);
               }}
             >

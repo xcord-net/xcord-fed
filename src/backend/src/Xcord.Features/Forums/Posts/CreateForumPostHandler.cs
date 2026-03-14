@@ -33,7 +33,7 @@ public sealed record CreateForumPostResponse(
 public sealed class CreateForumPostHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     IOutboxWriter outboxWriter,
     ILogger<CreateForumPostHandler> logger)
@@ -68,24 +68,24 @@ public sealed class CreateForumPostHandler(
             return Error.Forbidden("NOT_MEMBER", "User is not a member of this server");
         }
 
-        var sendMessagePermission = await permissionService.EnsureChannelPermission(
+        var sendMessageResult = await roleService.EnsureChannelRole(
             userId,
             channel.Id,
-            Permission.SendMessages);
+            Role.SendMessages);
 
-        if (sendMessagePermission.IsFailure)
+        if (sendMessageResult.IsFailure)
         {
-            return sendMessagePermission.Error;
+            return sendMessageResult.Error;
         }
 
-        var createThreadPermission = await permissionService.EnsureChannelPermission(
+        var createThreadResult = await roleService.EnsureChannelRole(
             userId,
             channel.Id,
-            Permission.CreatePublicThreads);
+            Role.CreatePublicThreads);
 
-        if (createThreadPermission.IsFailure)
+        if (createThreadResult.IsFailure)
         {
-            return createThreadPermission.Error;
+            return createThreadResult.Error;
         }
 
         var now = DateTimeOffset.UtcNow;

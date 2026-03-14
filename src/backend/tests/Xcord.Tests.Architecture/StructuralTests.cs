@@ -30,7 +30,7 @@ public sealed class StructuralTests
         {
             var idProperty = entityType.GetProperty("Id", BindingFlags.Public | BindingFlags.Instance);
 
-            // Some entities are join tables without Id (e.g., DmChannelMember, MemberRole, ThreadMember)
+            // Some entities are join tables without Id (e.g., DmChannelMember, MemberGroup, ThreadMember)
             // Skip those - they use composite keys
             if (idProperty == null)
                 continue;
@@ -188,7 +188,7 @@ public sealed class StructuralTests
     public void Enums_ShouldResideInEntitiesNamespace()
     {
         // Arrange
-        var assembly = typeof(Xcord.Entities.Permission).Assembly;
+        var assembly = typeof(Xcord.Entities.Role).Assembly;
 
         // Act
         var enumTypes = assembly.GetTypes()

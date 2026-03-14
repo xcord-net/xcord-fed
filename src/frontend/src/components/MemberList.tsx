@@ -7,11 +7,11 @@ import PresenceDot from './PresenceDot';
 import Modal from './ui/Modal';
 import Menu from './ui/Menu';
 
-interface ServerRole {
+interface ServerGroup {
   id: string;
   name: string;
   color: string;
-  permissions: number;
+  roles: number;
   position: number;
 }
 
@@ -21,18 +21,18 @@ export default function MemberList() {
   const auth = useAuth();
   const [contextMenuUserId, setContextMenuUserId] = createSignal<string | null>(null);
   const [contextMenuPos, setContextMenuPos] = createSignal<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [showRoleAssignment, setShowRoleAssignment] = createSignal(false);
-  const [serverRoles, setServerRoles] = createSignal<ServerRole[]>([]);
-  const [roleAssignmentLoading, setRoleAssignmentLoading] = createSignal(false);
+  const [showGroupAssignment, setShowGroupAssignment] = createSignal(false);
+  const [serverGroups, setServerGroups] = createSignal<ServerGroup[]>([]);
+  const [groupAssignmentLoading, setGroupAssignmentLoading] = createSignal(false);
   const [showBanConfirm, setShowBanConfirm] = createSignal(false);
   const [pendingBanUserId, setPendingBanUserId] = createSignal<string | null>(null);
-  let roleAssignmentPanelRef!: HTMLDivElement;
+  let groupAssignmentPanelRef!: HTMLDivElement;
 
-  // Move focus into the role assignment panel when it appears
+  // Move focus into the group assignment panel when it appears
   createEffect(() => {
-    if (showRoleAssignment() && roleAssignmentPanelRef) {
+    if (showGroupAssignment() && groupAssignmentPanelRef) {
       requestAnimationFrame(() => {
-        const firstInput = roleAssignmentPanelRef.querySelector<HTMLElement>('input, button, [tabindex]');
+        const firstInput = groupAssignmentPanelRef.querySelector<HTMLElement>('input, button, [tabindex]');
         firstInput?.focus();
       });
     }
@@ -49,23 +49,23 @@ export default function MemberList() {
     return !!currentServer && !!userId && currentServer.ownerId === userId;
   };
 
-  // Group members by their highest-position custom role
+  // Group members by their highest-position custom group
   const groupedMembers = createMemo(() => {
-    const groups: Record<string, typeof memberStore.members> = {};
+    const sections: Record<string, typeof memberStore.members> = {};
 
     memberStore.members.forEach((member) => {
-      // Pick the highest-position role (already sorted by backend, but sort defensively)
-      const topRole = [...member.roles]
-        .filter((r) => r.name !== '@everyone' && r.name !== 'everyone')
+      // Pick the highest-position group (already sorted by backend, but sort defensively)
+      const topGroup = [...member.groups]
+        .filter((g) => g.name !== '@everyone' && g.name !== 'everyone')
         .sort((a, b) => b.position - a.position)[0];
-      const role = topRole?.name || 'Members';
-      if (!groups[role]) {
-        groups[role] = [];
+      const groupName = topGroup?.name || 'Members';
+      if (!sections[groupName]) {
+        sections[groupName] = [];
       }
-      groups[role].push(member);
+      sections[groupName].push(member);
     });
 
-    return Object.entries(groups).map(([role, members]) => ({ role, members }));
+    return Object.entries(sections).map(([groupName, members]) => ({ groupName, members }));
   });
 
   const handleContextMenu = (e: MouseEvent, userId: string) => {
@@ -89,45 +89,45 @@ export default function MemberList() {
     await memberStore.banMember(serverId, userId);
   };
 
-  const openRoleAssignment = async () => {
+  const openGroupAssignment = async () => {
     const serverId = serverStore.selectedServerId;
     if (!serverId) return;
-    setRoleAssignmentLoading(true);
+    setGroupAssignmentLoading(true);
     try {
-      const roles = await api.get<ServerRole[]>(`/api/v1/servers/${serverId}/roles`);
-      setServerRoles(roles.map((r) => ({ ...r, id: String(r.id) })));
+      const groups = await api.get<ServerGroup[]>(`/api/v1/servers/${serverId}/groups`);
+      setServerGroups(groups.map((g) => ({ ...g, id: String(g.id) })));
     } catch {
-      // Failed to load roles
+      // Failed to load groups
     } finally {
-      setRoleAssignmentLoading(false);
+      setGroupAssignmentLoading(false);
     }
-    setShowRoleAssignment(true);
+    setShowGroupAssignment(true);
   };
 
-  const memberHasRole = (roleId: string): boolean => {
+  const memberHasGroup = (groupId: string): boolean => {
     const userId = contextMenuUserId();
     if (!userId) return false;
     const member = memberStore.members.find((m) => m.userId === userId);
-    return member?.roles.some((r) => r.id === roleId) ?? false;
+    return member?.groups.some((g) => g.id === groupId) ?? false;
   };
 
-  const toggleMemberRole = async (roleId: string) => {
+  const toggleMemberGroup = async (groupId: string) => {
     const serverId = serverStore.selectedServerId;
     const userId = contextMenuUserId();
     if (!serverId || !userId) return;
-    setRoleAssignmentLoading(true);
+    setGroupAssignmentLoading(true);
     try {
-      if (memberHasRole(roleId)) {
-        await memberStore.removeRole(serverId, userId, roleId);
+      if (memberHasGroup(groupId)) {
+        await memberStore.removeGroup(serverId, userId, groupId);
       } else {
-        await memberStore.assignRole(serverId, userId, roleId);
+        await memberStore.assignGroup(serverId, userId, groupId);
       }
       // Refresh members to reflect the change
       await memberStore.fetchMembers(serverId);
     } catch {
-      // Role assignment failed
+      // Group assignment failed
     } finally {
-      setRoleAssignmentLoading(false);
+      setGroupAssignmentLoading(false);
     }
   };
 
@@ -150,16 +150,16 @@ export default function MemberList() {
         </Show>
 
         <For each={groupedMembers()}>
-          {(group) => (
+          {(section) => (
             <div class="mb-4">
-              {/* Role header */}
+              {/* Group header */}
               <h3 class="text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-2">
-                {group.role} - {group.members.length}
+                {section.groupName} - {section.members.length}
               </h3>
 
               {/* Members */}
               <div class="space-y-1">
-                <For each={group.members}>
+                <For each={section.members}>
                   {(member) => (
                     <button
                       class="w-full px-2 py-1.5 rounded flex items-center space-x-3 hover:bg-xcord-bg-primary transition-colors"
@@ -180,12 +180,12 @@ export default function MemberList() {
                         <PresenceDot userId={member.userId} size="sm" />
                       </div>
 
-                      {/* Username and display name - Card 170: apply role color */}
+                      {/* Username and display name - apply group color */}
                       <div class="flex-1 min-w-0 text-left">
                         <div
                           class="text-sm truncate"
-                          style={{ color: member.roleColor ?? member.roles[0]?.color ?? undefined }}
-                          classList={{ 'text-xcord-text-primary': !member.roleColor && !member.roles[0]?.color }}
+                          style={{ color: member.groupColor ?? member.groups[0]?.color ?? undefined }}
+                          classList={{ 'text-xcord-text-primary': !member.groupColor && !member.groups[0]?.color }}
                         >
                           {member.displayName || member.username}
                         </div>
@@ -202,7 +202,7 @@ export default function MemberList() {
       {/* Context menu */}
       <Menu
         open={contextMenuUserId() !== null}
-        onClose={() => { setContextMenuUserId(null); setShowRoleAssignment(false); }}
+        onClose={() => { setContextMenuUserId(null); setShowGroupAssignment(false); }}
         position={contextMenuPos()}
       >
         <Show when={canBan()}>
@@ -210,9 +210,9 @@ export default function MemberList() {
             type="button"
             role="menuitem"
             class="w-full px-3 py-2 text-left text-sm text-xcord-text-secondary hover:bg-xcord-bg-primary hover:text-white transition-colors"
-            onClick={() => openRoleAssignment()}
+            onClick={() => openGroupAssignment()}
           >
-            Manage Roles
+            Manage Groups
           </button>
           <button
             type="button"
@@ -224,30 +224,30 @@ export default function MemberList() {
           </button>
         </Show>
 
-        {/* Role assignment panel */}
-        <Show when={showRoleAssignment()}>
-          <div ref={roleAssignmentPanelRef} class="border-t border-xcord-border mt-1 pt-1 px-2 pb-2 max-h-64 overflow-y-auto" aria-label="Assign roles">
-            <p class="text-xs font-semibold text-xcord-text-muted uppercase tracking-wide px-1 py-1">Roles</p>
-            <Show when={roleAssignmentLoading() && serverRoles().length === 0}>
+        {/* Group assignment panel */}
+        <Show when={showGroupAssignment()}>
+          <div ref={groupAssignmentPanelRef} class="border-t border-xcord-border mt-1 pt-1 px-2 pb-2 max-h-64 overflow-y-auto" aria-label="Assign groups">
+            <p class="text-xs font-semibold text-xcord-text-muted uppercase tracking-wide px-1 py-1">Groups</p>
+            <Show when={groupAssignmentLoading() && serverGroups().length === 0}>
               <p class="text-xs text-xcord-text-muted px-1 py-1">Loading...</p>
             </Show>
-            <For each={serverRoles().filter((r) => r.name !== '@everyone' && r.name !== 'everyone')}>
-              {(role) => (
+            <For each={serverGroups().filter((g) => g.name !== '@everyone' && g.name !== 'everyone')}>
+              {(group) => (
                 <label class="flex items-center gap-2 px-1 py-1.5 rounded hover:bg-xcord-bg-primary cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={memberHasRole(role.id)}
-                    disabled={roleAssignmentLoading()}
-                    onChange={() => toggleMemberRole(role.id)}
+                    checked={memberHasGroup(group.id)}
+                    disabled={groupAssignmentLoading()}
+                    onChange={() => toggleMemberGroup(group.id)}
                     class="w-3.5 h-3.5 rounded border-xcord-border bg-xcord-bg-tertiary text-xcord-brand cursor-pointer"
-                    aria-label={`Role: ${role.name}`}
+                    aria-label={`Group: ${group.name}`}
                   />
                   <span
                     class="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ 'background-color': role.color || '#d4943a' }}
+                    style={{ 'background-color': group.color || '#d4943a' }}
                     aria-hidden="true"
                   />
-                  <span class="text-sm text-xcord-text-secondary">{role.name}</span>
+                  <span class="text-sm text-xcord-text-secondary">{group.name}</span>
                 </label>
               )}
             </For>

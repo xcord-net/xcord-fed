@@ -34,21 +34,21 @@ public sealed record UpdateChannelPermissionsCommand(
 public sealed class UpdateChannelPermissionsHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
+    IRoleService roleService,
     SnowflakeIdGenerator snowflakeGenerator)
     : IRequestHandler<UpdateChannelPermissionsCommand, Result<ChannelPermissionsResponseDto>>
 {
-    private static readonly (string Key, Permission Bit)[] PermissionMap =
+    private static readonly (string Key, Role Bit)[] PermissionMap =
     [
-        ("ViewChannel",      Permission.ViewChannels),
-        ("SendMessages",     Permission.SendMessages),
-        ("ManageMessages",   Permission.ManageMessages),
-        ("AttachFiles",      Permission.AttachFiles),
-        ("EmbedLinks",       Permission.EmbedLinks),
-        ("MentionEveryone",  Permission.MentionEveryone),
-        ("ManageChannel",    Permission.ManageChannels),
-        ("Connect",          Permission.Connect),
-        ("Speak",            Permission.Speak),
+        ("ViewChannel",      Role.ViewChannels),
+        ("SendMessages",     Role.SendMessages),
+        ("ManageMessages",   Role.ManageMessages),
+        ("AttachFiles",      Role.AttachFiles),
+        ("EmbedLinks",       Role.EmbedLinks),
+        ("MentionEveryone",  Role.MentionEveryone),
+        ("ManageChannel",    Role.ManageChannels),
+        ("Connect",          Role.Connect),
+        ("Speak",            Role.Speak),
     ];
 
     public async Task<Result<ChannelPermissionsResponseDto>> Handle(
@@ -60,8 +60,8 @@ public sealed class UpdateChannelPermissionsHandler(
         var userId = userIdResult.Value;
 
         // Require ManageChannels on the server
-        var permCheck = await permissionService.EnsureServerPermission(
-            userId, request.ServerId, Permission.ManageChannels);
+        var permCheck = await roleService.EnsureServerRole(
+            userId, request.ServerId, Role.ManageChannels);
 
         if (permCheck.IsFailure) return permCheck.Error;
 
@@ -77,12 +77,12 @@ public sealed class UpdateChannelPermissionsHandler(
         if (!long.TryParse(request.SubjectId, out var targetId))
             return Error.Validation("INVALID_SUBJECT_ID", "SubjectId must be a valid snowflake ID");
 
-        // Determine target type: if targetId is a role in this server, it's a Role override; otherwise User
-        var isRole = await dbContext.Roles
+        // Determine target type: if targetId is a group in this server, it's a Group override; otherwise User
+        var isGroup = await dbContext.Groups
             .AsNoTracking()
-            .AnyAsync(r => r.Id == targetId && r.ServerId == request.ServerId, cancellationToken);
+            .AnyAsync(g => g.Id == targetId && g.ServerId == request.ServerId, cancellationToken);
 
-        var targetType = isRole ? OverrideTargetType.Role : OverrideTargetType.User;
+        var targetType = isGroup ? OverrideTargetType.Group : OverrideTargetType.User;
 
         // Compute allow/deny bitfields from the permissions dict
         long allow = 0L;
@@ -142,18 +142,18 @@ public sealed class UpdateChannelPermissionsHandler(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         // Invalidate permission caches for all members affected by this override
-        if (targetType == OverrideTargetType.Role)
+        if (targetType == OverrideTargetType.Group)
         {
-            await permissionService.InvalidateRoleMembersPermissionsAsync(targetId, request.ServerId, cancellationToken);
+            await roleService.InvalidateGroupMembersRolesAsync(targetId, request.ServerId, cancellationToken);
         }
         else
         {
-            await permissionService.InvalidateUserPermissionsAsync(targetId, request.ServerId, cancellationToken);
+            await roleService.InvalidateUserRolesAsync(targetId, request.ServerId, cancellationToken);
         }
 
         // Return the refreshed permissions list (delegate to the GET handler logic via shared helper)
         var getQuery = new GetChannelPermissionsQuery(request.ServerId, request.ChannelId);
-        var getHandler = new GetChannelPermissionsHandler(dbContext, currentUserService, permissionService);
+        var getHandler = new GetChannelPermissionsHandler(dbContext, currentUserService, roleService);
         return await getHandler.Handle(getQuery, cancellationToken);
     }
 

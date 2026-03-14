@@ -98,7 +98,7 @@ public sealed class BotAuthenticationHandler : AuthenticationHandler<BotAuthenti
             new("sub", botToken.UserId.ToString()),
             new("bot", "true"),
             new("bot_token_id", botToken.Id.ToString()),
-            new("bot_permissions", botToken.Permissions.ToString()),
+            new("bot_roles", botToken.Roles.ToString()),
             new("admin", botToken.User.IsAdmin.ToString().ToLower()),
             new("email_confirmed", "true") // Bots are always considered confirmed
         };

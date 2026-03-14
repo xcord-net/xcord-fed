@@ -493,10 +493,10 @@ export default function MessageList(props: MessageListProps) {
                           {/* Message content */}
                           <div class="flex-1 min-w-0">
                             <div class="flex items-baseline space-x-2">
-                              {/* Card 170: role color applied inline to username */}
+                              {/* Card 170: group color applied inline to username */}
                               <span
                                 class="font-semibold"
-                                style={{ color: message().authorRoleColor ?? 'white' }}
+                                style={{ color: message().authorGroupColor ?? 'white' }}
                               >
                                 {message().authorUsername || 'Unknown User'}
                               </span>

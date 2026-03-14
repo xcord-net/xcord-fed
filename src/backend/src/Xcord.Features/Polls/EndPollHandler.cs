@@ -21,7 +21,7 @@ public sealed record EndPollResponse(
 
 public sealed class EndPollHandler(
     AppDbContext dbContext,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     IOutboxWriter outboxWriter,
     ILogger<EndPollHandler> logger)
@@ -63,8 +63,8 @@ public sealed class EndPollHandler(
 
             if (channel != null)
             {
-                var channelPerms = await permissionService.GetChannelPermissions(userId, channel.Id);
-                hasManagePermission = (channelPerms & (long)Permission.ManageMessages) != 0;
+                var channelPerms = await roleService.GetChannelRoles(userId, channel.Id);
+                hasManagePermission = (channelPerms & (long)Role.ManageMessages) != 0;
             }
         }
         else if (conversation.Type == ConversationType.Thread)
@@ -75,8 +75,8 @@ public sealed class EndPollHandler(
 
             if (thread != null)
             {
-                var channelPerms = await permissionService.GetChannelPermissions(userId, thread.ChannelId);
-                hasManagePermission = (channelPerms & (long)Permission.ManageMessages) != 0;
+                var channelPerms = await roleService.GetChannelRoles(userId, thread.ChannelId);
+                hasManagePermission = (channelPerms & (long)Role.ManageMessages) != 0;
             }
         }
 

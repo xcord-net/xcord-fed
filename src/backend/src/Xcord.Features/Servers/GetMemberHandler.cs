@@ -17,7 +17,7 @@ public sealed record GetMemberResponse(
     string? DisplayName,
     string? AvatarUrl,
     string? Nickname,
-    long[] RoleIds,
+    long[] GroupIds,
     DateTimeOffset JoinedAt
 );
 
@@ -50,11 +50,11 @@ public sealed class GetMemberHandler(
         if (member == null)
             return Error.NotFound("MEMBER_NOT_FOUND", "Member not found in this server");
 
-        // Get role IDs
-        var roleIds = await dbContext.MemberRoles
+        // Get group IDs
+        var groupIds = await dbContext.MemberGroups
             .AsNoTracking()
-            .Where(mr => mr.UserId == request.UserId && mr.ServerId == request.ServerId)
-            .Select(mr => mr.RoleId)
+            .Where(mg => mg.UserId == request.UserId && mg.ServerId == request.ServerId)
+            .Select(mg => mg.GroupId)
             .ToArrayAsync(cancellationToken);
 
         return new GetMemberResponse(
@@ -63,7 +63,7 @@ public sealed class GetMemberHandler(
             DisplayName: member.User.DisplayName,
             AvatarUrl: member.User.AvatarUrl,
             Nickname: member.Nickname,
-            RoleIds: roleIds,
+            GroupIds: groupIds,
             JoinedAt: member.JoinedAt
         );
     }

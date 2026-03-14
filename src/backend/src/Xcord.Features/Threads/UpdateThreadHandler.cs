@@ -36,7 +36,7 @@ public sealed record UpdateThreadResponse(
 
 public sealed class UpdateThreadHandler(
     AppDbContext dbContext,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     ILogger<UpdateThreadHandler> logger)
     : IRequestHandler<UpdateThreadRequest, Result<UpdateThreadResponse>>, IValidatable<UpdateThreadRequest>
@@ -92,10 +92,10 @@ public sealed class UpdateThreadHandler(
         }
 
         // Check ManageMessages permission (used for managing threads)
-        var permissionResult = await permissionService.EnsureChannelPermission(
+        var permissionResult = await roleService.EnsureChannelRole(
             userId,
             channel.Id,
-            Permission.ManageMessages);
+            Role.ManageMessages);
 
         if (permissionResult.IsFailure)
         {

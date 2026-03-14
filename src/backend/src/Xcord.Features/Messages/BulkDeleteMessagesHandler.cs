@@ -43,7 +43,7 @@ public sealed class BulkDeleteMessagesHandler(
 
         // Resolve conversation and check ManageMessages permission
         var contextResult = await conversationResolver.ResolveAsync(
-            request.ConversationId, userId, Permission.ManageMessages, cancellationToken);
+            request.ConversationId, userId, Role.ManageMessages, cancellationToken);
         if (contextResult.IsFailure) return contextResult.Error;
 
         // For now, we only support Channel conversations

@@ -15,7 +15,7 @@ public sealed record SetVanityUrlRequest(string Slug);
 
 public sealed class SetVanityUrlHandler(
     AppDbContext dbContext, ICurrentUserService currentUserService,
-    IPermissionService permissionService)
+    IRoleService roleService)
     : IRequestHandler<SetVanityUrlCommand, Result<VanityUrlResponse>>, IValidatable<SetVanityUrlCommand>
 {
     public Error? Validate(SetVanityUrlCommand r)
@@ -33,7 +33,7 @@ public sealed class SetVanityUrlHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        var perm = await permissionService.EnsureServerPermission(userId, request.ServerId, Permission.ManageServer);
+        var perm = await roleService.EnsureServerRole(userId, request.ServerId, Role.ManageServer);
         if (perm.IsFailure) return Error.Forbidden("MISSING_PERMISSIONS", "You do not have permission to manage this server");
 
         var slug = request.Slug.ToLowerInvariant();

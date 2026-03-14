@@ -36,7 +36,7 @@ public sealed class CreateWebhookHandler(
     SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
     IHttpContextAccessor httpContextAccessor,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ILogger<CreateWebhookHandler> logger,
     IOptions<InstanceOptions> instanceOptions)
     : IRequestHandler<CreateWebhookCommand, Result<CreateWebhookResponse>>, IValidatable<CreateWebhookCommand>
@@ -105,10 +105,10 @@ public sealed class CreateWebhookHandler(
         }
 
         // Check ManageWebhooks permission
-        var permissionResult = await permissionService.EnsureChannelPermission(
+        var permissionResult = await roleService.EnsureChannelRole(
             userId,
             request.ChannelId,
-            Permission.ManageWebhooks);
+            Role.ManageWebhooks);
 
         if (permissionResult.IsFailure)
         {

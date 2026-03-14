@@ -51,7 +51,7 @@ public sealed class DownloadAttachmentHandler : IEndpoint
             if (attachment.Message != null)
             {
                 var accessResult = await conversationResolver.ResolveAsync(
-                    attachment.Message.ConversationId, userId, Permission.ReadMessageHistory, ct);
+                    attachment.Message.ConversationId, userId, Role.ReadMessageHistory, ct);
                 if (accessResult.IsFailure)
                     return Results.Json(new { error = "FORBIDDEN", message = "You do not have access to this attachment" }, statusCode: 403);
             }

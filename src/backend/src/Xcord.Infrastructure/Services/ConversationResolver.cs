@@ -12,20 +12,20 @@ namespace Xcord.Infrastructure.Services;
 public sealed class ConversationResolver : IConversationResolver
 {
     private readonly AppDbContext _dbContext;
-    private readonly IPermissionService _permissionService;
+    private readonly IRoleService _roleService;
 
     public ConversationResolver(
         AppDbContext dbContext,
-        IPermissionService permissionService)
+        IRoleService roleService)
     {
         _dbContext = dbContext;
-        _permissionService = permissionService;
+        _roleService = roleService;
     }
 
     public async Task<Result<ConversationContext>> ResolveAsync(
         long conversationId,
         long userId,
-        Permission? requiredPermission = null,
+        Role? requiredRole = null,
         CancellationToken cancellationToken = default)
     {
         // Get conversation
@@ -89,12 +89,12 @@ public sealed class ConversationResolver : IConversationResolver
             }
 
             // Check permission if required
-            if (requiredPermission.HasValue)
+            if (requiredRole.HasValue)
             {
-                var permissionResult = await _permissionService.EnsureChannelPermission(
+                var permissionResult = await _roleService.EnsureChannelRole(
                     userId,
                     channelId,
-                    requiredPermission.Value);
+                    requiredRole.Value);
 
                 if (permissionResult.IsFailure)
                 {
@@ -140,8 +140,8 @@ public sealed class ConversationResolver : IConversationResolver
             // Check if thread is locked - only users with ManageMessages can interact with locked threads
             if (thread.IsLocked)
             {
-                var channelPerms = await _permissionService.GetChannelPermissions(userId, channelId);
-                var hasManagePermission = (channelPerms & (long)Permission.ManageMessages) != 0;
+                var channelPerms = await _roleService.GetChannelRoles(userId, channelId);
+                var hasManagePermission = (channelPerms & (long)Role.ManageMessages) != 0;
 
                 if (!hasManagePermission)
                 {
@@ -150,12 +150,12 @@ public sealed class ConversationResolver : IConversationResolver
             }
 
             // Check permission if required
-            if (requiredPermission.HasValue)
+            if (requiredRole.HasValue)
             {
-                var permissionResult = await _permissionService.EnsureChannelPermission(
+                var permissionResult = await _roleService.EnsureChannelRole(
                     userId,
                     channelId,
-                    requiredPermission.Value);
+                    requiredRole.Value);
 
                 if (permissionResult.IsFailure)
                 {

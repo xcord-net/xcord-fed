@@ -12,7 +12,7 @@ namespace Xcord.Features.Servers;
 
 public sealed record ListMembersRequest(long ServerId);
 
-public sealed record MemberRoleDto(
+public sealed record MemberGroupDto(
     long Id,
     string Name,
     string? Color,
@@ -25,7 +25,7 @@ public sealed record MemberDto(
     string? DisplayName,
     string? AvatarUrl,
     string? Nickname,
-    List<MemberRoleDto> Roles,
+    List<MemberGroupDto> Groups,
     DateTimeOffset JoinedAt
 );
 
@@ -50,27 +50,27 @@ public sealed class ListMembersHandler(
             return Error.Forbidden("NOT_A_MEMBER", "You must be a member of this server to view its members");
         }
 
-        // Query members with user and role data
+        // Query members with user and group data
         var members = await dbContext.ServerMembers
             .AsNoTracking()
             .Where(sm => sm.ServerId == request.ServerId)
             .Include(sm => sm.User)
-            .Include(sm => sm.MemberRoles)
-                .ThenInclude(mr => mr.Role)
+            .Include(sm => sm.MemberGroups)
+                .ThenInclude(mg => mg.Group)
             .Select(sm => new MemberDto(
                 sm.UserId,
                 sm.User.Username,
                 sm.User.DisplayName,
                 sm.User.AvatarUrl,
                 sm.Nickname,
-                sm.MemberRoles
-                    .Where(mr => !mr.Role.IsEveryone)
-                    .OrderByDescending(mr => mr.Role.Position)
-                    .Select(mr => new MemberRoleDto(
-                        mr.Role.Id,
-                        mr.Role.Name,
-                        mr.Role.Color,
-                        mr.Role.Position
+                sm.MemberGroups
+                    .Where(mg => !mg.Group.IsEveryone)
+                    .OrderByDescending(mg => mg.Group.Position)
+                    .Select(mg => new MemberGroupDto(
+                        mg.Group.Id,
+                        mg.Group.Name,
+                        mg.Group.Color,
+                        mg.Group.Position
                     ))
                     .ToList(),
                 sm.JoinedAt

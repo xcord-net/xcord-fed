@@ -102,7 +102,7 @@ describe('AppDirectory', () => {
       // Arrange
       const bots = [
         makeBot({ name: 'Alpha', description: 'Plays your favourite tracks', tags: [] }),
-        makeBot({ name: 'Beta', description: 'Manages server roles', tags: [] }),
+        makeBot({ name: 'Beta', description: 'Manages server groups', tags: [] }),
       ];
 
       // Act

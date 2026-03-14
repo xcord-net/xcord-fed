@@ -15,7 +15,7 @@ public sealed record SaveServerTemplateRequest(string Name, string? Description)
 
 public sealed class SaveServerTemplateHandler(
     AppDbContext dbContext, SnowflakeIdGenerator snowflakeGenerator,
-    ICurrentUserService currentUserService, IPermissionService permissionService)
+    ICurrentUserService currentUserService, IRoleService roleService)
     : IRequestHandler<SaveServerTemplateCommand, Result<ServerTemplateResponse>>, IValidatable<SaveServerTemplateCommand>
 {
     public Error? Validate(SaveServerTemplateCommand r)
@@ -31,7 +31,7 @@ public sealed class SaveServerTemplateHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        var perm = await permissionService.EnsureServerPermission(userId, request.ServerId, Permission.ManageServer);
+        var perm = await roleService.EnsureServerRole(userId, request.ServerId, Role.ManageServer);
         if (perm.IsFailure) return Error.Forbidden("MISSING_PERMISSIONS", "You do not have permission to manage this server");
 
         var channels = await dbContext.Channels.AsNoTracking()
@@ -39,9 +39,9 @@ public sealed class SaveServerTemplateHandler(
             .Select(c => new { c.Name, Type = c.Type.ToString(), c.Position })
             .ToListAsync(ct);
 
-        var roles = await dbContext.Roles.AsNoTracking()
-            .Where(r => r.ServerId == request.ServerId)
-            .Select(r => new { r.Name, r.Color, Permissions = r.Permissions.ToString() })
+        var groups = await dbContext.Groups.AsNoTracking()
+            .Where(g => g.ServerId == request.ServerId)
+            .Select(g => new { g.Name, g.Color, Roles = g.Roles.ToString() })
             .ToListAsync(ct);
 
         var now = DateTimeOffset.UtcNow;
@@ -50,7 +50,7 @@ public sealed class SaveServerTemplateHandler(
             Id = snowflakeGenerator.NextId(), SourceServerId = request.ServerId,
             Name = request.Name, Description = request.Description,
             ChannelData = JsonSerializer.Serialize(channels),
-            RoleData = JsonSerializer.Serialize(roles),
+            GroupData = JsonSerializer.Serialize(groups),
             CreatedAt = now
         };
 
@@ -58,7 +58,7 @@ public sealed class SaveServerTemplateHandler(
         await dbContext.SaveChangesAsync(ct);
 
         return new ServerTemplateResponse(template.Id, template.Name, template.Description,
-            template.SourceServerId, template.ChannelData, template.RoleData, template.UsageCount, template.CreatedAt);
+            template.SourceServerId, template.ChannelData, template.GroupData, template.UsageCount, template.CreatedAt);
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app) =>

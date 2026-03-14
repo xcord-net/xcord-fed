@@ -31,7 +31,7 @@ public sealed class TimeoutMemberHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ITimeoutService timeoutService,
     IOutboxWriter outboxWriter,
     ILogger<TimeoutMemberHandler> logger)
@@ -74,10 +74,10 @@ public sealed class TimeoutMemberHandler(
         var moderatorId = userIdResult.Value;
 
         // Check if moderator has TimeoutMembers permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             moderatorId,
             request.ServerId,
-            Permission.TimeoutMembers);
+            Role.TimeoutMembers);
 
         if (permissionResult.IsFailure)
         {
@@ -109,8 +109,8 @@ public sealed class TimeoutMemberHandler(
         }
 
         // Role hierarchy check: cannot timeout a user with equal or higher role position
-        var moderatorHighest = await permissionService.GetHighestRolePosition(moderatorId, request.ServerId);
-        var targetHighest = await permissionService.GetHighestRolePosition(request.UserId, request.ServerId);
+        var moderatorHighest = await roleService.GetHighestGroupPosition(moderatorId, request.ServerId);
+        var targetHighest = await roleService.GetHighestGroupPosition(request.UserId, request.ServerId);
         if (moderatorHighest != int.MaxValue && targetHighest >= moderatorHighest)
         {
             return Error.Forbidden("ROLE_HIERARCHY",

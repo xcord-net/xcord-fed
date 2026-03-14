@@ -32,7 +32,7 @@ public sealed record GetChannelResponse(
 
 public sealed class GetChannelHandler(
     AppDbContext dbContext,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService)
     : IRequestHandler<GetChannelCommand, Result<GetChannelResponse>>
 {
@@ -53,10 +53,10 @@ public sealed class GetChannelHandler(
         }
 
         // Check ViewChannels permission
-        var permissionResult = await permissionService.EnsureChannelPermission(
+        var permissionResult = await roleService.EnsureChannelRole(
             userId,
             request.ChannelId,
-            Permission.ViewChannels);
+            Role.ViewChannels);
 
         if (permissionResult.IsFailure)
         {

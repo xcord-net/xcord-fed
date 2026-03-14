@@ -168,7 +168,7 @@ public class SecurityAuditTests
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
-    // ──────────── A01-05: Channel operations require permissions ────────────
+    // ──────────── A01-05: Channel operations require roles ────────────
 
     [Fact]
     public async Task A01_05_CreateChannel_WithoutManageChannels_Returns403()
@@ -209,39 +209,39 @@ public class SecurityAuditTests
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
-    // ──────────── A01-06: Role management requires ManageRoles ────────────
+    // ──────────── A01-06: Group management requires ManageGroups ────────────
 
     [Fact]
-    public async Task A01_06_CreateRole_WithoutManageRoles_Returns403()
+    public async Task A01_06_CreateGroup_WithoutManageGroups_Returns403()
     {
         var (serverId, _, member) = await SetupServerWithMember();
 
         var response = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{serverId}/roles", member.AccessToken,
-            new { name = "Hacker", color = "#FF0000", permissions = 0, position = 1 });
+            $"/api/v1/servers/{serverId}/groups", member.AccessToken,
+            new { name = "Hacker", color = "#FF0000", roles = 0, position = 1 });
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [Fact]
-    public async Task A01_06_DeleteRole_WithoutManageRoles_Returns403()
+    public async Task A01_06_DeleteGroup_WithoutManageGroups_Returns403()
     {
         var (serverId, owner, member) = await SetupServerWithMember();
 
         var createResponse = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{serverId}/roles", owner.AccessToken,
-            new { name = "Protected", color = "#000000", permissions = 0, position = 1 });
-        var role = await createResponse.ReadAsJsonAsync<JsonElement>();
-        var roleId = role.GetProperty("id").ReadLong();
+            $"/api/v1/servers/{serverId}/groups", owner.AccessToken,
+            new { name = "Protected", color = "#000000", roles = 0, position = 1 });
+        var group = await createResponse.ReadAsJsonAsync<JsonElement>();
+        var groupId = group.GetProperty("id").ReadLong();
 
         var response = await _helper.AuthDeleteAsync(
-            $"/api/v1/servers/{serverId}/roles/{roleId}", member.AccessToken);
+            $"/api/v1/servers/{serverId}/groups/{groupId}", member.AccessToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [Fact]
-    public async Task A01_06_AssignRole_WithoutManageRoles_Returns403()
+    public async Task A01_06_AssignGroup_WithoutManageGroups_Returns403()
     {
         var (serverId, owner, member) = await SetupServerWithMember();
         var otherMember = await _helper.RegisterUserAsync();
@@ -249,19 +249,19 @@ public class SecurityAuditTests
         await _helper.JoinServerAsync(otherMember.AccessToken, inviteCode);
 
         var createResponse = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{serverId}/roles", owner.AccessToken,
-            new { name = "TestRole", color = "#000000", permissions = 0, position = 1 });
-        var role = await createResponse.ReadAsJsonAsync<JsonElement>();
-        var roleId = role.GetProperty("id").ReadLong();
+            $"/api/v1/servers/{serverId}/groups", owner.AccessToken,
+            new { name = "TestGroup", color = "#000000", roles = 0, position = 1 });
+        var group = await createResponse.ReadAsJsonAsync<JsonElement>();
+        var groupId = group.GetProperty("id").ReadLong();
 
         var response = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{serverId}/members/{otherMember.UserId}/roles/{roleId}",
+            $"/api/v1/servers/{serverId}/members/{otherMember.UserId}/groups/{groupId}",
             member.AccessToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
-    // ──────────── A01-07: Moderation actions require correct permissions ────────────
+    // ──────────── A01-07: Moderation actions require correct roles ────────────
 
     [Fact]
     public async Task A01_07_Ban_WithoutBanMembers_Returns403()
@@ -343,7 +343,7 @@ public class SecurityAuditTests
     }
 
     [Fact]
-    public async Task A01_09_ServerAOwner_CannotCreateRoleInServerB_Returns403()
+    public async Task A01_09_ServerAOwner_CannotCreateGroupInServerB_Returns403()
     {
         var ownerA = await _helper.RegisterUserAsync();
         var ownerB = await _helper.RegisterUserAsync();
@@ -352,8 +352,8 @@ public class SecurityAuditTests
         var serverBId = serverB.GetProperty("id").ReadLong();
 
         var response = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{serverBId}/roles", ownerA.AccessToken,
-            new { name = "Hacked", color = "#FF0000", permissions = 0, position = 1 });
+            $"/api/v1/servers/{serverBId}/groups", ownerA.AccessToken,
+            new { name = "Hacked", color = "#FF0000", roles = 0, position = 1 });
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
@@ -881,67 +881,67 @@ public class SecurityAuditTests
 
     #region Security Audit V7-V19: Prove-Then-Fix
 
-    // ──────────── V7: Role Privilege Escalation - CRITICAL ────────────
+    // ──────────── V7: Group Privilege Escalation - CRITICAL ────────────
 
     [Fact]
-    public async Task V7_01_CreateRole_WithAdminPermission_ByModerator_Returns403()
+    public async Task V7_01_CreateGroup_WithAdminRole_ByModerator_Returns403()
     {
-        var (serverId, owner, moderator) = await SetupServerWithModeratorRole(
-            (long)Permission.ManageRoles, position: 1);
+        var (serverId, owner, moderator) = await SetupServerWithModeratorGroup(
+            (long)Role.ManageGroups, position: 1);
 
-        // Moderator tries to create a role with Administrator permission
+        // Moderator tries to create a group with Administrator role
         var response = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{serverId}/roles", moderator.AccessToken,
-            new { name = "HackedAdmin", color = "#FF0000", permissions = (long)Permission.Administrator, position = 99 });
+            $"/api/v1/servers/{serverId}/groups", moderator.AccessToken,
+            new { name = "HackedAdmin", color = "#FF0000", roles = (long)Role.Administrator, position = 99 });
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
-            "user with only ManageRoles should not create a role with Administrator permission");
+            "user with only ManageGroups should not create a group with Administrator role");
     }
 
     [Fact]
-    public async Task V7_02_AssignRole_WithHigherPermissions_ToSelf_Returns403()
+    public async Task V7_02_AssignGroup_WithHigherRoles_ToSelf_Returns403()
     {
-        var (serverId, owner, moderator) = await SetupServerWithModeratorRole(
-            (long)Permission.ManageRoles, position: 1);
+        var (serverId, owner, moderator) = await SetupServerWithModeratorGroup(
+            (long)Role.ManageGroups, position: 1);
 
-        // Owner creates a high-privilege role with Administrator
-        var adminRoleResponse = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{serverId}/roles", owner.AccessToken,
-            new { name = "SuperAdmin", color = "#FF0000", permissions = (long)Permission.Administrator, position = 99 });
-        adminRoleResponse.EnsureSuccessStatusCode();
-        var adminRole = await adminRoleResponse.ReadAsJsonAsync<JsonElement>();
-        var adminRoleId = adminRole.GetProperty("id").ReadLong();
+        // Owner creates a high-privilege group with Administrator
+        var adminGroupResponse = await _helper.AuthPostAsync(
+            $"/api/v1/servers/{serverId}/groups", owner.AccessToken,
+            new { name = "SuperAdmin", color = "#FF0000", roles = (long)Role.Administrator, position = 99 });
+        adminGroupResponse.EnsureSuccessStatusCode();
+        var adminGroup = await adminGroupResponse.ReadAsJsonAsync<JsonElement>();
+        var adminGroupId = adminGroup.GetProperty("id").ReadLong();
 
-        // Moderator tries to assign the high-privilege role to themselves
+        // Moderator tries to assign the high-privilege group to themselves
         var response = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{serverId}/members/{moderator.UserId}/roles/{adminRoleId}",
+            $"/api/v1/servers/{serverId}/members/{moderator.UserId}/groups/{adminGroupId}",
             moderator.AccessToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
-            "moderator should not assign a role with higher permissions to themselves");
+            "moderator should not assign a group with higher roles to themselves");
     }
 
     [Fact]
-    public async Task V7_03_UpdateRole_AddAdminPermission_ByModerator_Returns403()
+    public async Task V7_03_UpdateGroup_AddAdminRole_ByModerator_Returns403()
     {
-        var (serverId, owner, moderator) = await SetupServerWithModeratorRole(
-            (long)Permission.ManageRoles, position: 1);
+        var (serverId, owner, moderator) = await SetupServerWithModeratorGroup(
+            (long)Role.ManageGroups, position: 1);
 
-        // Owner creates a basic role at position 0
-        var basicRoleResponse = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{serverId}/roles", owner.AccessToken,
-            new { name = "BasicRole", color = "#0000FF", permissions = 0L, position = 0 });
-        basicRoleResponse.EnsureSuccessStatusCode();
-        var basicRole = await basicRoleResponse.ReadAsJsonAsync<JsonElement>();
-        var basicRoleId = basicRole.GetProperty("id").ReadLong();
+        // Owner creates a basic group at position 0
+        var basicGroupResponse = await _helper.AuthPostAsync(
+            $"/api/v1/servers/{serverId}/groups", owner.AccessToken,
+            new { name = "BasicGroup", color = "#0000FF", roles = 0L, position = 0 });
+        basicGroupResponse.EnsureSuccessStatusCode();
+        var basicGroup = await basicGroupResponse.ReadAsJsonAsync<JsonElement>();
+        var basicGroupId = basicGroup.GetProperty("id").ReadLong();
 
-        // Moderator tries to update the role to add Administrator
+        // Moderator tries to update the group to add Administrator
         var response = await _helper.AuthPatchAsync(
-            $"/api/v1/servers/{serverId}/roles/{basicRoleId}", moderator.AccessToken,
-            new { permissions = (long)Permission.Administrator });
+            $"/api/v1/servers/{serverId}/groups/{basicGroupId}", moderator.AccessToken,
+            new { roles = (long)Role.Administrator });
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
-            "moderator should not add Administrator permission to a role");
+            "moderator should not add Administrator role to a group");
     }
 
     // ──────────── V8: Ban Server Owner - CRITICAL ────────────
@@ -949,8 +949,8 @@ public class SecurityAuditTests
     [Fact]
     public async Task V8_01_BanServerOwner_ByModerator_Returns400()
     {
-        var (serverId, owner, moderator) = await SetupServerWithModeratorRole(
-            (long)Permission.BanMembers, position: 1);
+        var (serverId, owner, moderator) = await SetupServerWithModeratorGroup(
+            (long)Role.BanMembers, position: 1);
 
         var response = await _helper.AuthPostAsync(
             $"/api/v1/servers/{serverId}/bans", moderator.AccessToken,
@@ -961,17 +961,17 @@ public class SecurityAuditTests
     }
 
     [Fact]
-    public async Task V8_02_BanMember_WithHigherRole_Returns403()
+    public async Task V8_02_BanMember_WithHigherGroup_Returns403()
     {
         var (serverId, owner, moderator, target) = await SetupServerWithModeratorAndTarget(
-            (long)Permission.BanMembers, modPosition: 5, targetPosition: 10);
+            (long)Role.BanMembers, modPosition: 5, targetPosition: 10);
 
         var response = await _helper.AuthPostAsync(
             $"/api/v1/servers/{serverId}/bans", moderator.AccessToken,
             new { userId = target.UserId, reason = "Should fail" });
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
-            "moderator should not ban a user with a higher role position");
+            "moderator should not ban a user with a higher group position");
     }
 
     // ──────────── V9: Shutdown Key Not Validated - CRITICAL ────────────
@@ -1067,16 +1067,16 @@ public class SecurityAuditTests
     // ──────────── V14: Kick User With Higher Role - MEDIUM ────────────
 
     [Fact]
-    public async Task V14_01_KickMember_WithHigherRole_Returns403()
+    public async Task V14_01_KickMember_WithHigherGroup_Returns403()
     {
         var (serverId, owner, moderator, target) = await SetupServerWithModeratorAndTarget(
-            (long)Permission.KickMembers, modPosition: 10, targetPosition: 20);
+            (long)Role.KickMembers, modPosition: 10, targetPosition: 20);
 
         var response = await _helper.AuthDeleteAsync(
             $"/api/v1/servers/{serverId}/members/{target.UserId}", moderator.AccessToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
-            "moderator should not kick a user with a higher role position");
+            "moderator should not kick a user with a higher group position");
     }
 
     // ──────────── V15: Timeout Owner + Higher Role - MEDIUM ────────────
@@ -1084,8 +1084,8 @@ public class SecurityAuditTests
     [Fact]
     public async Task V15_01_TimeoutServerOwner_Returns400()
     {
-        var (serverId, owner, moderator) = await SetupServerWithModeratorRole(
-            (long)Permission.TimeoutMembers, position: 1);
+        var (serverId, owner, moderator) = await SetupServerWithModeratorGroup(
+            (long)Role.TimeoutMembers, position: 1);
 
         var response = await _helper.AuthPostAsync(
             $"/api/v1/servers/{serverId}/members/{owner.UserId}/timeout", moderator.AccessToken,
@@ -1096,17 +1096,17 @@ public class SecurityAuditTests
     }
 
     [Fact]
-    public async Task V15_02_TimeoutMember_WithHigherRole_Returns403()
+    public async Task V15_02_TimeoutMember_WithHigherGroup_Returns403()
     {
         var (serverId, owner, moderator, target) = await SetupServerWithModeratorAndTarget(
-            (long)Permission.TimeoutMembers, modPosition: 5, targetPosition: 10);
+            (long)Role.TimeoutMembers, modPosition: 5, targetPosition: 10);
 
         var response = await _helper.AuthPostAsync(
             $"/api/v1/servers/{serverId}/members/{target.UserId}/timeout", moderator.AccessToken,
             new { durationMinutes = 5 });
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
-            "moderator should not timeout a user with a higher role position");
+            "moderator should not timeout a user with a higher group position");
     }
 
     // ──────────── V16: Test Webhook SSRF - MEDIUM ────────────
@@ -1181,10 +1181,10 @@ public class SecurityAuditTests
     }
 
     /// <summary>
-    /// Sets up a server with a moderator who has a specific role with given permissions and position.
+    /// Sets up a server with a moderator who has a specific group with given roles and position.
     /// </summary>
-    private async Task<(long ServerId, AuthenticatedUser Owner, AuthenticatedUser Moderator)> SetupServerWithModeratorRole(
-        long permissions, int position)
+    private async Task<(long ServerId, AuthenticatedUser Owner, AuthenticatedUser Moderator)> SetupServerWithModeratorGroup(
+        long roles, int position)
     {
         var owner = await _helper.RegisterUserAsync();
         var moderator = await _helper.RegisterUserAsync();
@@ -1194,27 +1194,27 @@ public class SecurityAuditTests
         var inviteCode = await _helper.CreateInviteAsync(owner.AccessToken, serverId);
         await _helper.JoinServerAsync(moderator.AccessToken, inviteCode);
 
-        // Create role with specified permissions
-        var roleResp = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{serverId}/roles", owner.AccessToken,
-            new { name = "Moderator", color = "#00FF00", permissions, position });
-        roleResp.EnsureSuccessStatusCode();
-        var role = await roleResp.ReadAsJsonAsync<JsonElement>();
-        var roleId = role.GetProperty("id").ReadLong();
+        // Create group with specified roles
+        var groupResp = await _helper.AuthPostAsync(
+            $"/api/v1/servers/{serverId}/groups", owner.AccessToken,
+            new { name = "Moderator", color = "#00FF00", roles, position });
+        groupResp.EnsureSuccessStatusCode();
+        var group = await groupResp.ReadAsJsonAsync<JsonElement>();
+        var groupId = group.GetProperty("id").ReadLong();
 
-        // Assign role to moderator
+        // Assign group to moderator
         var assignResp = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{serverId}/members/{moderator.UserId}/roles/{roleId}", owner.AccessToken);
+            $"/api/v1/servers/{serverId}/members/{moderator.UserId}/groups/{groupId}", owner.AccessToken);
         assignResp.EnsureSuccessStatusCode();
 
         return (serverId, owner, moderator);
     }
 
     /// <summary>
-    /// Sets up a server with a moderator (with given permissions) and a target user with a higher role.
+    /// Sets up a server with a moderator (with given roles) and a target user with a higher group.
     /// </summary>
     private async Task<(long ServerId, AuthenticatedUser Owner, AuthenticatedUser Moderator, AuthenticatedUser Target)>
-        SetupServerWithModeratorAndTarget(long permissions, int modPosition, int targetPosition)
+        SetupServerWithModeratorAndTarget(long roles, int modPosition, int targetPosition)
     {
         var owner = await _helper.RegisterUserAsync();
         var moderator = await _helper.RegisterUserAsync();
@@ -1227,28 +1227,28 @@ public class SecurityAuditTests
         inviteCode = await _helper.CreateInviteAsync(owner.AccessToken, serverId);
         await _helper.JoinServerAsync(target.AccessToken, inviteCode);
 
-        // Create moderator role
-        var modRoleResp = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{serverId}/roles", owner.AccessToken,
-            new { name = "Moderator", color = "#00FF00", permissions, position = modPosition });
-        modRoleResp.EnsureSuccessStatusCode();
-        var modRole = await modRoleResp.ReadAsJsonAsync<JsonElement>();
-        var modRoleId = modRole.GetProperty("id").ReadLong();
+        // Create moderator group
+        var modGroupResp = await _helper.AuthPostAsync(
+            $"/api/v1/servers/{serverId}/groups", owner.AccessToken,
+            new { name = "Moderator", color = "#00FF00", roles, position = modPosition });
+        modGroupResp.EnsureSuccessStatusCode();
+        var modGroup = await modGroupResp.ReadAsJsonAsync<JsonElement>();
+        var modGroupId = modGroup.GetProperty("id").ReadLong();
 
-        // Create higher role for target (no special permissions)
-        var highRoleResp = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{serverId}/roles", owner.AccessToken,
-            new { name = "Admin", color = "#FF0000", permissions = 0L, position = targetPosition });
-        highRoleResp.EnsureSuccessStatusCode();
-        var highRole = await highRoleResp.ReadAsJsonAsync<JsonElement>();
-        var highRoleId = highRole.GetProperty("id").ReadLong();
+        // Create higher group for target (no special roles)
+        var highGroupResp = await _helper.AuthPostAsync(
+            $"/api/v1/servers/{serverId}/groups", owner.AccessToken,
+            new { name = "Admin", color = "#FF0000", roles = 0L, position = targetPosition });
+        highGroupResp.EnsureSuccessStatusCode();
+        var highGroup = await highGroupResp.ReadAsJsonAsync<JsonElement>();
+        var highGroupId = highGroup.GetProperty("id").ReadLong();
 
-        // Assign roles
+        // Assign groups
         var assignMod = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{serverId}/members/{moderator.UserId}/roles/{modRoleId}", owner.AccessToken);
+            $"/api/v1/servers/{serverId}/members/{moderator.UserId}/groups/{modGroupId}", owner.AccessToken);
         assignMod.EnsureSuccessStatusCode();
         var assignTarget = await _helper.AuthPostAsync(
-            $"/api/v1/servers/{serverId}/members/{target.UserId}/roles/{highRoleId}", owner.AccessToken);
+            $"/api/v1/servers/{serverId}/members/{target.UserId}/groups/{highGroupId}", owner.AccessToken);
         assignTarget.EnsureSuccessStatusCode();
 
         return (serverId, owner, moderator, target);

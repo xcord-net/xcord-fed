@@ -32,7 +32,7 @@ public sealed class PinMessageHandler(
 
         // Verify the user has ManageMessages permission on this conversation
         var contextResult = await conversationResolver.ResolveAsync(
-            request.ConversationId, userId, Permission.ManageMessages, cancellationToken);
+            request.ConversationId, userId, Role.ManageMessages, cancellationToken);
         if (contextResult.IsFailure) return contextResult.Error;
 
         // Find the message and verify it belongs to the conversation

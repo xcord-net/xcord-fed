@@ -32,7 +32,7 @@ public sealed record CreateForumTagResponse(
 public sealed class CreateForumTagHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     ILogger<CreateForumTagHandler> logger)
     : IRequestHandler<CreateForumTagCommand, Result<CreateForumTagResponse>>, IValidatable<CreateForumTagCommand>
@@ -72,10 +72,10 @@ public sealed class CreateForumTagHandler(
             return Error.Validation("NOT_FORUM_CHANNEL", "Channel is not a forum channel");
         }
 
-        var permissionResult = await permissionService.EnsureChannelPermission(
+        var permissionResult = await roleService.EnsureChannelRole(
             userId,
             request.ChannelId,
-            Permission.ManageChannels);
+            Role.ManageChannels);
 
         if (permissionResult.IsFailure)
         {

@@ -32,7 +32,7 @@ public sealed class ListPinnedMessagesHandler(
 
         // Verify the user has ReadMessageHistory permission on this conversation
         var contextResult = await conversationResolver.ResolveAsync(
-            request.ConversationId, userId, Permission.ReadMessageHistory, cancellationToken);
+            request.ConversationId, userId, Role.ReadMessageHistory, cancellationToken);
         if (contextResult.IsFailure) return contextResult.Error;
 
         // Query pinned messages for the conversation, ordered by PinnedAt descending

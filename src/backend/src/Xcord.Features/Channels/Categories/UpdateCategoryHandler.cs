@@ -33,7 +33,7 @@ public sealed record UpdateCategoryRequest(
 
 public sealed class UpdateCategoryHandler(
     AppDbContext dbContext,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     ILogger<UpdateCategoryHandler> logger)
     : IRequestHandler<UpdateCategoryCommand, Result<UpdateCategoryResponse>>, IValidatable<UpdateCategoryCommand>
@@ -77,10 +77,10 @@ public sealed class UpdateCategoryHandler(
         }
 
         // Check ManageChannels permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             request.ServerId,
-            Permission.ManageChannels);
+            Role.ManageChannels);
 
         if (permissionResult.IsFailure)
         {

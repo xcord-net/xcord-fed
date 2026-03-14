@@ -23,7 +23,7 @@ public sealed class RemoveTimeoutHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ITimeoutService timeoutService,
     ILogger<RemoveTimeoutHandler> logger)
     : IRequestHandler<RemoveTimeoutCommand, Result<RemoveTimeoutResponse>>
@@ -35,10 +35,10 @@ public sealed class RemoveTimeoutHandler(
         var moderatorId = userIdResult.Value;
 
         // Check if moderator has TimeoutMembers permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             moderatorId,
             request.ServerId,
-            Permission.TimeoutMembers);
+            Role.TimeoutMembers);
 
         if (permissionResult.IsFailure)
         {

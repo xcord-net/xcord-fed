@@ -20,7 +20,7 @@ public sealed class MessageProcessor : IMessageProcessor
     private readonly SnowflakeIdGenerator _snowflakeGenerator;
     private readonly IAutomodService _automodService;
     private readonly ISlowmodeService _slowmodeService;
-    private readonly IPermissionService _permissionService;
+    private readonly IRoleService _roleService;
 
     // Regex patterns for mention parsing and URL extraction
     // Note: Content is HTML-encoded before mention parsing, so angle brackets become &lt; and &gt;
@@ -35,16 +35,16 @@ public sealed class MessageProcessor : IMessageProcessor
         SnowflakeIdGenerator snowflakeGenerator,
         IAutomodService automodService,
         ISlowmodeService slowmodeService,
-        IPermissionService permissionService)
+        IRoleService roleService)
     {
         _dbContext = dbContext;
         _snowflakeGenerator = snowflakeGenerator;
         _automodService = automodService;
         _slowmodeService = slowmodeService;
-        _permissionService = permissionService;
+        _roleService = roleService;
     }
 
-    public async Task<Result<MessageProcessingResult>> ProcessAsync(Message message, long serverId, long channelId, IEnumerable<long> authorRoleIds, bool isBot)
+    public async Task<Result<MessageProcessingResult>> ProcessAsync(Message message, long serverId, long channelId, IEnumerable<long> authorGroupIds, bool isBot)
     {
         // Step 1: Sanitize content
         SanitizeContent(message);
@@ -62,7 +62,7 @@ public sealed class MessageProcessor : IMessageProcessor
             serverId,
             channelId,
             message.AuthorId ?? 0,
-            authorRoleIds,
+            authorGroupIds,
             isBot);
 
         if (!automodResult.IsAllowed)
@@ -197,7 +197,7 @@ public sealed class MessageProcessor : IMessageProcessor
         // Batch-load all valid role IDs in a single query to avoid per-mention round-trips
         if (candidateRoleIds.Count > 0)
         {
-            var validRoleIds = await _dbContext.Roles
+            var validRoleIds = await _dbContext.Groups
                 .AsNoTracking()
                 .Where(r => r.ServerId == serverId && candidateRoleIds.Contains(r.Id))
                 .Select(r => r.Id)
@@ -213,7 +213,7 @@ public sealed class MessageProcessor : IMessageProcessor
                     {
                         Id = _snowflakeGenerator.NextId(),
                         MessageId = message.Id,
-                        MentionedRoleId = roleId
+                        MentionedGroupId = roleId
                     });
                 }
             }
@@ -351,8 +351,8 @@ public sealed class MessageProcessor : IMessageProcessor
         var authorId = message.AuthorId ?? 0;
         if (authorId > 0)
         {
-            var channelPermissions = await _permissionService.GetChannelPermissions(authorId, channelId);
-            var bypassPermissions = (long)(Permission.ManageMessages | Permission.ManageChannels);
+            var channelPermissions = await _roleService.GetChannelRoles(authorId, channelId);
+            var bypassPermissions = (long)(Role.ManageMessages | Role.ManageChannels);
             if ((channelPermissions & bypassPermissions) != 0)
             {
                 return true;

@@ -14,7 +14,7 @@ public sealed record UpdateOnboardingRequest(bool IsEnabled, string? DefaultChan
 
 public sealed class UpdateOnboardingHandler(
     AppDbContext dbContext, SnowflakeIdGenerator snowflakeGenerator,
-    ICurrentUserService currentUserService, IPermissionService permissionService)
+    ICurrentUserService currentUserService, IRoleService roleService)
     : IRequestHandler<UpdateOnboardingCommand, Result<OnboardingResponse>>
 {
     public async Task<Result<OnboardingResponse>> Handle(UpdateOnboardingCommand request, CancellationToken ct)
@@ -23,7 +23,7 @@ public sealed class UpdateOnboardingHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        var perm = await permissionService.EnsureServerPermission(userId, request.ServerId, Permission.ManageServer);
+        var perm = await roleService.EnsureServerRole(userId, request.ServerId, Role.ManageServer);
         if (perm.IsFailure) return Error.Forbidden("MISSING_PERMISSIONS", "You do not have permission");
 
         var now = DateTimeOffset.UtcNow;

@@ -11,23 +11,23 @@ using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Billing;
 
-public sealed record CreateSubscriptionTierCommand(
+public sealed record CreateTierCommand(
     long ServerId,
     string Name,
     string? Description,
     int PriceMonthly,
     string Currency,
-    long[] RoleIds
+    long[] GroupIds
 );
 
-public sealed class CreateSubscriptionTierHandler(
+public sealed class CreateTierHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService)
-    : IRequestHandler<CreateSubscriptionTierCommand, Result<SubscriptionTierDto>>,
-      IValidatable<CreateSubscriptionTierCommand>
+    : IRequestHandler<CreateTierCommand, Result<TierDto>>,
+      IValidatable<CreateTierCommand>
 {
-    public Error? Validate(CreateSubscriptionTierCommand request)
+    public Error? Validate(CreateTierCommand request)
     {
         if (request.ServerId <= 0)
             return Error.Validation("VALIDATION_ERROR", "ServerId is required");
@@ -42,8 +42,8 @@ public sealed class CreateSubscriptionTierHandler(
         return null;
     }
 
-    public async Task<Result<SubscriptionTierDto>> Handle(
-        CreateSubscriptionTierCommand request, CancellationToken cancellationToken)
+    public async Task<Result<TierDto>> Handle(
+        CreateTierCommand request, CancellationToken cancellationToken)
     {
         var userIdResult = currentUserService.GetCurrentUserId();
         if (userIdResult.IsFailure) return userIdResult.Error;
@@ -59,14 +59,14 @@ public sealed class CreateSubscriptionTierHandler(
         if (server.OwnerId != userId)
             return Error.Forbidden("NOT_OWNER", "Only the server owner can manage subscription tiers");
 
-        var existingCount = await dbContext.MemberSubscriptionTiers
+        var existingCount = await dbContext.Tiers
             .CountAsync(t => t.ServerId == request.ServerId, cancellationToken);
 
         if (existingCount >= 10)
             return Error.BadRequest("MAX_TIERS", "Maximum of 10 subscription tiers per server");
 
         var now = DateTimeOffset.UtcNow;
-        var tier = new MemberSubscriptionTier
+        var tier = new Tier
         {
             Id = snowflakeGenerator.NextId(),
             ServerId = request.ServerId,
@@ -74,23 +74,23 @@ public sealed class CreateSubscriptionTierHandler(
             Description = request.Description,
             PriceMonthly = request.PriceMonthly,
             Currency = request.Currency,
-            RoleIdsJson = JsonSerializer.Serialize(request.RoleIds),
+            GroupIdsJson = JsonSerializer.Serialize(request.GroupIds),
             IsActive = true,
             Position = existingCount,
             CreatedAt = now
         };
 
-        dbContext.MemberSubscriptionTiers.Add(tier);
+        dbContext.Tiers.Add(tier);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return new SubscriptionTierDto(
+        return new TierDto(
             Id: tier.Id.ToString(),
             ServerId: tier.ServerId.ToString(),
             Name: tier.Name,
             Description: tier.Description,
             PriceMonthly: tier.PriceMonthly,
             Currency: tier.Currency,
-            RoleIds: request.RoleIds,
+            GroupIds: request.GroupIds,
             IsActive: tier.IsActive,
             Position: tier.Position
         );
@@ -98,26 +98,26 @@ public sealed class CreateSubscriptionTierHandler(
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
     {
-        return app.MapPost("/api/v1/servers/{serverId}/subscription-tiers", async (
+        return app.MapPost("/api/v1/servers/{serverId}/tiers", async (
             [FromRoute] long serverId,
-            [FromBody] CreateSubscriptionTierRequest request,
-            IRequestHandler<CreateSubscriptionTierCommand, Result<SubscriptionTierDto>> handler,
+            [FromBody] CreateTierRequest request,
+            IRequestHandler<CreateTierCommand, Result<TierDto>> handler,
             CancellationToken ct) =>
         {
-            var command = new CreateSubscriptionTierCommand(
+            var command = new CreateTierCommand(
                 ServerId: serverId,
                 Name: request.Name,
                 Description: request.Description,
                 PriceMonthly: request.PriceMonthly,
                 Currency: request.Currency ?? "usd",
-                RoleIds: request.RoleIds ?? []
+                GroupIds: request.GroupIds ?? []
             );
             return await handler.ExecuteAsync(command, ct,
-                tier => Results.Created($"/api/v1/servers/{serverId}/subscription-tiers/{tier.Id}", tier));
+                tier => Results.Created($"/api/v1/servers/{serverId}/tiers/{tier.Id}", tier));
         })
         .RequireAuthorization(Policies.User)
         .WithTags("Billing")
-        .WithName("CreateSubscriptionTier")
-        .Produces<SubscriptionTierDto>(StatusCodes.Status201Created);
+        .WithName("CreateTier")
+        .Produces<TierDto>(StatusCodes.Status201Created);
     }
 }

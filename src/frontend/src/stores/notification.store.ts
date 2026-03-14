@@ -128,7 +128,7 @@ export function useNotifications() {
         channelId: null,
         level,
         suppressEveryone: false,
-        suppressRoles: false,
+        suppressGroups: false,
         muteUntil: null,
       });
       const overrides = store.serverOverrides().filter((o) => o.serverId !== serverId);

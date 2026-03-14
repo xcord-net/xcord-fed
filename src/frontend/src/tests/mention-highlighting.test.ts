@@ -44,17 +44,17 @@ describe('mention highlighting', () => {
     });
   });
 
-  describe('<@&roleId>', () => {
-    it('should parse role mention', () => {
+  describe('<@&groupId>', () => {
+    it('should parse group mention', () => {
       const tokens = parseMarkdown('<@&111222333>');
       expect(tokens).toHaveLength(1);
-      expect(tokens[0].type).toBe('mention_role');
+      expect(tokens[0].type).toBe('mention_group');
       expect((tokens[0] as { type: string; value: string }).value).toBe('111222333');
     });
 
-    it('should distinguish role mention from user mention', () => {
+    it('should distinguish group mention from user mention', () => {
       const tokens = parseMarkdown('<@&111> vs <@222>');
-      expect(tokens.some(t => t.type === 'mention_role')).toBe(true);
+      expect(tokens.some(t => t.type === 'mention_group')).toBe(true);
       expect(tokens.some(t => t.type === 'mention_user')).toBe(true);
     });
   });
@@ -64,7 +64,7 @@ describe('mention highlighting', () => {
       const tokens = parseMarkdown('@everyone and <@123> and <@&456>');
       expect(tokens.some(t => t.type === 'mention_everyone')).toBe(true);
       expect(tokens.some(t => t.type === 'mention_user')).toBe(true);
-      expect(tokens.some(t => t.type === 'mention_role')).toBe(true);
+      expect(tokens.some(t => t.type === 'mention_group')).toBe(true);
     });
   });
 });

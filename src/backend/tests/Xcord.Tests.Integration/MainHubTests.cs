@@ -451,7 +451,7 @@ public class MainHubTests
         }
     }
 
-    // ──────────── Permission Checks ────────────
+    // ──────────── Role Checks ────────────
 
     [Fact]
     public async Task JoinConversation_AsNonMember_ThrowsHubException()

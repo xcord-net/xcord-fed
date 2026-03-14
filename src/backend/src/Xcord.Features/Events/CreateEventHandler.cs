@@ -25,7 +25,7 @@ public sealed class CreateEventHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ILogger<CreateEventHandler> logger)
     : IRequestHandler<CreateEventCommand, Result<EventDto>>, IValidatable<CreateEventCommand>
 {
@@ -85,10 +85,10 @@ public sealed class CreateEventHandler(
         }
 
         // Verify user has ManageEvents permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             request.ServerId,
-            Permission.ManageEvents);
+            Role.ManageEvents);
 
         if (permissionResult.IsFailure)
         {

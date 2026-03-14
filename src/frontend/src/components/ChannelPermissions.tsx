@@ -38,7 +38,7 @@ export const ALL_PERMISSIONS: PermissionKey[] = [
   'Speak',
 ];
 
-export type OverrideSubjectType = 'Role' | 'Member';
+export type OverrideSubjectType = 'Group' | 'Member';
 
 export interface PermissionOverride {
   subjectType: OverrideSubjectType;
@@ -163,7 +163,7 @@ export default function ChannelPermissions(props: ChannelPermissionsProps) {
       <div class="px-4 py-3 border-b border-xcord-border">
         <h2 class="text-white font-semibold">Channel Permissions</h2>
         <p class="text-xcord-text-muted text-xs mt-0.5">
-          Configure per-role and per-member permission overrides for this channel.
+          Configure per-group and per-member permission overrides for this channel.
         </p>
       </div>
 
@@ -182,9 +182,9 @@ export default function ChannelPermissions(props: ChannelPermissionsProps) {
           {/* Override list (left panel) */}
           <div class="w-56 border-r border-xcord-border overflow-y-auto flex-shrink-0">
             <div class="px-3 py-2 text-xcord-text-muted text-xs uppercase font-semibold tracking-wide">
-              Roles
+              Groups
             </div>
-            <For each={data()!.overrides.filter((o) => o.subjectType === 'Role')}>
+            <For each={data()!.overrides.filter((o) => o.subjectType === 'Group')}>
               {(override) => (
                 <button
                   class={`w-full text-left px-3 py-2 text-sm transition-colors ${
@@ -232,7 +232,7 @@ export default function ChannelPermissions(props: ChannelPermissionsProps) {
               when={selectedOverride() !== null && dirtyPermissions() !== null}
               fallback={
                 <div class="flex flex-col items-center justify-center py-8 text-center">
-                  <p class="text-xcord-text-muted text-sm">Select a role or member to edit permissions.</p>
+                  <p class="text-xcord-text-muted text-sm">Select a group or member to edit permissions.</p>
                 </div>
               }
             >

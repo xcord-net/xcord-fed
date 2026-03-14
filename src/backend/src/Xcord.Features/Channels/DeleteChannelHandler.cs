@@ -15,7 +15,7 @@ public sealed record DeleteChannelCommand(long ChannelId);
 
 public sealed class DeleteChannelHandler(
     AppDbContext dbContext,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     ILogger<DeleteChannelHandler> logger)
     : IRequestHandler<DeleteChannelCommand, Result<bool>>
@@ -36,10 +36,10 @@ public sealed class DeleteChannelHandler(
         }
 
         // Check ManageChannels permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             channel.ServerId,
-            Permission.ManageChannels);
+            Role.ManageChannels);
 
         if (permissionResult.IsFailure)
         {

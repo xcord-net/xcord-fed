@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using System.Security.Claims;
 using Xcord.Entities;
+using Role = Xcord.Entities.Role;
 using Xcord.Infrastructure.Services;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Options;
@@ -204,7 +205,7 @@ public class MainHub : Hub
         // Verify user has ReadMessageHistory permission for the conversation's channel
         using var scope = _serviceScopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var permissionService = scope.ServiceProvider.GetRequiredService<IPermissionService>();
+        var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
 
         // Find the channel associated with this conversation
         var channel = await context.Channels
@@ -217,10 +218,10 @@ public class MainHub : Hub
         }
 
         // Check permission
-        var permissionResult = await permissionService.EnsureChannelPermission(
+        var permissionResult = await roleService.EnsureChannelRole(
             userId.Value,
             channel.Id,
-            Permission.ReadMessageHistory);
+            Role.ReadMessageHistory);
 
         if (permissionResult.IsFailure)
         {
@@ -260,7 +261,7 @@ public class MainHub : Hub
         // Verify user has SendMessages permission for the conversation's channel
         using var scope = _serviceScopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var permissionService = scope.ServiceProvider.GetRequiredService<IPermissionService>();
+        var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
 
         // Find the channel associated with this conversation
         var channel = await context.Channels
@@ -273,10 +274,10 @@ public class MainHub : Hub
         }
 
         // Check permission
-        var permissionResult = await permissionService.EnsureChannelPermission(
+        var permissionResult = await roleService.EnsureChannelRole(
             userId.Value,
             channel.Id,
-            Permission.SendMessages);
+            Role.SendMessages);
 
         if (permissionResult.IsFailure)
         {
@@ -411,14 +412,14 @@ public class MainHub : Hub
 
         using var scope = _serviceScopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var permissionService = scope.ServiceProvider.GetRequiredService<IPermissionService>();
+        var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
         var liveKitService = scope.ServiceProvider.GetRequiredService<ILiveKitService>();
 
         // Check Connect permission
-        var permissionResult = await permissionService.EnsureChannelPermission(
+        var permissionResult = await roleService.EnsureChannelRole(
             userId.Value,
             channelId,
-            Permission.Connect);
+            Role.Connect);
 
         if (permissionResult.IsFailure)
         {
@@ -460,8 +461,8 @@ public class MainHub : Hub
         }
 
         // Check if user has ShareScreen permission
-        var channelPerms = await permissionService.GetChannelPermissions(userId.Value, channelId);
-        var canScreenShare = (channelPerms & (long)Permission.ShareScreen) != 0;
+        var channelPerms = await roleService.GetChannelRoles(userId.Value, channelId);
+        var canScreenShare = (channelPerms & (long)Role.ShareScreen) != 0;
 
         // Generate LiveKit room name
         var roomName = $"{_instanceDomain}:voice:{channelId}";
@@ -597,7 +598,7 @@ public class MainHub : Hub
 
         using var scope = _serviceScopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var permissionService = scope.ServiceProvider.GetRequiredService<IPermissionService>();
+        var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
 
         // Find VoiceState
         var voiceState = await context.VoiceStates
@@ -611,10 +612,10 @@ public class MainHub : Hub
         // If isStreaming is being changed to true, check ShareScreen permission
         if (isStreaming == true && !voiceState.IsStreaming)
         {
-            var permissionResult = await permissionService.EnsureChannelPermission(
+            var permissionResult = await roleService.EnsureChannelRole(
                 userId.Value,
                 channelId,
-                Permission.ShareScreen);
+                Role.ShareScreen);
 
             if (permissionResult.IsFailure)
             {
@@ -670,7 +671,7 @@ public class MainHub : Hub
 
         using var scope = _serviceScopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var permissionService = scope.ServiceProvider.GetRequiredService<IPermissionService>();
+        var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
         var liveKitService = scope.ServiceProvider.GetRequiredService<ILiveKitService>();
 
         // Verify user has VoiceState (still connected)
@@ -683,8 +684,8 @@ public class MainHub : Hub
         }
 
         // Check if user still has ShareScreen permission
-        var channelPerms = await permissionService.GetChannelPermissions(userId.Value, channelId);
-        var canScreenShare = (channelPerms & (long)Permission.ShareScreen) != 0;
+        var channelPerms = await roleService.GetChannelRoles(userId.Value, channelId);
+        var canScreenShare = (channelPerms & (long)Role.ShareScreen) != 0;
 
         // Generate LiveKit room name
         var roomName = $"{_instanceDomain}:voice:{channelId}";
@@ -744,7 +745,7 @@ public class MainHub : Hub
 
         using var scope = _serviceScopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var permissionService = scope.ServiceProvider.GetRequiredService<IPermissionService>();
+        var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
 
         // Verify user has VoiceState in channel (must be in voice)
         var voiceState = await context.VoiceStates
@@ -756,10 +757,10 @@ public class MainHub : Hub
         }
 
         // Verify ShareScreen permission
-        var permissionResult = await permissionService.EnsureChannelPermission(
+        var permissionResult = await roleService.EnsureChannelRole(
             userId.Value,
             channelId,
-            Permission.ShareScreen);
+            Role.ShareScreen);
 
         if (permissionResult.IsFailure)
         {

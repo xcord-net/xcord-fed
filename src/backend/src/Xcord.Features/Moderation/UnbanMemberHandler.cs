@@ -23,7 +23,7 @@ public sealed class UnbanMemberHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ILogger<UnbanMemberHandler> logger)
     : IRequestHandler<UnbanMemberCommand, Result<UnbanMemberResponse>>
 {
@@ -34,10 +34,10 @@ public sealed class UnbanMemberHandler(
         var moderatorId = userIdResult.Value;
 
         // Check if moderator has BanMembers permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             moderatorId,
             request.ServerId,
-            Permission.BanMembers);
+            Role.BanMembers);
 
         if (permissionResult.IsFailure)
         {

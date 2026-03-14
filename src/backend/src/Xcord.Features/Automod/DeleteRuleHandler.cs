@@ -17,7 +17,7 @@ public sealed record DeleteRuleCommand(
 
 public sealed class DeleteRuleHandler(
     AppDbContext dbContext,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     ILogger<DeleteRuleHandler> logger)
     : IRequestHandler<DeleteRuleCommand, Result<bool>>
@@ -29,10 +29,10 @@ public sealed class DeleteRuleHandler(
         var userId = userIdResult.Value;
 
         // Check ManageAutomod permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             request.ServerId,
-            Permission.ManageAutomod);
+            Role.ManageAutomod);
 
         if (permissionResult.IsFailure)
         {

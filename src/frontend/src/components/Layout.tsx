@@ -16,7 +16,7 @@ import UserProfileEditor from './UserProfileEditor';
 import BlockList from './BlockList';
 import NotificationSettings from './NotificationSettings';
 import ChannelSettings from './ChannelSettings';
-import RoleManager from './RoleManager';
+import GroupManager from './GroupManager';
 import ScheduledEvents from './ScheduledEvents';
 import ScheduledMessages from './ScheduledMessages';
 import UserNotes from './UserNotes';
@@ -278,10 +278,10 @@ export default function Layout() {
                       &#9965;
                     </button>
                     <button
-                      title="Roles"
-                      aria-label="Role Manager"
-                      class={`px-2 py-1 text-sm rounded transition ${modals.showRoleManager ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
-                      onClick={() => modals.toggleRoleManager()}
+                      title="Groups"
+                      aria-label="Group Manager"
+                      class={`px-2 py-1 text-sm rounded transition ${modals.showGroupManager ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
+                      onClick={() => modals.toggleGroupManager()}
                     >
                       &#127775;
                     </button>
@@ -451,10 +451,10 @@ export default function Layout() {
         />
       </Show>
 
-      {/* Role Manager modal */}
-      <Modal open={modals.showRoleManager && !!serverStore.selectedServerId} onClose={() => modals.closeRoleManager()} aria-label="Role Manager" size="xl">
+      {/* Group Manager modal */}
+      <Modal open={modals.showGroupManager && !!serverStore.selectedServerId} onClose={() => modals.closeGroupManager()} aria-label="Group Manager" size="xl">
         <div class="h-[min(600px,70vh)]">
-          <RoleManager serverId={serverStore.selectedServerId!} />
+          <GroupManager serverId={serverStore.selectedServerId!} />
         </div>
       </Modal>
     </div>

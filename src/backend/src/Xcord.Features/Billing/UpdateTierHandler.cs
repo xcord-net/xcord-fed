@@ -10,23 +10,23 @@ using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Billing;
 
-public sealed record UpdateSubscriptionTierCommand(
+public sealed record UpdateTierCommand(
     long ServerId,
     long TierId,
     string? Name,
     string? Description,
     int? PriceMonthly,
-    long[]? RoleIds,
+    long[]? GroupIds,
     bool? IsActive
 );
 
-public sealed class UpdateSubscriptionTierHandler(
+public sealed class UpdateTierHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService)
-    : IRequestHandler<UpdateSubscriptionTierCommand, Result<SubscriptionTierDto>>
+    : IRequestHandler<UpdateTierCommand, Result<TierDto>>
 {
-    public async Task<Result<SubscriptionTierDto>> Handle(
-        UpdateSubscriptionTierCommand request, CancellationToken cancellationToken)
+    public async Task<Result<TierDto>> Handle(
+        UpdateTierCommand request, CancellationToken cancellationToken)
     {
         var userIdResult = currentUserService.GetCurrentUserId();
         if (userIdResult.IsFailure) return userIdResult.Error;
@@ -42,7 +42,7 @@ public sealed class UpdateSubscriptionTierHandler(
         if (server.OwnerId != userId)
             return Error.Forbidden("NOT_OWNER", "Only the server owner can manage subscription tiers");
 
-        var tier = await dbContext.MemberSubscriptionTiers
+        var tier = await dbContext.Tiers
             .FirstOrDefaultAsync(t => t.Id == request.TierId && t.ServerId == request.ServerId, cancellationToken);
 
         if (tier == null)
@@ -51,20 +51,20 @@ public sealed class UpdateSubscriptionTierHandler(
         if (request.Name != null) tier.Name = request.Name;
         if (request.Description != null) tier.Description = request.Description;
         if (request.PriceMonthly.HasValue) tier.PriceMonthly = request.PriceMonthly.Value;
-        if (request.RoleIds != null) tier.RoleIdsJson = JsonSerializer.Serialize(request.RoleIds);
+        if (request.GroupIds != null) tier.GroupIdsJson = JsonSerializer.Serialize(request.GroupIds);
         if (request.IsActive.HasValue) tier.IsActive = request.IsActive.Value;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        var roleIds = JsonSerializer.Deserialize<long[]>(tier.RoleIdsJson) ?? [];
-        return new SubscriptionTierDto(
+        var groupIds = JsonSerializer.Deserialize<long[]>(tier.GroupIdsJson) ?? [];
+        return new TierDto(
             Id: tier.Id.ToString(),
             ServerId: tier.ServerId.ToString(),
             Name: tier.Name,
             Description: tier.Description,
             PriceMonthly: tier.PriceMonthly,
             Currency: tier.Currency,
-            RoleIds: roleIds,
+            GroupIds: groupIds,
             IsActive: tier.IsActive,
             Position: tier.Position
         );
@@ -72,27 +72,27 @@ public sealed class UpdateSubscriptionTierHandler(
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
     {
-        return app.MapPatch("/api/v1/servers/{serverId}/subscription-tiers/{tierId}", async (
+        return app.MapPatch("/api/v1/servers/{serverId}/tiers/{tierId}", async (
             [FromRoute] long serverId,
             [FromRoute] long tierId,
-            [FromBody] UpdateSubscriptionTierRequest request,
-            IRequestHandler<UpdateSubscriptionTierCommand, Result<SubscriptionTierDto>> handler,
+            [FromBody] UpdateTierRequest request,
+            IRequestHandler<UpdateTierCommand, Result<TierDto>> handler,
             CancellationToken ct) =>
         {
-            var command = new UpdateSubscriptionTierCommand(
+            var command = new UpdateTierCommand(
                 ServerId: serverId,
                 TierId: tierId,
                 Name: request.Name,
                 Description: request.Description,
                 PriceMonthly: request.PriceMonthly,
-                RoleIds: request.RoleIds,
+                GroupIds: request.GroupIds,
                 IsActive: request.IsActive
             );
             return await handler.ExecuteAsync(command, ct);
         })
         .RequireAuthorization(Policies.User)
         .WithTags("Billing")
-        .WithName("UpdateSubscriptionTier")
-        .Produces<SubscriptionTierDto>(200);
+        .WithName("UpdateTier")
+        .Produces<TierDto>(200);
     }
 }

@@ -14,20 +14,20 @@ namespace Xcord.Features.Admin;
 public sealed record CreateBotTokenCommand(
     long BotId,
     string TokenName,
-    long Permissions
+    long Roles
 );
 
 public sealed record CreateBotTokenResponse(
     long TokenId,
     string TokenName,
     string RawToken,
-    long Permissions,
+    long Roles,
     DateTimeOffset CreatedAt
 );
 
 public sealed record CreateBotTokenRequest(
     string TokenName,
-    long Permissions
+    long Roles
 );
 
 public sealed class CreateBotTokenHandler(
@@ -53,9 +53,9 @@ public sealed class CreateBotTokenHandler(
             return Error.Validation("VALIDATION_ERROR", "Token name cannot exceed 100 characters");
         }
 
-        if (request.Permissions < 0)
+        if (request.Roles < 0)
         {
-            return Error.Validation("VALIDATION_ERROR", "Permissions must be a non-negative value");
+            return Error.Validation("VALIDATION_ERROR", "Roles must be a non-negative value");
         }
 
         return null;
@@ -89,7 +89,7 @@ public sealed class CreateBotTokenHandler(
             TokenHash = tokenHash,
             UserId = request.BotId,
             Name = request.TokenName,
-            Permissions = request.Permissions,
+            Roles = request.Roles,
             IsRevoked = false,
             CreatedAt = now,
             LastUsedAt = null
@@ -106,7 +106,7 @@ public sealed class CreateBotTokenHandler(
             TokenId: botToken.Id,
             TokenName: botToken.Name,
             RawToken: rawToken,
-            Permissions: botToken.Permissions,
+            Roles: botToken.Roles,
             CreatedAt: botToken.CreatedAt
         );
     }
@@ -137,7 +137,7 @@ public sealed class CreateBotTokenHandler(
             var command = new CreateBotTokenCommand(
                 BotId: botId,
                 TokenName: requestBody.TokenName,
-                Permissions: requestBody.Permissions
+                Roles: requestBody.Roles
             );
 
             return await handler.ExecuteAsync(command, ct);

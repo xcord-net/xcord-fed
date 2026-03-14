@@ -17,10 +17,10 @@ public interface IMessageProcessor
     /// <param name="message">The message to process (content will be modified).</param>
     /// <param name="serverId">The server ID for permission checks.</param>
     /// <param name="channelId">The channel ID for automod exemptions.</param>
-    /// <param name="authorRoleIds">The role IDs the author has in this server.</param>
+    /// <param name="authorGroupIds">The group IDs the author has in this server.</param>
     /// <param name="isBot">Whether the author is a bot.</param>
     /// <returns>Result containing the processed message and optional automod deferred actions, or an error.</returns>
-    Task<Result<MessageProcessingResult>> ProcessAsync(Message message, long serverId, long channelId, IEnumerable<long> authorRoleIds, bool isBot);
+    Task<Result<MessageProcessingResult>> ProcessAsync(Message message, long serverId, long channelId, IEnumerable<long> authorGroupIds, bool isBot);
 }
 
 /// <summary>

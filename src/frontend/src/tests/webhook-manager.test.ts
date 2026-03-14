@@ -169,7 +169,7 @@ describe('WebhookManager', () => {
         'member.left',
         'channel.created',
         'channel.deleted',
-        'role.updated',
+        'group.updated',
       ]);
     });
 

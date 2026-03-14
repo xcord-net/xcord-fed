@@ -16,7 +16,7 @@ public sealed record DeleteInviteCommand(long ServerId, string Code);
 public sealed class DeleteInviteHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ILogger<DeleteInviteHandler> logger)
     : IRequestHandler<DeleteInviteCommand, Result<bool>>
 {
@@ -27,7 +27,7 @@ public sealed class DeleteInviteHandler(
         var userId = userIdResult.Value;
 
         // Check CreateInvite permission (controls invite management)
-        var permResult = await permissionService.EnsureServerPermission(userId, request.ServerId, Permission.CreateInvite);
+        var permResult = await roleService.EnsureServerRole(userId, request.ServerId, Role.CreateInvite);
         if (permResult.IsFailure)
         {
             return Error.Forbidden("MISSING_PERMISSION", "You do not have permission to manage invites");

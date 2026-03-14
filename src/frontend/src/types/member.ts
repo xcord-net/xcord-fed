@@ -1,4 +1,4 @@
-export interface Role {
+export interface Group {
   id: string;
   name: string;
   color?: string;
@@ -12,7 +12,7 @@ export interface Member {
   displayName: string;
   avatarUrl?: string;
   nickname?: string;
-  roles: Role[];
-  roleColor?: string;
+  groups: Group[];
+  groupColor?: string;
   joinedAt: string;
 }

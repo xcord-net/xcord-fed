@@ -75,7 +75,7 @@ public class AdminBotTests
                 username,
                 displayName = $"Test Bot {id}",
                 tokenName = $"default-token-{id}",
-                permissions = 0L
+                roles = 0L
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.Created,
@@ -99,7 +99,7 @@ public class AdminBotTests
         body.GetProperty("tokenId").ReadLong().Should().BeGreaterThan(0);
         body.GetProperty("tokenName").GetString().Should().StartWith("default-token-");
         body.GetProperty("rawToken").GetString().Should().NotBeNullOrWhiteSpace();
-        body.GetProperty("permissions").ReadLong().Should().Be(0);
+        body.GetProperty("roles").ReadLong().Should().Be(0);
         body.GetProperty("createdAt").GetDateTimeOffset().Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(5));
     }
 
@@ -116,7 +116,7 @@ public class AdminBotTests
                 username = "forbidden_bot",
                 displayName = "Forbidden Bot",
                 tokenName = "default",
-                permissions = 0L
+                roles = 0L
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
@@ -132,7 +132,7 @@ public class AdminBotTests
                 username = "unauth_bot",
                 displayName = "Unauth Bot",
                 tokenName = "default",
-                permissions = 0L
+                roles = 0L
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -151,7 +151,7 @@ public class AdminBotTests
                 username = "",
                 displayName = "No Name Bot",
                 tokenName = "default",
-                permissions = 0L
+                roles = 0L
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -170,7 +170,7 @@ public class AdminBotTests
                 username = "bot with spaces!",
                 displayName = "Bad Name Bot",
                 tokenName = "default",
-                permissions = 0L
+                roles = 0L
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -194,7 +194,7 @@ public class AdminBotTests
                 username = uniqueName,
                 displayName = "Duplicate Bot",
                 tokenName = "default",
-                permissions = 0L
+                roles = 0L
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
@@ -213,7 +213,7 @@ public class AdminBotTests
                 username = $"bot_{Guid.NewGuid():N}"[..12],
                 displayName = "",
                 tokenName = "default",
-                permissions = 0L
+                roles = 0L
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -232,7 +232,7 @@ public class AdminBotTests
                 username = $"bot_{Guid.NewGuid():N}"[..12],
                 displayName = "Good Bot",
                 tokenName = "",
-                permissions = 0L
+                roles = 0L
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -303,7 +303,7 @@ public class AdminBotTests
             new
             {
                 tokenName = "second-token",
-                permissions = 42L
+                roles = 42L
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -312,7 +312,7 @@ public class AdminBotTests
         body.GetProperty("tokenId").ReadLong().Should().BeGreaterThan(0);
         body.GetProperty("tokenName").GetString().Should().Be("second-token");
         body.GetProperty("rawToken").GetString().Should().NotBeNullOrWhiteSpace();
-        body.GetProperty("permissions").ReadLong().Should().Be(42);
+        body.GetProperty("roles").ReadLong().Should().Be(42);
         body.GetProperty("createdAt").GetDateTimeOffset().Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(5));
     }
 
@@ -327,7 +327,7 @@ public class AdminBotTests
             new
             {
                 tokenName = "orphan-token",
-                permissions = 0L
+                roles = 0L
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -345,7 +345,7 @@ public class AdminBotTests
             new
             {
                 tokenName = "bad-token",
-                permissions = 0L
+                roles = 0L
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -365,7 +365,7 @@ public class AdminBotTests
             new
             {
                 tokenName = "forbidden-token",
-                permissions = 0L
+                roles = 0L
             });
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
@@ -384,7 +384,7 @@ public class AdminBotTests
         await _helper.AuthPostAsync(
             $"/api/v1/admin/bots/{botUserId}/tokens",
             admin.AccessToken,
-            new { tokenName = "extra-token", permissions = 0L });
+            new { tokenName = "extra-token", roles = 0L });
 
         // List tokens
         var response = await _helper.AuthGetAsync(

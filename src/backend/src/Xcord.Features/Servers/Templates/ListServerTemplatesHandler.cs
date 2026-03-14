@@ -12,7 +12,7 @@ public sealed record ListServerTemplatesQuery;
 
 public sealed record ServerTemplateResponse(
     long Id, string Name, string? Description, long? SourceServerId,
-    string ChannelData, string RoleData, int UsageCount, DateTimeOffset CreatedAt);
+    string ChannelData, string GroupData, int UsageCount, DateTimeOffset CreatedAt);
 
 public sealed class ListServerTemplatesHandler(AppDbContext dbContext)
     : IRequestHandler<ListServerTemplatesQuery, Result<List<ServerTemplateResponse>>>
@@ -24,7 +24,7 @@ public sealed class ListServerTemplatesHandler(AppDbContext dbContext)
             .OrderByDescending(t => t.UsageCount)
             .Take(50)
             .Select(t => new ServerTemplateResponse(t.Id, t.Name, t.Description, t.SourceServerId,
-                t.ChannelData, t.RoleData, t.UsageCount, t.CreatedAt))
+                t.ChannelData, t.GroupData, t.UsageCount, t.CreatedAt))
             .ToListAsync(ct);
 
         return templates;

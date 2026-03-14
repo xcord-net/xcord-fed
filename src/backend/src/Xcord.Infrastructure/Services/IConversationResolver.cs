@@ -25,6 +25,6 @@ public interface IConversationResolver
     Task<Result<ConversationContext>> ResolveAsync(
         long conversationId,
         long userId,
-        Permission? requiredPermission = null,
+        Role? requiredRole = null,
         CancellationToken cancellationToken = default);
 }

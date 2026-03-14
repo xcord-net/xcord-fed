@@ -13,7 +13,7 @@ public sealed record CreateBotResponse(
     long TokenId,
     string TokenName,
     string RawToken, // Only returned once on creation
-    [property: JsonConverter(typeof(LongAsNumberConverter))] long Permissions,
+    [property: JsonConverter(typeof(LongAsNumberConverter))] long Roles,
     DateTimeOffset CreatedAt
 );
 
@@ -22,7 +22,7 @@ public sealed record BotTokenDto(
     string TokenName,
     long UserId,
     string Username,
-    [property: JsonConverter(typeof(LongAsNumberConverter))] long Permissions,
+    [property: JsonConverter(typeof(LongAsNumberConverter))] long Roles,
     bool IsRevoked,
     DateTimeOffset CreatedAt,
     DateTimeOffset? LastUsedAt
@@ -31,4 +31,3 @@ public sealed record BotTokenDto(
 public sealed record ListBotsResponse(
     BotTokenDto[] Bots
 );
-

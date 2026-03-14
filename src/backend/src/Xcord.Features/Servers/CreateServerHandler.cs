@@ -112,25 +112,149 @@ public sealed class CreateServerHandler(
 
         dbContext.ServerMembers.Add(serverMember);
 
-        // Create @everyone role with default permissions
-        var everyoneRoleId = snowflakeGenerator.NextId();
-        var everyoneRole = new Role
+        // Create @everyone group with default roles
+        var everyoneGroupId = snowflakeGenerator.NextId();
+        var everyoneGroup = new Group
         {
-            Id = everyoneRoleId,
+            Id = everyoneGroupId,
             ServerId = serverId,
             Name = "@everyone",
             Color = null,
-            Permissions = (long)(Permission.ViewChannels | Permission.SendMessages |
-                                Permission.EmbedLinks | Permission.AttachFiles |
-                                Permission.ReadMessageHistory | Permission.AddReactions |
-                                Permission.Connect | Permission.Speak |
-                                Permission.CreatePublicThreads | Permission.SendMessagesInThreads),
+            Roles = (long)(Role.ViewChannels | Role.SendMessages |
+                           Role.EmbedLinks | Role.AttachFiles |
+                           Role.ReadMessageHistory | Role.AddReactions |
+                           Role.Connect | Role.Speak |
+                           Role.CreatePublicThreads | Role.SendMessagesInThreads),
             Position = 0,
             IsEveryone = true,
             CreatedAt = now
         };
 
-        dbContext.Roles.Add(everyoneRole);
+        dbContext.Groups.Add(everyoneGroup);
+
+        // Create default Member group
+        var memberGroupId = snowflakeGenerator.NextId();
+        var memberGroup = new Group
+        {
+            Id = memberGroupId,
+            ServerId = serverId,
+            Name = "Member",
+            Roles = (long)(Role.ViewChannels | Role.SendMessages | Role.EmbedLinks |
+                           Role.AttachFiles | Role.ReadMessageHistory | Role.AddReactions |
+                           Role.Connect | Role.Speak | Role.CreatePublicThreads |
+                           Role.SendMessagesInThreads | Role.UseExternalEmojis |
+                           Role.ChangeNickname | Role.Video),
+            Position = 1,
+            CreatedAt = now
+        };
+        dbContext.Groups.Add(memberGroup);
+
+        // Create default Moderator group
+        var moderatorGroupId = snowflakeGenerator.NextId();
+        var moderatorGroup = new Group
+        {
+            Id = moderatorGroupId,
+            ServerId = serverId,
+            Name = "Moderator",
+            Color = "#e06a8a",
+            Roles = memberGroup.Roles | (long)(Role.ManageMessages | Role.KickMembers |
+                                               Role.BanMembers | Role.TimeoutMembers |
+                                               Role.ManageEmojis | Role.ManageStickers |
+                                               Role.ManageNicknames),
+            Position = 2,
+            CreatedAt = now
+        };
+        dbContext.Groups.Add(moderatorGroup);
+
+        // Create default Bot group
+        var botGroupId = snowflakeGenerator.NextId();
+        var botGroup = new Group
+        {
+            Id = botGroupId,
+            ServerId = serverId,
+            Name = "Bot",
+            Color = "#7289da",
+            Roles = (long)(Role.SendMessages | Role.EmbedLinks | Role.AttachFiles |
+                           Role.ReadMessageHistory | Role.AddReactions |
+                           Role.Connect | Role.Speak),
+            Position = 3,
+            CreatedAt = now
+        };
+        dbContext.Groups.Add(botGroup);
+
+        // Create default tiers for monetized servers
+        if (tierOptions.Value.CanUseMemberTiers)
+        {
+            // Create Pro group for tier subscribers
+            var proGroupId = snowflakeGenerator.NextId();
+            var proGroup = new Group
+            {
+                Id = proGroupId,
+                ServerId = serverId,
+                Name = "Pro",
+                Color = "#f1c40f",
+                Roles = memberGroup.Roles | (long)(Role.CreatePrivateThreads | Role.ShareScreen),
+                Position = 4,
+                LimitsJson = """{"CreatePrivateThreads": 5}""",
+                CreatedAt = now
+            };
+            dbContext.Groups.Add(proGroup);
+
+            // Create VIP group
+            var vipGroupId = snowflakeGenerator.NextId();
+            var vipGroup = new Group
+            {
+                Id = vipGroupId,
+                ServerId = serverId,
+                Name = "VIP",
+                Color = "#9b59b6",
+                Roles = proGroup.Roles,
+                Position = 5,
+                LimitsJson = """{"CreateEncryptedChannel": 3, "MaxFileUploadMb": 50}""",
+                CreatedAt = now
+            };
+            dbContext.Groups.Add(vipGroup);
+
+            // Create default tiers
+            var supporterTier = new Tier
+            {
+                Id = snowflakeGenerator.NextId(),
+                ServerId = serverId,
+                Name = "Supporter",
+                Description = "Support the server and get the Member group",
+                PriceMonthly = 499,
+                GroupIdsJson = System.Text.Json.JsonSerializer.Serialize(new[] { memberGroupId }),
+                Position = 0,
+                CreatedAt = now
+            };
+            dbContext.Tiers.Add(supporterTier);
+
+            var proTier = new Tier
+            {
+                Id = snowflakeGenerator.NextId(),
+                ServerId = serverId,
+                Name = "Pro",
+                Description = "Pro features including private threads and screen sharing",
+                PriceMonthly = 999,
+                GroupIdsJson = System.Text.Json.JsonSerializer.Serialize(new[] { memberGroupId, proGroupId }),
+                Position = 1,
+                CreatedAt = now
+            };
+            dbContext.Tiers.Add(proTier);
+
+            var vipTier = new Tier
+            {
+                Id = snowflakeGenerator.NextId(),
+                ServerId = serverId,
+                Name = "VIP",
+                Description = "All Pro features plus encrypted channels and larger uploads",
+                PriceMonthly = 1999,
+                GroupIdsJson = System.Text.Json.JsonSerializer.Serialize(new[] { memberGroupId, proGroupId, vipGroupId }),
+                Position = 2,
+                CreatedAt = now
+            };
+            dbContext.Tiers.Add(vipTier);
+        }
 
         // Create "General" category
         var generalCategoryId = snowflakeGenerator.NextId();

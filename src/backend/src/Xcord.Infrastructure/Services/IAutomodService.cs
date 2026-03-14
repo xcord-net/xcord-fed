@@ -13,7 +13,7 @@ public interface IAutomodService
     /// <param name="serverId">The server ID.</param>
     /// <param name="channelId">The channel ID.</param>
     /// <param name="authorId">The author user ID.</param>
-    /// <param name="authorRoleIds">The role IDs the author has in this server.</param>
+    /// <param name="authorGroupIds">The group IDs the author has in this server.</param>
     /// <param name="isBot">Whether the author is a bot.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Automod evaluation result.</returns>
@@ -22,7 +22,7 @@ public interface IAutomodService
         long serverId,
         long channelId,
         long authorId,
-        IEnumerable<long> authorRoleIds,
+        IEnumerable<long> authorGroupIds,
         bool isBot,
         CancellationToken cancellationToken = default);
 }

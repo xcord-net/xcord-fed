@@ -25,7 +25,7 @@ public sealed record UpdateEventCommand(
 public sealed class UpdateEventHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ILogger<UpdateEventHandler> logger)
     : IRequestHandler<UpdateEventCommand, Result<EventDto>>, IValidatable<UpdateEventCommand>
 {
@@ -66,10 +66,10 @@ public sealed class UpdateEventHandler(
         var userId = userIdResult.Value;
 
         // Verify user has ManageEvents permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             request.ServerId,
-            Permission.ManageEvents);
+            Role.ManageEvents);
 
         if (permissionResult.IsFailure)
         {

@@ -19,7 +19,7 @@ public sealed record DeleteEmojiCommand(
 public sealed class DeleteEmojiHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ILogger<DeleteEmojiHandler> logger)
     : IRequestHandler<DeleteEmojiCommand, Result<bool>>
 {
@@ -40,18 +40,18 @@ public sealed class DeleteEmojiHandler(
         }
 
         // Check ManageEmojis permission (or ManageStickers as fallback)
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             request.ServerId,
-            Permission.ManageEmojis);
+            Role.ManageEmojis);
 
         if (permissionResult.IsFailure)
         {
             // Try ManageStickers as alternative
-            var altPermissionResult = await permissionService.EnsureServerPermission(
+            var altPermissionResult = await roleService.EnsureServerRole(
                 userId,
                 request.ServerId,
-                Permission.ManageStickers);
+                Role.ManageStickers);
 
             if (altPermissionResult.IsFailure)
             {

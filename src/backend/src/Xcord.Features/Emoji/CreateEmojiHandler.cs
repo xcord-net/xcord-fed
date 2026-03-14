@@ -31,7 +31,7 @@ public sealed class CreateEmojiHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ILogger<CreateEmojiHandler> logger)
     : IRequestHandler<CreateEmojiCommand, Result<CreateEmojiResponse>>
 {
@@ -52,18 +52,18 @@ public sealed class CreateEmojiHandler(
         }
 
         // Check ManageEmojis permission (or ManageStickers as fallback)
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             request.ServerId,
-            Permission.ManageEmojis);
+            Role.ManageEmojis);
 
         if (permissionResult.IsFailure)
         {
             // Try ManageStickers as alternative
-            var altPermissionResult = await permissionService.EnsureServerPermission(
+            var altPermissionResult = await roleService.EnsureServerRole(
                 userId,
                 request.ServerId,
-                Permission.ManageStickers);
+                Role.ManageStickers);
 
             if (altPermissionResult.IsFailure)
             {

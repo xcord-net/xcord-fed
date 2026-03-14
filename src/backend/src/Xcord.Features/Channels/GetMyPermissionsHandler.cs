@@ -19,7 +19,7 @@ public sealed record MyChannelPermissionsDto(
 
 public sealed class GetMyPermissionsHandler(
     ICurrentUserService currentUserService,
-    IPermissionService permissionService)
+    IRoleService roleService)
     : IRequestHandler<GetMyPermissionsQuery, Result<MyChannelPermissionsDto>>
 {
     public async Task<Result<MyChannelPermissionsDto>> Handle(
@@ -30,7 +30,7 @@ public sealed class GetMyPermissionsHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        var perms = await permissionService.GetChannelPermissions(userId, request.ChannelId);
+        var perms = await roleService.GetChannelRoles(userId, request.ChannelId);
         return new MyChannelPermissionsDto(perms);
     }
 

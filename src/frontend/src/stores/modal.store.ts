@@ -9,7 +9,7 @@ const store = createRoot(() => {
   const [showThreads, setShowThreads] = createSignal(false);
   const [showSettings, setShowSettings] = createSignal<SettingsTab | null>(null);
   const [showChannelSettings, setShowChannelSettings] = createSignal(false);
-  const [showRoleManager, setShowRoleManager] = createSignal(false);
+  const [showGroupManager, setShowGroupManager] = createSignal(false);
   const [showEvents, setShowEvents] = createSignal(false);
   const [showScheduledMessages, setShowScheduledMessages] = createSignal(false);
   const [selectedForumPost, setSelectedForumPost] = createSignal<ForumPost | null>(null);
@@ -20,7 +20,7 @@ const store = createRoot(() => {
     showThreads, setShowThreads,
     showSettings, setShowSettings,
     showChannelSettings, setShowChannelSettings,
-    showRoleManager, setShowRoleManager,
+    showGroupManager, setShowGroupManager,
     showEvents, setShowEvents,
     showScheduledMessages, setShowScheduledMessages,
     selectedForumPost, setSelectedForumPost,
@@ -34,7 +34,7 @@ export function useModals() {
     get showThreads() { return store.showThreads(); },
     get showSettings() { return store.showSettings(); },
     get showChannelSettings() { return store.showChannelSettings(); },
-    get showRoleManager() { return store.showRoleManager(); },
+    get showGroupManager() { return store.showGroupManager(); },
     get showEvents() { return store.showEvents(); },
     get showScheduledMessages() { return store.showScheduledMessages(); },
     get selectedForumPost() { return store.selectedForumPost(); },
@@ -43,7 +43,7 @@ export function useModals() {
     togglePins() { store.setShowPins(!store.showPins()); },
     toggleThreads() { store.setShowThreads(!store.showThreads()); },
     toggleChannelSettings() { store.setShowChannelSettings(!store.showChannelSettings()); },
-    toggleRoleManager() { store.setShowRoleManager(!store.showRoleManager()); },
+    toggleGroupManager() { store.setShowGroupManager(!store.showGroupManager()); },
     toggleEvents() { store.setShowEvents(!store.showEvents()); },
     toggleScheduledMessages() { store.setShowScheduledMessages(!store.showScheduledMessages()); },
     toggleSettings() { store.setShowSettings(store.showSettings() ? null : 'profile'); },
@@ -51,7 +51,7 @@ export function useModals() {
     openSettings(tab: SettingsTab) { store.setShowSettings(tab); },
     closeSettings() { store.setShowSettings(null); },
     closeChannelSettings() { store.setShowChannelSettings(false); },
-    closeRoleManager() { store.setShowRoleManager(false); },
+    closeGroupManager() { store.setShowGroupManager(false); },
 
     selectForumPost(post: ForumPost | null) { store.setSelectedForumPost(post); },
   };

@@ -29,12 +29,12 @@ export function useMembers() {
       store.setMembers(store.members().filter(m => m.userId !== userId));
     },
 
-    async assignRole(serverId: string, userId: string, roleId: string): Promise<void> {
-      await api.post(`/api/v1/servers/${serverId}/members/${userId}/roles/${roleId}`);
+    async assignGroup(serverId: string, userId: string, groupId: string): Promise<void> {
+      await api.post(`/api/v1/servers/${serverId}/members/${userId}/groups/${groupId}`);
     },
 
-    async removeRole(serverId: string, userId: string, roleId: string): Promise<void> {
-      await api.delete(`/api/v1/servers/${serverId}/members/${userId}/roles/${roleId}`);
+    async removeGroup(serverId: string, userId: string, groupId: string): Promise<void> {
+      await api.delete(`/api/v1/servers/${serverId}/members/${userId}/groups/${groupId}`);
     },
 
     reset(): void {

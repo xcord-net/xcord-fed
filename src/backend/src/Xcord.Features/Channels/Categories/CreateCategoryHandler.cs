@@ -33,7 +33,7 @@ public sealed record CreateCategoryRequest(
 public sealed class CreateCategoryHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     ILogger<CreateCategoryHandler> logger)
     : IRequestHandler<CreateCategoryCommand, Result<CreateCategoryResponse>>, IValidatable<CreateCategoryCommand>
@@ -75,10 +75,10 @@ public sealed class CreateCategoryHandler(
         }
 
         // Check ManageChannels permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             request.ServerId,
-            Permission.ManageChannels);
+            Role.ManageChannels);
 
         if (permissionResult.IsFailure)
         {

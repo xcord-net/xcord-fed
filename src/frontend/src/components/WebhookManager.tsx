@@ -8,7 +8,7 @@ export type WebhookEvent =
   | 'member.left'
   | 'channel.created'
   | 'channel.deleted'
-  | 'role.updated';
+  | 'group.updated';
 
 export const WEBHOOK_EVENT_LABELS: Record<WebhookEvent, string> = {
   'message.created': 'Message Created',
@@ -17,7 +17,7 @@ export const WEBHOOK_EVENT_LABELS: Record<WebhookEvent, string> = {
   'member.left': 'Member Left',
   'channel.created': 'Channel Created',
   'channel.deleted': 'Channel Deleted',
-  'role.updated': 'Role Updated',
+  'group.updated': 'Group Updated',
 };
 
 export const ALL_WEBHOOK_EVENTS: WebhookEvent[] = [
@@ -27,7 +27,7 @@ export const ALL_WEBHOOK_EVENTS: WebhookEvent[] = [
   'member.left',
   'channel.created',
   'channel.deleted',
-  'role.updated',
+  'group.updated',
 ];
 
 export interface OutgoingWebhook {

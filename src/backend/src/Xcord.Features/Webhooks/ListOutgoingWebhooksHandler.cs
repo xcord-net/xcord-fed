@@ -26,7 +26,7 @@ public sealed record OutgoingWebhookDto(
 public sealed class ListOutgoingWebhooksHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ILogger<ListOutgoingWebhooksHandler> logger)
     : IRequestHandler<ListOutgoingWebhooksCommand, Result<List<OutgoingWebhookDto>>>,
       IValidatable<ListOutgoingWebhooksCommand>
@@ -56,8 +56,8 @@ public sealed class ListOutgoingWebhooksHandler(
             return Error.NotFound("SERVER_NOT_FOUND", "Server not found");
 
         // Check ManageWebhooks permission
-        var permissionResult = await permissionService.EnsureServerPermission(
-            userId, request.ServerId, Permission.ManageWebhooks);
+        var permissionResult = await roleService.EnsureServerRole(
+            userId, request.ServerId, Role.ManageWebhooks);
 
         if (permissionResult.IsFailure)
             return Error.Forbidden("MISSING_PERMISSIONS", "You do not have permission to manage webhooks in this server");

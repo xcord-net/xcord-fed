@@ -3,7 +3,7 @@ import { api } from '../api/client';
 
 // ---- Types ----
 
-export interface OnboardingRole {
+export interface OnboardingGroup {
   id: string;
   name: string;
   description?: string;
@@ -20,12 +20,12 @@ export interface OnboardingConfig {
   serverId: string;
   promptMessage: string;
   rules: string;
-  roles: OnboardingRole[];
+  groups: OnboardingGroup[];
   channels: OnboardingChannel[];
   totalSteps: number;
 }
 
-export type OnboardingStep = 'rules' | 'roles' | 'channels' | 'complete';
+export type OnboardingStep = 'rules' | 'groups' | 'channels' | 'complete';
 
 interface ServerOnboardingProps {
   serverId: string;
@@ -35,7 +35,7 @@ interface ServerOnboardingProps {
 // ---- Pure helpers ----
 
 export function getOnboardingSteps(): OnboardingStep[] {
-  return ['rules', 'roles', 'channels', 'complete'];
+  return ['rules', 'groups', 'channels', 'complete'];
 }
 
 export function stepIndex(step: OnboardingStep): number {
@@ -60,7 +60,7 @@ export function stepLabel(step: OnboardingStep): string {
   switch (step) {
     case 'rules':
       return 'Rules';
-    case 'roles':
+    case 'groups':
       return 'Interests';
     case 'channels':
       return 'Channels';
@@ -75,10 +75,10 @@ export function progressPercent(step: OnboardingStep): number {
   return Math.round((idx / (steps.length - 1)) * 100);
 }
 
-export function toggleRoleSelection(selectedIds: string[], roleId: string): string[] {
-  return selectedIds.includes(roleId)
-    ? selectedIds.filter((id) => id !== roleId)
-    : [...selectedIds, roleId];
+export function toggleGroupSelection(selectedIds: string[], groupId: string): string[] {
+  return selectedIds.includes(groupId)
+    ? selectedIds.filter((id) => id !== groupId)
+    : [...selectedIds, groupId];
 }
 
 export function toggleChannelSelection(selectedIds: string[], channelId: string): string[] {
@@ -94,7 +94,7 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
   const [isLoading, setIsLoading] = createSignal(false);
   const [currentStep, setCurrentStep] = createSignal<OnboardingStep>('rules');
   const [rulesAccepted, setRulesAccepted] = createSignal(false);
-  const [selectedRoleIds, setSelectedRoleIds] = createSignal<string[]>([]);
+  const [selectedGroupIds, setSelectedGroupIds] = createSignal<string[]>([]);
   const [selectedChannelIds, setSelectedChannelIds] = createSignal<string[]>([]);
   const [isSubmitting, setIsSubmitting] = createSignal(false);
   const [submitError, setSubmitError] = createSignal<string | null>(null);
@@ -122,9 +122,9 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
 
   const canProceedFromRules = createMemo(() => rulesAccepted());
 
-  const handleToggleRole = (roleId: string) => {
-    setSelectedRoleIds((prev) =>
-      prev.includes(roleId) ? prev.filter((id) => id !== roleId) : [...prev, roleId],
+  const handleToggleGroup = (groupId: string) => {
+    setSelectedGroupIds((prev) =>
+      prev.includes(groupId) ? prev.filter((id) => id !== groupId) : [...prev, groupId],
     );
   };
 
@@ -158,7 +158,7 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
     try {
       await api.post(`/api/v1/servers/${props.serverId}/onboarding/complete`, {
         rulesAccepted: rulesAccepted(),
-        selectedRoleIds: selectedRoleIds(),
+        selectedGroupIds: selectedGroupIds(),
         selectedChannelIds: selectedChannelIds(),
       });
       setCurrentStep('complete');
@@ -254,17 +254,17 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
                 </div>
               </Match>
 
-              {/* Step 2: Roles / Interests */}
-              <Match when={currentStep() === 'roles'}>
+              {/* Step 2: Groups / Interests */}
+              <Match when={currentStep() === 'groups'}>
                 <div class="space-y-4">
                   <h3 class="text-xcord-text-primary font-semibold">Choose Your Interests</h3>
                   <p class="text-xcord-text-muted text-sm">
-                    Select roles that match your interests. You can change these later.
+                    Select groups that match your interests. You can change these later.
                   </p>
                   <div class="grid grid-cols-2 gap-2">
-                    <For each={config()!.roles}>
-                      {(role) => {
-                        const isSelected = () => selectedRoleIds().includes(role.id);
+                    <For each={config()!.groups}>
+                      {(group) => {
+                        const isSelected = () => selectedGroupIds().includes(group.id);
                         return (
                           <button
                             class={`flex items-center gap-2 p-3 rounded-lg border text-left transition-colors ${
@@ -272,18 +272,18 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
                                 ? 'border-xcord-brand bg-xcord-brand/10 text-xcord-text-primary'
                                 : 'border-xcord-bg-tertiary bg-xcord-bg-primary text-xcord-text-muted hover:border-xcord-brand/50 hover:text-xcord-text-primary'
                             }`}
-                            onClick={() => handleToggleRole(role.id)}
+                            onClick={() => handleToggleGroup(group.id)}
                             aria-pressed={isSelected()}
-                            aria-label={`Select interest: ${role.name}`}
+                            aria-label={`Select interest: ${group.name}`}
                           >
-                            <Show when={role.emoji}>
-                              <span class="text-lg flex-shrink-0">{role.emoji}</span>
+                            <Show when={group.emoji}>
+                              <span class="text-lg flex-shrink-0">{group.emoji}</span>
                             </Show>
                             <div class="flex-1 min-w-0">
-                              <p class="text-sm font-medium truncate">{role.name}</p>
-                              <Show when={role.description}>
+                              <p class="text-sm font-medium truncate">{group.name}</p>
+                              <Show when={group.description}>
                                 <p class="text-xs text-xcord-text-muted truncate">
-                                  {role.description}
+                                  {group.description}
                                 </p>
                               </Show>
                             </div>
@@ -292,9 +292,9 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
                       }}
                     </For>
                   </div>
-                  <Show when={config()!.roles.length === 0}>
+                  <Show when={config()!.groups.length === 0}>
                     <p class="text-xcord-text-muted text-sm">
-                      No interest roles configured for this server.
+                      No interest groups configured for this server.
                     </p>
                   </Show>
                 </div>

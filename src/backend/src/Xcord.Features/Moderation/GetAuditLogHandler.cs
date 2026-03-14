@@ -31,7 +31,7 @@ public sealed record AuditLogDto(
 public sealed class GetAuditLogHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService)
+    IRoleService roleService)
     : IRequestHandler<GetAuditLogQuery, Result<List<AuditLogDto>>>
 {
     public async Task<Result<List<AuditLogDto>>> Handle(GetAuditLogQuery request, CancellationToken cancellationToken)
@@ -41,10 +41,10 @@ public sealed class GetAuditLogHandler(
         var userId = userIdResult.Value;
 
         // Check if user has ManageServer permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             request.ServerId,
-            Permission.ManageServer);
+            Role.ManageServer);
 
         if (permissionResult.IsFailure)
         {

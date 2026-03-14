@@ -18,7 +18,7 @@ public sealed record ListBotTokensResponse(
 public sealed record BotTokenMetadataDto(
     long TokenId,
     string TokenName,
-    long Permissions,
+    long Roles,
     bool IsRevoked,
     DateTimeOffset CreatedAt,
     DateTimeOffset? LastUsedAt
@@ -45,7 +45,7 @@ public sealed class ListBotTokensHandler(
             .Select(bt => new BotTokenMetadataDto(
                 bt.Id,
                 bt.Name,
-                bt.Permissions,
+                bt.Roles,
                 bt.IsRevoked,
                 bt.CreatedAt,
                 bt.LastUsedAt

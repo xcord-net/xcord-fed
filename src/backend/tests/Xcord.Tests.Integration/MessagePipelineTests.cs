@@ -125,7 +125,7 @@ public class MessagePipelineTests
 
         mention.Should().NotBeNull();
         mention!.IsEveryone.Should().BeFalse();
-        mention.MentionedRoleId.Should().BeNull();
+        mention.MentionedGroupId.Should().BeNull();
     }
 
     [Fact]

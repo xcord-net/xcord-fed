@@ -30,7 +30,7 @@ export interface Message {
   authorId: string;
   authorUsername?: string;
   authorAvatarUrl?: string;
-  authorRoleColor?: string;
+  authorGroupColor?: string;
   type: string;
   content: string;
   metadata?: Record<string, unknown>;

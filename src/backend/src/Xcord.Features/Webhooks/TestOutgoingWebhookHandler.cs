@@ -29,7 +29,7 @@ public sealed record TestOutgoingWebhookResponse(
 public sealed class TestOutgoingWebhookHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
+    IRoleService roleService,
     IEncryptionService encryptionService,
     IHttpClientFactory httpClientFactory,
     ILogger<TestOutgoingWebhookHandler> logger)
@@ -69,8 +69,8 @@ public sealed class TestOutgoingWebhookHandler(
             return Error.NotFound("SERVER_NOT_FOUND", "Server not found");
 
         // Check ManageWebhooks permission
-        var permissionResult = await permissionService.EnsureServerPermission(
-            userId, request.ServerId, Permission.ManageWebhooks);
+        var permissionResult = await roleService.EnsureServerRole(
+            userId, request.ServerId, Role.ManageWebhooks);
 
         if (permissionResult.IsFailure)
             return Error.Forbidden("MISSING_PERMISSIONS", "You do not have permission to manage webhooks in this server");

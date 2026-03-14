@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { api } from '../api/client';
-import type { ServerTemplate, TemplateChannel, TemplateRole } from '../components/ServerTemplates';
+import type { ServerTemplate, TemplateChannel, TemplateGroup } from '../components/ServerTemplates';
 import {
   validateTemplateName,
   templateChannelCount,
-  templateRoleCount,
+  templateGroupCount,
 } from '../components/ServerTemplates';
 
 // ---- Test data ----
@@ -16,9 +16,9 @@ const makeChannel = (overrides: Partial<TemplateChannel> = {}): TemplateChannel 
   ...overrides,
 });
 
-const makeRole = (overrides: Partial<TemplateRole> = {}): TemplateRole => ({
+const makeGroup = (overrides: Partial<TemplateGroup> = {}): TemplateGroup => ({
   name: 'Member',
-  permissions: ['SendMessages', 'ReadMessages'],
+  roles: ['SendMessages', 'ReadMessages'],
   ...overrides,
 });
 
@@ -32,9 +32,9 @@ const makeTemplate = (overrides: Partial<ServerTemplate> = {}): ServerTemplate =
     makeChannel({ name: 'announcements', type: 'Text', position: 1 }),
     makeChannel({ name: 'Voice Lounge', type: 'Voice', position: 2 }),
   ],
-  roles: [
-    makeRole({ name: 'Admin', permissions: ['Administrator'] }),
-    makeRole({ name: 'Member', permissions: ['SendMessages'] }),
+  groups: [
+    makeGroup({ name: 'Admin', roles: ['Administrator'] }),
+    makeGroup({ name: 'Member', roles: ['SendMessages'] }),
   ],
   usageCount: 42,
   createdAt: new Date('2026-01-01T00:00:00Z').toISOString(),
@@ -50,9 +50,9 @@ describe('ServerTemplates', () => {
     api.setAuthenticated(true);
   });
 
-  // ---- Channel and role counts ----
+  // ---- Channel and group counts ----
 
-  describe('templateChannelCount and templateRoleCount', () => {
+  describe('templateChannelCount and templateGroupCount', () => {
     it('returns the correct channel count', () => {
       // Arrange
       const template = makeTemplate();
@@ -75,23 +75,23 @@ describe('ServerTemplates', () => {
       expect(count).toBe(0);
     });
 
-    it('returns the correct role count', () => {
+    it('returns the correct group count', () => {
       // Arrange
       const template = makeTemplate();
 
       // Act
-      const count = templateRoleCount(template);
+      const count = templateGroupCount(template);
 
       // Assert
       expect(count).toBe(2);
     });
 
-    it('returns 0 role count for empty roles array', () => {
+    it('returns 0 group count for empty groups array', () => {
       // Arrange
-      const template = makeTemplate({ roles: [] });
+      const template = makeTemplate({ groups: [] });
 
       // Act
-      const count = templateRoleCount(template);
+      const count = templateGroupCount(template);
 
       // Assert
       expect(count).toBe(0);

@@ -38,7 +38,7 @@ public sealed class SendMessageHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     IConversationResolver conversationResolver,
-    IPermissionService permissionService,
+    IRoleService roleService,
     IMessageProcessor messageProcessor,
     ICurrentUserService currentUserService,
     IOutboxWriter outboxWriter,
@@ -76,10 +76,10 @@ public sealed class SendMessageHandler(
         // Check permissions based on conversation type
         if (context.Type == ConversationType.Channel)
         {
-            var permissionResult = await permissionService.EnsureChannelPermission(
+            var permissionResult = await roleService.EnsureChannelRole(
                 userId,
                 context.ChannelId,
-                Permission.SendMessages);
+                Role.SendMessages);
 
             if (permissionResult.IsFailure)
             {
@@ -89,10 +89,10 @@ public sealed class SendMessageHandler(
         else if (context.Type == ConversationType.Thread)
         {
             // Check SendMessagesInThreads permission (locked thread check already done by resolver)
-            var permissionResult = await permissionService.EnsureChannelPermission(
+            var permissionResult = await roleService.EnsureChannelRole(
                 userId,
                 context.ChannelId,
-                Permission.SendMessagesInThreads);
+                Role.SendMessagesInThreads);
 
             if (permissionResult.IsFailure)
             {
@@ -143,11 +143,11 @@ public sealed class SendMessageHandler(
         var deferredActions = new List<AutomodDeferredAction>();
         if (context.Type != ConversationType.DmChannel && hasContent)
         {
-            // Get author's role IDs and bot status for automod
-            var authorRoleIds = await dbContext.MemberRoles
+            // Get author's group IDs and bot status for automod
+            var authorGroupIds = await dbContext.MemberGroups
                 .AsNoTracking()
-                .Where(mr => mr.UserId == userId && mr.Role.ServerId == serverId)
-                .Select(mr => mr.RoleId)
+                .Where(mg => mg.UserId == userId && mg.Group.ServerId == serverId)
+                .Select(mg => mg.GroupId)
                 .ToListAsync(cancellationToken);
 
             var author = await dbContext.Users
@@ -156,7 +156,7 @@ public sealed class SendMessageHandler(
 
             var isBot = author?.IsBot ?? false;
 
-            var processingResult = await messageProcessor.ProcessAsync(message, serverId, channelId, authorRoleIds, isBot);
+            var processingResult = await messageProcessor.ProcessAsync(message, serverId, channelId, authorGroupIds, isBot);
             if (processingResult.IsFailure)
             {
                 return processingResult.Error;

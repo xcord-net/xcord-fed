@@ -29,7 +29,7 @@ public sealed record CreateScheduledMessageResponse(
 public sealed class CreateScheduledMessageHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     ILogger<CreateScheduledMessageHandler> logger)
     : IRequestHandler<CreateScheduledMessageRequest, Result<CreateScheduledMessageResponse>>,
@@ -73,8 +73,8 @@ public sealed class CreateScheduledMessageHandler(
             return Error.NotFound("CHANNEL_NOT_FOUND", "Channel not found");
 
         // Verify user has SendMessages permission in the channel
-        var permissionResult = await permissionService.EnsureChannelPermission(
-            userId, channel.Id, Permission.SendMessages);
+        var permissionResult = await roleService.EnsureChannelRole(
+            userId, channel.Id, Role.SendMessages);
 
         if (permissionResult.IsFailure)
             return permissionResult.Error;

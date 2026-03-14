@@ -13,7 +13,7 @@ namespace Xcord.Features.Channels;
 // DTO shapes that mirror ChannelPermissions.tsx types on the frontend
 
 public sealed record PermissionOverrideDto(
-    string SubjectType,   // "Role" | "Member"
+    string SubjectType,   // "Group" | "Member"
     string SubjectId,     // Snowflake as string
     string SubjectName,
     Dictionary<string, string> Permissions // key -> "Allow" | "Deny" | "Inherit"
@@ -34,21 +34,21 @@ public sealed record GetChannelPermissionsQuery(long ServerId, long ChannelId);
 public sealed class GetChannelPermissionsHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService)
+    IRoleService roleService)
     : IRequestHandler<GetChannelPermissionsQuery, Result<ChannelPermissionsResponseDto>>
 {
-    // Permission keys exposed to the frontend (matches PermissionKey in ChannelPermissions.tsx)
-    private static readonly (string Key, Permission Bit)[] PermissionMap =
+    // Role keys exposed to the frontend (matches PermissionKey in ChannelPermissions.tsx)
+    private static readonly (string Key, Role Bit)[] PermissionMap =
     [
-        ("ViewChannel",      Permission.ViewChannels),
-        ("SendMessages",     Permission.SendMessages),
-        ("ManageMessages",   Permission.ManageMessages),
-        ("AttachFiles",      Permission.AttachFiles),
-        ("EmbedLinks",       Permission.EmbedLinks),
-        ("MentionEveryone",  Permission.MentionEveryone),
-        ("ManageChannel",    Permission.ManageChannels),
-        ("Connect",          Permission.Connect),
-        ("Speak",            Permission.Speak),
+        ("ViewChannel",      Role.ViewChannels),
+        ("SendMessages",     Role.SendMessages),
+        ("ManageMessages",   Role.ManageMessages),
+        ("AttachFiles",      Role.AttachFiles),
+        ("EmbedLinks",       Role.EmbedLinks),
+        ("MentionEveryone",  Role.MentionEveryone),
+        ("ManageChannel",    Role.ManageChannels),
+        ("Connect",          Role.Connect),
+        ("Speak",            Role.Speak),
     ];
 
     public async Task<Result<ChannelPermissionsResponseDto>> Handle(
@@ -60,8 +60,8 @@ public sealed class GetChannelPermissionsHandler(
         var userId = userIdResult.Value;
 
         // Require ManageChannels on the server
-        var permCheck = await permissionService.EnsureServerPermission(
-            userId, request.ServerId, Permission.ManageChannels);
+        var permCheck = await roleService.EnsureServerRole(
+            userId, request.ServerId, Role.ManageChannels);
 
         if (permCheck.IsFailure) return permCheck.Error;
 
@@ -73,11 +73,11 @@ public sealed class GetChannelPermissionsHandler(
         if (channel == null)
             return Error.NotFound("CHANNEL_NOT_FOUND", "Channel not found");
 
-        // Load all roles in the server (for name lookup)
-        var roles = await dbContext.Roles
+        // Load all groups in the server (for name lookup)
+        var groups = await dbContext.Groups
             .AsNoTracking()
-            .Where(r => r.ServerId == request.ServerId)
-            .ToDictionaryAsync(r => r.Id, r => r.Name, cancellationToken);
+            .Where(g => g.ServerId == request.ServerId)
+            .ToDictionaryAsync(g => g.Id, g => g.Name, cancellationToken);
 
         // Load all members in the server (for name lookup when subject is a user)
         var members = await dbContext.ServerMembers
@@ -95,19 +95,19 @@ public sealed class GetChannelPermissionsHandler(
             .Where(o => o.ChannelId == request.ChannelId)
             .ToListAsync(cancellationToken);
 
-        // Build a response override for every role in the server (always show all roles, even without overrides)
-        // This ensures the UI can always display and configure any role.
+        // Build a response override for every group in the server (always show all groups, even without overrides)
+        // This ensures the UI can always display and configure any group.
         var result = new List<PermissionOverrideDto>();
 
-        foreach (var (roleId, roleName) in roles.OrderBy(kvp => kvp.Value))
+        foreach (var (groupId, groupName) in groups.OrderBy(kvp => kvp.Value))
         {
             var existingOverride = overrides.FirstOrDefault(
-                o => o.TargetType == OverrideTargetType.Role && o.TargetId == roleId);
+                o => o.TargetType == OverrideTargetType.Group && o.TargetId == groupId);
 
             result.Add(BuildOverrideDto(
-                subjectType: "Role",
-                subjectId: roleId.ToString(),
-                subjectName: roleName,
+                subjectType: "Group",
+                subjectId: groupId.ToString(),
+                subjectName: groupName,
                 existingOverride));
         }
 

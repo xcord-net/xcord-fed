@@ -9,16 +9,16 @@ using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Servers;
 
-public sealed record ListRolesQuery(long ServerId);
+public sealed record ListGroupsQuery(long ServerId);
 
-public sealed class ListRolesHandler(
+public sealed class ListGroupsHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService)
-    : IRequestHandler<ListRolesQuery, Result<List<RoleDto>>>
+    : IRequestHandler<ListGroupsQuery, Result<List<GroupDto>>>
 {
-    private const int MaxRolesPerServer = 250;
+    private const int MaxGroupsPerServer = 250;
 
-    public async Task<Result<List<RoleDto>>> Handle(ListRolesQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<GroupDto>>> Handle(ListGroupsQuery request, CancellationToken cancellationToken)
     {
         var userIdResult = currentUserService.GetCurrentUserId();
         if (userIdResult.IsFailure) return userIdResult.Error;
@@ -34,41 +34,42 @@ public sealed class ListRolesHandler(
             return Error.Forbidden("NOT_A_MEMBER", "You are not a member of this server");
         }
 
-        // Get all roles for the server, ordered by position
-        var roles = await dbContext.Roles
+        // Get all groups for the server, ordered by position
+        var groups = await dbContext.Groups
             .AsNoTracking()
-            .Where(r => r.ServerId == request.ServerId)
-            .OrderByDescending(r => r.Position)
-            .Take(MaxRolesPerServer)
-            .Select(r => new RoleDto(
-                r.Id,
-                r.ServerId,
-                r.Name,
-                r.Color,
-                r.Permissions,
-                r.Position,
-                r.IsEveryone,
-                r.CreatedAt
+            .Where(g => g.ServerId == request.ServerId)
+            .OrderByDescending(g => g.Position)
+            .Take(MaxGroupsPerServer)
+            .Select(g => new GroupDto(
+                g.Id,
+                g.ServerId,
+                g.Name,
+                g.Color,
+                g.Roles,
+                g.Position,
+                g.IsEveryone,
+                g.LimitsJson,
+                g.CreatedAt
             ))
             .ToListAsync(cancellationToken);
 
-        return roles;
+        return groups;
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
     {
-        return app.MapGet("/api/v1/servers/{serverId}/roles", async (
+        return app.MapGet("/api/v1/servers/{serverId}/groups", async (
             [FromRoute] long serverId,
-            IRequestHandler<ListRolesQuery, Result<List<RoleDto>>> handler,
+            IRequestHandler<ListGroupsQuery, Result<List<GroupDto>>> handler,
             CancellationToken ct) =>
         {
-            var query = new ListRolesQuery(serverId);
+            var query = new ListGroupsQuery(serverId);
             return await handler.ExecuteAsync(query, ct);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
-        .WithTags("Roles")
-        .WithName("ListRoles")
-        .Produces<List<RoleDto>>(StatusCodes.Status200OK)
+        .WithTags("Groups")
+        .WithName("ListGroups")
+        .Produces<List<GroupDto>>(StatusCodes.Status200OK)
         .Produces<ProblemDetails>(StatusCodes.Status403Forbidden);
     }
 }

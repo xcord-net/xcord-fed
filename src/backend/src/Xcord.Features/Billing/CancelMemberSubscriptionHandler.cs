@@ -48,16 +48,16 @@ public sealed class CancelMemberSubscriptionHandler(
         subscription.Status = MemberSubscriptionStatus.Cancelled;
         subscription.CancelledAt = DateTimeOffset.UtcNow;
 
-        // Remove tier roles
-        var roleIds = JsonSerializer.Deserialize<long[]>(subscription.Tier.RoleIdsJson) ?? [];
-        foreach (var roleId in roleIds)
+        // Remove tier groups
+        var groupIds = JsonSerializer.Deserialize<long[]>(subscription.Tier.GroupIdsJson) ?? [];
+        foreach (var groupId in groupIds)
         {
-            var memberRole = await dbContext.MemberRoles
-                .FirstOrDefaultAsync(mr => mr.UserId == userId && mr.ServerId == request.ServerId && mr.RoleId == roleId,
+            var memberGroup = await dbContext.MemberGroups
+                .FirstOrDefaultAsync(mg => mg.UserId == userId && mg.ServerId == request.ServerId && mg.GroupId == groupId,
                     cancellationToken);
 
-            if (memberRole != null)
-                dbContext.MemberRoles.Remove(memberRole);
+            if (memberGroup != null)
+                dbContext.MemberGroups.Remove(memberGroup);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);

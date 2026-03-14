@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { api } from '../api/client';
-import type { OnboardingConfig, OnboardingRole, OnboardingChannel } from '../components/ServerOnboarding';
+import type { OnboardingConfig, OnboardingGroup, OnboardingChannel } from '../components/ServerOnboarding';
 import {
   getOnboardingSteps,
   stepIndex,
@@ -8,17 +8,17 @@ import {
   previousStep,
   stepLabel,
   progressPercent,
-  toggleRoleSelection,
+  toggleGroupSelection,
   toggleChannelSelection,
 } from '../components/ServerOnboarding';
 
 // ---- Test data ----
 
-const makeRole = (overrides: Partial<OnboardingRole> = {}): OnboardingRole => ({
-  id: 'role-1',
+const makeGroup = (overrides: Partial<OnboardingGroup> = {}): OnboardingGroup => ({
+  id: 'group-1',
   name: 'Gaming',
   description: 'For gamers',
-  emoji: '🎮',
+  emoji: '\u{1F3AE}',
   ...overrides,
 });
 
@@ -33,10 +33,10 @@ const makeConfig = (overrides: Partial<OnboardingConfig> = {}): OnboardingConfig
   serverId: 'srv-1',
   promptMessage: 'Welcome! Let us get you set up.',
   rules: '1. Be respectful.\n2. No spam.\n3. Have fun!',
-  roles: [
-    makeRole({ id: 'role-1', name: 'Gaming', emoji: '🎮' }),
-    makeRole({ id: 'role-2', name: 'Music', emoji: '🎵' }),
-    makeRole({ id: 'role-3', name: 'Art', emoji: '🎨' }),
+  groups: [
+    makeGroup({ id: 'group-1', name: 'Gaming', emoji: '\u{1F3AE}' }),
+    makeGroup({ id: 'group-2', name: 'Music', emoji: '\u{1F3B5}' }),
+    makeGroup({ id: 'group-3', name: 'Art', emoji: '\u{1F3A8}' }),
   ],
   channels: [
     makeChannel({ channelId: 'ch-1', channelName: 'general' }),
@@ -64,7 +64,7 @@ describe('ServerOnboarding', () => {
 
       // Assert
       expect(steps).toHaveLength(4);
-      expect(steps).toEqual(['rules', 'roles', 'channels', 'complete']);
+      expect(steps).toEqual(['rules', 'groups', 'channels', 'complete']);
     });
 
     it('stepIndex returns 0 for rules (first step)', () => {
@@ -75,12 +75,12 @@ describe('ServerOnboarding', () => {
       expect(stepIndex('complete')).toBe(3);
     });
 
-    it('nextStep from rules returns roles', () => {
-      expect(nextStep('rules')).toBe('roles');
+    it('nextStep from rules returns groups', () => {
+      expect(nextStep('rules')).toBe('groups');
     });
 
-    it('nextStep from roles returns channels', () => {
-      expect(nextStep('roles')).toBe('channels');
+    it('nextStep from groups returns channels', () => {
+      expect(nextStep('groups')).toBe('channels');
     });
 
     it('nextStep from channels returns complete', () => {
@@ -91,8 +91,8 @@ describe('ServerOnboarding', () => {
       expect(nextStep('complete')).toBeNull();
     });
 
-    it('previousStep from roles returns rules', () => {
-      expect(previousStep('roles')).toBe('rules');
+    it('previousStep from groups returns rules', () => {
+      expect(previousStep('groups')).toBe('rules');
     });
 
     it('previousStep from rules returns null (first step)', () => {
@@ -111,8 +111,8 @@ describe('ServerOnboarding', () => {
       expect(stepLabel('rules')).toBe('Rules');
     });
 
-    it('returns "Interests" for roles step', () => {
-      expect(stepLabel('roles')).toBe('Interests');
+    it('returns "Interests" for groups step', () => {
+      expect(stepLabel('groups')).toBe('Interests');
     });
 
     it('returns "Channels" for channels step', () => {
@@ -136,51 +136,51 @@ describe('ServerOnboarding', () => {
     });
 
     it('returns a value between 0 and 100 for intermediate steps', () => {
-      // 4 steps: rules=0, roles=1, channels=2, complete=3
-      // roles: Math.round((1 / (4 - 1)) * 100) = Math.round(33.33) = 33
-      const pct = progressPercent('roles');
+      // 4 steps: rules=0, groups=1, channels=2, complete=3
+      // groups: Math.round((1 / (4 - 1)) * 100) = Math.round(33.33) = 33
+      const pct = progressPercent('groups');
       expect(pct).toBe(33);
     });
 
-    it('channels step has higher progress than roles step', () => {
-      expect(progressPercent('channels')).toBeGreaterThan(progressPercent('roles'));
+    it('channels step has higher progress than groups step', () => {
+      expect(progressPercent('channels')).toBeGreaterThan(progressPercent('groups'));
     });
   });
 
-  // ---- Role selection ----
+  // ---- Group selection ----
 
-  describe('role selection', () => {
-    it('adds a role when toggled and not previously selected', () => {
+  describe('group selection', () => {
+    it('adds a group when toggled and not previously selected', () => {
       // Arrange
       const selectedIds: string[] = [];
 
       // Act
-      const result = toggleRoleSelection(selectedIds, 'role-1');
+      const result = toggleGroupSelection(selectedIds, 'group-1');
 
       // Assert
-      expect(result).toContain('role-1');
+      expect(result).toContain('group-1');
     });
 
-    it('removes a role when toggled and already selected', () => {
+    it('removes a group when toggled and already selected', () => {
       // Arrange
-      const selectedIds = ['role-1', 'role-2'];
+      const selectedIds = ['group-1', 'group-2'];
 
       // Act
-      const result = toggleRoleSelection(selectedIds, 'role-1');
+      const result = toggleGroupSelection(selectedIds, 'group-1');
 
       // Assert
-      expect(result).not.toContain('role-1');
-      expect(result).toContain('role-2');
+      expect(result).not.toContain('group-1');
+      expect(result).toContain('group-2');
     });
 
-    it('multiple roles can be selected simultaneously', () => {
+    it('multiple groups can be selected simultaneously', () => {
       // Arrange
       let selectedIds: string[] = [];
 
       // Act
-      selectedIds = toggleRoleSelection(selectedIds, 'role-1');
-      selectedIds = toggleRoleSelection(selectedIds, 'role-2');
-      selectedIds = toggleRoleSelection(selectedIds, 'role-3');
+      selectedIds = toggleGroupSelection(selectedIds, 'group-1');
+      selectedIds = toggleGroupSelection(selectedIds, 'group-2');
+      selectedIds = toggleGroupSelection(selectedIds, 'group-3');
 
       // Assert
       expect(selectedIds).toHaveLength(3);
@@ -260,7 +260,7 @@ describe('ServerOnboarding', () => {
       const serverId = 'srv-complete-test';
       const payload = {
         rulesAccepted: true,
-        selectedRoleIds: ['role-1', 'role-2'],
+        selectedGroupIds: ['group-1', 'group-2'],
         selectedChannelIds: ['ch-1'],
       };
 
@@ -294,7 +294,7 @@ describe('ServerOnboarding', () => {
       // Act
       await api.post(`/api/v1/servers/${serverId}/onboarding/complete`, {
         rulesAccepted: true,
-        selectedRoleIds: [],
+        selectedGroupIds: [],
         selectedChannelIds: [],
       });
 
@@ -304,7 +304,7 @@ describe('ServerOnboarding', () => {
       expect(body.rulesAccepted).toBe(true);
     });
 
-    it('complete payload can have empty role and channel selections', async () => {
+    it('complete payload can have empty group and channel selections', async () => {
       // Arrange
       const serverId = 'srv-empty-sel';
 
@@ -316,14 +316,14 @@ describe('ServerOnboarding', () => {
       // Act
       await api.post(`/api/v1/servers/${serverId}/onboarding/complete`, {
         rulesAccepted: true,
-        selectedRoleIds: [],
+        selectedGroupIds: [],
         selectedChannelIds: [],
       });
 
       // Assert
       const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       const body = JSON.parse(callArgs[1].body);
-      expect(body.selectedRoleIds).toHaveLength(0);
+      expect(body.selectedGroupIds).toHaveLength(0);
       expect(body.selectedChannelIds).toHaveLength(0);
     });
   });

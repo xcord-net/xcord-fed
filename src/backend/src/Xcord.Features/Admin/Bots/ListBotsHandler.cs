@@ -23,7 +23,7 @@ public sealed class ListBotsHandler(
                 bt.Name,
                 bt.UserId,
                 bt.User.Username,
-                bt.Permissions,
+                bt.Roles,
                 bt.IsRevoked,
                 bt.CreatedAt,
                 bt.LastUsedAt

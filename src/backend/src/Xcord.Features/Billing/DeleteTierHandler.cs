@@ -9,17 +9,17 @@ using Microsoft.AspNetCore.Http;
 
 namespace Xcord.Features.Billing;
 
-public sealed record DeleteSubscriptionTierCommand(long ServerId, long TierId);
+public sealed record DeleteTierCommand(long ServerId, long TierId);
 
-public sealed record DeleteSubscriptionTierResponse(string Message);
+public sealed record DeleteTierResponse(string Message);
 
-public sealed class DeleteSubscriptionTierHandler(
+public sealed class DeleteTierHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService)
-    : IRequestHandler<DeleteSubscriptionTierCommand, Result<DeleteSubscriptionTierResponse>>
+    : IRequestHandler<DeleteTierCommand, Result<DeleteTierResponse>>
 {
-    public async Task<Result<DeleteSubscriptionTierResponse>> Handle(
-        DeleteSubscriptionTierCommand request, CancellationToken cancellationToken)
+    public async Task<Result<DeleteTierResponse>> Handle(
+        DeleteTierCommand request, CancellationToken cancellationToken)
     {
         var userIdResult = currentUserService.GetCurrentUserId();
         if (userIdResult.IsFailure) return userIdResult.Error;
@@ -35,7 +35,7 @@ public sealed class DeleteSubscriptionTierHandler(
         if (server.OwnerId != userId)
             return Error.Forbidden("NOT_OWNER", "Only the server owner can manage subscription tiers");
 
-        var tier = await dbContext.MemberSubscriptionTiers
+        var tier = await dbContext.Tiers
             .FirstOrDefaultAsync(t => t.Id == request.TierId && t.ServerId == request.ServerId, cancellationToken);
 
         if (tier == null)
@@ -45,22 +45,22 @@ public sealed class DeleteSubscriptionTierHandler(
         tier.DeletedAt = DateTimeOffset.UtcNow;
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return new DeleteSubscriptionTierResponse("Subscription tier deleted");
+        return new DeleteTierResponse("Subscription tier deleted");
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
     {
-        return app.MapDelete("/api/v1/servers/{serverId}/subscription-tiers/{tierId}", async (
+        return app.MapDelete("/api/v1/servers/{serverId}/tiers/{tierId}", async (
             [FromRoute] long serverId,
             [FromRoute] long tierId,
-            IRequestHandler<DeleteSubscriptionTierCommand, Result<DeleteSubscriptionTierResponse>> handler,
+            IRequestHandler<DeleteTierCommand, Result<DeleteTierResponse>> handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new DeleteSubscriptionTierCommand(serverId, tierId), ct);
+            return await handler.ExecuteAsync(new DeleteTierCommand(serverId, tierId), ct);
         })
         .RequireAuthorization(Policies.User)
         .WithTags("Billing")
-        .WithName("DeleteSubscriptionTier")
-        .Produces<DeleteSubscriptionTierResponse>(200);
+        .WithName("DeleteTier")
+        .Produces<DeleteTierResponse>(200);
     }
 }

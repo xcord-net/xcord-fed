@@ -60,7 +60,7 @@ public sealed record CreateChannelRequest(
 public sealed class CreateChannelHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     IOutboxWriter outboxWriter,
     IOptions<TierOptions> tierOptions,
@@ -137,10 +137,10 @@ public sealed class CreateChannelHandler(
         }
 
         // Check ManageChannels permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             request.ServerId,
-            Permission.ManageChannels);
+            Role.ManageChannels);
 
         if (permissionResult.IsFailure)
         {

@@ -7,7 +7,7 @@ export interface CommandParameter {
   name: string;
   description: string;
   required: boolean;
-  type: 'string' | 'integer' | 'boolean' | 'user' | 'channel' | 'role';
+  type: 'string' | 'integer' | 'boolean' | 'user' | 'channel' | 'group';
 }
 
 export interface BotCommand {

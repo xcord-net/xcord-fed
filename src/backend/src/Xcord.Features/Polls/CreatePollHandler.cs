@@ -46,7 +46,7 @@ public sealed class CreatePollHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     IConversationResolver conversationResolver,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     IOutboxWriter outboxWriter,
     ILogger<CreatePollHandler> logger)
@@ -120,10 +120,10 @@ public sealed class CreatePollHandler(
         // Check permissions based on conversation type
         if (context.Type == ConversationType.Channel)
         {
-            var permissionResult = await permissionService.EnsureChannelPermission(
+            var permissionResult = await roleService.EnsureChannelRole(
                 userId,
                 context.ChannelId,
-                Permission.SendMessages);
+                Role.SendMessages);
 
             if (permissionResult.IsFailure)
             {
@@ -133,10 +133,10 @@ public sealed class CreatePollHandler(
         else if (context.Type == ConversationType.Thread)
         {
             // Check SendMessagesInThreads permission (locked thread check already done by resolver)
-            var permissionResult = await permissionService.EnsureChannelPermission(
+            var permissionResult = await roleService.EnsureChannelRole(
                 userId,
                 context.ChannelId,
-                Permission.SendMessagesInThreads);
+                Role.SendMessagesInThreads);
 
             if (permissionResult.IsFailure)
             {

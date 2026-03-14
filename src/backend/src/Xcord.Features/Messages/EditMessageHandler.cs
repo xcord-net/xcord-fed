@@ -36,7 +36,7 @@ public sealed class EditMessageHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     IConversationResolver conversationResolver,
-    IPermissionService permissionService,
+    IRoleService roleService,
     IMessageProcessor messageProcessor,
     ICurrentUserService currentUserService,
     IOutboxWriter outboxWriter,
@@ -90,10 +90,10 @@ public sealed class EditMessageHandler(
 
         if (!isAuthor)
         {
-            var permissionResult = await permissionService.EnsureChannelPermission(
+            var permissionResult = await roleService.EnsureChannelRole(
                 userId,
                 context.ChannelId,
-                Permission.ManageMessages);
+                Role.ManageMessages);
 
             hasManagePermission = permissionResult.IsSuccess;
         }
@@ -121,11 +121,11 @@ public sealed class EditMessageHandler(
         // Remove old mentions
         dbContext.Mentions.RemoveRange(message.Mentions);
 
-        // Get author role IDs for automod processing
-        var authorRoleIds = await dbContext.MemberRoles
+        // Get author group IDs for automod processing
+        var authorGroupIds = await dbContext.MemberGroups
             .AsNoTracking()
-            .Where(mr => mr.UserId == userId && mr.ServerId == context.ServerId)
-            .Select(mr => mr.RoleId)
+            .Where(mg => mg.UserId == userId && mg.ServerId == context.ServerId)
+            .Select(mg => mg.GroupId)
             .ToListAsync(cancellationToken);
 
         // Check if author is a bot
@@ -134,7 +134,7 @@ public sealed class EditMessageHandler(
             .AnyAsync(bt => bt.UserId == userId, cancellationToken);
 
         // Re-process message
-        var processingResult = await messageProcessor.ProcessAsync(message, context.ServerId, context.ChannelId, authorRoleIds, isBot);
+        var processingResult = await messageProcessor.ProcessAsync(message, context.ServerId, context.ChannelId, authorGroupIds, isBot);
         if (processingResult.IsFailure)
         {
             return processingResult.Error;

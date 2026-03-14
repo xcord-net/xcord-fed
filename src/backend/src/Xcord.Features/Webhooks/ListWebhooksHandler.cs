@@ -26,7 +26,7 @@ public sealed record WebhookDto(
 public sealed class ListWebhooksHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ILogger<ListWebhooksHandler> logger)
     : IRequestHandler<ListWebhooksCommand, Result<List<WebhookDto>>>, IValidatable<ListWebhooksCommand>
 {
@@ -57,10 +57,10 @@ public sealed class ListWebhooksHandler(
         }
 
         // Check ManageWebhooks permission at server level
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             request.ServerId,
-            Permission.ManageWebhooks);
+            Role.ManageWebhooks);
 
         if (permissionResult.IsFailure)
         {

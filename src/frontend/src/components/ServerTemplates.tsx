@@ -9,10 +9,10 @@ export interface TemplateChannel {
   position: number;
 }
 
-export interface TemplateRole {
+export interface TemplateGroup {
   name: string;
   color?: string;
-  permissions: string[];
+  roles: string[];
 }
 
 export interface ServerTemplate {
@@ -21,7 +21,7 @@ export interface ServerTemplate {
   description?: string;
   sourceServerId?: string;
   channels: TemplateChannel[];
-  roles: TemplateRole[];
+  groups: TemplateGroup[];
   usageCount: number;
   createdAt: string;
 }
@@ -34,28 +34,28 @@ interface RawServerTemplateResponse {
   description?: string;
   sourceServerId?: string;
   channelData?: string;
-  roleData?: string;
+  groupData?: string;
   channels?: TemplateChannel[];
-  roles?: TemplateRole[];
+  groups?: TemplateGroup[];
   usageCount: number;
   createdAt: string;
 }
 
 function normalizeTemplate(raw: RawServerTemplateResponse): ServerTemplate {
   let channels: TemplateChannel[] = [];
-  let roles: TemplateRole[] = [];
+  let groups: TemplateGroup[] = [];
 
-  // If backend sent channelData/roleData as JSON strings, parse them
+  // If backend sent channelData/groupData as JSON strings, parse them
   if (typeof raw.channelData === 'string' && raw.channelData) {
     try { channels = JSON.parse(raw.channelData); } catch { channels = []; }
   } else if (Array.isArray(raw.channels)) {
     channels = raw.channels;
   }
 
-  if (typeof raw.roleData === 'string' && raw.roleData) {
-    try { roles = JSON.parse(raw.roleData); } catch { roles = []; }
-  } else if (Array.isArray(raw.roles)) {
-    roles = raw.roles;
+  if (typeof raw.groupData === 'string' && raw.groupData) {
+    try { groups = JSON.parse(raw.groupData); } catch { groups = []; }
+  } else if (Array.isArray(raw.groups)) {
+    groups = raw.groups;
   }
 
   return {
@@ -64,7 +64,7 @@ function normalizeTemplate(raw: RawServerTemplateResponse): ServerTemplate {
     description: raw.description,
     sourceServerId: raw.sourceServerId ? String(raw.sourceServerId) : undefined,
     channels,
-    roles,
+    groups,
     usageCount: raw.usageCount ?? 0,
     createdAt: raw.createdAt,
   };
@@ -88,8 +88,8 @@ export function templateChannelCount(template: ServerTemplate): number {
   return template.channels.length;
 }
 
-export function templateRoleCount(template: ServerTemplate): number {
-  return template.roles.length;
+export function templateGroupCount(template: ServerTemplate): number {
+  return template.groups.length;
 }
 
 // ---- Component ----
@@ -321,8 +321,8 @@ export default function ServerTemplates(props: ServerTemplatesProps) {
               {templateChannelCount(selectedTemplate()!) !== 1 ? 's' : ''}
             </p>
             <p class="text-xcord-text-primary text-xs">
-              {templateRoleCount(selectedTemplate()!)} role
-              {templateRoleCount(selectedTemplate()!) !== 1 ? 's' : ''}
+              {templateGroupCount(selectedTemplate()!)} group
+              {templateGroupCount(selectedTemplate()!) !== 1 ? 's' : ''}
             </p>
             <Show when={selectedTemplate()!.description}>
               <p class="text-xcord-text-muted text-xs mt-1">{selectedTemplate()!.description}</p>
@@ -397,8 +397,8 @@ export default function ServerTemplates(props: ServerTemplatesProps) {
                           {templateChannelCount(template) !== 1 ? 's' : ''}
                         </span>
                         <span class="text-xcord-text-muted text-xs">
-                          {templateRoleCount(template)} role
-                          {templateRoleCount(template) !== 1 ? 's' : ''}
+                          {templateGroupCount(template)} group
+                          {templateGroupCount(template) !== 1 ? 's' : ''}
                         </span>
                         <span class="text-xcord-text-muted text-xs">
                           Used {template.usageCount} time

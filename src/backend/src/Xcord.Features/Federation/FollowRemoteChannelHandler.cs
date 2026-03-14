@@ -21,7 +21,7 @@ public sealed record FollowRemoteChannelRequest(
 public sealed class FollowRemoteChannelHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     ILogger<FollowRemoteChannelHandler> logger)
     : IRequestHandler<FollowRemoteChannelRequest, Result<FederationFollowDto>>, IValidatable<FollowRemoteChannelRequest>
@@ -58,8 +58,8 @@ public sealed class FollowRemoteChannelHandler(
         }
 
         // Check manage channels permission
-        var permissionResult = await permissionService.EnsureChannelPermission(
-            userId, channel.Id, Permission.ManageChannels);
+        var permissionResult = await roleService.EnsureChannelRole(
+            userId, channel.Id, Role.ManageChannels);
 
         if (permissionResult.IsFailure)
         {

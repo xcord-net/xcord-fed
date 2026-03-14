@@ -15,7 +15,7 @@ public sealed record InsightsResponse(long ServerId, int TotalMembers, int Total
 
 public sealed class GetInsightsHandler(
     AppDbContext dbContext, ICurrentUserService currentUserService,
-    IPermissionService permissionService)
+    IRoleService roleService)
     : IRequestHandler<GetInsightsQuery, Result<InsightsResponse>>
 {
     public async Task<Result<InsightsResponse>> Handle(GetInsightsQuery request, CancellationToken ct)
@@ -24,7 +24,7 @@ public sealed class GetInsightsHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        var perm = await permissionService.EnsureServerPermission(userId, request.ServerId, Permission.ManageServer);
+        var perm = await roleService.EnsureServerRole(userId, request.ServerId, Role.ManageServer);
         if (perm.IsFailure) return Error.Forbidden("MISSING_PERMISSIONS", "You do not have permission");
 
         var server = await dbContext.Servers.AsNoTracking().FirstOrDefaultAsync(s => s.Id == request.ServerId, ct);

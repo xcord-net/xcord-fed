@@ -43,7 +43,7 @@ public sealed class AutomodService : IAutomodService
         long serverId,
         long channelId,
         long authorId,
-        IEnumerable<long> authorRoleIds,
+        IEnumerable<long> authorGroupIds,
         bool isBot,
         CancellationToken cancellationToken = default)
     {
@@ -59,12 +59,12 @@ public sealed class AutomodService : IAutomodService
         }
 
         var deferredActions = new List<AutomodDeferredAction>();
-        var authorRoleIdSet = new HashSet<long>(authorRoleIds);
+        var authorGroupIdSet = new HashSet<long>(authorGroupIds);
 
         foreach (var rule in rules)
         {
             // Check exemptions
-            if (IsExempt(rule, channelId, authorRoleIdSet, isBot))
+            if (IsExempt(rule, channelId, authorGroupIdSet, isBot))
             {
                 continue;
             }
@@ -103,7 +103,7 @@ public sealed class AutomodService : IAutomodService
     private bool IsExempt(
         Entities.AutomodRule rule,
         long channelId,
-        HashSet<long> authorRoleIds,
+        HashSet<long> authorGroupIds,
         bool isBot)
     {
         // Check bot exemption
@@ -130,7 +130,7 @@ public sealed class AutomodService : IAutomodService
                 .Select(long.Parse)
                 .ToHashSet();
 
-            if (exemptRoles.Overlaps(authorRoleIds))
+            if (exemptRoles.Overlaps(authorGroupIds))
             {
                 return true;
             }

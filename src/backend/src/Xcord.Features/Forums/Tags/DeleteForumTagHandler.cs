@@ -19,7 +19,7 @@ public sealed record DeleteForumTagCommand(
 
 public sealed class DeleteForumTagHandler(
     AppDbContext dbContext,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     ILogger<DeleteForumTagHandler> logger)
     : IRequestHandler<DeleteForumTagCommand, Result<bool>>
@@ -38,10 +38,10 @@ public sealed class DeleteForumTagHandler(
             return Error.NotFound("TAG_NOT_FOUND", "Forum tag not found");
         }
 
-        var permissionResult = await permissionService.EnsureChannelPermission(
+        var permissionResult = await roleService.EnsureChannelRole(
             userId,
             request.ChannelId,
-            Permission.ManageChannels);
+            Role.ManageChannels);
 
         if (permissionResult.IsFailure)
         {

@@ -15,7 +15,7 @@ public sealed record DeleteCategoryCommand(long ServerId, long CategoryId);
 
 public sealed class DeleteCategoryHandler(
     AppDbContext dbContext,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     ILogger<DeleteCategoryHandler> logger)
     : IRequestHandler<DeleteCategoryCommand, Result<bool>>
@@ -36,10 +36,10 @@ public sealed class DeleteCategoryHandler(
         }
 
         // Check ManageChannels permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             request.ServerId,
-            Permission.ManageChannels);
+            Role.ManageChannels);
 
         if (permissionResult.IsFailure)
         {

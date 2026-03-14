@@ -15,7 +15,7 @@ type RenderedToken =
   | { type: 'spoiler'; value: string }
   | { type: 'link'; value: string }
   | { type: 'mention_user'; value: string }
-  | { type: 'mention_role'; value: string }
+  | { type: 'mention_group'; value: string }
   | { type: 'mention_everyone' }
   | { type: 'mention_here' };
 
@@ -72,11 +72,11 @@ export function parseMarkdown(content: string): RenderedToken[] {
         continue;
       }
 
-      // <@&roleId> - role mention (must come before user mention)
-      const roleMentionMatch = remaining.match(/^<@&(\d+)>/);
-      if (roleMentionMatch) {
-        result.push({ type: 'mention_role', value: roleMentionMatch[1] });
-        remaining = remaining.slice(roleMentionMatch[0].length);
+      // <@&groupId> - group mention (must come before user mention)
+      const groupMentionMatch = remaining.match(/^<@&(\d+)>/);
+      if (groupMentionMatch) {
+        result.push({ type: 'mention_group', value: groupMentionMatch[1] });
+        remaining = remaining.slice(groupMentionMatch[0].length);
         continue;
       }
 
@@ -273,7 +273,7 @@ function renderToken(token: RenderedToken) {
           @{token.value}
         </span>
       );
-    case 'mention_role':
+    case 'mention_group':
       return (
         <span class="bg-blue-500/20 text-blue-400 rounded px-0.5">
           @{token.value}

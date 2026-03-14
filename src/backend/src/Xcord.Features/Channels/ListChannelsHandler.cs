@@ -45,7 +45,7 @@ public sealed record ChannelDto(
 public sealed class ListChannelsHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService)
+    IRoleService roleService)
     : IRequestHandler<ListChannelsCommand, Result<ListChannelsResponse>>
 {
     private const int MaxChannelsPerServer = 500;
@@ -78,9 +78,9 @@ public sealed class ListChannelsHandler(
 
         // Get server-level permissions to determine if the user is an admin/owner
         // (admins see all channels regardless of overrides)
-        var serverPerms = await permissionService.GetServerPermissions(userId, request.ServerId);
+        var serverPerms = await roleService.GetServerRoles(userId, request.ServerId);
         var isAdmin = serverPerms == long.MaxValue ||
-                      (serverPerms & (long)Permission.Administrator) != 0;
+                      (serverPerms & (long)Role.Administrator) != 0;
 
         // Get all channels for this server, ordered by position
         var allChannels = await dbContext.Channels
@@ -130,8 +130,8 @@ public sealed class ListChannelsHandler(
         var visibleChannels = new List<ChannelDto>(allChannels.Count);
         foreach (var channel in allChannels)
         {
-            var channelPerms = await permissionService.GetChannelPermissions(userId, channel.Id);
-            if ((channelPerms & (long)Permission.ViewChannels) != 0)
+            var channelPerms = await roleService.GetChannelRoles(userId, channel.Id);
+            if ((channelPerms & (long)Role.ViewChannels) != 0)
             {
                 visibleChannels.Add(channel);
             }

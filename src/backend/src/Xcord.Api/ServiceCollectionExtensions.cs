@@ -188,7 +188,8 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IJwtService, JwtService>();
         services.AddSingleton<RsaKeySingleton>();
-        services.AddScoped<IPermissionService, PermissionService>();
+        services.AddScoped<IRoleService, RoleService>();
+        services.AddScoped<IGroupLimitService, GroupLimitService>();
         services.AddScoped<IConversationResolver, ConversationResolver>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddHttpClient<ILiveKitService, LiveKitService>();

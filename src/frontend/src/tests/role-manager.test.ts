@@ -1,41 +1,41 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { api } from '../api/client';
-import { hasPermission, togglePermission } from '../components/RoleManager';
+import { hasRole, toggleRole } from '../components/GroupManager';
 
-interface Role {
+interface Group {
   id: string;
   serverId: string;
   name: string;
   color: string;
-  permissions: number;
+  roles: number;
   position: number;
   isHoisted: boolean;
   isMentionable: boolean;
 }
 
-describe('RoleManager', () => {
+describe('GroupManager', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
   });
 
-  describe('role list rendering', () => {
-    it('renders list of roles from API', async () => {
+  describe('group list rendering', () => {
+    it('renders list of groups from API', async () => {
       // Arrange
       const serverId = 'srv-1';
-      const roles: Role[] = [
-        { id: 'role-1', serverId, name: 'Admin', color: '#d4943a', permissions: 3, position: 0, isHoisted: true, isMentionable: true },
-        { id: 'role-2', serverId, name: 'Moderator', color: '#57f287', permissions: 1, position: 1, isHoisted: false, isMentionable: false },
+      const groups: Group[] = [
+        { id: 'group-1', serverId, name: 'Admin', color: '#d4943a', roles: 3, position: 0, isHoisted: true, isMentionable: true },
+        { id: 'group-2', serverId, name: 'Moderator', color: '#57f287', roles: 1, position: 1, isHoisted: false, isMentionable: false },
       ];
 
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
         status: 200,
-        json: async () => roles,
+        json: async () => groups,
       });
 
       // Act
-      const result = await api.get<Role[]>(`/api/v1/servers/${serverId}/roles`);
+      const result = await api.get<Group[]>(`/api/v1/servers/${serverId}/groups`);
 
       // Assert
       expect(result).toHaveLength(2);
@@ -43,9 +43,9 @@ describe('RoleManager', () => {
       expect(result[1].name).toBe('Moderator');
     });
 
-    it('calls GET /api/v1/servers/{id}/roles on load', async () => {
+    it('calls GET /api/v1/servers/{id}/groups on load', async () => {
       // Arrange
-      const serverId = 'srv-roles';
+      const serverId = 'srv-groups';
 
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
@@ -54,16 +54,16 @@ describe('RoleManager', () => {
       });
 
       // Act
-      await api.get(`/api/v1/servers/${serverId}/roles`);
+      await api.get(`/api/v1/servers/${serverId}/groups`);
 
       // Assert
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        `/api/v1/servers/${serverId}/roles`,
+        `/api/v1/servers/${serverId}/groups`,
         expect.objectContaining({ method: 'GET' })
       );
     });
 
-    it('handles empty role list gracefully', async () => {
+    it('handles empty group list gracefully', async () => {
       // Arrange
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
@@ -72,7 +72,7 @@ describe('RoleManager', () => {
       });
 
       // Act
-      const result = await api.get<Role[]>('/api/v1/servers/srv-empty/roles');
+      const result = await api.get<Group[]>('/api/v1/servers/srv-empty/groups');
 
       // Assert
       expect(result).toEqual([]);
@@ -80,17 +80,17 @@ describe('RoleManager', () => {
     });
   });
 
-  describe('create role', () => {
-    it('calls POST /api/v1/servers/{id}/roles with role name', async () => {
+  describe('create group', () => {
+    it('calls POST /api/v1/servers/{id}/groups with group name', async () => {
       // Arrange
       const serverId = 'srv-2';
-      const roleName = 'New Role';
-      const created: Role = {
-        id: 'role-new',
+      const groupName = 'New Group';
+      const created: Group = {
+        id: 'group-new',
         serverId,
-        name: roleName,
+        name: groupName,
         color: '#d4943a',
-        permissions: 0,
+        roles: 0,
         position: 2,
         isHoisted: false,
         isMentionable: false,
@@ -103,14 +103,14 @@ describe('RoleManager', () => {
       });
 
       // Act
-      const result = await api.post<Role>(`/api/v1/servers/${serverId}/roles`, { name: roleName });
+      const result = await api.post<Group>(`/api/v1/servers/${serverId}/groups`, { name: groupName });
 
       // Assert
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        `/api/v1/servers/${serverId}/roles`,
-        expect.objectContaining({ method: 'POST', body: JSON.stringify({ name: roleName }) })
+        `/api/v1/servers/${serverId}/groups`,
+        expect.objectContaining({ method: 'POST', body: JSON.stringify({ name: groupName }) })
       );
-      expect(result.name).toBe('New Role');
+      expect(result.name).toBe('New Group');
     });
 
     it('throws when POST fails', async () => {
@@ -118,91 +118,91 @@ describe('RoleManager', () => {
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: false,
         status: 403,
-        json: async () => ({ detail: 'Missing Manage Roles permission' }),
+        json: async () => ({ detail: 'Missing Manage Groups permission' }),
       });
 
       // Act & Assert
       await expect(
-        api.post('/api/v1/servers/srv-x/roles', { name: 'Fail' })
-      ).rejects.toMatchObject({ detail: 'Missing Manage Roles permission' });
+        api.post('/api/v1/servers/srv-x/groups', { name: 'Fail' })
+      ).rejects.toMatchObject({ detail: 'Missing Manage Groups permission' });
     });
   });
 
-  describe('permission checkboxes', () => {
-    it('hasPermission returns true when bit is set', () => {
+  describe('role checkboxes', () => {
+    it('hasRole returns true when bit is set', () => {
       // Arrange
-      const ADMIN_BIT = 1 << 0;
-      const permissions = 0b11; // bits 0 and 1 set
+      const VIEW_CHANNELS_BIT = 1 << 0;
+      const roles = 0b11; // bits 0 and 1 set
 
       // Act & Assert
-      expect(hasPermission(permissions, ADMIN_BIT)).toBe(true);
+      expect(hasRole(roles, VIEW_CHANNELS_BIT)).toBe(true);
     });
 
-    it('hasPermission returns false when bit is not set', () => {
+    it('hasRole returns false when bit is not set', () => {
       // Arrange
       const KICK_BIT = 1 << 4;
-      const permissions = 0b0011; // only bits 0 and 1 set
+      const roles = 0b0011; // only bits 0 and 1 set
 
       // Act & Assert
-      expect(hasPermission(permissions, KICK_BIT)).toBe(false);
+      expect(hasRole(roles, KICK_BIT)).toBe(false);
     });
 
-    it('togglePermission enables a disabled permission', () => {
+    it('toggleRole enables a disabled role', () => {
       // Arrange
       const BAN_BIT = 1 << 5;
-      const permissions = 0;
+      const roles = 0;
 
       // Act
-      const updated = togglePermission(permissions, BAN_BIT);
+      const updated = toggleRole(roles, BAN_BIT);
 
       // Assert
-      expect(hasPermission(updated, BAN_BIT)).toBe(true);
+      expect(hasRole(updated, BAN_BIT)).toBe(true);
     });
 
-    it('togglePermission disables an enabled permission', () => {
+    it('toggleRole disables an enabled role', () => {
       // Arrange
       const MANAGE_MSG_BIT = 1 << 7;
-      const permissions = MANAGE_MSG_BIT;
+      const roles = MANAGE_MSG_BIT;
 
       // Act
-      const updated = togglePermission(permissions, MANAGE_MSG_BIT);
+      const updated = toggleRole(roles, MANAGE_MSG_BIT);
 
       // Assert
-      expect(hasPermission(updated, MANAGE_MSG_BIT)).toBe(false);
+      expect(hasRole(updated, MANAGE_MSG_BIT)).toBe(false);
     });
 
-    it('sends updated permissions integer in PUT payload', async () => {
+    it('sends updated roles integer in PUT payload', async () => {
       // Arrange
       const serverId = 'srv-3';
-      const roleId = 'role-perms';
-      const permissions = (1 << 0) | (1 << 8); // Administrator + Send Messages
+      const groupId = 'group-roles';
+      const roles = (1 << 0) | (1 << 8); // View Channels + Send Messages
 
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
         status: 200,
-        json: async () => ({ id: roleId, permissions }),
+        json: async () => ({ id: groupId, roles }),
       });
 
       // Act
-      await api.put(`/api/v1/servers/${serverId}/roles/${roleId}`, {
-        name: 'Role',
+      await api.put(`/api/v1/servers/${serverId}/groups/${groupId}`, {
+        name: 'Group',
         color: '#d4943a',
-        permissions,
+        roles,
       });
 
       // Assert
       const body = JSON.parse(
         (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][1].body
       );
-      expect(body.permissions).toBe(permissions);
+      expect(body.roles).toBe(roles);
     });
   });
 
-  describe('delete role with confirmation', () => {
-    it('calls DELETE /api/v1/servers/{id}/roles/{roleId}', async () => {
+  describe('delete group with confirmation', () => {
+    it('calls DELETE /api/v1/servers/{id}/groups/{groupId}', async () => {
       // Arrange
       const serverId = 'srv-4';
-      const roleId = 'role-del';
+      const groupId = 'group-del';
 
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
@@ -211,11 +211,11 @@ describe('RoleManager', () => {
       });
 
       // Act
-      await api.delete(`/api/v1/servers/${serverId}/roles/${roleId}`);
+      await api.delete(`/api/v1/servers/${serverId}/groups/${groupId}`);
 
       // Assert
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        `/api/v1/servers/${serverId}/roles/${roleId}`,
+        `/api/v1/servers/${serverId}/groups/${groupId}`,
         expect.objectContaining({ method: 'DELETE' })
       );
     });
@@ -225,41 +225,41 @@ describe('RoleManager', () => {
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: false,
         status: 403,
-        json: async () => ({ detail: 'Cannot delete managed role' }),
+        json: async () => ({ detail: 'Cannot delete managed group' }),
       });
 
       // Act & Assert
       await expect(
-        api.delete('/api/v1/servers/srv-x/roles/role-managed')
-      ).rejects.toMatchObject({ detail: 'Cannot delete managed role' });
+        api.delete('/api/v1/servers/srv-x/groups/group-managed')
+      ).rejects.toMatchObject({ detail: 'Cannot delete managed group' });
     });
   });
 
-  describe('edit role API', () => {
-    it('calls PUT /api/v1/servers/{id}/roles/{roleId} on save', async () => {
+  describe('edit group API', () => {
+    it('calls PUT /api/v1/servers/{id}/groups/{groupId} on save', async () => {
       // Arrange
       const serverId = 'srv-5';
-      const roleId = 'role-edit';
+      const groupId = 'group-edit';
 
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
         status: 200,
-        json: async () => ({ id: roleId, name: 'Updated Role', color: '#ed4245', permissions: 256 }),
+        json: async () => ({ id: groupId, name: 'Updated Group', color: '#ed4245', roles: 256 }),
       });
 
       // Act
-      const result = await api.put<Role>(`/api/v1/servers/${serverId}/roles/${roleId}`, {
-        name: 'Updated Role',
+      const result = await api.put<Group>(`/api/v1/servers/${serverId}/groups/${groupId}`, {
+        name: 'Updated Group',
         color: '#ed4245',
-        permissions: 256,
+        roles: 256,
       });
 
       // Assert
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        `/api/v1/servers/${serverId}/roles/${roleId}`,
+        `/api/v1/servers/${serverId}/groups/${groupId}`,
         expect.objectContaining({ method: 'PUT' })
       );
-      expect(result.name).toBe('Updated Role');
+      expect(result.name).toBe('Updated Group');
       expect(result.color).toBe('#ed4245');
     });
   });

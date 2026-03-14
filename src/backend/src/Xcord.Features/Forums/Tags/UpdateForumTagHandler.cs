@@ -32,7 +32,7 @@ public sealed record UpdateForumTagResponse(
 
 public sealed class UpdateForumTagHandler(
     AppDbContext dbContext,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     ILogger<UpdateForumTagHandler> logger)
     : IRequestHandler<UpdateForumTagCommand, Result<UpdateForumTagResponse>>, IValidatable<UpdateForumTagCommand>
@@ -61,10 +61,10 @@ public sealed class UpdateForumTagHandler(
             return Error.NotFound("TAG_NOT_FOUND", "Forum tag not found");
         }
 
-        var permissionResult = await permissionService.EnsureChannelPermission(
+        var permissionResult = await roleService.EnsureChannelRole(
             userId,
             request.ChannelId,
-            Permission.ManageChannels);
+            Role.ManageChannels);
 
         if (permissionResult.IsFailure)
         {

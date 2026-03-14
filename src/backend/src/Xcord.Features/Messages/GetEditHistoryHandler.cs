@@ -28,7 +28,7 @@ public sealed record MessageEditDto(
 
 public sealed class GetEditHistoryHandler(
     AppDbContext dbContext,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService)
     : IRequestHandler<GetEditHistoryRequest, Result<GetEditHistoryResponse>>
 {
@@ -75,10 +75,10 @@ public sealed class GetEditHistoryHandler(
         }
 
         // Check ReadMessageHistory permission
-        var permissionResult = await permissionService.EnsureChannelPermission(
+        var permissionResult = await roleService.EnsureChannelRole(
             userId,
             channel.Id,
-            Permission.ReadMessageHistory);
+            Role.ReadMessageHistory);
 
         if (permissionResult.IsFailure)
         {

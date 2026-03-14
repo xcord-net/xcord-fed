@@ -55,7 +55,7 @@ public sealed record UpdateChannelRequest(
 
 public sealed class UpdateChannelHandler(
     AppDbContext dbContext,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ICurrentUserService currentUserService,
     ILogger<UpdateChannelHandler> logger)
     : IRequestHandler<UpdateChannelCommand, Result<UpdateChannelResponse>>, IValidatable<UpdateChannelCommand>
@@ -126,10 +126,10 @@ public sealed class UpdateChannelHandler(
         }
 
         // Check ManageChannels permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             channel.ServerId,
-            Permission.ManageChannels);
+            Role.ManageChannels);
 
         if (permissionResult.IsFailure)
         {

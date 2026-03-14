@@ -18,7 +18,7 @@ public sealed record DeleteEventCommand(
 public sealed class DeleteEventHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IPermissionService permissionService,
+    IRoleService roleService,
     ILogger<DeleteEventHandler> logger)
     : IRequestHandler<DeleteEventCommand, Result<bool>>
 {
@@ -29,10 +29,10 @@ public sealed class DeleteEventHandler(
         var userId = userIdResult.Value;
 
         // Verify user has ManageEvents permission
-        var permissionResult = await permissionService.EnsureServerPermission(
+        var permissionResult = await roleService.EnsureServerRole(
             userId,
             request.ServerId,
-            Permission.ManageEvents);
+            Role.ManageEvents);
 
         if (permissionResult.IsFailure)
         {

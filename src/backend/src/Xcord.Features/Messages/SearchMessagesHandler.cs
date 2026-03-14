@@ -56,7 +56,7 @@ public sealed class SearchMessagesHandler(
         {
             // Verify the user has ReadMessageHistory permission on the specified conversation
             var contextResult = await conversationResolver.ResolveAsync(
-                request.ConversationId.Value, userId, Permission.ReadMessageHistory, cancellationToken);
+                request.ConversationId.Value, userId, Role.ReadMessageHistory, cancellationToken);
             if (contextResult.IsFailure) return contextResult.Error;
 
             allowedConversationIds = [request.ConversationId.Value];
