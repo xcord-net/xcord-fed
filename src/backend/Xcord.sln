@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xcord.Tests.Architecture", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xcord.Tests.Integration", "tests\Xcord.Tests.Integration\Xcord.Tests.Integration.csproj", "{F28519F5-150F-4375-806F-E0F045706853}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xcord.Common", "..\..\xcord-common\src\Xcord.Common\Xcord.Common.csproj", "{8C0C828B-1A15-4E3E-9121-30E5FD3178F1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -115,6 +117,18 @@ Global
 		{F28519F5-150F-4375-806F-E0F045706853}.Release|x64.Build.0 = Release|Any CPU
 		{F28519F5-150F-4375-806F-E0F045706853}.Release|x86.ActiveCfg = Release|Any CPU
 		{F28519F5-150F-4375-806F-E0F045706853}.Release|x86.Build.0 = Release|Any CPU
+		{8C0C828B-1A15-4E3E-9121-30E5FD3178F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C0C828B-1A15-4E3E-9121-30E5FD3178F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C0C828B-1A15-4E3E-9121-30E5FD3178F1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8C0C828B-1A15-4E3E-9121-30E5FD3178F1}.Debug|x64.Build.0 = Debug|Any CPU
+		{8C0C828B-1A15-4E3E-9121-30E5FD3178F1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8C0C828B-1A15-4E3E-9121-30E5FD3178F1}.Debug|x86.Build.0 = Debug|Any CPU
+		{8C0C828B-1A15-4E3E-9121-30E5FD3178F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C0C828B-1A15-4E3E-9121-30E5FD3178F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C0C828B-1A15-4E3E-9121-30E5FD3178F1}.Release|x64.ActiveCfg = Release|Any CPU
+		{8C0C828B-1A15-4E3E-9121-30E5FD3178F1}.Release|x64.Build.0 = Release|Any CPU
+		{8C0C828B-1A15-4E3E-9121-30E5FD3178F1}.Release|x86.ActiveCfg = Release|Any CPU
+		{8C0C828B-1A15-4E3E-9121-30E5FD3178F1}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -127,5 +141,6 @@ Global
 		{FE748F81-B6FC-4925-AC43-4FB3745C077E} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{4F9597D2-3A5A-4835-8FD7-74A4F4FC8B0D} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{F28519F5-150F-4375-806F-E0F045706853} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{8C0C828B-1A15-4E3E-9121-30E5FD3178F1} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

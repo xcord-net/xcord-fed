@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Xcord.Shared\Xcord.Shared.csproj" />
+    <ProjectReference Include="../../../xcord-common/src/Xcord.Common/Xcord.Common.csproj" />
   </ItemGroup>
 
 </Project>

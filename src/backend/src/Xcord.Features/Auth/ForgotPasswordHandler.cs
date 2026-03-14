@@ -70,7 +70,7 @@ public sealed class ForgotPasswordHandler(
         if (user != null && !rateLimited)
         {
             // Generate random token
-            var rawToken = TokenHelper.GenerateRefreshToken();
+            var rawToken = TokenHelper.GenerateToken();
             var tokenHash = TokenHelper.HashToken(rawToken);
             var now = DateTimeOffset.UtcNow;
 

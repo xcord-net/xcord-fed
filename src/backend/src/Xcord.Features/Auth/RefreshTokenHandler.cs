@@ -57,7 +57,7 @@ public sealed class RefreshTokenHandler(
         dbContext.RefreshTokens.Remove(refreshToken);
 
         // Create new refresh token (30 days)
-        var newRefreshTokenValue = TokenHelper.GenerateRefreshToken();
+        var newRefreshTokenValue = TokenHelper.GenerateToken();
         var newRefreshTokenHash = TokenHelper.HashToken(newRefreshTokenValue);
         var now = DateTimeOffset.UtcNow;
 

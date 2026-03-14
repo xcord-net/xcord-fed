@@ -13,6 +13,9 @@ export default defineConfig({
         ws: true,
       },
     },
+    watch: {
+      ignored: ['**/node_modules/**', '**/dist/**', '**/.git/**'],
+    },
   },
   build: {
     target: 'esnext',

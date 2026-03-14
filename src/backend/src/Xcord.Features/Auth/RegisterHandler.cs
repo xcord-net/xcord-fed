@@ -147,7 +147,7 @@ public sealed partial class RegisterHandler(
         dbContext.EmailConfirmationTokens.Add(confirmationToken);
 
         // Create refresh token (30 days)
-        var refreshTokenValue = TokenHelper.GenerateRefreshToken();
+        var refreshTokenValue = TokenHelper.GenerateToken();
         var refreshTokenHash = TokenHelper.HashToken(refreshTokenValue);
         var refreshToken = new Entities.RefreshToken
         {

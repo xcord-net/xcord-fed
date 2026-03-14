@@ -207,7 +207,7 @@ public sealed class TwoFactorVerifyHandler(
         }
 
         // Complete login: create refresh token
-        var refreshTokenValue = GenerateRefreshToken();
+        var refreshTokenValue = TokenHelper.GenerateToken();
         var refreshTokenHash = HashToken(refreshTokenValue);
         var now = DateTimeOffset.UtcNow;
 

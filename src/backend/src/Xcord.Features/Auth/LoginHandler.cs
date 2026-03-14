@@ -122,7 +122,7 @@ public sealed class LoginHandler(
         }
 
         // Create refresh token (30 days)
-        var refreshTokenValue = TokenHelper.GenerateRefreshToken();
+        var refreshTokenValue = TokenHelper.GenerateToken();
         var refreshTokenHash = TokenHelper.HashToken(refreshTokenValue);
         var now2 = DateTimeOffset.UtcNow;
 
