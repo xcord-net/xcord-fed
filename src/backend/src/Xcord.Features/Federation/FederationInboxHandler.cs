@@ -23,7 +23,7 @@ public sealed record FederationInboxResponse(int Accepted, int Rejected);
 public sealed class FederationInboxHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<FederationInboxHandler> logger)
     : IRequestHandler<FederationInboxRequest, Result<FederationInboxResponse>>, IValidatable<FederationInboxRequest>
 {
@@ -77,6 +77,9 @@ public sealed class FederationInboxHandler(
         var accepted = 0;
         var rejected = 0;
 
+        // Collect (localMessageId, conversationId) pairs to notify after save
+        var pendingNotifications = new List<(long LocalMessageId, long ConversationId)>();
+
         foreach (var message in request.Messages)
         {
             try
@@ -125,13 +128,7 @@ public sealed class FederationInboxHandler(
 
                     dbContext.FederationMessages.Add(fedMessage);
 
-                    // Dispatch SignalR event
-                    await outboxWriter.WriteAsync(dbContext, "Chat.MessageCreated", new
-                    {
-                        MessageId = localMessageId,
-                        ConversationId = follow.LocalChannel.ConversationId,
-                        Federated = true
-                    }, cancellationToken);
+                    pendingNotifications.Add((localMessageId, follow.LocalChannel.ConversationId));
                 }
 
                 accepted++;
@@ -144,6 +141,17 @@ public sealed class FederationInboxHandler(
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Dispatch SignalR events after save
+        foreach (var (localMessageId, conversationId) in pendingNotifications)
+        {
+            await notificationService.NotifyConversationAsync(conversationId, "Chat_MessageCreated", new
+            {
+                MessageId = localMessageId,
+                ConversationId = conversationId,
+                Federated = true
+            });
+        }
 
         logger.LogInformation(
             "Federation inbox from {SourceUrl}: {Accepted} accepted, {Rejected} rejected",

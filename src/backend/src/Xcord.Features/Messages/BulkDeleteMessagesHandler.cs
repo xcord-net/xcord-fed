@@ -20,7 +20,7 @@ public sealed class BulkDeleteMessagesHandler(
     AppDbContext dbContext,
     IConversationResolver conversationResolver,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<BulkDeleteMessagesHandler> logger)
     : IRequestHandler<BulkDeleteMessagesRequest, Result<bool>>, IValidatable<BulkDeleteMessagesRequest>
 {
@@ -66,14 +66,14 @@ public sealed class BulkDeleteMessagesHandler(
         var now = DateTimeOffset.UtcNow;
         messages.ForEach(message => message.DeletedAt = now);
 
-        // Write outbox event
-        await outboxWriter.WriteAsync(dbContext, "Message.BulkDeleted", new
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify conversation after save
+        await notificationService.NotifyConversationAsync(request.ConversationId, "Chat_BulkMessageDeleted", new
         {
             messageIds = messages.Select(m => m.Id).ToArray(),
             conversationId = request.ConversationId
-        }, cancellationToken);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        });
 
         logger.LogInformation(
             "User {UserId} bulk deleted {Count} messages in conversation {ConversationId}",

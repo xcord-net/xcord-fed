@@ -19,7 +19,7 @@ public sealed class CreateDmHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<CreateDmHandler> logger) : IRequestHandler<CreateDmRequest, Result<CreateDmResponse>>, IValidatable<CreateDmRequest>
 {
     public Error? Validate(CreateDmRequest request)
@@ -136,16 +136,20 @@ public sealed class CreateDmHandler(
                 dbContext.DmChannelMembers.Add(member);
             }
 
-            // Write outbox event
-            await outboxWriter.WriteAsync(dbContext, "Dm.Created", new
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            // Notify each member directly after save
+            var dmCreatedPayload = new
             {
                 DmChannelId = dmChannelId,
                 ConversationId = conversationId,
                 MemberIds = memberIds.ToArray()
-            }, cancellationToken);
-
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            };
+            foreach (var memberId in memberIds.Distinct())
+            {
+                await notificationService.NotifyUserAsync(memberId, "Notify_DmCreated", dmCreatedPayload);
+            }
 
             logger.LogInformation(
                 "User {UserId} created DM channel {DmChannelId} (IsGroup: {IsGroup}) with members: {MemberIds}",

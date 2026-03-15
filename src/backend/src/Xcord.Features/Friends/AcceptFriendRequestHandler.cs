@@ -18,7 +18,7 @@ public sealed record AcceptFriendRequestRequest(
 public sealed class AcceptFriendRequestHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<AcceptFriendRequestHandler> logger) : IRequestHandler<AcceptFriendRequestRequest, Result<FriendshipDto>>
 {
     public async Task<Result<FriendshipDto>> Handle(AcceptFriendRequestRequest request, CancellationToken cancellationToken)
@@ -53,19 +53,15 @@ public sealed class AcceptFriendRequestHandler(
         // Update status to Accepted
         friendship.Status = FriendshipStatus.Accepted;
 
-        // Write outbox event
-        await outboxWriter.WriteAsync(
-            dbContext,
-            "Friend.Accepted",
-            new
-            {
-                friendshipId = friendship.Id,
-                senderId = friendship.SenderId,
-                receiverId = friendship.ReceiverId
-            },
-            cancellationToken);
-
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify the original sender directly after save
+        await notificationService.NotifyUserAsync(friendship.SenderId, "Notify_FriendAccepted", new
+        {
+            friendshipId = friendship.Id,
+            senderId = friendship.SenderId,
+            receiverId = friendship.ReceiverId
+        });
 
         logger.LogInformation(
             "User {UserId} accepted friend request from user {SenderId}",

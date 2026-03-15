@@ -19,7 +19,7 @@ public sealed record AddGroupDmMemberRequest(
 public sealed class AddGroupDmMemberHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<AddGroupDmMemberHandler> logger) : IRequestHandler<AddGroupDmMemberRequest, Result<bool>>
 {
     public async Task<Result<bool>> Handle(AddGroupDmMemberRequest request, CancellationToken cancellationToken)
@@ -76,6 +76,9 @@ public sealed class AddGroupDmMemberHandler(
 
         try
         {
+            // Capture existing member IDs before adding the new member
+            var allMemberIds = dmChannel.Members.Select(m => m.UserId).Append(request.UserId).Distinct().ToList();
+
             // Add member
             var member = new DmChannelMember
             {
@@ -86,16 +89,20 @@ public sealed class AddGroupDmMemberHandler(
 
             dbContext.DmChannelMembers.Add(member);
 
-            // Write outbox event
-            await outboxWriter.WriteAsync(dbContext, "Dm.MemberAdded", new
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            // Notify all members (including new member) after save
+            var memberAddedPayload = new
             {
                 DmChannelId = request.DmChannelId,
                 UserId = request.UserId,
                 AddedBy = currentUserId
-            }, cancellationToken);
-
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            };
+            foreach (var memberId in allMemberIds)
+            {
+                await notificationService.NotifyUserAsync(memberId, "Notify_DmMemberAdded", memberAddedPayload);
+            }
 
             logger.LogInformation(
                 "User {CurrentUserId} added user {UserId} to group DM {DmChannelId}",

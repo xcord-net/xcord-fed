@@ -1,16 +1,21 @@
 using Microsoft.EntityFrameworkCore;
 using Xcord.Entities;
 using Xcord.Infrastructure.Data;
-using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Moderation;
 
+public sealed record SystemMessageInfo(long MessageId, long ConversationId);
+
 public static class SystemMessageExtensions
 {
-    public static async Task SendModerationSystemMessage(
+    /// <summary>
+    /// Adds a moderation system message to the context and returns the message and conversation IDs,
+    /// or null if the server has no system channel. The caller must call SaveChangesAsync and then
+    /// notify the conversation using the returned info.
+    /// </summary>
+    public static async Task<SystemMessageInfo?> AddModerationSystemMessage(
         this AppDbContext dbContext,
         SnowflakeIdGenerator snowflakeGenerator,
-        IOutboxWriter outboxWriter,
         Server server,
         long targetUserId,
         long moderatorId,
@@ -21,7 +26,7 @@ public static class SystemMessageExtensions
     {
         if (!server.SystemChannelId.HasValue)
         {
-            return;
+            return null;
         }
 
         var systemChannel = await dbContext.Channels
@@ -30,7 +35,7 @@ public static class SystemMessageExtensions
 
         if (systemChannel == null)
         {
-            return;
+            return null;
         }
 
         var targetUser = await dbContext.Users
@@ -58,11 +63,6 @@ public static class SystemMessageExtensions
 
         dbContext.Messages.Add(systemMessage);
 
-        await outboxWriter.WriteAsync(dbContext, "Message.Created", new
-        {
-            MessageId = systemMessage.Id,
-            ConversationId = systemMessage.ConversationId,
-            AuthorId = (long?)null
-        }, ct);
+        return new SystemMessageInfo(systemMessage.Id, systemMessage.ConversationId);
     }
 }

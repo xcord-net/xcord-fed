@@ -53,7 +53,7 @@ public sealed class EventNotifier : BackgroundService
     {
         using var scope = _serviceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var outboxWriter = scope.ServiceProvider.GetRequiredService<IOutboxWriter>();
+        var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
 
         var now = DateTime.UtcNow;
         var notificationThreshold = now.Add(_notificationWindow);
@@ -66,35 +66,41 @@ public sealed class EventNotifier : BackgroundService
                         e.ScheduledStartTime <= notificationThreshold)
             .ToListAsync(cancellationToken);
 
+        // Collect event data and RSVP user IDs before saving
+        var eventNotifications = new List<(ScheduledEvent Event, List<long> RsvpUserIds)>();
+
         foreach (var scheduledEvent in eventsToNotify)
         {
-            // Get RSVP'd user IDs for this event
             var rsvpUserIds = await dbContext.EventRsvps
                 .Where(r => r.EventId == scheduledEvent.Id)
                 .Select(r => r.UserId)
                 .ToListAsync(cancellationToken);
 
-            // Write outbox event for SignalR notification
-            // This will be sent to server:{serverId} group, clients filter by user ID
-            await outboxWriter.WriteAsync(
-                dbContext,
-                "Notify.EventStarting",
-                new
-                {
-                    EventId = scheduledEvent.Id,
-                    ServerId = scheduledEvent.ServerId,
-                    Name = scheduledEvent.Name,
-                    ScheduledStartTime = scheduledEvent.ScheduledStartTime,
-                    RsvpUserIds = rsvpUserIds
-                },
-                cancellationToken);
-
+            eventNotifications.Add((scheduledEvent, rsvpUserIds));
             scheduledEvent.NotificationSent = true;
         }
 
         if (eventsToNotify.Count > 0)
         {
             await dbContext.SaveChangesAsync(cancellationToken);
+
+            // Send notifications after save
+            foreach (var (scheduledEvent, rsvpUserIds) in eventNotifications)
+            {
+                var payload = new
+                {
+                    EventId = scheduledEvent.Id,
+                    ServerId = scheduledEvent.ServerId,
+                    Name = scheduledEvent.Name,
+                    ScheduledStartTime = scheduledEvent.ScheduledStartTime,
+                    RsvpUserIds = rsvpUserIds
+                };
+
+                foreach (var userId in rsvpUserIds)
+                {
+                    await notificationService.NotifyUserAsync(userId, "Notify_EventStarting", payload);
+                }
+            }
 
             _logger.LogInformation(
                 "Sent notifications for {Count} upcoming events",

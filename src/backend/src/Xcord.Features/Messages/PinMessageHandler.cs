@@ -19,7 +19,7 @@ public sealed class PinMessageHandler(
     AppDbContext dbContext,
     IConversationResolver conversationResolver,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter)
+    INotificationService notificationService)
     : IRequestHandler<PinMessageRequest, Result<MessageDto>>
 {
     private const int MaxPinsPerConversation = 50;
@@ -60,14 +60,14 @@ public sealed class PinMessageHandler(
         message.IsPinned = true;
         message.PinnedAt = DateTimeOffset.UtcNow;
 
-        // Write outbox event
-        await outboxWriter.WriteAsync(dbContext, "Chat.MessageUpdated", new
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify conversation after save
+        await notificationService.NotifyConversationAsync(request.ConversationId, "Chat_MessageUpdated", new
         {
             conversationId = request.ConversationId,
             messageId = request.MessageId
-        }, cancellationToken);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        });
 
         return new MessageDto(
             Id: message.Id,

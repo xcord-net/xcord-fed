@@ -32,7 +32,7 @@ public sealed class BanMemberHandler(
     SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
     IRoleService roleService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<BanMemberHandler> logger)
     : IRequestHandler<BanMemberCommand, Result<BanMemberResponse>>, IValidatable<BanMemberCommand>
 {
@@ -150,21 +150,31 @@ public sealed class BanMemberHandler(
         // Create audit log
         dbContext.AuditLogs.AddEntry(snowflakeGenerator, request.ServerId, moderatorId, "MemberBan", request.UserId, request.Reason, now);
 
-        // Write outbox event
-        await outboxWriter.WriteAsync(dbContext, "Member.Banned", new
+        // Add system message (MemberBan) in the server's system channel if configured
+        var systemMsg = await dbContext.AddModerationSystemMessage(
+            snowflakeGenerator, server,
+            request.UserId, moderatorId, MessageType.MemberBan, request.Reason, now, cancellationToken);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify after save
+        await notificationService.NotifyServerAsync(request.ServerId, "Notify_MemberBanned", new
         {
             ServerId = request.ServerId,
             UserId = request.UserId,
             ModeratorId = moderatorId,
             Reason = request.Reason
-        }, cancellationToken);
+        });
 
-        // Create system message (MemberBan) in the server's system channel if configured
-        await dbContext.SendModerationSystemMessage(
-            snowflakeGenerator, outboxWriter, server,
-            request.UserId, moderatorId, MessageType.MemberBan, request.Reason, now, cancellationToken);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        if (systemMsg != null)
+        {
+            await notificationService.NotifyConversationAsync(systemMsg.ConversationId, "Chat_MessageCreated", new
+            {
+                MessageId = systemMsg.MessageId,
+                ConversationId = systemMsg.ConversationId,
+                AuthorId = (long?)null
+            });
+        }
 
         logger.LogInformation(
             "Moderator {ModeratorId} banned user {UserId} from server {ServerId}",

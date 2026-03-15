@@ -22,7 +22,7 @@ public sealed class EventLifecycleService(
     {
         using var scope = ServiceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var outboxWriter = scope.ServiceProvider.GetRequiredService<IOutboxWriter>();
+        var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
 
         var now = DateTime.UtcNow;
 
@@ -35,18 +35,6 @@ public sealed class EventLifecycleService(
         foreach (var scheduledEvent in eventsToActivate)
         {
             scheduledEvent.Status = EventStatus.Active;
-
-            // Write outbox event for SignalR notification
-            await outboxWriter.WriteAsync(
-                dbContext,
-                "Event.Started",
-                new
-                {
-                    EventId = scheduledEvent.Id,
-                    ServerId = scheduledEvent.ServerId,
-                    Name = scheduledEvent.Name
-                },
-                ct);
         }
 
         if (eventsToActivate.Count > 0)
@@ -66,18 +54,6 @@ public sealed class EventLifecycleService(
         foreach (var scheduledEvent in eventsToComplete)
         {
             scheduledEvent.Status = EventStatus.Completed;
-
-            // Write outbox event for SignalR notification
-            await outboxWriter.WriteAsync(
-                dbContext,
-                "Event.Completed",
-                new
-                {
-                    EventId = scheduledEvent.Id,
-                    ServerId = scheduledEvent.ServerId,
-                    Name = scheduledEvent.Name
-                },
-                ct);
         }
 
         if (eventsToComplete.Count > 0)
@@ -88,5 +64,32 @@ public sealed class EventLifecycleService(
         }
 
         await dbContext.SaveChangesAsync(ct);
+
+        // Send notifications after save
+        foreach (var scheduledEvent in eventsToActivate)
+        {
+            await notificationService.NotifyServerAsync(
+                scheduledEvent.ServerId,
+                "Event_Started",
+                new
+                {
+                    EventId = scheduledEvent.Id,
+                    ServerId = scheduledEvent.ServerId,
+                    Name = scheduledEvent.Name
+                });
+        }
+
+        foreach (var scheduledEvent in eventsToComplete)
+        {
+            await notificationService.NotifyServerAsync(
+                scheduledEvent.ServerId,
+                "Event_Completed",
+                new
+                {
+                    EventId = scheduledEvent.Id,
+                    ServerId = scheduledEvent.ServerId,
+                    Name = scheduledEvent.Name
+                });
+        }
     }
 }

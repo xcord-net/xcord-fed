@@ -22,7 +22,7 @@ public sealed class DeleteMessageHandler(
     IConversationResolver conversationResolver,
     IRoleService roleService,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<DeleteMessageHandler> logger)
     : IRequestHandler<DeleteMessageRequest, Result<bool>>
 {
@@ -75,14 +75,14 @@ public sealed class DeleteMessageHandler(
         // Soft delete the message
         message.SoftDelete();
 
-        // Write outbox event
-        await outboxWriter.WriteAsync(dbContext, "Message.Deleted", new
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify conversation after save
+        await notificationService.NotifyConversationAsync(request.ConversationId, "Chat_MessageDeleted", new
         {
             messageId = message.Id,
             conversationId = request.ConversationId
-        }, cancellationToken);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        });
 
         logger.LogInformation(
             "User {UserId} deleted message {MessageId} in conversation {ConversationId}",

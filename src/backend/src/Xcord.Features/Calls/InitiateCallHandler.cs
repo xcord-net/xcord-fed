@@ -19,7 +19,7 @@ public sealed class InitiateCallHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<InitiateCallHandler> logger) : IRequestHandler<InitiateCallRequest, Result<InitiateCallResponse>>
 {
     public async Task<Result<InitiateCallResponse>> Handle(InitiateCallRequest request, CancellationToken cancellationToken)
@@ -65,12 +65,12 @@ public sealed class InitiateCallHandler(
         // Get the recipient (the other user in the DM)
         var recipientId = dmChannel.Members.First(m => m.UserId != currentUserId).UserId;
 
+        var callId = snowflakeGenerator.NextId();
+
         using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         try
         {
-            // Create the call
-            var callId = snowflakeGenerator.NextId();
             var now = DateTimeOffset.UtcNow;
 
             var call = new Call
@@ -86,29 +86,31 @@ public sealed class InitiateCallHandler(
 
             dbContext.Calls.Add(call);
 
-            // Write outbox event to notify the recipient
-            await outboxWriter.WriteAsync(dbContext, "Call.Initiated", new
-            {
-                CallId = callId,
-                DmChannelId = request.DmChannelId,
-                CallerId = currentUserId,
-                RecipientId = recipientId
-            }, cancellationToken);
-
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
-
-            logger.LogInformation(
-                "User {UserId} initiated call {CallId} in DM channel {DmChannelId}",
-                currentUserId, callId, request.DmChannelId);
-
-            return new InitiateCallResponse(callId, request.DmChannelId);
         }
         catch
         {
             await transaction.RollbackAsync(cancellationToken);
             throw;
         }
+
+        // Notify both participants after the transaction is committed
+        var callPayload = new
+        {
+            CallId = callId,
+            DmChannelId = request.DmChannelId,
+            CallerId = currentUserId,
+            RecipientId = recipientId
+        };
+        await notificationService.NotifyUserAsync(currentUserId, "Notify_IncomingCall", callPayload);
+        await notificationService.NotifyUserAsync(recipientId, "Notify_IncomingCall", callPayload);
+
+        logger.LogInformation(
+            "User {UserId} initiated call {CallId} in DM channel {DmChannelId}",
+            currentUserId, callId, request.DmChannelId);
+
+        return new InitiateCallResponse(callId, request.DmChannelId);
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app) =>

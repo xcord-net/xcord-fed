@@ -15,18 +15,18 @@ public sealed class AutomodActionExecutor : IAutomodActionExecutor
 {
     private readonly AppDbContext _dbContext;
     private readonly SnowflakeIdGenerator _snowflakeGenerator;
-    private readonly IOutboxWriter _outboxWriter;
+    private readonly INotificationService _notificationService;
     private readonly ILogger<AutomodActionExecutor> _logger;
 
     public AutomodActionExecutor(
         AppDbContext dbContext,
         SnowflakeIdGenerator snowflakeGenerator,
-        IOutboxWriter outboxWriter,
+        INotificationService notificationService,
         ILogger<AutomodActionExecutor> logger)
     {
         _dbContext = dbContext;
         _snowflakeGenerator = snowflakeGenerator;
-        _outboxWriter = outboxWriter;
+        _notificationService = notificationService;
         _logger = logger;
     }
 
@@ -76,7 +76,8 @@ public sealed class AutomodActionExecutor : IAutomodActionExecutor
                         break;
 
                     case AutomodActionType.AlertMods:
-                        await _outboxWriter.WriteAsync(_dbContext, "Automod.Alert", new
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await _notificationService.NotifyServerAsync(serverId, "Notify_AutomodAlert", new
                         {
                             ServerId = serverId,
                             ChannelId = channelId,
@@ -84,8 +85,7 @@ public sealed class AutomodActionExecutor : IAutomodActionExecutor
                             AuthorId = authorId,
                             RuleId = action.RuleId,
                             RuleName = action.RuleName
-                        }, cancellationToken);
-                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        });
                         break;
                 }
             }

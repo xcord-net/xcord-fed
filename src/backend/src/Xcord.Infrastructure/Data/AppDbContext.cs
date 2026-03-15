@@ -39,8 +39,7 @@ public sealed class AppDbContext : DbContext
     public DbSet<ThreadMember> ThreadMembers => Set<ThreadMember>();
     public DbSet<DmChannel> DmChannels => Set<DmChannel>();
     public DbSet<DmChannelMember> DmChannelMembers => Set<DmChannelMember>();
-    public DbSet<OutboxEvent> OutboxEvents => Set<OutboxEvent>();
-    public DbSet<VoiceState> VoiceStates => Set<VoiceState>();
+public DbSet<VoiceState> VoiceStates => Set<VoiceState>();
     public DbSet<ReadState> ReadStates => Set<ReadState>();
     public DbSet<Friendship> Friendships => Set<Friendship>();
     public DbSet<UserBlock> UserBlocks => Set<UserBlock>();

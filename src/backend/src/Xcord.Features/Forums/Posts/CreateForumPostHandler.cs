@@ -35,7 +35,7 @@ public sealed class CreateForumPostHandler(
     SnowflakeIdGenerator snowflakeGenerator,
     IRoleService roleService,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<CreateForumPostHandler> logger)
     : IRequestHandler<CreateForumPostCommand, Result<CreateForumPostResponse>>
 {
@@ -187,7 +187,11 @@ public sealed class CreateForumPostHandler(
                 dbContext.ForumPostTags.Add(postTag);
             }
 
-            await outboxWriter.WriteAsync(dbContext, "Forum.PostCreated", new
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            // Notify after save
+            await notificationService.NotifyConversationAsync(conversationId, "Forum_PostCreated", new
             {
                 ThreadId = threadId,
                 ChannelId = request.ChannelId,
@@ -196,10 +200,7 @@ public sealed class CreateForumPostHandler(
                 Title = request.Title,
                 Tags = request.Tags,
                 CreatedAt = now
-            }, cancellationToken);
-
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            });
 
             logger.LogInformation(
                 "User {UserId} created forum post {ThreadId} in channel {ChannelId}",

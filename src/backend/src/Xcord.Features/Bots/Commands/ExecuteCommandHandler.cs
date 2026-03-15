@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Xcord;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
@@ -15,9 +18,15 @@ public sealed record ExecuteCommandResponse(long CommandId, string Status);
 public sealed class ExecuteCommandHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter)
+    BotInteractionForwarder botInteractionForwarder)
     : IRequestHandler<ExecuteCommandCommand, Result<ExecuteCommandResponse>>
 {
+    private static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        Converters = { new SnowflakeJsonConverter(), new JsonStringEnumConverter() },
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     public async Task<Result<ExecuteCommandResponse>> Handle(ExecuteCommandCommand request, CancellationToken ct)
     {
         var userIdResult = currentUserService.GetCurrentUserId();
@@ -29,8 +38,10 @@ public sealed class ExecuteCommandHandler(
             .FirstOrDefaultAsync(c => c.Id == request.CommandId && c.ServerId == request.ServerId, ct);
         if (cmd == null) return Error.NotFound("COMMAND_NOT_FOUND", "Command not found");
 
-        // Write interaction event to outbox for delivery to the bot's endpoint.
-        await outboxWriter.WriteAsync(dbContext, "Bot_CommandExecuted", new
+        await dbContext.SaveChangesAsync(ct);
+
+        // Forward interaction event directly to the bot's endpoint after save.
+        var payload = new
         {
             botTokenId = cmd.BotTokenId,
             commandId = cmd.Id,
@@ -39,9 +50,9 @@ public sealed class ExecuteCommandHandler(
             userId,
             argsJson = request.ArgsJson,
             timestamp = DateTimeOffset.UtcNow
-        }, ct);
-
-        await dbContext.SaveChangesAsync(ct);
+        };
+        var json = JsonSerializer.Serialize(payload, SerializerOptions);
+        await botInteractionForwarder.ForwardAsync("Bot_CommandExecuted", json, ct);
 
         return new ExecuteCommandResponse(cmd.Id, "dispatched");
     }

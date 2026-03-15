@@ -29,7 +29,7 @@ public sealed class LoginHandler(
     ILogger<LoginHandler> logger,
     IConnectionMultiplexer redis,
     IOptions<RedisOptions> redisOptions,
-    IOutboxWriter outboxWriter)
+    INotificationService notificationService)
     : IRequestHandler<LoginRequest, Result<object>>, IValidatable<LoginRequest>
 {
     private const int MaxFailedAttempts = 5;
@@ -112,16 +112,15 @@ public sealed class LoginHandler(
 
             dbContext.TwoFactorCodes.Add(twoFactorEntity);
 
-            // Send 2FA code via email
             var plaintextEmail = encryptionService.Decrypt(user.Email);
-            await outboxWriter.WriteAsync(dbContext, "Email.TwoFactorLogin", new
-            {
-                to = plaintextEmail,
-                subject = "Your sign-in verification code",
-                htmlBody = $"<p>Your sign-in verification code is: <strong>{twoFactorCode}</strong></p><p>This code expires in 10 minutes. If you did not attempt to sign in, please change your password immediately.</p>"
-            }, cancellationToken);
 
             await dbContext.SaveChangesAsync(cancellationToken);
+
+            // Send 2FA code via email
+            await notificationService.SendEmailAsync(
+                plaintextEmail,
+                "Your sign-in verification code",
+                $"<p>Your sign-in verification code is: <strong>{twoFactorCode}</strong></p><p>This code expires in 10 minutes. If you did not attempt to sign in, please change your password immediately.</p>");
 
             // Log that 2FA code was generated (code itself is not logged for security)
             logger.LogInformation("2FA code generated for user {Username}", user.Username);

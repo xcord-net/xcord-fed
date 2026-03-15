@@ -29,7 +29,7 @@ public sealed class VoteHandler(
     AppDbContext dbContext,
     IConversationResolver conversationResolver,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<VoteHandler> logger)
     : IRequestHandler<VoteCommand, Result<VoteResponse>>, IValidatable<VoteCommand>
 {
@@ -137,8 +137,11 @@ public sealed class VoteHandler(
 
             dbContext.PollVotes.AddRange(newVotes);
 
-            // Write outbox event
-            await outboxWriter.WriteAsync(dbContext, "Poll.Voted", new
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            // Notify after save
+            await notificationService.NotifyConversationAsync(conversation.Id, "Poll_Voted", new
             {
                 PollId = poll.Id,
                 ConversationId = conversation.Id,
@@ -147,10 +150,7 @@ public sealed class VoteHandler(
                     Id = o.Id,
                     VoteCount = o.VoteCount
                 }).ToList()
-            }, cancellationToken);
-
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            });
 
             logger.LogInformation(
                 "User {UserId} voted on poll {PollId}",

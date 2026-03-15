@@ -21,7 +21,7 @@ public sealed record RetractVoteResponse(
 public sealed class RetractVoteHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<RetractVoteHandler> logger)
     : IRequestHandler<RetractVoteCommand, Result<RetractVoteResponse>>
 {
@@ -74,8 +74,11 @@ public sealed class RetractVoteHandler(
                 option.VoteCount--;
             }
 
-            // Write outbox event
-            await outboxWriter.WriteAsync(dbContext, "Poll.Voted", new
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            // Notify after save
+            await notificationService.NotifyConversationAsync(poll.Message.ConversationId, "Poll_Voted", new
             {
                 PollId = poll.Id,
                 ConversationId = poll.Message.ConversationId,
@@ -84,10 +87,7 @@ public sealed class RetractVoteHandler(
                     Id = o.Id,
                     VoteCount = o.VoteCount
                 }).ToList()
-            }, cancellationToken);
-
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            });
 
             logger.LogInformation(
                 "User {UserId} retracted vote on poll {PollId}",

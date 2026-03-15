@@ -61,7 +61,7 @@ public sealed class EmbedExtractor : BackgroundService
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var snowflakeGenerator = scope.ServiceProvider.GetRequiredService<SnowflakeIdGenerator>();
         var storageService = scope.ServiceProvider.GetRequiredService<IStorageService>();
-        var outboxWriter = scope.ServiceProvider.GetRequiredService<IOutboxWriter>();
+        var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
         var httpClient = scope.ServiceProvider.GetRequiredService<SsrfSafeHttpClient>();
         var ogParser = scope.ServiceProvider.GetRequiredService<OpenGraphParser>();
 
@@ -79,19 +79,26 @@ public sealed class EmbedExtractor : BackgroundService
 
         _logger.LogDebug("Processing {Count} messages for embed extraction", pendingMessages.Count);
 
+        // Track which messages had embeds created so we can notify after save
+        var messagesWithEmbeds = new List<(long MessageId, long ConversationId)>();
+
         foreach (var message in pendingMessages)
         {
             try
             {
-                await ProcessMessageEmbedsAsync(
+                var hadEmbeds = await ProcessMessageEmbedsAsync(
                     message,
                     snowflakeGenerator,
                     storageService,
-                    outboxWriter,
                     httpClient,
                     ogParser,
                     context,
                     cancellationToken);
+
+                if (hadEmbeds)
+                {
+                    messagesWithEmbeds.Add((message.Id, message.ConversationId));
+                }
             }
             catch (Exception ex)
             {
@@ -103,16 +110,24 @@ public sealed class EmbedExtractor : BackgroundService
         }
 
         await context.SaveChangesAsync(cancellationToken);
+
+        // Send notifications after save
+        foreach (var (messageId, conversationId) in messagesWithEmbeds)
+        {
+            await notificationService.NotifyConversationAsync(
+                conversationId,
+                "Chat_MessageEmbedded",
+                new { messageId, conversationId });
+        }
     }
 
     /// <summary>
-    /// Process embeds for a single message.
+    /// Process embeds for a single message. Returns true if any embeds were created.
     /// </summary>
-    private async Task ProcessMessageEmbedsAsync(
+    private async Task<bool> ProcessMessageEmbedsAsync(
         Message message,
         SnowflakeIdGenerator snowflakeGenerator,
         IStorageService storageService,
-        IOutboxWriter outboxWriter,
         SsrfSafeHttpClient httpClient,
         OpenGraphParser ogParser,
         AppDbContext context,
@@ -123,7 +138,7 @@ public sealed class EmbedExtractor : BackgroundService
         if (metadata?.Urls == null || metadata.Urls.Count == 0)
         {
             message.EmbedsProcessed = true;
-            return;
+            return false;
         }
 
         var urls = metadata.Urls.Take(MaxUrlsPerMessage).ToList();
@@ -154,15 +169,7 @@ public sealed class EmbedExtractor : BackgroundService
         // Mark message as processed
         message.EmbedsProcessed = true;
 
-        // Write outbox event if any embeds were created
-        if (embeds.Count > 0)
-        {
-            await outboxWriter.WriteAsync(
-                context,
-                "Message.Embedded",
-                new { messageId = message.Id, conversationId = message.ConversationId },
-                cancellationToken);
-        }
+        return embeds.Count > 0;
     }
 
     /// <summary>

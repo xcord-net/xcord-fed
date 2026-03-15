@@ -18,8 +18,28 @@ using Xunit;
 namespace Xcord.Tests.Integration;
 
 /// <summary>
+/// Captures calls to INotificationService for use in tests.
+/// </summary>
+internal sealed class CapturingNotificationService : INotificationService
+{
+    public record SentEmail(string To, string Subject, string HtmlBody);
+
+    public List<SentEmail> Emails { get; } = [];
+
+    public Task NotifyConversationAsync(long conversationId, string method, object payload) => Task.CompletedTask;
+    public Task NotifyUserAsync(long userId, string method, object payload) => Task.CompletedTask;
+    public Task NotifyServerAsync(long serverId, string method, object payload) => Task.CompletedTask;
+
+    public Task SendEmailAsync(string to, string subject, string htmlBody)
+    {
+        Emails.Add(new SentEmail(to, subject, htmlBody));
+        return Task.CompletedTask;
+    }
+}
+
+/// <summary>
 /// Integration tests for ForgotPasswordHandler and ResetPasswordHandler.
-/// Verifies the password reset flow: token creation in DB, outbox entry written,
+/// Verifies the password reset flow: token creation in DB, email notification sent,
 /// and full reset flow using a real PostgreSQL instance via Testcontainers.
 /// </summary>
 [Collection("SharedInfra")]
@@ -40,7 +60,7 @@ public sealed class ForgotPasswordHandlerTests
         _connectionString = fixture.CreateDatabaseAsync(dbName).GetAwaiter().GetResult();
     }
 
-    // ─── Helpers ─────────────────────────────────────────────────────────────
+    // --- Helpers ---
 
     private AppDbContext CreateDbContext()
     {
@@ -86,7 +106,7 @@ public sealed class ForgotPasswordHandlerTests
         return (user, email);
     }
 
-    private ForgotPasswordHandler CreateForgotPasswordHandler(
+    private (ForgotPasswordHandler Handler, CapturingNotificationService NotificationService) CreateForgotPasswordHandler(
         AppDbContext db,
         PgCryptoEncryptionService enc,
         string instanceDomain = "test.xcord.local")
@@ -106,27 +126,29 @@ public sealed class ForgotPasswordHandlerTests
         var redisMultiplexer = ConnectionMultiplexer.Connect(_fixture.RedisConnectionString);
 
         var snowflake = new SnowflakeIdGenerator(8);
-        var outboxWriter = new OutboxWriter(new SnowflakeIdGenerator(9));
+        var notificationService = new CapturingNotificationService();
 
         var httpContext = new DefaultHttpContext { Request = { Scheme = "https" } };
         var httpContextAccessor = new HttpContextAccessor { HttpContext = httpContext };
 
-        return new ForgotPasswordHandler(
+        var handler = new ForgotPasswordHandler(
             db,
             enc,
             snowflake,
             NullLogger<ForgotPasswordHandler>.Instance,
-            outboxWriter,
+            notificationService,
             instanceOptions,
             httpContextAccessor,
             redisMultiplexer,
             redisOptions);
+
+        return (handler, notificationService);
     }
 
     private static ResetPasswordHandler CreateResetPasswordHandler(AppDbContext db) =>
         new(db, Options.Create(new AuthOptions()));
 
-    // ─── Tests ────────────────────────────────────────────────────────────────
+    // --- Tests ---
 
     [Fact]
     public async Task ForgotPassword_WithRegisteredEmail_CreatesResetTokenInDatabase()
@@ -136,7 +158,7 @@ public sealed class ForgotPasswordHandlerTests
         var enc = CreateEncryptionService();
 
         var (user, email) = await SeedUserAsync(db, enc);
-        var handler = CreateForgotPasswordHandler(db, enc);
+        var (handler, _) = CreateForgotPasswordHandler(db, enc);
 
         // Act
         var result = await handler.Handle(
@@ -158,29 +180,26 @@ public sealed class ForgotPasswordHandlerTests
     }
 
     [Fact]
-    public async Task ForgotPassword_WithRegisteredEmail_WritesOutboxEmailEntry()
+    public async Task ForgotPassword_WithRegisteredEmail_SendsPasswordResetEmail()
     {
         // Arrange
         await using var db = CreateDbContext();
         var enc = CreateEncryptionService();
 
-        var (_, email) = await SeedUserAsync(db, enc, "outbox");
-        var handler = CreateForgotPasswordHandler(db, enc);
+        var (_, email) = await SeedUserAsync(db, enc, "email");
+        var (handler, notificationService) = CreateForgotPasswordHandler(db, enc);
 
         // Act
         await handler.Handle(new ForgotPasswordRequest(email), CancellationToken.None);
 
-        // Assert - an outbox event of type "Email.PasswordReset" must have been written
-        await using var verifyDb = CreateDbContext();
-        var outboxEntry = await verifyDb.OutboxEvents
-            .FirstOrDefaultAsync(e => e.EventType == "Email.PasswordReset");
+        // Assert - a password reset email must have been sent via INotificationService
+        notificationService.Emails.Should().HaveCount(1, "exactly one email must be sent");
 
-        outboxEntry.Should().NotBeNull("an Email.PasswordReset outbox entry must be written");
-        outboxEntry!.Payload.Should().Contain("reset-password?token=",
-            "the payload must contain the reset URL");
-        outboxEntry.Payload.Should().Contain(email.ToLowerInvariant(),
-            "the payload must contain the recipient email address");
-        outboxEntry.ProcessedAt.Should().BeNull("the outbox entry must be unprocessed on creation");
+        var sentEmail = notificationService.Emails[0];
+        sentEmail.To.Should().Be(email.ToLowerInvariant(), "email must be sent to the correct address");
+        sentEmail.Subject.Should().Contain("Reset", "subject must reference password reset");
+        sentEmail.HtmlBody.Should().Contain("reset-password?token=",
+            "the email body must contain the reset URL");
     }
 
     [Fact]
@@ -192,31 +211,26 @@ public sealed class ForgotPasswordHandlerTests
         const string instanceDomain = "myinstance.xcord.local";
 
         var (_, email) = await SeedUserAsync(db, enc, "domain");
-        var handler = CreateForgotPasswordHandler(db, enc, instanceDomain);
+        var (handler, notificationService) = CreateForgotPasswordHandler(db, enc, instanceDomain);
 
         // Act
         await handler.Handle(new ForgotPasswordRequest(email), CancellationToken.None);
 
         // Assert
-        await using var verifyDb = CreateDbContext();
-        var outboxEntry = await verifyDb.OutboxEvents
-            .FirstOrDefaultAsync(e => e.EventType == "Email.PasswordReset");
-
-        outboxEntry.Should().NotBeNull();
-        outboxEntry!.Payload.Should().Contain(instanceDomain,
+        notificationService.Emails.Should().HaveCount(1);
+        notificationService.Emails[0].HtmlBody.Should().Contain(instanceDomain,
             "the reset URL must include the configured instance domain");
     }
 
     [Fact]
-    public async Task ForgotPassword_WithUnknownEmail_ReturnsSuccessWithoutCreatingToken()
+    public async Task ForgotPassword_WithUnknownEmail_ReturnsSuccessWithoutSendingEmail()
     {
         // Arrange
         await using var db = CreateDbContext();
         var enc = CreateEncryptionService();
-        var handler = CreateForgotPasswordHandler(db, enc);
+        var (handler, notificationService) = CreateForgotPasswordHandler(db, enc);
 
         var tokenCountBefore = await db.PasswordResetTokens.CountAsync();
-        var outboxCountBefore = await db.OutboxEvents.CountAsync();
 
         // Act - email enumeration protection: always returns success
         var result = await handler.Handle(
@@ -228,10 +242,9 @@ public sealed class ForgotPasswordHandlerTests
 
         await using var verifyDb = CreateDbContext();
         var tokenCountAfter = await verifyDb.PasswordResetTokens.CountAsync();
-        var outboxCountAfter = await verifyDb.OutboxEvents.CountAsync();
 
         tokenCountAfter.Should().Be(tokenCountBefore, "no token must be written for an unknown address");
-        outboxCountAfter.Should().Be(outboxCountBefore, "no email must be dispatched for an unknown address");
+        notificationService.Emails.Should().BeEmpty("no email must be dispatched for an unknown address");
     }
 
     [Fact]
@@ -242,21 +255,16 @@ public sealed class ForgotPasswordHandlerTests
         var enc = CreateEncryptionService();
 
         var (user, email) = await SeedUserAsync(db, enc, "fullflow");
-        var forgotHandler = CreateForgotPasswordHandler(db, enc);
+        var (forgotHandler, notificationService) = CreateForgotPasswordHandler(db, enc);
 
         // Step 1: request password reset
         var forgotResult = await forgotHandler.Handle(
             new ForgotPasswordRequest(email), CancellationToken.None);
         forgotResult.IsSuccess.Should().BeTrue();
 
-        // Step 2: extract reset token from outbox payload
-        await using var outboxDb = CreateDbContext();
-        var outboxEntry = await outboxDb.OutboxEvents
-            .FirstOrDefaultAsync(e => e.EventType == "Email.PasswordReset");
-        outboxEntry.Should().NotBeNull("outbox entry must exist after forgot password");
-
-        var payload = JsonDocument.Parse(outboxEntry!.Payload);
-        var htmlBody = payload.RootElement.GetProperty("htmlBody").GetString()!;
+        // Step 2: extract reset token from email body
+        notificationService.Emails.Should().HaveCount(1, "email must be sent after forgot password");
+        var htmlBody = notificationService.Emails[0].HtmlBody;
 
         var tokenStart = htmlBody.IndexOf("token=", StringComparison.Ordinal) + "token=".Length;
         var tokenEnd = htmlBody.IndexOf('"', tokenStart);

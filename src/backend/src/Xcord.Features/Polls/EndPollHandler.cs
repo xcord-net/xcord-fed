@@ -23,7 +23,7 @@ public sealed class EndPollHandler(
     AppDbContext dbContext,
     IRoleService roleService,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<EndPollHandler> logger)
     : IRequestHandler<EndPollCommand, Result<EndPollResponse>>
 {
@@ -92,15 +92,15 @@ public sealed class EndPollHandler(
         {
             poll.IsClosed = true;
 
-            // Write outbox event
-            await outboxWriter.WriteAsync(dbContext, "Poll.Ended", new
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            // Notify after save
+            await notificationService.NotifyConversationAsync(poll.Message.ConversationId, "Poll_Ended", new
             {
                 PollId = poll.Id,
                 ConversationId = poll.Message.ConversationId
-            }, cancellationToken);
-
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            });
 
             logger.LogInformation(
                 "User {UserId} ended poll {PollId}",

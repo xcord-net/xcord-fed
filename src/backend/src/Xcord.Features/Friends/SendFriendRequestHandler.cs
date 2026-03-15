@@ -14,7 +14,7 @@ public sealed class SendFriendRequestHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
     SnowflakeIdGenerator idGenerator,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<SendFriendRequestHandler> logger) : IRequestHandler<SendFriendRequestRequest, Result<FriendshipDto>>
 {
     public async Task<Result<FriendshipDto>> Handle(SendFriendRequestRequest request, CancellationToken cancellationToken)
@@ -90,19 +90,15 @@ public sealed class SendFriendRequestHandler(
 
         dbContext.Friendships.Add(friendship);
 
-        // Write outbox event
-        await outboxWriter.WriteAsync(
-            dbContext,
-            "Friend.RequestSent",
-            new
-            {
-                friendshipId = friendship.Id,
-                senderId = userId,
-                receiverId = request.UserId
-            },
-            cancellationToken);
-
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify receiver directly after save
+        await notificationService.NotifyUserAsync(request.UserId, "Notify_FriendRequest", new
+        {
+            friendshipId = friendship.Id,
+            senderId = userId,
+            receiverId = request.UserId
+        });
 
         logger.LogInformation(
             "User {UserId} sent friend request to user {TargetUserId}",

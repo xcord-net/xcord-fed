@@ -27,23 +27,6 @@ namespace Xcord.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "outbox_events",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false),
-                    EventType = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    Payload = table.Column<string>(type: "jsonb", nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    ProcessedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    LastAttemptAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    RetryCount = table.Column<int>(type: "integer", nullable: false, defaultValue: 0)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_outbox_events", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "system_settings",
                 columns: table => new
                 {
@@ -2421,16 +2404,6 @@ namespace Xcord.Infrastructure.Migrations
                 column: "OnboardingConfigId");
 
             migrationBuilder.CreateIndex(
-                name: "ix_outbox_events_processed_at",
-                table: "outbox_events",
-                column: "ProcessedAt");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_outbox_events_processed_at_created_at",
-                table: "outbox_events",
-                columns: new[] { "ProcessedAt", "CreatedAt" });
-
-            migrationBuilder.CreateIndex(
                 name: "ix_outgoing_webhook_deliveries_created_at",
                 table: "outgoing_webhook_deliveries",
                 column: "CreatedAt");
@@ -2960,9 +2933,6 @@ namespace Xcord.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "onboarding_prompts");
-
-            migrationBuilder.DropTable(
-                name: "outbox_events");
 
             migrationBuilder.DropTable(
                 name: "outgoing_webhook_deliveries");

@@ -62,7 +62,7 @@ public sealed class CreateChannelHandler(
     SnowflakeIdGenerator snowflakeGenerator,
     IRoleService roleService,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     IOptions<TierOptions> tierOptions,
     ILogger<CreateChannelHandler> logger)
     : IRequestHandler<CreateChannelCommand, Result<CreateChannelResponse>>, IValidatable<CreateChannelCommand>
@@ -216,9 +216,10 @@ public sealed class CreateChannelHandler(
             }
         }
 
-        // Write a Chat.ChannelCreated outbox event so all server members receive the new
-        // channel via SignalR and can update their sidebar without a page refresh.
-        await outboxWriter.WriteAsync(dbContext, "Chat.ChannelCreated", new
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify all server members after save
+        await notificationService.NotifyServerAsync(request.ServerId, "Chat_ChannelCreated", new
         {
             serverId = request.ServerId,
             id = channel.Id,
@@ -231,9 +232,7 @@ public sealed class CreateChannelHandler(
             slowModeSeconds = channel.SlowModeSeconds,
             isNsfw = channel.IsNsfw,
             createdAt = channel.CreatedAt
-        }, cancellationToken);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        });
 
         logger.LogInformation(
             "User {UserId} created channel {ChannelName} (ID: {ChannelId}) in server {ServerId}",

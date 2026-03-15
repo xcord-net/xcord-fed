@@ -22,7 +22,7 @@ public sealed class UnblockUserHandler(
     ICurrentUserService currentUserService,
     IConnectionMultiplexer redis,
     IOptions<RedisOptions> redisOptions,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<UnblockUserHandler> logger) : IRequestHandler<UnblockUserRequest, Result<bool>>
 {
     private readonly RedisOptions _redisOptions = redisOptions.Value;
@@ -45,18 +45,14 @@ public sealed class UnblockUserHandler(
         // Hard delete the block
         dbContext.UserBlocks.Remove(userBlock);
 
-        // Write outbox event
-        await outboxWriter.WriteAsync(
-            dbContext,
-            "User.Unblocked",
-            new
-            {
-                blockerId = userId,
-                blockedId = request.UserId
-            },
-            cancellationToken);
-
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify the unblocked user directly after save
+        await notificationService.NotifyUserAsync(request.UserId, "Notify_UserUnblocked", new
+        {
+            blockerId = userId,
+            blockedId = request.UserId
+        });
 
         // Remove from Redis cache
         var db = redis.GetDatabase();

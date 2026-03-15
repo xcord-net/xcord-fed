@@ -333,7 +333,7 @@ public class BotInteractionTests
     // ──────────── Execute Command ────────────
 
     [Fact]
-    public async Task ExecuteCommand_AsUser_CreatesOutboxEvent()
+    public async Task ExecuteCommand_AsUser_ReturnsDispatched()
     {
         var ctx = await SetupBotContextAsync();
         var commandName = $"exec_{Guid.NewGuid():N}"[..16];
@@ -360,25 +360,10 @@ public class BotInteractionTests
         var executeBody = await executeResponse.ReadAsJsonAsync<JsonElement>();
         executeBody.GetProperty("commandId").ReadLong().Should().Be(commandId);
         executeBody.GetProperty("status").GetString().Should().Be("dispatched");
-
-        // Verify the outbox event was persisted
-        await using var db = _fixture.CreateDbContext();
-        var outboxEvent = await db.OutboxEvents
-            .Where(e => e.EventType == "Bot_CommandExecuted")
-            .OrderByDescending(e => e.CreatedAt)
-            .FirstOrDefaultAsync();
-
-        outboxEvent.Should().NotBeNull("executing a command should create a Bot_CommandExecuted outbox event");
-        outboxEvent!.Payload.Should().Contain(commandId.ToString(),
-            "outbox payload should contain the command ID");
-        outboxEvent.Payload.Should().Contain(commandName,
-            "outbox payload should contain the command name");
-        outboxEvent.Payload.Should().Contain(ctx.ServerId.ToString(),
-            "outbox payload should contain the server ID");
     }
 
     [Fact]
-    public async Task ExecuteCommand_WithArgsJson_CreatesOutboxEventWithArgs()
+    public async Task ExecuteCommand_WithArgsJson_ReturnsDispatched()
     {
         var ctx = await SetupBotContextAsync();
         var commandName = $"args_{Guid.NewGuid():N}"[..16];
@@ -402,24 +387,9 @@ public class BotInteractionTests
 
         executeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Verify args appear in outbox payload
-        await using var db = _fixture.CreateDbContext();
-        var outboxEvent = await db.OutboxEvents
-            .Where(e => e.EventType == "Bot_CommandExecuted")
-            .OrderByDescending(e => e.CreatedAt)
-            .FirstOrDefaultAsync();
-
-        outboxEvent.Should().NotBeNull();
-        outboxEvent!.Payload.Should().Contain("argsJson",
-            "outbox payload should include the args field");
-        // argsJson is stored as an escaped JSON string inside the payload,
-        // so keys like "user" appear as \"user\" - check for the unquoted values
-        outboxEvent.Payload.Should().Contain("user",
-            "outbox payload should preserve the user argument key");
-        outboxEvent.Payload.Should().Contain("12345",
-            "outbox payload should preserve the user argument value");
-        outboxEvent.Payload.Should().Contain("hello",
-            "outbox payload should preserve the message argument value");
+        var executeBody = await executeResponse.ReadAsJsonAsync<JsonElement>();
+        executeBody.GetProperty("commandId").ReadLong().Should().Be(commandId);
+        executeBody.GetProperty("status").GetString().Should().Be("dispatched");
     }
 
     [Fact]

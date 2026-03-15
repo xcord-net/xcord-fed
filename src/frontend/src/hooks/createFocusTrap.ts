@@ -43,7 +43,7 @@ export function createFocusTrap(
 
       if (e.key === 'Escape') {
         e.preventDefault();
-        e.stopPropagation();
+        e.stopImmediatePropagation();
         options?.onEscape?.();
         return;
       }

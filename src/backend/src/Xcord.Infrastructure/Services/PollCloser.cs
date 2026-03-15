@@ -20,7 +20,7 @@ public sealed class PollCloser(
     {
         using var scope = ServiceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var outboxWriter = scope.ServiceProvider.GetRequiredService<IOutboxWriter>();
+        var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
 
         var now = DateTime.UtcNow;
 
@@ -44,14 +44,6 @@ public sealed class PollCloser(
             foreach (var poll in expiredPolls)
             {
                 poll.IsClosed = true;
-
-                // Write outbox event
-                await outboxWriter.WriteAsync(dbContext, "Poll.Ended", new
-                {
-                    PollId = poll.Id,
-                    ConversationId = poll.Message.ConversationId
-                }, ct);
-
                 Logger.LogInformation("Closed expired poll {PollId}", poll.Id);
             }
 
@@ -62,6 +54,19 @@ public sealed class PollCloser(
         {
             await transaction.RollbackAsync(ct);
             throw;
+        }
+
+        // Send notifications after successful commit
+        foreach (var poll in expiredPolls)
+        {
+            await notificationService.NotifyConversationAsync(
+                poll.Message.ConversationId,
+                "Poll_Ended",
+                new
+                {
+                    PollId = poll.Id,
+                    ConversationId = poll.Message.ConversationId
+                });
         }
     }
 }

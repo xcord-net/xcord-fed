@@ -21,7 +21,7 @@ public sealed class AnswerCallHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
     ILiveKitService liveKitService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     IOptions<InstanceOptions> instanceOptions,
     IOptions<TierOptions> tierOptions,
     ILogger<AnswerCallHandler> logger) : IRequestHandler<AnswerCallRequest, Result<AnswerCallResponse>>
@@ -65,6 +65,43 @@ public sealed class AnswerCallHandler(
             return Error.Forbidden("FORBIDDEN", "You are not a member of this DM channel");
         }
 
+        // Generate LiveKit room name and tokens before the transaction
+        var domain = _instanceOptions.Domain;
+        var roomName = $"{domain}:call:{call.Id}";
+
+        // Build tier-based quality constraints for server-side enforcement
+        var qualityConstraints = new VideoQualityConstraints
+        {
+            MaxAudioBitrateKbps = _tierOptions.MaxAudioBitrateKbps,
+            MaxVideoBitrateKbps = _tierOptions.MaxVideoBitrateKbps,
+            MaxVideoWidth = _tierOptions.MaxVideoWidth,
+            MaxVideoHeight = _tierOptions.MaxVideoHeight,
+            MaxVideoFps = _tierOptions.MaxVideoFps,
+            MaxScreenShareBitrateKbps = _tierOptions.MaxScreenShareBitrateKbps,
+            EnableSimulcast = _tierOptions.CanUseSimulcast
+        };
+
+        // Generate LiveKit tokens for both users with server-enforced quality limits
+        var callerToken = liveKitService.GenerateToken(
+            userId: call.CallerId,
+            roomName: roomName,
+            canPublish: true,
+            canSubscribe: true,
+            canPublishData: true,
+            canScreenShare: true,
+            ttl: TimeSpan.FromHours(2),
+            qualityConstraints: qualityConstraints);
+
+        var recipientToken = liveKitService.GenerateToken(
+            userId: currentUserId,
+            roomName: roomName,
+            canPublish: true,
+            canSubscribe: true,
+            canPublishData: true,
+            canScreenShare: true,
+            ttl: TimeSpan.FromHours(2),
+            qualityConstraints: qualityConstraints);
+
         using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         try
@@ -73,69 +110,34 @@ public sealed class AnswerCallHandler(
             call.Status = CallStatus.Active;
             call.AnsweredAt = DateTimeOffset.UtcNow;
 
-            // Generate LiveKit room name
-            var domain = _instanceOptions.Domain;
-            var roomName = $"{domain}:call:{call.Id}";
-
-            // Build tier-based quality constraints for server-side enforcement
-            var qualityConstraints = new VideoQualityConstraints
-            {
-                MaxAudioBitrateKbps = _tierOptions.MaxAudioBitrateKbps,
-                MaxVideoBitrateKbps = _tierOptions.MaxVideoBitrateKbps,
-                MaxVideoWidth = _tierOptions.MaxVideoWidth,
-                MaxVideoHeight = _tierOptions.MaxVideoHeight,
-                MaxVideoFps = _tierOptions.MaxVideoFps,
-                MaxScreenShareBitrateKbps = _tierOptions.MaxScreenShareBitrateKbps,
-                EnableSimulcast = _tierOptions.CanUseSimulcast
-            };
-
-            // Generate LiveKit tokens for both users with server-enforced quality limits
-            var callerToken = liveKitService.GenerateToken(
-                userId: call.CallerId,
-                roomName: roomName,
-                canPublish: true,
-                canSubscribe: true,
-                canPublishData: true,
-                canScreenShare: true,
-                ttl: TimeSpan.FromHours(2),
-                qualityConstraints: qualityConstraints);
-
-            var recipientToken = liveKitService.GenerateToken(
-                userId: currentUserId,
-                roomName: roomName,
-                canPublish: true,
-                canSubscribe: true,
-                canPublishData: true,
-                canScreenShare: true,
-                ttl: TimeSpan.FromHours(2),
-                qualityConstraints: qualityConstraints);
-
-            // Write outbox event to notify the caller
-            await outboxWriter.WriteAsync(dbContext, "Call.Answered", new
-            {
-                CallId = call.Id,
-                DmChannelId = call.DmChannelId,
-                CallerId = call.CallerId,
-                RecipientId = currentUserId,
-                CallerToken = callerToken,
-                RoomName = roomName
-            }, cancellationToken);
-
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
-
-            logger.LogInformation(
-                "User {UserId} answered call {CallId} in DM channel {DmChannelId}",
-                currentUserId, call.Id, call.DmChannelId);
-
-            // Return the recipient's token
-            return new AnswerCallResponse(recipientToken, roomName);
         }
         catch
         {
             await transaction.RollbackAsync(cancellationToken);
             throw;
         }
+
+        // Notify both participants after the transaction is committed
+        var callPayload = new
+        {
+            CallId = call.Id,
+            DmChannelId = call.DmChannelId,
+            CallerId = call.CallerId,
+            RecipientId = currentUserId,
+            CallerToken = callerToken,
+            RoomName = roomName
+        };
+        await notificationService.NotifyUserAsync(call.CallerId, "Notify_CallAnswered", callPayload);
+        await notificationService.NotifyUserAsync(currentUserId, "Notify_CallAnswered", callPayload);
+
+        logger.LogInformation(
+            "User {UserId} answered call {CallId} in DM channel {DmChannelId}",
+            currentUserId, call.Id, call.DmChannelId);
+
+        // Return the recipient's token
+        return new AnswerCallResponse(recipientToken, roomName);
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app) =>

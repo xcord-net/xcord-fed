@@ -19,7 +19,7 @@ public sealed record RemoveGroupDmMemberRequest(
 public sealed class RemoveGroupDmMemberHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<RemoveGroupDmMemberHandler> logger) : IRequestHandler<RemoveGroupDmMemberRequest, Result<bool>>
 {
     public async Task<Result<bool>> Handle(RemoveGroupDmMemberRequest request, CancellationToken cancellationToken)
@@ -64,6 +64,9 @@ public sealed class RemoveGroupDmMemberHandler(
 
         try
         {
+            // Capture all member IDs before removing (so the removed user is notified too)
+            var allMemberIds = dmChannel.Members.Select(m => m.UserId).Distinct().ToList();
+
             // Remove member
             dbContext.DmChannelMembers.Remove(member);
 
@@ -93,16 +96,20 @@ public sealed class RemoveGroupDmMemberHandler(
                 }
             }
 
-            // Write outbox event
-            await outboxWriter.WriteAsync(dbContext, "Dm.MemberRemoved", new
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            // Notify all members (including removed user) after save
+            var memberRemovedPayload = new
             {
                 DmChannelId = request.DmChannelId,
                 UserId = request.UserId,
                 RemovedBy = currentUserId
-            }, cancellationToken);
-
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            };
+            foreach (var memberId in allMemberIds)
+            {
+                await notificationService.NotifyUserAsync(memberId, "Notify_DmMemberRemoved", memberRemovedPayload);
+            }
 
             logger.LogInformation(
                 "User {UserId} removed from group DM {DmChannelId} by user {CurrentUserId}",

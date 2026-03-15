@@ -21,7 +21,7 @@ public sealed class CallTimeoutService(
     {
         using var scope = ServiceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var outboxWriter = scope.ServiceProvider.GetRequiredService<IOutboxWriter>();
+        var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
 
         var now = DateTime.UtcNow;
         var timeoutThreshold = now.AddSeconds(-30);
@@ -41,6 +41,9 @@ public sealed class CallTimeoutService(
 
         Logger.LogInformation("Found {Count} timed-out calls to process", timedOutCalls.Count);
 
+        // Collect notification data before save
+        var callNotifications = new List<(long CallId, long DmChannelId, long CallerId, long? RecipientId)>();
+
         using var transaction = await dbContext.Database.BeginTransactionAsync(ct);
 
         try
@@ -51,18 +54,9 @@ public sealed class CallTimeoutService(
                 call.Status = CallStatus.Missed;
                 call.EndedAt = now;
 
-                // Get the recipient ID
+                // Collect the recipient ID for notification after save
                 var recipientId = call.DmChannel.Members.FirstOrDefault(m => m.UserId != call.CallerId)?.UserId;
-
-                // Write outbox event to notify both users
-                await outboxWriter.WriteAsync(dbContext, "Call.Ended", new
-                {
-                    CallId = call.Id,
-                    DmChannelId = call.DmChannelId,
-                    CallerId = call.CallerId,
-                    RecipientId = recipientId,
-                    Status = CallStatus.Missed
-                }, ct);
+                callNotifications.Add((call.Id, call.DmChannelId, call.CallerId, recipientId));
 
                 Logger.LogInformation("Call {CallId} marked as missed (timeout)", call.Id);
             }
@@ -74,6 +68,26 @@ public sealed class CallTimeoutService(
         {
             await transaction.RollbackAsync(ct);
             throw;
+        }
+
+        // Send notifications after successful commit
+        foreach (var (callId, dmChannelId, callerId, recipientId) in callNotifications)
+        {
+            var payload = new
+            {
+                CallId = callId,
+                DmChannelId = dmChannelId,
+                CallerId = callerId,
+                RecipientId = recipientId,
+                Status = CallStatus.Missed
+            };
+
+            await notificationService.NotifyUserAsync(callerId, "Notify_CallEnded", payload);
+
+            if (recipientId.HasValue)
+            {
+                await notificationService.NotifyUserAsync(recipientId.Value, "Notify_CallEnded", payload);
+            }
         }
     }
 }

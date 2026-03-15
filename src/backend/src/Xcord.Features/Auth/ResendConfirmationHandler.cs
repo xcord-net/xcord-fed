@@ -19,7 +19,7 @@ public sealed class ResendConfirmationHandler(
     SnowflakeIdGenerator snowflakeGenerator,
     ILogger<ResendConfirmationHandler> logger,
     IEncryptionService encryptionService,
-    IOutboxWriter outboxWriter)
+    INotificationService notificationService)
     : IRequestHandler<ResendConfirmationRequest, Result<bool>>
 {
     public async Task<Result<bool>> Handle(ResendConfirmationRequest request, CancellationToken cancellationToken)
@@ -66,15 +66,13 @@ public sealed class ResendConfirmationHandler(
         // Decrypt email for sending
         var decryptedEmail = encryptionService.Decrypt(user.Email);
 
-        // Queue email confirmation via outbox
-        await outboxWriter.WriteAsync(dbContext, "Email.Confirmation", new
-        {
-            to = decryptedEmail,
-            subject = "Confirm your email address",
-            htmlBody = $"<p>Your confirmation code is: <strong>{confirmationCode}</strong></p><p>This code expires in 15 minutes.</p>"
-        }, cancellationToken);
-
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Send email confirmation
+        await notificationService.SendEmailAsync(
+            decryptedEmail,
+            "Confirm your email address",
+            $"<p>Your confirmation code is: <strong>{confirmationCode}</strong></p><p>This code expires in 15 minutes.</p>");
 
         logger.LogInformation("Email confirmation code sent for user {UserId}", request.UserId);
 

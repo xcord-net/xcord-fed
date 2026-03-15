@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Xcord;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
@@ -15,9 +18,15 @@ public sealed record InteractionResponse(long ComponentId, string Status);
 public sealed class HandleInteractionHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter)
+    BotInteractionForwarder botInteractionForwarder)
     : IRequestHandler<HandleInteractionCommand, Result<InteractionResponse>>
 {
+    private static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        Converters = { new SnowflakeJsonConverter(), new JsonStringEnumConverter() },
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     public async Task<Result<InteractionResponse>> Handle(HandleInteractionCommand request, CancellationToken ct)
     {
         var userIdResult = currentUserService.GetCurrentUserId();
@@ -42,8 +51,10 @@ public sealed class HandleInteractionHandler(
             botTokenId = botToken?.Id;
         }
 
-        // Write interaction event to outbox for delivery to the bot's endpoint.
-        await outboxWriter.WriteAsync(dbContext, "Bot_Interaction", new
+        await dbContext.SaveChangesAsync(ct);
+
+        // Forward interaction event directly to the bot's endpoint after save.
+        var payload = new
         {
             botTokenId,
             componentId = component.Id,
@@ -54,9 +65,9 @@ public sealed class HandleInteractionHandler(
             userId,
             value = request.Value,
             timestamp = DateTimeOffset.UtcNow
-        }, ct);
-
-        await dbContext.SaveChangesAsync(ct);
+        };
+        var json = JsonSerializer.Serialize(payload, SerializerOptions);
+        await botInteractionForwarder.ForwardAsync("Bot_Interaction", json, ct);
 
         return new InteractionResponse(component.Id, "dispatched");
     }

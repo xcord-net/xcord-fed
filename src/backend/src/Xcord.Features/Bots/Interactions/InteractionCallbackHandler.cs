@@ -55,7 +55,7 @@ public sealed class InteractionCallbackHandler(
     IConnectionMultiplexer redis,
     IOptions<RedisOptions> redisOptions,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     SnowflakeIdGenerator snowflakeGenerator)
     : IRequestHandler<InteractionCallbackCommand, Result<InteractionCallbackResponse>>
 {
@@ -128,7 +128,9 @@ public sealed class InteractionCallbackHandler(
 
             dbContext.Messages.Add(message);
 
-            await outboxWriter.WriteAsync(dbContext, "Message.Created", new
+            await dbContext.SaveChangesAsync(ct);
+
+            await notificationService.NotifyConversationAsync(message.ConversationId, "Chat_MessageCreated", new
             {
                 messageId = message.Id,
                 conversationId = message.ConversationId,
@@ -136,9 +138,7 @@ public sealed class InteractionCallbackHandler(
                 content = message.Content,
                 type = message.Type.ToString(),
                 createdAt = message.CreatedAt
-            }, ct);
-
-            await dbContext.SaveChangesAsync(ct);
+            });
         }
 
         return new InteractionCallbackResponse("ok");

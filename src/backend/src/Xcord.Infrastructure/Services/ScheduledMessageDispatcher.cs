@@ -26,7 +26,7 @@ public sealed class ScheduledMessageDispatcher(
         using var scope = ServiceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var snowflakeGenerator = scope.ServiceProvider.GetRequiredService<SnowflakeIdGenerator>();
-        var outboxWriter = scope.ServiceProvider.GetRequiredService<IOutboxWriter>();
+        var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
         var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
 
         var now = DateTimeOffset.UtcNow;
@@ -47,7 +47,7 @@ public sealed class ScheduledMessageDispatcher(
         foreach (var scheduled in dueMessages)
         {
             await DispatchOneAsync(
-                dbContext, snowflakeGenerator, outboxWriter, roleService,
+                dbContext, snowflakeGenerator, notificationService, roleService,
                 scheduled, ct);
         }
     }
@@ -55,7 +55,7 @@ public sealed class ScheduledMessageDispatcher(
     private async Task DispatchOneAsync(
         AppDbContext dbContext,
         SnowflakeIdGenerator snowflakeGenerator,
-        IOutboxWriter outboxWriter,
+        INotificationService notificationService,
         IRoleService roleService,
         ScheduledMessage scheduled,
         CancellationToken cancellationToken)
@@ -90,7 +90,7 @@ public sealed class ScheduledMessageDispatcher(
             return;
         }
 
-        // Fetch author info for the outbox event payload.
+        // Fetch author info for the notification payload.
         var author = await dbContext.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == scheduled.AuthorId, cancellationToken);
@@ -125,23 +125,6 @@ public sealed class ScheduledMessageDispatcher(
 
             dbContext.Messages.Add(message);
 
-            // Write outbox event so clients receive the message in real time.
-            await outboxWriter.WriteAsync(dbContext, "Message.Created", new
-            {
-                conversationId = message.ConversationId,
-                id = message.Id,
-                authorId = message.AuthorId,
-                authorUsername = author.Username,
-                authorAvatarUrl = author.AvatarUrl,
-                type = message.Type.ToString(),
-                content = message.Content,
-                metadata = (string?)null,
-                replyToId = (long?)null,
-                isPinned = message.IsPinned,
-                editedAt = (DateTimeOffset?)null,
-                createdAt = message.CreatedAt
-            }, cancellationToken);
-
             // Mark the scheduled message as sent.
             scheduled.SentAt = messageNow;
 
@@ -151,6 +134,26 @@ public sealed class ScheduledMessageDispatcher(
             Logger.LogInformation(
                 "Dispatched scheduled message {ScheduledId} as message {MessageId} in conversation {ConversationId}",
                 scheduled.Id, messageId, scheduled.ConversationId);
+
+            // Send notification after successful commit
+            await notificationService.NotifyConversationAsync(
+                message.ConversationId,
+                "Chat_MessageCreated",
+                new
+                {
+                    conversationId = message.ConversationId,
+                    id = message.Id,
+                    authorId = message.AuthorId,
+                    authorUsername = author.Username,
+                    authorAvatarUrl = author.AvatarUrl,
+                    type = message.Type.ToString(),
+                    content = message.Content,
+                    metadata = (string?)null,
+                    replyToId = (long?)null,
+                    isPinned = message.IsPinned,
+                    editedAt = (DateTimeOffset?)null,
+                    createdAt = message.CreatedAt
+                });
         }
         catch (Exception ex)
         {

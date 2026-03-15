@@ -32,7 +32,7 @@ public sealed class CreateReportHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<CreateReportHandler> logger)
     : IRequestHandler<CreateReportCommand, Result<CreateReportResponse>>, IValidatable<CreateReportCommand>
 {
@@ -123,15 +123,15 @@ public sealed class CreateReportHandler(
             reason: request.Reason,
             createdAt: now);
 
-        // Write outbox event
-        await outboxWriter.WriteAsync(dbContext, "Report.Created", new
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify after save
+        await notificationService.NotifyServerAsync(request.ServerId, "Notify_Report", new
         {
             ServerId = request.ServerId,
             ReportId = reportId,
             ReporterId = reporterId
-        }, cancellationToken);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        });
 
         logger.LogInformation(
             "User {ReporterId} created report {ReportId} in server {ServerId}",

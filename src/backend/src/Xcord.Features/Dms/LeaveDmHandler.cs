@@ -18,7 +18,7 @@ public sealed record LeaveDmRequest(
 public sealed class LeaveDmHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<LeaveDmHandler> logger) : IRequestHandler<LeaveDmRequest, Result<bool>>
 {
     public async Task<Result<bool>> Handle(LeaveDmRequest request, CancellationToken cancellationToken)
@@ -48,6 +48,9 @@ public sealed class LeaveDmHandler(
 
         try
         {
+            // Capture all member IDs before removing (so the leaving user is notified too)
+            var allMemberIds = dmChannel.Members.Select(m => m.UserId).Distinct().ToList();
+
             // Remove current user from members
             dbContext.DmChannelMembers.Remove(member);
 
@@ -77,16 +80,20 @@ public sealed class LeaveDmHandler(
                 }
             }
 
-            // Write outbox event
-            await outboxWriter.WriteAsync(dbContext, "Dm.MemberRemoved", new
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            // Notify all members (including the user who left) after save
+            var memberRemovedPayload = new
             {
                 DmChannelId = request.DmChannelId,
                 UserId = currentUserId,
                 RemovedBy = currentUserId
-            }, cancellationToken);
-
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            };
+            foreach (var memberId in allMemberIds)
+            {
+                await notificationService.NotifyUserAsync(memberId, "Notify_DmMemberRemoved", memberRemovedPayload);
+            }
 
             logger.LogInformation(
                 "User {UserId} left DM {DmChannelId}",

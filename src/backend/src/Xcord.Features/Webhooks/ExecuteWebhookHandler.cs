@@ -34,7 +34,7 @@ public sealed class ExecuteWebhookHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     IConnectionMultiplexer redis,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<ExecuteWebhookHandler> logger,
     IOptions<RedisOptions> redisOptions)
     : IRequestHandler<ExecuteWebhookCommand, Result<ExecuteWebhookResponse>>, IValidatable<ExecuteWebhookCommand>
@@ -169,33 +169,32 @@ public sealed class ExecuteWebhookHandler(
                 readState.UnreadCount++;
             }
 
-            // Write outbox event
-            await outboxWriter.WriteAsync(dbContext, "Message.Created", new
-            {
-                MessageId = message.Id,
-                ConversationId = message.ConversationId,
-                AuthorId = (long?)null
-            }, cancellationToken);
-
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
-
-            logger.LogInformation(
-                "Webhook {WebhookId} posted message {MessageId} to conversation {ConversationId}",
-                webhook.Id, messageId, channel.ConversationId);
-
-            return new ExecuteWebhookResponse(
-                MessageId: message.Id,
-                ConversationId: message.ConversationId,
-                Content: sanitizedContent,
-                CreatedAt: message.CreatedAt
-            );
         }
         catch
         {
             await transaction.RollbackAsync(cancellationToken);
             throw;
         }
+
+        await notificationService.NotifyConversationAsync(message.ConversationId, "Chat_MessageCreated", new
+        {
+            MessageId = message.Id,
+            ConversationId = message.ConversationId,
+            AuthorId = (long?)null
+        });
+
+        logger.LogInformation(
+            "Webhook {WebhookId} posted message {MessageId} to conversation {ConversationId}",
+            webhook.Id, messageId, channel.ConversationId);
+
+        return new ExecuteWebhookResponse(
+            MessageId: message.Id,
+            ConversationId: message.ConversationId,
+            Content: sanitizedContent,
+            CreatedAt: message.CreatedAt
+        );
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)

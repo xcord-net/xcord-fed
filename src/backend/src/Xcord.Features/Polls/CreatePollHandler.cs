@@ -48,7 +48,7 @@ public sealed class CreatePollHandler(
     IConversationResolver conversationResolver,
     IRoleService roleService,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<CreatePollHandler> logger)
     : IRequestHandler<CreatePollCommand, Result<CreatePollResponse>>, IValidatable<CreatePollCommand>
 {
@@ -229,8 +229,11 @@ public sealed class CreatePollHandler(
                 }
             }
 
-            // Write outbox event in the SAME transaction
-            await outboxWriter.WriteAsync(dbContext, "Poll.Created", new
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            // Notify after save
+            await notificationService.NotifyConversationAsync(message.ConversationId, "Poll_Created", new
             {
                 PollId = poll.Id,
                 MessageId = message.Id,
@@ -247,10 +250,7 @@ public sealed class CreatePollHandler(
                     VoteCount = o.VoteCount,
                     Position = o.Position
                 }).ToList()
-            }, cancellationToken);
-
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            });
 
             logger.LogInformation(
                 "User {UserId} created poll {PollId} in conversation {ConversationId}",

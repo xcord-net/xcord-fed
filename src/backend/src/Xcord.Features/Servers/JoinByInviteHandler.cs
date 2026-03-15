@@ -15,7 +15,7 @@ public sealed record JoinByInviteCommand(string InviteCode);
 public sealed class JoinByInviteHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ICurrentUserService currentUserService,
     ILogger<JoinByInviteHandler> logger)
     : IRequestHandler<JoinByInviteCommand, Result<ServerDto>>
@@ -149,6 +149,8 @@ public sealed class JoinByInviteHandler(
         invite.Server.MemberCount++;
 
         // Create system message (MemberJoin) in the server's system channel if configured
+        long? systemMessageConversationId = null;
+        long? systemMessageId = null;
         if (invite.Server.SystemChannelId.HasValue)
         {
             var systemChannel = await dbContext.Channels
@@ -179,24 +181,29 @@ public sealed class JoinByInviteHandler(
                 };
 
                 dbContext.Messages.Add(systemMessage);
-
-                await outboxWriter.WriteAsync(dbContext, "Message.Created", new
-                {
-                    MessageId = systemMessage.Id,
-                    ConversationId = systemMessage.ConversationId,
-                    AuthorId = (long?)null
-                }, cancellationToken);
+                systemMessageConversationId = systemChannel.ConversationId;
+                systemMessageId = messageId;
             }
         }
 
-        // Write Member.Joined outbox event (used by outgoing webhooks)
-        await outboxWriter.WriteAsync(dbContext, "Member.Joined", new
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify after save
+        if (systemMessageConversationId.HasValue && systemMessageId.HasValue)
+        {
+            await notificationService.NotifyConversationAsync(systemMessageConversationId.Value, "Chat_MessageCreated", new
+            {
+                MessageId = systemMessageId.Value,
+                ConversationId = systemMessageConversationId.Value,
+                AuthorId = (long?)null
+            });
+        }
+
+        await notificationService.NotifyServerAsync(invite.ServerId, "Member_Joined", new
         {
             ServerId = invite.ServerId,
             UserId = userId
-        }, cancellationToken);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        });
 
         logger.LogInformation(
             "User {UserId} joined server {ServerId} via invite {InviteCode}",

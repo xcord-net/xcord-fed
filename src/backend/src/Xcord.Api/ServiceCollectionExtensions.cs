@@ -160,7 +160,6 @@ public static class ServiceCollectionExtensions
         Bind<HubOptions>(HubOptions.SectionName);
         Bind<GifOptions>(GifOptions.SectionName);
         Bind<EmailOptions>(EmailOptions.SectionName);
-        Bind<OutboxOptions>(OutboxOptions.SectionName);
         Bind<AuthOptions>(AuthOptions.SectionName);
 
         // Admin options are optional - hub-managed instances get admin via provisioning
@@ -203,12 +202,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<Xcord.Features.Messages.IMessageProcessor, Xcord.Features.Messages.MessageProcessor>();
         services.AddSingleton<IStorageService, S3StorageService>();
         services.AddSingleton<IThumbnailService, ImageSharpThumbnailService>();
-        services.AddScoped<IOutboxWriter, OutboxWriter>();
+        services.AddSingleton<OutgoingWebhookEventQueue>();
+        services.AddScoped<INotificationService, NotificationService>();
         services.AddSingleton<IEmailService, SmtpEmailService>();
         services.AddScoped<IAutomodService, AutomodService>();
         services.AddScoped<IAutomodActionExecutor, AutomodActionExecutor>();
         services.AddScoped<ITimeoutService, TimeoutService>();
-        services.AddSingleton<IEventDispatcher, SignalREventDispatcher>();
         services.AddSingleton<ISystemBroadcaster, SignalRSystemBroadcaster>();
         services.AddSingleton<BotInteractionForwarder>();
         services.AddSingleton<SsrfSafeHttpClient>();
@@ -219,8 +218,6 @@ public static class ServiceCollectionExtensions
 
     private static void AddBackgroundServices(IServiceCollection services)
     {
-        services.AddHostedService<OutboxDispatcher>();
-        services.AddHostedService<OutboxCleanup>();
         services.AddHostedService<AttachmentCleanup>();
         services.AddHostedService<ThumbnailProcessor>();
         services.AddHostedService<ThreadArchiver>();

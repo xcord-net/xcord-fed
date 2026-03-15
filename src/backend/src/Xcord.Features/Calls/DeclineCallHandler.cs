@@ -16,7 +16,7 @@ public sealed record DeclineCallRequest(long CallId);
 public sealed class DeclineCallHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<DeclineCallHandler> logger) : IRequestHandler<DeclineCallRequest, Result<bool>>
 {
     public async Task<Result<bool>> Handle(DeclineCallRequest request, CancellationToken cancellationToken)
@@ -63,30 +63,32 @@ public sealed class DeclineCallHandler(
             call.Status = CallStatus.Declined;
             call.EndedAt = DateTimeOffset.UtcNow;
 
-            // Write outbox event to notify the caller
-            await outboxWriter.WriteAsync(dbContext, "Call.Ended", new
-            {
-                CallId = call.Id,
-                DmChannelId = call.DmChannelId,
-                CallerId = call.CallerId,
-                RecipientId = currentUserId,
-                Status = CallStatus.Declined
-            }, cancellationToken);
-
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
-
-            logger.LogInformation(
-                "User {UserId} declined call {CallId} in DM channel {DmChannelId}",
-                currentUserId, call.Id, call.DmChannelId);
-
-            return true;
         }
         catch
         {
             await transaction.RollbackAsync(cancellationToken);
             throw;
         }
+
+        // Notify both participants after the transaction is committed
+        var callPayload = new
+        {
+            CallId = call.Id,
+            DmChannelId = call.DmChannelId,
+            CallerId = call.CallerId,
+            RecipientId = currentUserId,
+            Status = CallStatus.Declined
+        };
+        await notificationService.NotifyUserAsync(call.CallerId, "Notify_CallEnded", callPayload);
+        await notificationService.NotifyUserAsync(currentUserId, "Notify_CallEnded", callPayload);
+
+        logger.LogInformation(
+            "User {UserId} declined call {CallId} in DM channel {DmChannelId}",
+            currentUserId, call.Id, call.DmChannelId);
+
+        return true;
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app) =>

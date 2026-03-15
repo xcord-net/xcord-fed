@@ -15,7 +15,7 @@ public sealed record LeaveServerCommand(long ServerId);
 public sealed class LeaveServerHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ICurrentUserService currentUserService,
     ILogger<LeaveServerHandler> logger)
     : IRequestHandler<LeaveServerCommand, Result<bool>>
@@ -57,6 +57,8 @@ public sealed class LeaveServerHandler(
         server.MemberCount--;
 
         // Create system message (MemberLeave) in the server's system channel if configured
+        long? systemMessageConversationId = null;
+        long? systemMessageId = null;
         if (server.SystemChannelId.HasValue)
         {
             var systemChannel = await dbContext.Channels
@@ -87,24 +89,29 @@ public sealed class LeaveServerHandler(
                 };
 
                 dbContext.Messages.Add(systemMessage);
-
-                await outboxWriter.WriteAsync(dbContext, "Message.Created", new
-                {
-                    MessageId = systemMessage.Id,
-                    ConversationId = systemMessage.ConversationId,
-                    AuthorId = (long?)null
-                }, cancellationToken);
+                systemMessageConversationId = systemChannel.ConversationId;
+                systemMessageId = messageId;
             }
         }
 
-        // Write Member.Left outbox event (used by outgoing webhooks)
-        await outboxWriter.WriteAsync(dbContext, "Member.Left", new
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify after save
+        if (systemMessageConversationId.HasValue && systemMessageId.HasValue)
+        {
+            await notificationService.NotifyConversationAsync(systemMessageConversationId.Value, "Chat_MessageCreated", new
+            {
+                MessageId = systemMessageId.Value,
+                ConversationId = systemMessageConversationId.Value,
+                AuthorId = (long?)null
+            });
+        }
+
+        await notificationService.NotifyServerAsync(request.ServerId, "Member_Left", new
         {
             ServerId = request.ServerId,
             UserId = userId
-        }, cancellationToken);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        });
 
         logger.LogInformation(
             "User {UserId} left server {ServerId}",

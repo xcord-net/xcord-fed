@@ -9,6 +9,7 @@ import { useUnread } from './unread.store';
 import { useMessages } from './message.store';
 import { useChannels } from './channel.store';
 import { useFriends } from './friend.store';
+import { useDms } from './dm.store';
 import { handleNewMessageNotification } from '../services/notification.service';
 import type { PresenceStatus } from '../types/presence';
 import type { Message } from '../types/message';
@@ -174,6 +175,11 @@ export function useSignalR() {
     // Notification events
     connection.on('Notify_UnreadUpdated', (data: { conversationId: string; count: number; lastMessageId: string }) => {
       unread.updateUnread(data.conversationId, data.count, data.lastMessageId);
+    });
+
+    // DM events
+    connection.on('Notify_DmCreated', () => {
+      useDms().loadDms();
     });
 
     // Friend events

@@ -28,7 +28,7 @@ public sealed class KickMemberHandler(
     SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
     IRoleService roleService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<KickMemberHandler> logger)
     : IRequestHandler<KickMemberCommand, Result<KickMemberResponse>>, IValidatable<KickMemberCommand>
 {
@@ -95,21 +95,31 @@ public sealed class KickMemberHandler(
         // Create audit log
         dbContext.AuditLogs.AddEntry(snowflakeGenerator, request.ServerId, moderatorId, "MemberKick", request.UserId, request.Reason, now);
 
-        // Write outbox event
-        await outboxWriter.WriteAsync(dbContext, "Member.Kicked", new
+        // Add system message (MemberKick) in the server's system channel if configured
+        var systemMsg = await dbContext.AddModerationSystemMessage(
+            snowflakeGenerator, server,
+            request.UserId, moderatorId, MessageType.MemberKick, request.Reason, now, cancellationToken);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify after save
+        await notificationService.NotifyServerAsync(request.ServerId, "Member_Kicked", new
         {
             ServerId = request.ServerId,
             UserId = request.UserId,
             ModeratorId = moderatorId,
             Reason = request.Reason
-        }, cancellationToken);
+        });
 
-        // Create system message (MemberKick) in the server's system channel if configured
-        await dbContext.SendModerationSystemMessage(
-            snowflakeGenerator, outboxWriter, server,
-            request.UserId, moderatorId, MessageType.MemberKick, request.Reason, now, cancellationToken);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        if (systemMsg != null)
+        {
+            await notificationService.NotifyConversationAsync(systemMsg.ConversationId, "Chat_MessageCreated", new
+            {
+                MessageId = systemMsg.MessageId,
+                ConversationId = systemMsg.ConversationId,
+                AuthorId = (long?)null
+            });
+        }
 
         logger.LogInformation(
             "Moderator {ModeratorId} kicked user {UserId} from server {ServerId}",

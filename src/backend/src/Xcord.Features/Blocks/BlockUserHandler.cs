@@ -24,7 +24,7 @@ public sealed class BlockUserHandler(
     ICurrentUserService currentUserService,
     IConnectionMultiplexer redis,
     IOptions<RedisOptions> redisOptions,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<BlockUserHandler> logger) : IRequestHandler<BlockUserRequest, Result<UserBlockDto>>
 {
     private readonly RedisOptions _redisOptions = redisOptions.Value;
@@ -98,18 +98,14 @@ public sealed class BlockUserHandler(
             }
         }
 
-        // Write outbox event
-        await outboxWriter.WriteAsync(
-            dbContext,
-            "User.Blocked",
-            new
-            {
-                blockerId = userId,
-                blockedId = request.UserId
-            },
-            cancellationToken);
-
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify the blocked user directly after save
+        await notificationService.NotifyUserAsync(request.UserId, "Notify_UserBlocked", new
+        {
+            blockerId = userId,
+            blockedId = request.UserId
+        });
 
         // Cache block in Redis
         var db = redis.GetDatabase();

@@ -33,7 +33,7 @@ public sealed class TimeoutMemberHandler(
     ICurrentUserService currentUserService,
     IRoleService roleService,
     ITimeoutService timeoutService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<TimeoutMemberHandler> logger)
     : IRequestHandler<TimeoutMemberCommand, Result<TimeoutMemberResponse>>, IValidatable<TimeoutMemberCommand>
 {
@@ -120,17 +120,17 @@ public sealed class TimeoutMemberHandler(
         // Create audit log
         dbContext.AuditLogs.AddEntry(snowflakeGenerator, request.ServerId, moderatorId, "MemberTimeout", request.UserId, request.Reason, now);
 
-        // Write outbox event
-        await outboxWriter.WriteAsync(dbContext, "Member.TimedOut", new
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify after save
+        await notificationService.NotifyServerAsync(request.ServerId, "Notify_MemberTimedOut", new
         {
             ServerId = request.ServerId,
             UserId = request.UserId,
             ModeratorId = moderatorId,
             ExpiresAt = expiresAt,
             Reason = request.Reason
-        }, cancellationToken);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        });
 
         // Cache timeout in Redis
         await timeoutService.SetTimeoutAsync(request.UserId, request.ServerId, expiresAt, cancellationToken);

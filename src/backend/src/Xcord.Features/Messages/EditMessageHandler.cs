@@ -39,7 +39,7 @@ public sealed class EditMessageHandler(
     IRoleService roleService,
     IMessageProcessor messageProcessor,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     IAutomodActionExecutor automodActionExecutor,
     ILogger<EditMessageHandler> logger)
     : IRequestHandler<EditMessageRequest, Result<EditMessageResponse>>, IValidatable<EditMessageRequest>
@@ -149,13 +149,12 @@ public sealed class EditMessageHandler(
             dbContext.Mentions.Add(mention);
         }
 
-        // Write outbox event - include full message data so clients can update their
-        // message store immediately without a separate API fetch.
-        await outboxWriter.WriteAsync(dbContext, "Message.Edited",
-            MessageOutboxPayloads.ForCreated(message, message.Author?.Username, message.Author?.AvatarUrl, message.EditedAt),
-            cancellationToken);
-
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify conversation after save - include full message data so clients can update their
+        // message store immediately without a separate API fetch.
+        await notificationService.NotifyConversationAsync(request.ConversationId, "Chat_MessageUpdated",
+            MessageOutboxPayloads.ForCreated(message, message.Author?.Username, message.Author?.AvatarUrl, message.EditedAt));
 
         // Execute deferred automod actions after save
         var deferredActions = processingResult.Value.DeferredActions;

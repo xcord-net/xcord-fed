@@ -1419,45 +1419,6 @@ namespace Xcord.Infrastructure.Migrations
                     b.ToTable("onboarding_prompts", (string)null);
                 });
 
-            modelBuilder.Entity("Xcord.Entities.OutboxEvent", b =>
-                {
-                    b.Property<long>("Id")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("EventType")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<DateTimeOffset?>("LastAttemptAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Payload")
-                        .IsRequired()
-                        .HasColumnType("jsonb");
-
-                    b.Property<DateTimeOffset?>("ProcessedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("RetryCount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0);
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProcessedAt")
-                        .HasDatabaseName("ix_outbox_events_processed_at");
-
-                    b.HasIndex("ProcessedAt", "CreatedAt")
-                        .HasDatabaseName("ix_outbox_events_processed_at_created_at");
-
-                    b.ToTable("outbox_events", (string)null);
-                });
-
             modelBuilder.Entity("Xcord.Entities.OutgoingWebhook", b =>
                 {
                     b.Property<long>("Id")

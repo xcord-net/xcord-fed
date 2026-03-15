@@ -20,7 +20,7 @@ public sealed class EndCallHandler(
     SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
     ILiveKitService liveKitService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     IOptions<InstanceOptions> instanceOptions,
     ILogger<EndCallHandler> logger) : IRequestHandler<EndCallRequest, Result<bool>>
 {
@@ -58,6 +58,8 @@ public sealed class EndCallHandler(
             return Error.Forbidden("FORBIDDEN", "You are not a participant in this call");
         }
 
+        TimeSpan? callDuration = null;
+
         using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         try
@@ -69,7 +71,6 @@ public sealed class EndCallHandler(
             call.EndedAt = now;
 
             // Calculate call duration (only if call was answered)
-            TimeSpan? callDuration = null;
             if (call.AnsweredAt.HasValue)
             {
                 callDuration = now - call.AnsweredAt.Value;
@@ -116,31 +117,36 @@ public sealed class EndCallHandler(
                 dbContext.Messages.Add(message);
             }
 
-            // Write outbox event to notify both users
-            await outboxWriter.WriteAsync(dbContext, "Call.Ended", new
-            {
-                CallId = call.Id,
-                DmChannelId = call.DmChannelId,
-                CallerId = call.CallerId,
-                RecipientId = recipientId,
-                Status = CallStatus.Ended,
-                DurationSeconds = callDuration.HasValue ? (int)callDuration.Value.TotalSeconds : 0
-            }, cancellationToken);
-
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
-
-            logger.LogInformation(
-                "User {UserId} ended call {CallId} in DM channel {DmChannelId} (Duration: {Duration}s)",
-                currentUserId, call.Id, call.DmChannelId, callDuration?.TotalSeconds ?? 0);
-
-            return true;
         }
         catch
         {
             await transaction.RollbackAsync(cancellationToken);
             throw;
         }
+
+        // Notify both participants after the transaction is committed
+        var callPayload = new
+        {
+            CallId = call.Id,
+            DmChannelId = call.DmChannelId,
+            CallerId = call.CallerId,
+            RecipientId = recipientId,
+            Status = CallStatus.Ended,
+            DurationSeconds = callDuration.HasValue ? (int)callDuration.Value.TotalSeconds : 0
+        };
+        await notificationService.NotifyUserAsync(call.CallerId, "Notify_CallEnded", callPayload);
+        if (recipientId.HasValue)
+        {
+            await notificationService.NotifyUserAsync(recipientId.Value, "Notify_CallEnded", callPayload);
+        }
+
+        logger.LogInformation(
+            "User {UserId} ended call {CallId} in DM channel {DmChannelId} (Duration: {Duration}s)",
+            currentUserId, call.Id, call.DmChannelId, callDuration?.TotalSeconds ?? 0);
+
+        return true;
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app) =>

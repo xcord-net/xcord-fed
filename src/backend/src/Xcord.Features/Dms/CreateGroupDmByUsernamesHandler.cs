@@ -20,7 +20,7 @@ public sealed class CreateGroupDmByUsernamesHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     ILogger<CreateGroupDmByUsernamesHandler> logger)
     : IRequestHandler<CreateGroupDmByUsernamesRequest, Result<CreateDmResponse>>
 {
@@ -87,15 +87,20 @@ public sealed class CreateGroupDmByUsernamesHandler(
                 });
             }
 
-            await outboxWriter.WriteAsync(dbContext, "Dm.Created", new
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            // Notify each member directly after save
+            var dmCreatedPayload = new
             {
                 DmChannelId = dmChannelId,
                 ConversationId = conversationId,
                 MemberIds = allMemberIds.ToArray()
-            }, cancellationToken);
-
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            };
+            foreach (var memberId in allMemberIds)
+            {
+                await notificationService.NotifyUserAsync(memberId, "Notify_DmCreated", dmCreatedPayload);
+            }
 
             logger.LogInformation(
                 "User {UserId} created group DM {DmChannelId} with members: {MemberIds}",

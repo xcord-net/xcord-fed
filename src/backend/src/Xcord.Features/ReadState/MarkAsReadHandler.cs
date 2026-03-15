@@ -26,7 +26,7 @@ public sealed record MarkAsReadResponse(
 public sealed class MarkAsReadHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter) : IRequestHandler<MarkAsReadRequest, Result<MarkAsReadResponse>>, IValidatable<MarkAsReadRequest>
+    INotificationService notificationService) : IRequestHandler<MarkAsReadRequest, Result<MarkAsReadResponse>>, IValidatable<MarkAsReadRequest>
 {
     public Error? Validate(MarkAsReadRequest request)
     {
@@ -96,16 +96,16 @@ public sealed class MarkAsReadHandler(
                 readState.MentionCount = 0;
             }
 
-            // Write outbox event
-            await outboxWriter.WriteAsync(dbContext, "ReadState.Updated", new
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            // Notify the conversation group directly after save
+            await notificationService.NotifyConversationAsync(request.ConversationId, "ReadState_Updated", new
             {
                 UserId = userId,
                 ConversationId = request.ConversationId,
                 LastReadMessageId = request.MessageId
-            }, cancellationToken);
-
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            });
 
             return new MarkAsReadResponse(
                 ConversationId: readState.ConversationId,

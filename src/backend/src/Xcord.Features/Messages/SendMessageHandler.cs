@@ -42,7 +42,7 @@ public sealed class SendMessageHandler(
     IRoleService roleService,
     IMessageProcessor messageProcessor,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     IAutomodActionExecutor automodActionExecutor,
     IStorageService storageService,
     ILogger<SendMessageHandler> logger)
@@ -250,8 +250,10 @@ public sealed class SendMessageHandler(
                     .ExecuteUpdateAsync(s => s.SetProperty(rs => rs.MentionCount, rs => rs.MentionCount + 1), cancellationToken);
             }
 
-            // Write Notify_UnreadUpdated outbox events for each non-author member
-            // so their sidebars update in real time.
+            // Flush message + mentions to DB so FKs are satisfied
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            // Notify each non-author member of their updated unread count after save.
             var affectedReadStates = await dbContext.ReadStates
                 .Where(rs => rs.ConversationId == request.ConversationId && rs.UserId != userId)
                 .Select(rs => new { rs.UserId, rs.UnreadCount })
@@ -259,17 +261,14 @@ public sealed class SendMessageHandler(
 
             foreach (var rs in affectedReadStates)
             {
-                await outboxWriter.WriteAsync(dbContext, "Notify.UnreadUpdated", new
+                await notificationService.NotifyUserAsync(rs.UserId, "Notify_UnreadUpdated", new
                 {
                     userId = rs.UserId,
                     conversationId = request.ConversationId,
                     count = rs.UnreadCount,
                     lastMessageId = message.Id
-                }, cancellationToken);
+                });
             }
-
-            // Flush message + mentions + unread outbox to DB so FKs are satisfied
-            await dbContext.SaveChangesAsync(cancellationToken);
 
             // Link attachments to this message (must happen after SaveChanges
             // because ExecuteUpdateAsync runs direct SQL that needs the message
@@ -314,9 +313,11 @@ public sealed class SendMessageHandler(
                 }
             }
 
-            // Write outbox event for new message - include full message data
+            await transaction.CommitAsync(cancellationToken);
+
+            // Notify conversation of new message after commit - include full message data
             // (including attachments) so the client can render immediately.
-            var outboxAttachments = attachmentDtos?.Select(a => (object)new
+            var notifyAttachments = attachmentDtos?.Select(a => (object)new
             {
                 id = a.Id,
                 fileName = a.FileName,
@@ -328,15 +329,9 @@ public sealed class SendMessageHandler(
                 thumbnailUrl = a.ThumbnailUrl
             }).ToList();
 
-            await outboxWriter.WriteAsync(dbContext, "Message.Created",
+            await notificationService.NotifyConversationAsync(request.ConversationId, "Chat_MessageCreated",
                 MessageOutboxPayloads.ForCreated(message, authorForResponse.Username, authorForResponse.AvatarUrl,
-                    attachments: outboxAttachments),
-                cancellationToken);
-
-            // Flush the Message.Created outbox entry
-            await dbContext.SaveChangesAsync(cancellationToken);
-
-            await transaction.CommitAsync(cancellationToken);
+                    attachments: notifyAttachments));
 
             logger.LogInformation(
                 "User {UserId} sent message {MessageId} in conversation {ConversationId}",

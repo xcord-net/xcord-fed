@@ -22,7 +22,7 @@ public sealed class ForgotPasswordHandler(
     IEncryptionService encryptionService,
     SnowflakeIdGenerator snowflakeGenerator,
     ILogger<ForgotPasswordHandler> logger,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     IOptions<InstanceOptions> instanceOptions,
     IHttpContextAccessor httpContextAccessor,
     IConnectionMultiplexer redis,
@@ -93,16 +93,10 @@ public sealed class ForgotPasswordHandler(
             var resetUrl = BuildResetUrl(scheme, instanceOptions.Value.Domain, rawToken);
             var htmlBody = BuildResetEmailBody(user.DisplayName, resetUrl);
 
-            // Queue password reset email via outbox
-            await outboxWriter.WriteAsync(dbContext, "Email.PasswordReset", new
-            {
-                to = decryptedEmail,
-                subject = "Reset your Xcord password",
-                htmlBody
-            }, cancellationToken);
-
             await dbContext.SaveChangesAsync(cancellationToken);
 
+            // Send password reset email
+            await notificationService.SendEmailAsync(decryptedEmail, "Reset your Xcord password", htmlBody);
         }
 
         logger.LogInformation("Password reset requested");

@@ -29,7 +29,7 @@ public sealed partial class RegisterHandler(
     IJwtService jwtService,
     SnowflakeIdGenerator snowflakeGenerator,
     ILogger<RegisterHandler> logger,
-    IOutboxWriter outboxWriter,
+    INotificationService notificationService,
     IOptions<EmailOptions> emailOptions,
     IOptions<TierOptions> tierOptions,
     IOptions<AuthOptions> authOptions)
@@ -160,15 +160,13 @@ public sealed partial class RegisterHandler(
 
         dbContext.RefreshTokens.Add(refreshToken);
 
-        // Queue email confirmation via outbox
-        await outboxWriter.WriteAsync(dbContext, "Email.Confirmation", new
-        {
-            to = request.Email,
-            subject = "Confirm your email address",
-            htmlBody = $"<p>Your confirmation code is: <strong>{confirmationCode}</strong></p><p>This code expires in 15 minutes.</p>"
-        }, cancellationToken);
-
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Send email confirmation
+        await notificationService.SendEmailAsync(
+            request.Email,
+            "Confirm your email address",
+            $"<p>Your confirmation code is: <strong>{confirmationCode}</strong></p><p>This code expires in 15 minutes.</p>");
 
         // Log that confirmation code was generated (code itself is not logged for security)
         logger.LogInformation("Email confirmation code generated for user {Username}", request.Username);

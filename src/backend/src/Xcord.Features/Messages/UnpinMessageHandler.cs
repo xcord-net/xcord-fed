@@ -19,7 +19,7 @@ public sealed class UnpinMessageHandler(
     AppDbContext dbContext,
     IConversationResolver conversationResolver,
     ICurrentUserService currentUserService,
-    IOutboxWriter outboxWriter)
+    INotificationService notificationService)
     : IRequestHandler<UnpinMessageRequest, Result<MessageDto>>
 {
     public async Task<Result<MessageDto>> Handle(UnpinMessageRequest request, CancellationToken cancellationToken)
@@ -54,14 +54,14 @@ public sealed class UnpinMessageHandler(
         message.IsPinned = false;
         message.PinnedAt = null;
 
-        // Write outbox event
-        await outboxWriter.WriteAsync(dbContext, "Chat.MessageUpdated", new
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Notify conversation after save
+        await notificationService.NotifyConversationAsync(request.ConversationId, "Chat_MessageUpdated", new
         {
             conversationId = request.ConversationId,
             messageId = request.MessageId
-        }, cancellationToken);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        });
 
         return new MessageDto(
             Id: message.Id,
