@@ -53,8 +53,10 @@ export function useChannels() {
       }
     },
 
-    async createChannel(serverId: string, name: string, type: 'Text' | 'Voice' | 'Forum' = 'Text'): Promise<Channel> {
-      const channel = await api.post<Channel>(`/api/v1/servers/${serverId}/channels`, { name, type });
+    async createChannel(serverId: string, name: string, type: 'Text' | 'Voice' | 'Forum' = 'Text', categoryId?: string): Promise<Channel> {
+      const body: Record<string, unknown> = { name, type };
+      if (categoryId) body.categoryId = categoryId;
+      const channel = await api.post<Channel>(`/api/v1/servers/${serverId}/channels`, body);
       const normalized = normalizeChannel(channel);
       // Guard against duplicates - the SignalR Chat_ChannelCreated broadcast may
       // have already added this channel to the store while the HTTP response was
@@ -63,6 +65,20 @@ export function useChannels() {
         store.setChannels([...store.channels(), normalized]);
       }
       return normalized;
+    },
+
+    async createCategory(serverId: string, name: string): Promise<Category> {
+      const category = await api.post<Category>(`/api/v1/servers/${serverId}/categories`, { name });
+      const normalized = normalizeCategory(category);
+      if (!store.categories().some((c) => c.id === normalized.id)) {
+        store.setCategories([...store.categories(), normalized]);
+      }
+      return normalized;
+    },
+
+    async deleteCategory(serverId: string, categoryId: string): Promise<void> {
+      await api.delete(`/api/v1/servers/${serverId}/categories/${categoryId}`);
+      store.setCategories(store.categories().filter(c => c.id !== categoryId));
     },
 
     addChannel(channel: Channel): void {

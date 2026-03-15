@@ -28,7 +28,8 @@ public sealed class LoginHandler(
     SnowflakeIdGenerator snowflakeGenerator,
     ILogger<LoginHandler> logger,
     IConnectionMultiplexer redis,
-    IOptions<RedisOptions> redisOptions)
+    IOptions<RedisOptions> redisOptions,
+    IOutboxWriter outboxWriter)
     : IRequestHandler<LoginRequest, Result<object>>, IValidatable<LoginRequest>
 {
     private const int MaxFailedAttempts = 5;
@@ -110,6 +111,16 @@ public sealed class LoginHandler(
             };
 
             dbContext.TwoFactorCodes.Add(twoFactorEntity);
+
+            // Send 2FA code via email
+            var plaintextEmail = encryptionService.Decrypt(user.Email);
+            await outboxWriter.WriteAsync(dbContext, "Email.TwoFactorLogin", new
+            {
+                to = plaintextEmail,
+                subject = "Your sign-in verification code",
+                htmlBody = $"<p>Your sign-in verification code is: <strong>{twoFactorCode}</strong></p><p>This code expires in 10 minutes. If you did not attempt to sign in, please change your password immediately.</p>"
+            }, cancellationToken);
+
             await dbContext.SaveChangesAsync(cancellationToken);
 
             // Log that 2FA code was generated (code itself is not logged for security)

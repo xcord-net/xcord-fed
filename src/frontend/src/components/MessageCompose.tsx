@@ -7,6 +7,7 @@ import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import { CreatePollForm } from './PollDisplay';
 import GifPicker from './GifPicker';
+import EmojiPicker from './EmojiPicker';
 import Modal from './ui/Modal';
 
 interface MessageComposeProps {
@@ -46,6 +47,9 @@ export default function MessageCompose(props: MessageComposeProps) {
 
   // GIF picker visibility
   const [showGifPicker, setShowGifPicker] = createSignal(false);
+
+  // Emoji picker visibility
+  const [showEmojiPicker, setShowEmojiPicker] = createSignal(false);
 
   // Schedule message modal
   const [showScheduleModal, setShowScheduleModal] = createSignal(false);
@@ -268,6 +272,12 @@ export default function MessageCompose(props: MessageComposeProps) {
     }
   };
 
+  const handleEmojiSelect = (emoji: string) => {
+    setShowEmojiPicker(false);
+    setContent((prev) => prev + emoji);
+    textareaRef?.focus();
+  };
+
   const handleGifSelect = async (gifUrl: string) => {
     setShowGifPicker(false);
     if (isSending() || isSlowModeActive()) return;
@@ -416,13 +426,14 @@ export default function MessageCompose(props: MessageComposeProps) {
       {/* File preview */}
       <Show when={uploadedAttachment()}>
         {(attachment) => (
-          <div class="flex items-center gap-2 px-3 py-2 bg-xcord-bg-primary border-b border-xcord-bg-secondary rounded-t-lg">
+          <div data-testid="compose-attachment-preview" class="flex items-center gap-2 px-3 py-2 bg-xcord-bg-primary border-b border-xcord-bg-secondary rounded-t-lg">
             <span class="text-lg" aria-hidden="true">📎</span>
             <div class="flex-1 min-w-0">
-              <p class="text-sm text-xcord-text-primary truncate">{attachment().fileName}</p>
+              <p data-testid="compose-attachment-filename" class="text-sm text-xcord-text-primary truncate">{attachment().fileName}</p>
               <p class="text-xs text-xcord-text-muted">{formatFileSize(attachment().fileSize)}</p>
             </div>
             <button
+              data-testid="compose-attachment-remove"
               class="text-xcord-text-muted hover:text-xcord-text-primary transition-colors flex-shrink-0"
               onClick={removeAttachment}
               aria-label="Remove attachment"
@@ -494,6 +505,30 @@ export default function MessageCompose(props: MessageComposeProps) {
           </Show>
         </div>
 
+        {/* Emoji picker button */}
+        <div class="relative flex-shrink-0">
+          <button
+            data-testid="compose-emoji-button"
+            class="text-xcord-text-muted hover:text-xcord-text-primary transition-colors pb-0.5 disabled:opacity-40 disabled:cursor-not-allowed"
+            onClick={() => setShowEmojiPicker(!showEmojiPicker())}
+            disabled={isSending()}
+            aria-label="Insert emoji"
+            title="Insert emoji"
+          >
+            😊
+          </button>
+
+          <Show when={showEmojiPicker()}>
+            <div class="fixed inset-0 z-40" aria-hidden="true" onClick={() => setShowEmojiPicker(false)} />
+            <div class="absolute bottom-full left-0 mb-2 z-50">
+              <EmojiPicker
+                onSelect={handleEmojiSelect}
+                onClose={() => setShowEmojiPicker(false)}
+              />
+            </div>
+          </Show>
+        </div>
+
         {/* Schedule message button */}
         <Show when={props.channelId}>
           <button
@@ -510,6 +545,7 @@ export default function MessageCompose(props: MessageComposeProps) {
 
         <textarea
           id="message-compose-textarea"
+          data-testid="compose-textarea"
           ref={textareaRef}
           class="flex-1 bg-transparent text-xcord-text-primary placeholder-xcord-text-muted resize-none outline-none"
           placeholder="Message #channel-name"

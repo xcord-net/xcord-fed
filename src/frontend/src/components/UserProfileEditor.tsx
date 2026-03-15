@@ -15,6 +15,7 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
   const [bio, setBio] = createSignal('');
   const [pronouns, setPronouns] = createSignal('');
   const [nickname, setNickname] = createSignal('');
+  const [saveSuccess, setSaveSuccess] = createSignal(false);
 
   onMount(() => {
     profileStore.loadUserProfile();
@@ -30,6 +31,8 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
       pronouns: pronouns(),
     });
     setEditMode(false);
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 3000);
   };
 
   const handleSaveServerProfile = async () => {
@@ -38,6 +41,8 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
       nickname: nickname(),
     });
     setEditMode(false);
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 3000);
   };
 
   return (
@@ -47,6 +52,7 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
           {props.serverId ? 'Server Profile' : 'User Profile'}
         </h2>
         <button
+          data-testid="profile-edit-button"
           class="text-xcord-brand hover:underline text-sm"
           onClick={() => setEditMode(!editMode())}
         >
@@ -88,7 +94,7 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
             <div class="px-4 space-y-4">
               <Show when={!editMode()}>
                 <div>
-                  <h3 class="text-white font-semibold text-xl">{profileStore.userProfile!.displayName}</h3>
+                  <h3 data-testid="profile-display-name" class="text-white font-semibold text-xl">{profileStore.userProfile!.displayName}</h3>
                   <p class="text-xcord-text-muted">@{profileStore.userProfile!.username}</p>
                 </div>
 
@@ -117,6 +123,7 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
                   <div>
                     <label class="text-xs text-xcord-text-muted block mb-1">Display Name</label>
                     <input
+                      data-testid="profile-display-name-input"
                       type="text"
                       class="w-full bg-xcord-bg-primary text-white px-3 py-2 rounded border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
                       value={displayName() || profileStore.userProfile!.displayName}
@@ -147,6 +154,7 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
                   </div>
 
                   <button
+                    data-testid="profile-save-button"
                     class="w-full bg-xcord-brand text-white py-2 rounded hover:bg-xcord-brand-hover transition"
                     onClick={handleSaveUserProfile}
                   >
@@ -155,8 +163,12 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
                 </div>
               </Show>
 
+              <Show when={saveSuccess()}>
+                <p data-testid="profile-save-success" class="text-sm text-green-400 py-1">Profile saved successfully.</p>
+              </Show>
+
               <PasswordChangeForm />
-              <TwoFactorSetup />
+              <TwoFactorSetup twoFactorEnabled={profileStore.userProfile!.twoFactorEnabled ?? false} />
               <AccountDeletion
                 scheduledDeletionAt={profileStore.userProfile!.scheduledDeletionAt ?? null}
                 onDeletionScheduled={(_date) => profileStore.loadUserProfile()}

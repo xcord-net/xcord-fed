@@ -123,7 +123,7 @@ export default function BanManager(props: BanManagerProps) {
 
         <For each={paginatedBans()}>
           {(ban) => (
-            <div class="px-4 py-3 flex items-start space-x-3 hover:bg-xcord-bg-primary/50 border-b border-xcord-border">
+            <div data-testid={`ban-list-item-${ban.username}`} class="px-4 py-3 flex items-start space-x-3 hover:bg-xcord-bg-primary/50 border-b border-xcord-border">
               <div class="w-10 h-10 rounded-full bg-xcord-brand flex-shrink-0 flex items-center justify-center text-white font-semibold overflow-hidden">
                 <Show when={ban.avatarUrl} fallback={<span>{ban.username.charAt(0).toUpperCase()}</span>}>
                   <img
@@ -151,6 +151,7 @@ export default function BanManager(props: BanManagerProps) {
                 onCancel={() => setConfirmingUnban(null)}
                 label="Unban"
                 confirmText="Confirm unban?"
+                testId={`unban-button-${ban.username}`}
               />
             </div>
           )}

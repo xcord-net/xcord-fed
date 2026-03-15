@@ -17,6 +17,8 @@ public sealed record TwoFactorEnableRequest(long UserId);
 public sealed class TwoFactorEnableHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
+    IEncryptionService encryptionService,
+    IOutboxWriter outboxWriter,
     ILogger<TwoFactorEnableHandler> logger)
     : IRequestHandler<TwoFactorEnableRequest, Result<bool>>
 {
@@ -55,6 +57,17 @@ public sealed class TwoFactorEnableHandler(
         };
 
         dbContext.TwoFactorCodes.Add(twoFactorCode);
+
+        // Decrypt user email to send the code
+        var plaintextEmail = encryptionService.Decrypt(user.Email);
+
+        await outboxWriter.WriteAsync(dbContext, "Email.TwoFactorEnable", new
+        {
+            to = plaintextEmail,
+            subject = "Your two-factor authentication setup code",
+            htmlBody = $"<p>Your two-factor authentication setup code is: <strong>{code}</strong></p><p>This code expires in 10 minutes. If you did not request this, you can ignore this message.</p>"
+        }, cancellationToken);
+
         await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("2FA enable code sent for user {UserId}", request.UserId);

@@ -157,6 +157,7 @@ export default function DmList() {
           <div class="mt-2 flex space-x-2">
             <input
               id="new-dm-input"
+              data-testid="dm-username-input"
               type="text"
               placeholder="Enter a username"
               value={dmUsername()}
@@ -164,6 +165,7 @@ export default function DmList() {
               class="flex-1 bg-xcord-bg-primary text-white px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
             />
             <button
+              data-testid="dm-start-button"
               class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand-hover disabled:opacity-50"
               disabled={!dmUsername().trim()}
               onClick={handleCreateDm}
@@ -314,6 +316,7 @@ export default function DmList() {
         <For each={dmStore.dmChannels}>
           {(dm) => (
             <button
+              data-testid={`dm-channel-item-${dm.recipientUsername}`}
               class={`w-full px-4 py-2 flex items-center space-x-3 hover:bg-xcord-bg-primary/50 transition ${
                 dmStore.selectedDmId === dm.id ? 'bg-xcord-bg-primary' : ''
               }`}

@@ -83,7 +83,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
       </Show>
 
       <Show when={props.scheduledDeletionAt}>
-        <div class="bg-red-900/20 border border-red-700 rounded p-4 mb-4">
+        <div data-testid="scheduled-deletion-warning" class="bg-red-900/20 border border-red-700 rounded p-4 mb-4">
           <p class="text-red-300 text-sm">
             Your account is scheduled for deletion on{' '}
             <strong>{formatDeletionDate(props.scheduledDeletionAt!)}</strong>.
@@ -91,6 +91,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
           </p>
         </div>
         <button
+          data-testid="cancel-deletion-button"
           class="bg-xcord-bg-primary border border-red-600 text-red-400 px-4 py-2 rounded hover:bg-red-900/20 transition text-sm disabled:opacity-50"
           onClick={handleCancelDeletion}
           disabled={isLoading()}

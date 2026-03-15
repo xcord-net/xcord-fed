@@ -75,10 +75,10 @@ export default function JoinInvite() {
     <div class="min-h-screen bg-xcord-bg-tertiary flex items-center justify-center">
       <div class="bg-xcord-bg-secondary p-8 rounded-lg shadow-xl w-full max-w-md text-center">
         <Show when={joining()}>
-          <p class="text-xcord-text-primary">Joining server...</p>
+          <p data-testid="invite-join-loading" class="text-xcord-text-primary">Joining server...</p>
         </Show>
         <Show when={joined()}>
-          <p class="text-green-400 font-semibold">Successfully joined! Redirecting...</p>
+          <p data-testid="invite-join-success" class="text-green-400 font-semibold">Successfully joined! Redirecting...</p>
         </Show>
         <Show when={error()}>
           <div>

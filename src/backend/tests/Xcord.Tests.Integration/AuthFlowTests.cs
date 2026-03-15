@@ -523,7 +523,8 @@ public class AuthFlowTests
             twoFactorCode = code.Code;
         }
 
-        var confirmRequest = AuthRequest(HttpMethod.Post, $"/api/v1/auth/2fa/confirm-enable?code={twoFactorCode}", accessToken);
+        var confirmRequest = AuthRequest(HttpMethod.Post, "/api/v1/auth/2fa/confirm-enable", accessToken);
+        confirmRequest.Content = System.Net.Http.Json.JsonContent.Create(new { code = twoFactorCode });
         var confirmResponse = await _fixture.Client.SendAsync(confirmRequest);
         confirmResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 

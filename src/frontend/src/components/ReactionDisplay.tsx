@@ -68,6 +68,7 @@ export default function ReactionDisplay(props: ReactionDisplayProps) {
       <For each={props.reactions}>
         {(reaction) => (
           <button
+            data-testid={`reaction-badge-${reaction.emoji}`}
             class={`flex items-center gap-1 rounded-full px-2 py-0.5 text-sm border transition-colors ${
               hasUserReacted(reaction)
                 ? 'bg-xcord-brand/10 border-xcord-brand text-xcord-text-primary'
@@ -77,7 +78,7 @@ export default function ReactionDisplay(props: ReactionDisplayProps) {
             title={`${reaction.count} reaction${reaction.count !== 1 ? 's' : ''}`}
           >
             <span>{reaction.emoji}</span>
-            <span class="text-xcord-text-muted text-xs">{reaction.count}</span>
+            <span data-testid={`reaction-count-${reaction.emoji}`} class="text-xcord-text-muted text-xs">{reaction.count}</span>
           </button>
         )}
       </For>
@@ -85,6 +86,7 @@ export default function ReactionDisplay(props: ReactionDisplayProps) {
       {/* Add reaction button */}
       <div class="relative">
         <button
+          data-testid="reaction-add-button"
           class="flex items-center justify-center w-7 h-7 rounded-full bg-xcord-bg-tertiary hover:bg-xcord-bg-secondary border border-xcord-border text-xcord-text-muted hover:text-xcord-text-primary transition-colors text-sm"
           onClick={() => setShowPicker(!showPicker())}
           title="Add reaction"

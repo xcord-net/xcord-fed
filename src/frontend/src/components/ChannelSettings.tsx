@@ -239,6 +239,7 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
             <section class="px-6 py-5 border-b border-xcord-border">
               <h3 class="text-xs font-semibold text-red-400 uppercase tracking-wide mb-4">Danger Zone</h3>
               <button
+                data-testid="delete-channel-button"
                 type="button"
                 class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
                 onClick={() => setShowDeleteConfirm(true)}
@@ -281,11 +282,12 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
       </Modal>
 
       {/* Delete channel confirmation */}
-      <Modal open={showDeleteConfirm()} onClose={() => setShowDeleteConfirm(false)} title="Delete Channel" size="sm" role="alertdialog">
+      <Modal data-testid="delete-channel-dialog" open={showDeleteConfirm()} onClose={() => setShowDeleteConfirm(false)} title="Delete Channel" size="sm" role="alertdialog">
         <div class="p-6">
           <p class="text-xcord-text-secondary text-sm mb-6">Are you sure you want to delete this channel? This cannot be undone.</p>
           <div class="flex justify-end gap-3">
             <button
+              data-testid="delete-channel-cancel-button"
               type="button"
               onClick={() => setShowDeleteConfirm(false)}
               class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
@@ -293,6 +295,7 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
               Cancel
             </button>
             <button
+              data-testid="delete-channel-confirm-button"
               type="button"
               onClick={() => { channelStore.deleteChannel(props.channelId).then(() => props.onClose()); }}
               class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"

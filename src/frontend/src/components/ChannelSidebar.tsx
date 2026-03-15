@@ -26,6 +26,8 @@ export default function ChannelSidebar() {
   const [showCreateChannel, setShowCreateChannel] = createSignal(false);
   const [newChannelName, setNewChannelName] = createSignal('');
   const [newChannelType, setNewChannelType] = createSignal<'Text' | 'Voice' | 'Forum'>('Text');
+  const [showCreateCategory, setShowCreateCategory] = createSignal(false);
+  const [newCategoryName, setNewCategoryName] = createSignal('');
   let menuButtonRef!: HTMLButtonElement;
 
   const currentServer = createMemo(() =>
@@ -110,6 +112,18 @@ export default function ChannelSidebar() {
     }
   };
 
+  const handleCreateCategory = async () => {
+    const name = newCategoryName().trim();
+    if (!name || !serverStore.selectedServerId) return;
+    try {
+      await channelStore.createCategory(serverStore.selectedServerId, name);
+      setNewCategoryName('');
+      setShowCreateCategory(false);
+    } catch {
+      // Silently ignore; category creation errors don't need inline display here
+    }
+  };
+
   const channelButtonClass = (channel: Channel, hasUnread: boolean) =>
     `w-full px-2 py-1.5 rounded flex items-center gap-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none ${
       channelStore.selectedChannelId === channel.id
@@ -123,7 +137,7 @@ export default function ChannelSidebar() {
     <div class="w-60 bg-xcord-bg-secondary flex flex-col">
       {/* Server header */}
       <div class="h-12 px-4 flex items-center justify-between border-b border-xcord-border shadow-sm relative">
-        <h2 class="font-semibold text-white truncate flex-1">{currentServer()?.name || 'Select a server'}</h2>
+        <h2 class="font-semibold text-white truncate flex-1" data-testid="server-name-heading">{currentServer()?.name || 'Select a server'}</h2>
         <Show when={serverStore.selectedServerId}>
           <button
             data-testid="server-menu-trigger"
@@ -200,6 +214,7 @@ export default function ChannelSidebar() {
               <div class="flex space-x-1">
                 <input
                   id="new-channel-name"
+                  data-testid="create-channel-name-input"
                   type="text"
                   placeholder="channel-name"
                   value={newChannelName()}
@@ -208,12 +223,14 @@ export default function ChannelSidebar() {
                   onKeyPress={(e) => { if (e.key === 'Enter') handleCreateChannel(); }}
                 />
                 <button
+                  data-testid="create-channel-submit-button"
                   class="bg-xcord-brand text-white px-2 py-1 rounded text-xs hover:bg-xcord-brand-hover"
                   onClick={handleCreateChannel}
                 >
                   Create
                 </button>
                 <button
+                  data-testid="create-channel-cancel-button"
                   class="text-xcord-text-muted hover:text-white px-1 py-1 text-xs"
                   onClick={() => { setShowCreateChannel(false); setNewChannelName(''); setNewChannelType('Text'); }}
                 >
@@ -222,6 +239,7 @@ export default function ChannelSidebar() {
               </div>
               <select
                 id="new-channel-type"
+                data-testid="create-channel-type-select"
                 value={newChannelType()}
                 onChange={(e) => setNewChannelType(e.currentTarget.value as 'Text' | 'Voice' | 'Forum')}
                 class="w-full bg-xcord-bg-primary text-white px-2 py-1 rounded text-xs focus:outline-none focus:ring-1 focus:ring-xcord-brand"
@@ -230,6 +248,48 @@ export default function ChannelSidebar() {
                 <option value="Voice">Voice</option>
                 <option value="Forum">Forum</option>
               </select>
+            </div>
+          </Show>
+        </div>
+      </Show>
+
+      {/* Create category section */}
+      <Show when={serverStore.selectedServerId}>
+        <div class="px-2 py-1 border-b border-xcord-border">
+          <Show when={showCreateCategory()} fallback={
+            <button
+              data-testid="create-category-button"
+              class="w-full text-left px-2 py-1 text-xs text-xcord-text-muted hover:text-white"
+              onClick={() => setShowCreateCategory(true)}
+              title="Create Category"
+            >
+              + Create Category
+            </button>
+          }>
+            <div class="flex space-x-1">
+              <input
+                data-testid="create-category-name-input"
+                type="text"
+                placeholder="category-name"
+                value={newCategoryName()}
+                onInput={(e) => setNewCategoryName(e.currentTarget.value)}
+                class="flex-1 bg-xcord-bg-primary text-white px-2 py-1 rounded text-xs border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+                onKeyPress={(e) => { if (e.key === 'Enter') handleCreateCategory(); }}
+              />
+              <button
+                data-testid="create-category-submit-button"
+                class="bg-xcord-brand text-white px-2 py-1 rounded text-xs hover:bg-xcord-brand-hover"
+                onClick={handleCreateCategory}
+              >
+                Create
+              </button>
+              <button
+                data-testid="create-category-cancel-button"
+                class="text-xcord-text-muted hover:text-white px-1 py-1 text-xs"
+                onClick={() => { setShowCreateCategory(false); setNewCategoryName(''); }}
+              >
+                ✕
+              </button>
             </div>
           </Show>
         </div>
@@ -266,6 +326,7 @@ export default function ChannelSidebar() {
                 aria-selected={channelStore.selectedChannelId === channel.id}
                 aria-label={`${channel.type === 'Voice' ? 'Voice channel' : channel.type === 'Forum' ? 'Forum channel' : 'Text channel'} ${channel.name}${hasUnread() ? `, ${unreadCount()} unread` : ''}`}
                 data-channel-id={channel.id}
+                data-testid={`channel-item-${channel.id}`}
                 tabindex={focusedChannelId() === channel.id || (focusedChannelId() === null && channelStore.selectedChannelId === channel.id) ? 0 : -1}
                 class={channelButtonClass(channel, hasUnread())}
                 onClick={() => {
@@ -308,6 +369,7 @@ export default function ChannelSidebar() {
             return (
               <div>
                 <button
+                  data-testid={`category-header-${category.id}`}
                   class="w-full px-1 py-1 flex items-center justify-between text-xs font-semibold text-xcord-text-muted uppercase tracking-wide hover:text-xcord-text-secondary transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
                   aria-expanded={!isCollapsed()}
                   aria-controls={`category-channels-${category.id}`}
@@ -331,6 +393,7 @@ export default function ChannelSidebar() {
                             aria-selected={channelStore.selectedChannelId === channel.id}
                             aria-label={`${channel.type === 'Voice' ? 'Voice channel' : channel.type === 'Forum' ? 'Forum channel' : 'Text channel'} ${channel.name}${hasUnread() ? `, ${unreadCount()} unread` : ''}`}
                             data-channel-id={channel.id}
+                            data-testid={`channel-item-${channel.id}`}
                             tabindex={focusedChannelId() === channel.id || (focusedChannelId() === null && channelStore.selectedChannelId === channel.id) ? 0 : -1}
                             class={channelButtonClass(channel, hasUnread())}
                             onClick={() => {

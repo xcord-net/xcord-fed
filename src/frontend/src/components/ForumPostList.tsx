@@ -103,11 +103,12 @@ export default function ForumPostList(props: ForumPostListProps) {
   const formatTime = (dateString?: string) => formatRelativeTime(dateString);
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
+    <div class="flex flex-col h-full bg-xcord-bg-secondary" data-testid="forum-post-list">
       {/* Header */}
       <div class="px-4 py-3 border-b border-xcord-bg-tertiary flex items-center justify-between flex-shrink-0">
         <h2 class="text-xcord-text-primary font-semibold">Forum Posts</h2>
         <button
+          data-testid="forum-new-post-button"
           class="bg-xcord-brand text-white px-3 py-1.5 rounded hover:bg-xcord-brand-hover transition-colors text-sm"
           onClick={() => setShowCreateForm(true)}
           aria-label="New Post"
@@ -118,7 +119,7 @@ export default function ForumPostList(props: ForumPostListProps) {
 
       {/* Create Post Form */}
       <Show when={showCreateForm()}>
-        <div class="px-4 py-4 bg-xcord-bg-primary border-b border-xcord-bg-tertiary space-y-3 flex-shrink-0">
+        <div data-testid="forum-create-post-form" class="px-4 py-4 bg-xcord-bg-primary border-b border-xcord-bg-tertiary space-y-3 flex-shrink-0">
           <h3 class="text-xcord-text-primary font-semibold text-sm">Create New Post</h3>
 
           <div>
@@ -126,6 +127,7 @@ export default function ForumPostList(props: ForumPostListProps) {
               Title
             </label>
             <input
+              data-testid="forum-post-title-input"
               type="text"
               class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
               placeholder="Post title..."
@@ -139,6 +141,7 @@ export default function ForumPostList(props: ForumPostListProps) {
               Content
             </label>
             <textarea
+              data-testid="forum-post-content-input"
               class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand resize-none"
               placeholder="Write your post content..."
               rows={4}
@@ -199,6 +202,7 @@ export default function ForumPostList(props: ForumPostListProps) {
 
           <div class="flex gap-2">
             <button
+              data-testid="forum-create-post-submit"
               class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleCreatePost}
               disabled={isSubmitting() || !title().trim() || !content().trim()}
@@ -224,7 +228,7 @@ export default function ForumPostList(props: ForumPostListProps) {
         </Show>
 
         <Show when={!forumStore.isLoading && forumStore.posts.length === 0}>
-          <div class="flex flex-col items-center justify-center h-48 space-y-3">
+          <div data-testid="forum-empty-state" class="flex flex-col items-center justify-center h-48 space-y-3">
             <p class="text-xcord-text-muted text-sm">No posts yet. Be the first to start a discussion!</p>
             <button
               class="text-xcord-brand hover:underline text-sm"
@@ -240,6 +244,7 @@ export default function ForumPostList(props: ForumPostListProps) {
             <For each={forumStore.posts}>
               {(post) => (
                 <div
+                  data-testid="forum-post-item"
                   class="px-4 py-4 hover:bg-xcord-bg-primary/30 cursor-pointer transition-colors"
                   onClick={() => handlePostClick(post)}
                   role="button"

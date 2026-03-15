@@ -17,7 +17,8 @@ public sealed record UserProfileDto(
     string DisplayName,
     string? Bio,
     string? AvatarUrl,
-    DateTimeOffset CreatedAt
+    DateTimeOffset CreatedAt,
+    bool TwoFactorEnabled = false
 );
 
 public sealed class GetUserProfileHandler(
@@ -46,7 +47,8 @@ public sealed class GetUserProfileHandler(
             DisplayName: user.DisplayName,
             Bio: user.Bio,
             AvatarUrl: user.AvatarUrl,
-            CreatedAt: user.CreatedAt
+            CreatedAt: user.CreatedAt,
+            TwoFactorEnabled: user.TwoFactorEnabled
         );
     }
 

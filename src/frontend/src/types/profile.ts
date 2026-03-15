@@ -8,6 +8,7 @@ export interface UserProfile {
   pronouns?: string;
   createdAt: string;
   scheduledDeletionAt?: string | null;
+  twoFactorEnabled?: boolean;
 }
 
 export interface ServerProfile {

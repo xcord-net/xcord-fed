@@ -128,10 +128,12 @@ public sealed class TwoFactorConfirmEnableHandler(AppDbContext dbContext, Snowfl
         return result.ToString();
     }
 
+    public sealed record TwoFactorConfirmEnableBody(string Code);
+
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
     {
         return app.MapPost("/api/v1/auth/2fa/confirm-enable", async (
-                string code,
+                [FromBody] TwoFactorConfirmEnableBody body,
                 [FromServices] ICurrentUserService currentUserService,
                 [FromServices] TwoFactorConfirmEnableHandler handler,
                 CancellationToken ct) =>
@@ -141,7 +143,7 @@ public sealed class TwoFactorConfirmEnableHandler(AppDbContext dbContext, Snowfl
                     return Results.Problem(statusCode: userIdResult.Error.StatusCode, title: userIdResult.Error.Code, detail: userIdResult.Error.Message);
                 var userId = userIdResult.Value;
 
-                var command = new TwoFactorConfirmEnableRequest(userId, code);
+                var command = new TwoFactorConfirmEnableRequest(userId, body.Code);
                 return await handler.ExecuteAsync(command, ct, success => Results.Ok(new
                 {
                     enabled = success.Enabled,

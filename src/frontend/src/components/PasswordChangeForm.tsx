@@ -65,6 +65,7 @@ export default function PasswordChangeForm() {
           </label>
           <input
             id="current-password"
+            data-testid="current-password-input"
             type="password"
             value={currentPassword()}
             onInput={(e) => setCurrentPassword(e.currentTarget.value)}
@@ -78,6 +79,7 @@ export default function PasswordChangeForm() {
           </label>
           <input
             id="new-password"
+            data-testid="new-password-input"
             type="password"
             value={newPassword()}
             onInput={(e) => setNewPassword(e.currentTarget.value)}
@@ -91,6 +93,7 @@ export default function PasswordChangeForm() {
           </label>
           <input
             id="confirm-password"
+            data-testid="confirm-password-input"
             type="password"
             value={confirmPassword()}
             onInput={(e) => setConfirmPassword(e.currentTarget.value)}

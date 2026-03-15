@@ -89,6 +89,7 @@ export default function NotificationSettings() {
               <label class="flex items-center justify-between py-2">
                 <span class="text-xcord-text-primary">Mute all notifications</span>
                 <input
+                  data-testid="notification-mute-all-checkbox"
                   type="checkbox"
                   checked={notifStore.settings!.muteAll}
                   onChange={(e) => notifStore.updateSettings({ muteAll: e.currentTarget.checked })}

@@ -180,18 +180,19 @@ export default function PollDisplay(props: PollDisplayProps) {
   return (
     <div class="mt-2 bg-xcord-bg-tertiary rounded-lg p-4 max-w-md">
       {/* Question */}
-      <p class="text-xcord-text-primary font-semibold text-sm mb-3">{poll().question}</p>
+      <p data-testid="poll-question" class="text-xcord-text-primary font-semibold text-sm mb-3">{poll().question}</p>
 
       {/* Options */}
       <div class="space-y-2">
         <For each={poll().options}>
-          {(option) => {
+          {(option, index) => {
             const pct = () => votePercentage(option, poll().totalVotes);
             const voted = () => hasVotedForOption(option.id);
 
             return (
               <div class="relative">
                 <button
+                  data-testid={`poll-option-${index()}`}
                   class={`w-full text-left rounded overflow-hidden transition-colors border ${
                     voted()
                       ? 'border-xcord-brand'
@@ -214,11 +215,11 @@ export default function PollDisplay(props: PollDisplayProps) {
                   <div class="relative flex items-center justify-between px-3 py-2 gap-2">
                     <div class="flex items-center gap-2 min-w-0">
                       <Show when={voted()}>
-                        <span class="text-xcord-brand text-xs flex-shrink-0">✓</span>
+                        <span data-testid={`poll-option-${index()}-voted`} class="text-xcord-brand text-xs flex-shrink-0">✓</span>
                       </Show>
                       <span class="text-xcord-text-primary text-sm truncate">{option.text}</span>
                     </div>
-                    <span class="text-xcord-text-muted text-xs flex-shrink-0 font-medium">
+                    <span data-testid={`poll-option-${index()}-count`} class="text-xcord-text-muted text-xs flex-shrink-0 font-medium">
                       {pct()}%
                     </span>
                   </div>
@@ -231,7 +232,7 @@ export default function PollDisplay(props: PollDisplayProps) {
 
       {/* Footer */}
       <div class="mt-3 flex items-center justify-between gap-2">
-        <span class="text-xcord-text-muted text-xs">
+        <span data-testid="poll-total-votes" class="text-xcord-text-muted text-xs">
           {poll().totalVotes} {poll().totalVotes === 1 ? 'vote' : 'votes'}
           <Show when={poll().allowMultiSelect}>
             <span class="ml-1">(multi-select)</span>
@@ -370,6 +371,7 @@ export function CreatePollForm(props: CreatePollFormProps) {
           Question
         </label>
         <input
+          data-testid="poll-question-input"
           type="text"
           class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
           placeholder="Ask a question..."
@@ -388,6 +390,7 @@ export function CreatePollForm(props: CreatePollFormProps) {
             {(opt, index) => (
               <div class="flex items-center gap-2">
                 <input
+                  data-testid={`poll-option-input-${index()}`}
                   type="text"
                   class="flex-1 bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
                   placeholder={`Option ${index() + 1}`}
@@ -409,6 +412,7 @@ export function CreatePollForm(props: CreatePollFormProps) {
         </div>
         <Show when={options().length < 10}>
           <button
+            data-testid="poll-add-option-button"
             class="mt-2 text-xcord-brand hover:underline text-xs"
             onClick={addOption}
           >
@@ -458,12 +462,14 @@ export function CreatePollForm(props: CreatePollFormProps) {
 
       <div class="flex gap-2">
         <button
+          data-testid="poll-submit-button"
           class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors"
           onClick={handleSubmit}
         >
           Add Poll
         </button>
         <button
+          data-testid="poll-cancel-button"
           class="px-4 py-2 bg-xcord-bg-tertiary text-xcord-text-muted text-sm rounded hover:bg-xcord-bg-primary hover:text-xcord-text-primary transition-colors"
           onClick={props.onCancel}
         >

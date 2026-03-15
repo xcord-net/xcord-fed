@@ -113,7 +113,7 @@ export default function ThreadPanel(props: ThreadPanelProps) {
   };
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary border-l border-xcord-border w-80">
+    <div data-testid="thread-panel" class="flex flex-col h-full bg-xcord-bg-secondary border-l border-xcord-border w-80">
       <div class="px-4 py-3 border-b border-xcord-border">
         <h2 class="text-white font-semibold">Threads</h2>
       </div>
@@ -121,7 +121,7 @@ export default function ThreadPanel(props: ThreadPanelProps) {
       <Show
         when={threadStore.activeThreadId}
         fallback={
-          <div class="flex-1 overflow-y-auto">
+          <div data-testid="thread-list" class="flex-1 overflow-y-auto">
             <Show when={threadStore.isLoading}>
               <div class="flex items-center justify-center h-32">
                 <p class="text-xcord-text-muted">Loading threads...</p>
@@ -130,13 +130,14 @@ export default function ThreadPanel(props: ThreadPanelProps) {
 
             <Show when={!threadStore.isLoading && threadStore.threads.length === 0}>
               <div class="flex items-center justify-center h-32">
-                <p class="text-xcord-text-muted">No active threads</p>
+                <p data-testid="thread-list-empty" class="text-xcord-text-muted">No active threads</p>
               </div>
             </Show>
 
             <For each={threadStore.threads}>
               {(thread) => (
                 <button
+                  data-testid="thread-list-item"
                   class="w-full px-4 py-3 hover:bg-xcord-bg-primary/50 transition border-b border-xcord-border text-left"
                   onClick={() => threadStore.setActiveThread(thread.id)}
                 >
@@ -243,7 +244,7 @@ export default function ThreadPanel(props: ThreadPanelProps) {
           </div>
 
           {/* Thread messages */}
-          <div class="flex-1 min-h-0 overflow-hidden">
+          <div data-testid="thread-message-list" class="flex-1 min-h-0 overflow-hidden">
             <MessageList
               conversationId={
                 activeThread()?.conversationId || ''
@@ -255,6 +256,7 @@ export default function ThreadPanel(props: ThreadPanelProps) {
           <div class="px-3 pb-3 pt-1 border-t border-xcord-border">
             <div class="bg-xcord-bg-primary rounded-lg px-3 py-2 flex items-end gap-2">
               <textarea
+                data-testid="thread-compose-input"
                 class="flex-1 bg-transparent text-xcord-text-primary placeholder-xcord-text-muted resize-none outline-none text-sm"
                 placeholder="Reply in thread..."
                 rows={1}

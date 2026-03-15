@@ -162,6 +162,8 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-2">
             <span
+              data-testid="2fa-status-indicator"
+              data-2fa-enabled={String(enabled())}
               class={`inline-block w-2 h-2 rounded-full ${enabled() ? 'bg-green-400' : 'bg-xcord-text-muted'}`}
             />
             <span class="text-xcord-text-secondary text-sm">
@@ -173,6 +175,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
             when={enabled()}
             fallback={
               <button
+                data-testid="2fa-enable-button"
                 type="button"
                 disabled={loading()}
                 onClick={handleEnableInit}
@@ -183,6 +186,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
             }
           >
             <button
+              data-testid="2fa-disable-button"
               type="button"
               disabled={loading()}
               onClick={handleDisableInit}
@@ -205,6 +209,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
             </label>
             <input
               id="2fa-enable-code"
+              data-testid="2fa-code-input"
               type="text"
               inputmode="numeric"
               maxlength={6}
@@ -216,6 +221,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
           </div>
           <div class="flex space-x-2">
             <button
+              data-testid="2fa-verify-button"
               type="button"
               disabled={loading()}
               onClick={handleEnableConfirm}
@@ -224,6 +230,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
               {loading() ? 'Verifying...' : 'Verify'}
             </button>
             <button
+              data-testid="2fa-enable-cancel-button"
               type="button"
               disabled={loading()}
               onClick={cancelFlow}
@@ -256,6 +263,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
 
           <div class="flex space-x-2">
             <button
+              data-testid="2fa-copy-backup-codes-button"
               type="button"
               onClick={handleCopyAll}
               class="px-4 py-2 bg-xcord-bg-tertiary hover:bg-xcord-bg-primary text-xcord-text-secondary rounded font-medium"
@@ -263,6 +271,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
               {copied() ? 'Copied!' : 'Copy all codes'}
             </button>
             <button
+              data-testid="2fa-backup-codes-done-button"
               type="button"
               onClick={handleBackupCodesDone}
               class="px-4 py-2 bg-xcord-brand hover:bg-xcord-brand-hover text-white rounded font-medium"
@@ -284,6 +293,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
             </label>
             <input
               id="2fa-disable-password"
+              data-testid="2fa-disable-password-input"
               type="password"
               value={code()}
               onInput={(e) => setCode(e.currentTarget.value)}
@@ -293,6 +303,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
           </div>
           <div class="flex space-x-2">
             <button
+              data-testid="2fa-disable-confirm-button"
               type="button"
               disabled={loading()}
               onClick={handleDisableConfirm}
@@ -301,6 +312,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
               {loading() ? 'Disabling...' : 'Disable 2FA'}
             </button>
             <button
+              data-testid="2fa-disable-cancel-button"
               type="button"
               disabled={loading()}
               onClick={cancelFlow}

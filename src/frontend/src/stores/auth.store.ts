@@ -37,8 +37,23 @@ export function useAuth() {
     get isAuthenticated() { return store.isAuthenticated(); },
     get isLoading() { return store.isLoading(); },
 
-    async login(request: LoginRequest): Promise<void> {
+    async login(request: LoginRequest): Promise<AuthResponse> {
       const response = await api.post<AuthResponse>('/api/v1/auth/login', request);
+      if (response.authenticated) {
+        api.setAuthenticated(true);
+        store.setIsAuthenticated(true);
+        store.setUser(normalizeIds({
+          id: response.userId,
+          username: response.username ?? '',
+          email: '',
+        }, 'id'));
+        await fetchAndStoreProfile();
+      }
+      return response;
+    },
+
+    async verifyTwoFactor(code: string, twoFactorToken: string): Promise<void> {
+      const response = await api.post<AuthResponse>('/api/v1/auth/2fa/verify', { code, twoFactorToken });
       if (response.authenticated) {
         api.setAuthenticated(true);
         store.setIsAuthenticated(true);

@@ -67,7 +67,8 @@ public sealed class UpdateUserProfileHandler(
             DisplayName: user.DisplayName,
             Bio: user.Bio,
             AvatarUrl: user.AvatarUrl,
-            CreatedAt: user.CreatedAt
+            CreatedAt: user.CreatedAt,
+            TwoFactorEnabled: user.TwoFactorEnabled
         );
     }
 

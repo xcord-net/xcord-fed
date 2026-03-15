@@ -26,6 +26,7 @@ function AttachmentList(props: { attachments: MessageAttachment[] }) {
             when={attachment.thumbnailUrl}
             fallback={
               <a
+                data-testid="message-attachment-link"
                 href={attachment.downloadUrl}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -37,6 +38,7 @@ function AttachmentList(props: { attachments: MessageAttachment[] }) {
             }
           >
             <a
+              data-testid="message-attachment-image"
               href={attachment.downloadUrl}
               target="_blank"
               rel="noopener noreferrer"
@@ -410,9 +412,10 @@ export default function MessageList(props: MessageListProps) {
 
                       {/* Thread creation form - shown inline below the action bar when triggered */}
                         <Show when={createThreadMessageId() === message().id}>
-                          <div class="mt-1 ml-14 flex items-center gap-2 p-2 bg-xcord-bg-tertiary rounded border border-xcord-border">
+                          <div data-testid="thread-create-form" class="mt-1 ml-14 flex items-center gap-2 p-2 bg-xcord-bg-tertiary rounded border border-xcord-border">
                             <input
                               id="thread-name"
+                              data-testid="thread-name-input"
                               type="text"
                               placeholder="Thread name"
                               class="flex-1 bg-xcord-bg-primary text-xcord-text-primary text-sm rounded px-2 py-1 border border-xcord-border outline-none focus:border-xcord-brand"
@@ -423,6 +426,7 @@ export default function MessageList(props: MessageListProps) {
                               }}
                             />
                             <button
+                              data-testid="thread-create-submit"
                               class="px-3 py-1 text-xs bg-xcord-brand text-white rounded hover:bg-xcord-brand-hover"
                               onClick={async () => {
                                 const name = threadNameInput().trim();
@@ -437,6 +441,7 @@ export default function MessageList(props: MessageListProps) {
                               Create Thread
                             </button>
                             <button
+                              data-testid="thread-create-cancel"
                               class="px-2 py-1 text-xs text-xcord-text-muted hover:text-white"
                               onClick={() => setCreateThreadMessageId(null)}
                             >
@@ -453,7 +458,7 @@ export default function MessageList(props: MessageListProps) {
                               <MarkdownRenderer content={message().content} />
                             </span>
                             <Show when={message().editedAt}>
-                              <span class="text-xs text-xcord-text-muted ml-1">(edited)</span>
+                              <span data-testid="message-edited-indicator" class="text-xs text-xcord-text-muted ml-1">(edited)</span>
                             </Show>
                             {/* Attachments */}
                             <Show when={(message().attachments?.length ?? 0) > 0}>
@@ -480,6 +485,18 @@ export default function MessageList(props: MessageListProps) {
                                 conversationId={props.conversationId}
                                 serverId={params.serverId}
                               />
+                            </Show>
+                            {/* Thread indicator */}
+                            <Show when={threadStore.threads.find((t) => t.parentMessageId === message().id)}>
+                              {(thread) => (
+                                <button
+                                  data-testid="message-thread-indicator"
+                                  class="mt-1 flex items-center gap-1 text-xs text-xcord-brand hover:underline"
+                                  onClick={() => threadStore.setActiveThread(thread().id)}
+                                >
+                                  &#35; {thread().name} &middot; {thread().messageCount} {thread().messageCount === 1 ? 'reply' : 'replies'}
+                                </button>
+                              )}
                             </Show>
                           </div>
                         }
@@ -519,7 +536,7 @@ export default function MessageList(props: MessageListProps) {
                               <MarkdownRenderer content={message().content} />
                             </div>
                             <Show when={message().editedAt}>
-                              <span class="text-xs text-xcord-text-muted">(edited)</span>
+                              <span data-testid="message-edited-indicator" class="text-xs text-xcord-text-muted">(edited)</span>
                             </Show>
                             {/* Attachments */}
                             <Show when={(message().attachments?.length ?? 0) > 0}>
@@ -546,6 +563,18 @@ export default function MessageList(props: MessageListProps) {
                                 conversationId={props.conversationId}
                                 serverId={params.serverId}
                               />
+                            </Show>
+                            {/* Thread indicator */}
+                            <Show when={threadStore.threads.find((t) => t.parentMessageId === message().id)}>
+                              {(thread) => (
+                                <button
+                                  data-testid="message-thread-indicator"
+                                  class="mt-1 flex items-center gap-1 text-xs text-xcord-brand hover:underline"
+                                  onClick={() => threadStore.setActiveThread(thread().id)}
+                                >
+                                  &#35; {thread().name} &middot; {thread().messageCount} {thread().messageCount === 1 ? 'reply' : 'replies'}
+                                </button>
+                              )}
                             </Show>
                           </div>
                         </div>

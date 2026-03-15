@@ -180,6 +180,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
                 </label>
                 <input
                   id="server-name"
+                  data-testid="server-name-input"
                   type="text"
                   required
                   maxlength="100"

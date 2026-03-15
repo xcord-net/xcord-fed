@@ -1,11 +1,28 @@
 import { createSignal, For, Show } from 'solid-js';
+import { useNavigate } from '@solidjs/router';
 import { useSearch } from '../stores/search.store';
+import { useChannels } from '../stores/channel.store';
+import { useServers } from '../stores/server.store';
 import type { SearchFilters } from '../types/search';
+import type { Message } from '../types/message';
 
 export default function SearchPanel() {
   const searchStore = useSearch();
+  const channelStore = useChannels();
+  const serverStore = useServers();
+  const navigate = useNavigate();
   const [query, setQuery] = createSignal('');
   const [showFilters, setShowFilters] = createSignal(false);
+
+  const handleJumpToMessage = (message: Message) => {
+    // Find channel matching the message's conversationId
+    const channel = channelStore.channels.find(
+      (c) => c.conversationId === message.conversationId
+    );
+    if (channel && serverStore.selectedServerId) {
+      navigate(`/channels/${serverStore.selectedServerId}/${channel.id}`);
+    }
+  };
 
   const handleSearch = async () => {
     if (!query().trim()) return;
@@ -23,12 +40,13 @@ export default function SearchPanel() {
   };
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary border-l border-xcord-border w-96">
+    <div data-testid="search-panel" class="flex flex-col h-full bg-xcord-bg-secondary border-l border-xcord-border w-96">
       <div class="px-4 py-3 border-b border-xcord-border">
         <h2 class="text-white font-semibold mb-3">Search</h2>
 
         <div class="flex space-x-2">
           <input
+            data-testid="search-input"
             type="text"
             placeholder="Search messages..."
             class="flex-1 bg-xcord-bg-primary text-white px-3 py-2 rounded border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
@@ -37,6 +55,7 @@ export default function SearchPanel() {
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
           />
           <button
+            data-testid="search-submit-button"
             class="bg-xcord-brand text-white px-4 py-2 rounded hover:bg-xcord-brand-hover transition"
             onClick={handleSearch}
           >
@@ -65,7 +84,7 @@ export default function SearchPanel() {
         </div>
       </Show>
 
-      <div class="flex-1 overflow-y-auto">
+      <div data-testid="search-results" class="flex-1 overflow-y-auto">
         <Show when={searchStore.isSearching}>
           <div class="flex items-center justify-center h-32">
             <p class="text-xcord-text-muted">Searching...</p>
@@ -77,13 +96,17 @@ export default function SearchPanel() {
             when={searchStore.results!.messages.length > 0}
             fallback={
               <div class="flex items-center justify-center h-32">
-                <p class="text-xcord-text-muted">No results found</p>
+                <p data-testid="search-no-results" class="text-xcord-text-muted">No results found</p>
               </div>
             }
           >
             <For each={searchStore.results!.messages}>
               {(message) => (
-                <div class="px-4 py-3 border-b border-xcord-border hover:bg-xcord-bg-primary/30">
+                <div
+                  data-testid="search-result-item"
+                  class="px-4 py-3 border-b border-xcord-border hover:bg-xcord-bg-primary/30 cursor-pointer"
+                  onClick={() => handleJumpToMessage(message)}
+                >
                   <div class="flex items-start space-x-3">
                     <div class="w-8 h-8 rounded-full bg-xcord-brand flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
                       {message.authorUsername?.charAt(0).toUpperCase() || 'U'}

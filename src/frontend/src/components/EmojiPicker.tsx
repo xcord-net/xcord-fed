@@ -87,6 +87,7 @@ export default function EmojiPicker(props: EmojiPickerProps) {
 
   return (
     <div
+      data-testid="emoji-picker"
       role="dialog"
       aria-label="Emoji picker"
       class="w-80 h-96 bg-xcord-bg-secondary rounded-lg shadow-xl border border-xcord-border flex flex-col"
@@ -99,6 +100,7 @@ export default function EmojiPicker(props: EmojiPickerProps) {
       <div class="flex border-b border-xcord-border overflow-x-auto">
         <Show when={emojiStore.customEmojis.length > 0}>
           <button
+            data-testid="emoji-category-custom"
             aria-label="Custom emoji"
             class={`px-3 py-2 text-sm flex-shrink-0 ${
               selectedCategory() === -1
@@ -114,6 +116,7 @@ export default function EmojiPicker(props: EmojiPickerProps) {
         <For each={emojiStore.unicodeCategories}>
           {(category, index) => (
             <button
+              data-testid={`emoji-category-${index()}`}
               aria-label={`${category.name} emoji`}
               class={`px-3 py-2 text-sm flex-shrink-0 ${
                 selectedCategory() === index()
@@ -152,10 +155,11 @@ export default function EmojiPicker(props: EmojiPickerProps) {
         </Show>
 
         <Show when={selectedCategory() >= 0}>
-          <div class="grid grid-cols-8 gap-2">
+          <div data-testid="emoji-grid" class="grid grid-cols-8 gap-2">
             <For each={emojiStore.unicodeCategories[selectedCategory()]?.emojis || []}>
               {(emoji, index) => (
                 <button
+                  data-testid={`emoji-btn-${index()}`}
                   class="w-8 h-8 hover:bg-xcord-bg-primary focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none rounded flex items-center justify-center text-xl"
                   onClick={() => props.onSelect(emoji)}
                   aria-label={emoji}

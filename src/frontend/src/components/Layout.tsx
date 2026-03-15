@@ -224,7 +224,7 @@ export default function Layout() {
                       <div class="flex flex-col h-full">
                         {/* DM header */}
                         <div class="h-12 px-4 flex items-center border-b border-xcord-border shadow-sm bg-xcord-bg-primary">
-                          <h2 class="font-semibold text-white" id="dm-conversation-header">{dmName()}</h2>
+                          <h2 class="font-semibold text-white" id="dm-conversation-header" data-testid="dm-conversation-header">{dmName()}</h2>
                         </div>
                         {/* Messages */}
                         <MessageList conversationId={convId()} />
@@ -338,10 +338,11 @@ export default function Layout() {
                       </Show>
                       <Show when={modals.selectedForumPost}>
                         {(post) => (
-                          <div class="flex flex-col h-full min-h-0">
+                          <div data-testid="forum-thread-view" class="flex flex-col h-full min-h-0">
                             {/* Thread header with back button */}
                             <div class="h-12 px-4 flex items-center border-b border-xcord-border shadow-sm bg-xcord-bg-primary flex-shrink-0">
                               <button
+                                data-testid="forum-back-button"
                                 class="text-xcord-brand hover:underline text-sm mr-3"
                                 onClick={() => modals.selectForumPost(null)}
                                 aria-label="Back to forum posts"
@@ -439,6 +440,7 @@ export default function Layout() {
             Profile
           </button>
           <button
+            data-testid="settings-tab-notifications"
             class={`px-4 py-3 text-sm ${modals.showSettings === 'notifications' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
             onClick={() => modals.openSettings('notifications')}
           >

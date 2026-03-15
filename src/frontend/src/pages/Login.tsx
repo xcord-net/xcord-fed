@@ -1,4 +1,4 @@
-import { createSignal, onMount } from 'solid-js';
+import { createSignal, onMount, Show } from 'solid-js';
 import { useNavigate, useSearchParams, A } from '@solidjs/router';
 import { useAuth } from '../stores/auth.store';
 import { sanitizeRedirect } from '../utils/redirect';
@@ -8,21 +8,31 @@ export default function Login() {
   const [password, setPassword] = createSignal('');
   const [error, setError] = createSignal('');
   const [loading, setLoading] = createSignal(false);
+  const [twoFactorToken, setTwoFactorToken] = createSignal('');
+  const [twoFactorCode, setTwoFactorCode] = createSignal('');
   const auth = useAuth();
 
   onMount(() => { document.title = 'Log In - Xcord'; });
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  const doNavigate = () => {
+    const redirectParam = Array.isArray(searchParams.redirect) ? searchParams.redirect[0] : searchParams.redirect;
+    const redirectTo = sanitizeRedirect(redirectParam);
+    navigate(redirectTo);
+  };
+
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      await auth.login({ email: email(), password: password() });
-      const redirectParam = Array.isArray(searchParams.redirect) ? searchParams.redirect[0] : searchParams.redirect;
-      const redirectTo = sanitizeRedirect(redirectParam);
-      navigate(redirectTo);
+      const response = await auth.login({ email: email(), password: password() });
+      if (response.requiresTwoFactor && response.twoFactorToken) {
+        setTwoFactorToken(response.twoFactorToken);
+      } else {
+        doNavigate();
+      }
     } catch (err: unknown) {
       setError((err as Error)?.message || 'Login failed');
     } finally {
@@ -30,48 +40,107 @@ export default function Login() {
     }
   };
 
+  const handleTwoFactorSubmit = async (e: Event) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await auth.verifyTwoFactor(twoFactorCode(), twoFactorToken());
+      doNavigate();
+    } catch (err: unknown) {
+      setError((err as Error)?.message || 'Invalid verification code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div class="min-h-screen bg-xcord-bg-tertiary flex items-center justify-center">
-      <form onSubmit={handleSubmit} class="bg-xcord-bg-secondary p-8 rounded-lg shadow-xl w-full max-w-md">
-        <h1 data-testid="login-heading" class="text-2xl font-bold text-xcord-text-primary mb-6 text-center">Welcome back!</h1>
-        {error() && <p data-testid="login-error" class="text-red-400 text-sm mb-4">{error()}</p>}
-        <div class="mb-4">
-          <label for="login-email" class="block text-xcord-text-secondary text-sm font-medium mb-2">Email</label>
-          <input
-            id="login-email"
-            type="email"
-            value={email()}
-            onInput={(e) => setEmail(e.currentTarget.value)}
-            class="w-full bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-2 border border-xcord-border focus:border-xcord-brand focus:outline-none"
-            required
-          />
-        </div>
-        <div class="mb-6">
-          <label for="login-password" class="block text-xcord-text-secondary text-sm font-medium mb-2">Password</label>
-          <input
-            id="login-password"
-            type="password"
-            value={password()}
-            onInput={(e) => setPassword(e.currentTarget.value)}
-            class="w-full bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-2 border border-xcord-border focus:border-xcord-brand focus:outline-none"
-            required
-          />
-        </div>
-        <button
-          data-testid="login-submit-button"
-          type="submit"
-          disabled={loading()}
-          class="w-full bg-xcord-brand hover:bg-xcord-brand-hover text-white font-medium py-2 rounded disabled:opacity-50"
-        >
-          {loading() ? 'Logging in...' : 'Log In'}
-        </button>
-        <p class="text-xcord-text-muted text-sm mt-4 text-center">
-          Need an account? <A data-testid="login-register-link" href="/register" class="text-xcord-brand hover:underline">Register</A>
-        </p>
-        <p class="text-xcord-text-muted text-sm mt-2 text-center">
-          <A data-testid="login-forgot-password-link" href="/forgot-password" class="text-xcord-brand hover:underline">Forgot your password?</A>
-        </p>
-      </form>
+      <Show when={!twoFactorToken()}>
+        <form onSubmit={handleSubmit} class="bg-xcord-bg-secondary p-8 rounded-lg shadow-xl w-full max-w-md">
+          <h1 data-testid="login-heading" class="text-2xl font-bold text-xcord-text-primary mb-6 text-center">Welcome back!</h1>
+          {error() && <p data-testid="login-error" class="text-red-400 text-sm mb-4">{error()}</p>}
+          <div class="mb-4">
+            <label for="login-email" class="block text-xcord-text-secondary text-sm font-medium mb-2">Email</label>
+            <input
+              id="login-email"
+              data-testid="login-email-input"
+              type="email"
+              value={email()}
+              onInput={(e) => setEmail(e.currentTarget.value)}
+              class="w-full bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-2 border border-xcord-border focus:border-xcord-brand focus:outline-none"
+              required
+            />
+          </div>
+          <div class="mb-6">
+            <label for="login-password" class="block text-xcord-text-secondary text-sm font-medium mb-2">Password</label>
+            <input
+              id="login-password"
+              data-testid="login-password-input"
+              type="password"
+              value={password()}
+              onInput={(e) => setPassword(e.currentTarget.value)}
+              class="w-full bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-2 border border-xcord-border focus:border-xcord-brand focus:outline-none"
+              required
+            />
+          </div>
+          <button
+            data-testid="login-submit-button"
+            type="submit"
+            disabled={loading()}
+            class="w-full bg-xcord-brand hover:bg-xcord-brand-hover text-white font-medium py-2 rounded disabled:opacity-50"
+          >
+            {loading() ? 'Logging in...' : 'Log In'}
+          </button>
+          <p class="text-xcord-text-muted text-sm mt-4 text-center">
+            Need an account? <A data-testid="login-register-link" href="/register" class="text-xcord-brand hover:underline">Register</A>
+          </p>
+          <p class="text-xcord-text-muted text-sm mt-2 text-center">
+            <A data-testid="login-forgot-password-link" href="/forgot-password" class="text-xcord-brand hover:underline">Forgot your password?</A>
+          </p>
+        </form>
+      </Show>
+
+      <Show when={twoFactorToken()}>
+        <form data-testid="2fa-challenge-form" onSubmit={handleTwoFactorSubmit} class="bg-xcord-bg-secondary p-8 rounded-lg shadow-xl w-full max-w-md">
+          <h1 data-testid="2fa-challenge-heading" class="text-2xl font-bold text-xcord-text-primary mb-2 text-center">Two-Factor Authentication</h1>
+          <p class="text-xcord-text-muted text-sm mb-6 text-center">
+            A verification code has been sent to your email address. Enter it below to complete sign-in.
+          </p>
+          {error() && <p data-testid="login-error" class="text-red-400 text-sm mb-4">{error()}</p>}
+          <div class="mb-6">
+            <label for="2fa-login-code" class="block text-xcord-text-secondary text-sm font-medium mb-2">Verification Code</label>
+            <input
+              id="2fa-login-code"
+              data-testid="2fa-login-code-input"
+              type="text"
+              inputmode="numeric"
+              maxlength={6}
+              value={twoFactorCode()}
+              onInput={(e) => setTwoFactorCode(e.currentTarget.value)}
+              placeholder="000000"
+              class="w-full bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-2 border border-xcord-border focus:border-xcord-brand focus:outline-none tracking-widest text-center"
+              required
+            />
+          </div>
+          <button
+            data-testid="2fa-login-submit-button"
+            type="submit"
+            disabled={loading()}
+            class="w-full bg-xcord-brand hover:bg-xcord-brand-hover text-white font-medium py-2 rounded disabled:opacity-50"
+          >
+            {loading() ? 'Verifying...' : 'Verify'}
+          </button>
+          <button
+            data-testid="2fa-login-back-button"
+            type="button"
+            class="w-full mt-2 text-xcord-text-muted hover:text-xcord-text-primary text-sm py-2"
+            onClick={() => { setTwoFactorToken(''); setTwoFactorCode(''); setError(''); }}
+          >
+            Back to login
+          </button>
+        </form>
+      </Show>
     </div>
   );
 }

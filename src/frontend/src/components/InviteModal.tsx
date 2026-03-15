@@ -157,6 +157,7 @@ export default function InviteModal(props: InviteModalProps) {
             <input
               type="text"
               readonly
+              data-testid="invite-link-input"
               value={loading() ? 'Generating...' : (inviteLink() || (error() ? 'Failed to generate' : ''))}
               aria-label="Invite link"
               class="flex-1 bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand select-all cursor-text"

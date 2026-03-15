@@ -162,6 +162,7 @@ export default function MemberList() {
                 <For each={section.members}>
                   {(member) => (
                     <button
+                      data-testid={`member-item-${member.username}`}
                       class="w-full px-2 py-1.5 rounded flex items-center space-x-3 hover:bg-xcord-bg-primary transition-colors"
                       onContextMenu={(e) => handleContextMenu(e, member.userId)}
                     >
@@ -235,8 +236,9 @@ export default function MemberList() {
             </Show>
             <For each={serverGroups().filter((g) => g.name !== '@everyone' && g.name !== 'everyone')}>
               {(group) => (
-                <label class="flex items-center gap-2 px-1 py-1.5 rounded hover:bg-xcord-bg-primary cursor-pointer">
+                <label data-testid={`group-assign-item-${group.id}`} class="flex items-center gap-2 px-1 py-1.5 rounded hover:bg-xcord-bg-primary cursor-pointer">
                   <input
+                    data-testid={`group-assign-checkbox-${group.id}`}
                     type="checkbox"
                     checked={memberHasGroup(group.id)}
                     disabled={groupAssignmentLoading()}
@@ -258,11 +260,12 @@ export default function MemberList() {
       </Menu>
 
       {/* Ban confirmation */}
-      <Modal open={showBanConfirm()} onClose={() => { setShowBanConfirm(false); setPendingBanUserId(null); }} title="Ban Member" size="sm" role="alertdialog">
+      <Modal data-testid="ban-confirm-dialog" open={showBanConfirm()} onClose={() => { setShowBanConfirm(false); setPendingBanUserId(null); }} title="Ban Member" size="sm" role="alertdialog">
         <div class="p-6">
           <p class="text-xcord-text-secondary text-sm mb-6">Are you sure you want to ban this member?</p>
           <div class="flex justify-end gap-3">
             <button
+              data-testid="ban-confirm-cancel-button"
               type="button"
               onClick={() => { setShowBanConfirm(false); setPendingBanUserId(null); }}
               class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
@@ -270,6 +273,7 @@ export default function MemberList() {
               Cancel
             </button>
             <button
+              data-testid="ban-confirm-submit-button"
               type="button"
               onClick={confirmBan}
               class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"

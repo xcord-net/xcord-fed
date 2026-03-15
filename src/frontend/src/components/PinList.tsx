@@ -18,7 +18,7 @@ export default function PinList(props: PinListProps) {
   };
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary border-l border-xcord-border w-80">
+    <div data-testid="pin-list-panel" class="flex flex-col h-full bg-xcord-bg-secondary border-l border-xcord-border w-80">
       <div class="px-4 py-3 border-b border-xcord-border">
         <h2 class="text-white font-semibold">Pinned Messages</h2>
       </div>
@@ -31,14 +31,14 @@ export default function PinList(props: PinListProps) {
         </Show>
 
         <Show when={!pinStore.isLoading && pinStore.pinnedMessages.length === 0}>
-          <div class="flex items-center justify-center h-32">
+          <div data-testid="pin-list-empty" class="flex items-center justify-center h-32">
             <p class="text-xcord-text-muted">No pinned messages</p>
           </div>
         </Show>
 
         <For each={pinStore.pinnedMessages}>
           {(message) => (
-            <div class="px-4 py-3 border-b border-xcord-border hover:bg-xcord-bg-primary/30">
+            <div data-testid="pin-list-item" class="px-4 py-3 border-b border-xcord-border hover:bg-xcord-bg-primary/30">
               <div class="flex items-start space-x-3">
                 <div class="w-8 h-8 rounded-full bg-xcord-brand flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
                   {message.authorUsername?.charAt(0).toUpperCase() || 'U'}
@@ -53,6 +53,7 @@ export default function PinList(props: PinListProps) {
                       <span class="text-xs text-xcord-text-muted">{formatTime(message.createdAt)}</span>
                     </div>
                     <button
+                      data-testid="pin-list-unpin-button"
                       class="text-xcord-text-muted hover:text-white text-xs"
                       onClick={() => pinStore.unpinMessage(props.conversationId, message.id)}
                     >
