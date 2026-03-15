@@ -31,7 +31,8 @@ public sealed record SendMessageResponse(
     long? ReplyToId,
     bool IsPinned,
     DateTimeOffset? EditedAt,
-    DateTimeOffset CreatedAt
+    DateTimeOffset CreatedAt,
+    List<AttachmentDto>? Attachments = null
 );
 
 public sealed class SendMessageHandler(
@@ -43,6 +44,7 @@ public sealed class SendMessageHandler(
     ICurrentUserService currentUserService,
     IOutboxWriter outboxWriter,
     IAutomodActionExecutor automodActionExecutor,
+    IStorageService storageService,
     ILogger<SendMessageHandler> logger)
     : IRequestHandler<SendMessageRequest, Result<SendMessageResponse>>, IValidatable<SendMessageRequest>
 {
@@ -248,12 +250,6 @@ public sealed class SendMessageHandler(
                     .ExecuteUpdateAsync(s => s.SetProperty(rs => rs.MentionCount, rs => rs.MentionCount + 1), cancellationToken);
             }
 
-            // Write outbox event for new message - include full message data so the
-            // client can render it immediately without a separate API fetch.
-            await outboxWriter.WriteAsync(dbContext, "Message.Created",
-                MessageOutboxPayloads.ForCreated(message, authorForResponse.Username, authorForResponse.AvatarUrl),
-                cancellationToken);
-
             // Write Notify_UnreadUpdated outbox events for each non-author member
             // so their sidebars update in real time.
             var affectedReadStates = await dbContext.ReadStates
@@ -272,12 +268,13 @@ public sealed class SendMessageHandler(
                 }, cancellationToken);
             }
 
-            // Flush message + mentions + outbox to DB so FKs are satisfied
+            // Flush message + mentions + unread outbox to DB so FKs are satisfied
             await dbContext.SaveChangesAsync(cancellationToken);
 
             // Link attachments to this message (must happen after SaveChanges
             // because ExecuteUpdateAsync runs direct SQL that needs the message
             // row to exist for the FK constraint on attachments.MessageId)
+            List<AttachmentDto>? attachmentDtos = null;
             if (request.AttachmentIds is { Length: > 0 })
             {
                 var parsedIds = request.AttachmentIds
@@ -293,8 +290,52 @@ public sealed class SendMessageHandler(
                             && a.MessageId == null
                             && a.DeletedAt == null)
                         .ExecuteUpdateAsync(s => s.SetProperty(a => a.MessageId, messageId), cancellationToken);
+
+                    // Query linked attachments and generate pre-signed URLs
+                    var linkedAttachments = await dbContext.Attachments
+                        .AsNoTracking()
+                        .Where(a => a.MessageId == messageId && a.DeletedAt == null)
+                        .ToListAsync(cancellationToken);
+
+                    if (linkedAttachments.Count > 0)
+                    {
+                        var urlTasks = linkedAttachments.Select(async a =>
+                        {
+                            var downloadUrl = await storageService.GenerateDownloadUrlAsync(a.S3Key, TimeSpan.FromHours(1));
+                            string? thumbnailUrl = null;
+                            if (!string.IsNullOrEmpty(a.ThumbnailS3Key))
+                            {
+                                thumbnailUrl = await storageService.GenerateDownloadUrlAsync(a.ThumbnailS3Key, TimeSpan.FromHours(1));
+                            }
+                            return new AttachmentDto(a.Id, a.FileName, a.ContentType, a.FileSize, a.Width, a.Height, downloadUrl, thumbnailUrl);
+                        });
+                        attachmentDtos = (await Task.WhenAll(urlTasks)).ToList();
+                    }
                 }
             }
+
+            // Write outbox event for new message - include full message data
+            // (including attachments) so the client can render immediately.
+            var outboxAttachments = attachmentDtos?.Select(a => (object)new
+            {
+                id = a.Id,
+                fileName = a.FileName,
+                contentType = a.ContentType,
+                fileSize = a.FileSize,
+                width = a.Width,
+                height = a.Height,
+                downloadUrl = a.DownloadUrl,
+                thumbnailUrl = a.ThumbnailUrl
+            }).ToList();
+
+            await outboxWriter.WriteAsync(dbContext, "Message.Created",
+                MessageOutboxPayloads.ForCreated(message, authorForResponse.Username, authorForResponse.AvatarUrl,
+                    attachments: outboxAttachments),
+                cancellationToken);
+
+            // Flush the Message.Created outbox entry
+            await dbContext.SaveChangesAsync(cancellationToken);
+
             await transaction.CommitAsync(cancellationToken);
 
             logger.LogInformation(
@@ -319,7 +360,8 @@ public sealed class SendMessageHandler(
                 ReplyToId: message.ReplyToId,
                 IsPinned: message.IsPinned,
                 EditedAt: message.EditedAt,
-                CreatedAt: message.CreatedAt
+                CreatedAt: message.CreatedAt,
+                Attachments: attachmentDtos
             );
         }
         catch

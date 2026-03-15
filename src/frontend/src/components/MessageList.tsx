@@ -308,7 +308,7 @@ export default function MessageList(props: MessageListProps) {
                     >
                       {/* Hover action bar - uses CSS group-hover for visibility to survive virtualizer DOM re-creation */}
                       <div role="toolbar" aria-label="Message actions" class={`absolute right-2 top-0 bg-xcord-bg-tertiary rounded shadow-lg border border-xcord-border z-30 ${
-                        messageStore.editingMessageId
+                        messageStore.editingMessageId || createThreadMessageId() === message().id
                           ? 'hidden'
                           : reactionPickerMessageId() === message().id
                             ? 'flex'

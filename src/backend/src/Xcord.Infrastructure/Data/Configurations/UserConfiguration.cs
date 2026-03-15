@@ -93,6 +93,10 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.TwoFactorLockedAt);
 
+        builder.Property(u => u.MuteAll)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         // Timestamps
         builder.Property(u => u.CreatedAt)
             .IsRequired();

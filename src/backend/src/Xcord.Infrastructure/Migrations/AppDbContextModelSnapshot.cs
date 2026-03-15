@@ -2618,6 +2618,11 @@ namespace Xcord.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("TwoFactorLockedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("MuteAll")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(32)

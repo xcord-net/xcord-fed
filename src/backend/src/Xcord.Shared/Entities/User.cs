@@ -105,6 +105,11 @@ public sealed class User : ISoftDeletable
     public DateTimeOffset? LastLoginAt { get; set; }
 
     /// <summary>
+    /// Whether all notifications are muted globally.
+    /// </summary>
+    public bool MuteAll { get; set; } = false;
+
+    /// <summary>
     /// Scheduled deletion timestamp - set when user requests account deletion.
     /// Actual deletion occurs 14 days after this timestamp.
     /// </summary>

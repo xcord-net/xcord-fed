@@ -134,7 +134,7 @@ export default function ChannelSidebar() {
     }`;
 
   return (
-    <div class="w-60 bg-xcord-bg-secondary flex flex-col">
+    <div class="w-60 bg-xcord-bg-secondary flex flex-col relative z-10">
       {/* Server header */}
       <div class="h-12 px-4 flex items-center justify-between border-b border-xcord-border shadow-sm relative">
         <h2 class="font-semibold text-white truncate flex-1" data-testid="server-name-heading">{currentServer()?.name || 'Select a server'}</h2>

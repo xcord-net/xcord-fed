@@ -49,7 +49,8 @@ public class NotificationTests
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
-        body.EnumerateArray().Should().BeEmpty();
+        body.GetProperty("muteAll").GetBoolean().Should().BeFalse();
+        body.GetProperty("settings").EnumerateArray().Should().BeEmpty();
     }
 
     [Fact]
@@ -88,7 +89,7 @@ public class NotificationTests
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
-        var settings = body.EnumerateArray().ToList();
+        var settings = body.GetProperty("settings").EnumerateArray().ToList();
         settings.Should().HaveCount(1);
         settings[0].GetProperty("serverId").ReadLong().Should().Be(server1Id);
         settings[0].GetProperty("level").GetString().Should().Be("MentionsOnly");
@@ -273,7 +274,7 @@ public class NotificationTests
             user.AccessToken);
 
         var listBody = await listResponse.ReadAsJsonAsync<JsonElement>();
-        listBody.EnumerateArray().Should().BeEmpty();
+        listBody.GetProperty("settings").EnumerateArray().Should().BeEmpty();
     }
 
     [Fact]

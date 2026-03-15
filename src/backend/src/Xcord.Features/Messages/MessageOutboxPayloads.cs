@@ -4,7 +4,7 @@ namespace Xcord.Features.Messages;
 
 public static class MessageOutboxPayloads
 {
-    public static object ForCreated(Message message, string? authorUsername, string? authorAvatarUrl, DateTimeOffset? editedAt = null)
+    public static object ForCreated(Message message, string? authorUsername, string? authorAvatarUrl, DateTimeOffset? editedAt = null, IReadOnlyList<object>? attachments = null)
     {
         return new
         {
@@ -19,7 +19,8 @@ public static class MessageOutboxPayloads
             replyToId = message.ReplyToId,
             isPinned = message.IsPinned,
             editedAt,
-            createdAt = message.CreatedAt
+            createdAt = message.CreatedAt,
+            attachments
         };
     }
 }

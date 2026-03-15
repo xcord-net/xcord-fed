@@ -26,15 +26,30 @@ public sealed record NotificationSettingDto(
     DateTimeOffset? MuteUntil
 );
 
+public sealed record NotificationSettingsResponse(
+    bool MuteAll,
+    List<NotificationSettingDto> Settings
+);
+
 public sealed class GetNotificationSettingsHandler(
     AppDbContext dbContext,
-    ICurrentUserService currentUserService) : IRequestHandler<GetNotificationSettingsRequest, Result<List<NotificationSettingDto>>>
+    ICurrentUserService currentUserService) : IRequestHandler<GetNotificationSettingsRequest, Result<NotificationSettingsResponse>>
 {
-    public async Task<Result<List<NotificationSettingDto>>> Handle(GetNotificationSettingsRequest request, CancellationToken cancellationToken)
+    public async Task<Result<NotificationSettingsResponse>> Handle(GetNotificationSettingsRequest request, CancellationToken cancellationToken)
     {
         var userIdResult = currentUserService.GetCurrentUserId();
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
+
+        // Get the user's global MuteAll setting
+        var user = await dbContext.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+        if (user is null)
+        {
+            return Error.NotFound("USER_NOT_FOUND", "User not found");
+        }
 
         // Build query based on filters
         var query = dbContext.NotificationSettings
@@ -63,7 +78,10 @@ public sealed class GetNotificationSettingsHandler(
             MuteUntil: ns.MuteUntil
         )).ToList();
 
-        return dtos;
+        return new NotificationSettingsResponse(
+            MuteAll: user.MuteAll,
+            Settings: dtos
+        );
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app) =>

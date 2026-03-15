@@ -30,7 +30,8 @@ export default function DmList() {
   const handleCreateDm = async () => {
     setDmError('');
     try {
-      await dmStore.createDmByUsername(dmUsername());
+      const dm = await dmStore.createDmByUsername(dmUsername());
+      dmStore.selectDm(dm.id);
       setDmUsername('');
       setShowNewDm(false);
     } catch (err: unknown) {

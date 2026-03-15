@@ -30,10 +30,9 @@ export function useNotifications() {
     async loadSettings(): Promise<void> {
       store.setIsLoading(true);
       try {
-        // GET /api/v1/users/@me/notification-settings returns an array of
-        // NotificationSettingDto rows. Synthesise a NotificationSettings
-        // object with safe defaults so the UI never accesses undefined fields.
-        const _raw = await api.get<unknown>('/api/v1/users/@me/notification-settings');
+        // GET /api/v1/users/@me/notification-settings returns
+        // { muteAll: bool, settings: NotificationSettingDto[] }.
+        const _raw = await api.get<{ muteAll?: boolean; settings?: unknown[] }>('/api/v1/users/@me/notification-settings');
         const settings: NotificationSettings = {
           userId: '',
           muteAll: false,
@@ -44,9 +43,10 @@ export function useNotifications() {
           mutedChannelIds: [],
           mentionKeywords: [],
         };
-        // If the backend ever returns the full object shape, merge it in.
         if (_raw && typeof _raw === 'object' && !Array.isArray(_raw)) {
-          Object.assign(settings, _raw);
+          if (typeof _raw.muteAll === 'boolean') {
+            settings.muteAll = _raw.muteAll;
+          }
         }
         // Ensure arrays are never undefined (defensive against API shape changes).
         settings.mutedServerIds ??= [];
@@ -59,8 +59,12 @@ export function useNotifications() {
     },
 
     async updateSettings(updates: Partial<NotificationSettings>): Promise<void> {
-      const updated = await api.put<NotificationSettings>('/api/v1/users/@me/notification-settings', updates);
-      store.setSettings(updated);
+      // Optimistically update local state
+      const current = store.settings();
+      if (current) {
+        store.setSettings({ ...current, ...updates });
+      }
+      await api.put('/api/v1/users/@me/notification-settings', updates);
     },
 
     async muteServer(serverId: string): Promise<void> {
@@ -114,8 +118,13 @@ export function useNotifications() {
 
     /** Load all server-level notification overrides for the current user. */
     async loadServerOverrides(): Promise<void> {
-      const raw = await api.get<NotificationSettingDto[] | unknown>('/api/v1/users/@me/notification-settings');
-      const overrides = Array.isArray(raw) ? raw as NotificationSettingDto[] : [];
+      const raw = await api.get<{ settings?: NotificationSettingDto[] } | NotificationSettingDto[]>('/api/v1/users/@me/notification-settings');
+      // Backend returns { muteAll, settings: [...] }. Extract the settings array.
+      const overrides: NotificationSettingDto[] = Array.isArray(raw)
+        ? raw
+        : (Array.isArray((raw as { settings?: NotificationSettingDto[] })?.settings)
+          ? (raw as { settings: NotificationSettingDto[] }).settings
+          : []);
       // Filter to only server-level settings (serverId set, channelId null)
       const serverLevel = overrides.filter((o) => o.serverId !== null && o.channelId === null);
       store.setServerOverrides(serverLevel);

@@ -78,7 +78,6 @@ export default function ForumPostList(props: ForumPostListProps) {
       setSelectedTags([]);
       setTagInput('');
       setShowCreateForm(false);
-      props.onSelectPost?.(post);
     } catch {
       setSubmitError('Failed to create post. Please try again.');
     } finally {

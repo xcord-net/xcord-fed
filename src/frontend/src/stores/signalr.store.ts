@@ -8,6 +8,7 @@ import { useVoice } from './voice.store';
 import { useUnread } from './unread.store';
 import { useMessages } from './message.store';
 import { useChannels } from './channel.store';
+import { useFriends } from './friend.store';
 import { handleNewMessageNotification } from '../services/notification.service';
 import type { PresenceStatus } from '../types/presence';
 import type { Message } from '../types/message';
@@ -65,6 +66,8 @@ const SIGNALR_EVENTS = [
   'Presence_Updated',
   'Voice_StateUpdated',
   'Notify_UnreadUpdated',
+  'Notify_FriendRequest',
+  'Notify_FriendAccepted',
   'System_ShuttingDown',
 ] as const;
 
@@ -171,6 +174,15 @@ export function useSignalR() {
     // Notification events
     connection.on('Notify_UnreadUpdated', (data: { conversationId: string; count: number; lastMessageId: string }) => {
       unread.updateUnread(data.conversationId, data.count, data.lastMessageId);
+    });
+
+    // Friend events
+    connection.on('Notify_FriendRequest', () => {
+      useFriends().loadFriendRequests();
+    });
+    connection.on('Notify_FriendAccepted', () => {
+      useFriends().loadFriends();
+      useFriends().loadFriendRequests();
     });
 
     // System events

@@ -78,6 +78,7 @@ namespace Xcord.Infrastructure.Migrations
                     TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     TwoFactorFailureCount = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
                     TwoFactorLockedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    MuteAll = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     LastLoginAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     ScheduledDeletionAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),

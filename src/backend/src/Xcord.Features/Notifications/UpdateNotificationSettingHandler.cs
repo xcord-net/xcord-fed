@@ -19,7 +19,8 @@ public sealed record UpdateNotificationSettingRequest(
     NotificationLevel Level,
     bool? SuppressEveryone,
     bool? SuppressRoles,
-    DateTimeOffset? MuteUntil
+    DateTimeOffset? MuteUntil,
+    bool? MuteAll = null
 );
 
 public sealed record UpdateNotificationSettingResponse(
@@ -47,6 +48,17 @@ public sealed class UpdateNotificationSettingHandler(
         var userIdResult = currentUserService.GetCurrentUserId();
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
+
+        // Handle global MuteAll toggle (stored on User entity)
+        if (request.MuteAll.HasValue)
+        {
+            var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+            if (user != null)
+            {
+                user.MuteAll = request.MuteAll.Value;
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+        }
 
         // Validate that server/channel exist if provided
         if (request.ServerId.HasValue)
