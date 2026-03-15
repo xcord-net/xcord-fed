@@ -1,5 +1,6 @@
 import { createSignal, For, Show } from 'solid-js';
 import { api } from '../api/client';
+import { getErrorMessage } from '../utils/errors';
 import Modal from './ui/Modal';
 
 interface Member {
@@ -48,8 +49,7 @@ export default function OwnershipTransfer(props: OwnershipTransferProps) {
       // Exclude current user from list
       setMembers(data.filter((m) => m.userId !== props.currentUserId));
     } catch (err: unknown) {
-      const errObj = err as { error?: string };
-      setError(errObj?.error || 'Failed to load members');
+      setError(getErrorMessage(err, 'Failed to load members'));
     } finally {
       setIsLoading(false);
     }
@@ -90,8 +90,7 @@ export default function OwnershipTransfer(props: OwnershipTransferProps) {
       setStep('idle');
       props.onTransferred?.(member.userId);
     } catch (err: unknown) {
-      const errObj = err as { error?: string };
-      setError(errObj?.error || 'Failed to transfer ownership');
+      setError(getErrorMessage(err, 'Failed to transfer ownership'));
     } finally {
       setIsLoading(false);
     }

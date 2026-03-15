@@ -7,6 +7,7 @@ using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Events;
 
@@ -49,7 +50,7 @@ public sealed class DeleteEventHandler(
         }
 
         // Soft delete
-        scheduledEvent.DeletedAt = DateTimeOffset.UtcNow;
+        scheduledEvent.SoftDelete();
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

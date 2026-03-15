@@ -292,6 +292,8 @@ public sealed class NullStorageService : IStorageService
     public Task UploadAsync(string key, byte[] data, string contentType) => Task.CompletedTask;
 
     public Task<byte[]> DownloadAsync(string key) => Task.FromResult(Array.Empty<byte>());
+
+    public Task<long> GetBucketSizeAsync(CancellationToken ct) => Task.FromResult(0L);
 }
 
 [CollectionDefinition("WebApp")]

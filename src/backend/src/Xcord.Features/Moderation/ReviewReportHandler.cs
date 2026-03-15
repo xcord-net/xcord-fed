@@ -91,19 +91,14 @@ public sealed class ReviewReportHandler(
         report.ReviewNotes = request.ReviewNotes;
 
         // Create audit log
-        var auditLogId = snowflakeGenerator.NextId();
-        var auditLog = new AuditLog
-        {
-            Id = auditLogId,
-            ServerId = request.ServerId,
-            ActorId = reviewerId,
-            ActionType = "report.review",
-            TargetId = request.ReportId,
-            Reason = $"Status changed to {request.NewStatus}",
-            CreatedAt = now
-        };
-
-        dbContext.AuditLogs.Add(auditLog);
+        dbContext.AuditLogs.AddEntry(
+            snowflakeGenerator,
+            serverId: request.ServerId,
+            actorId: reviewerId,
+            actionType: "report.review",
+            targetId: request.ReportId,
+            reason: $"Status changed to {request.NewStatus}",
+            createdAt: now);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

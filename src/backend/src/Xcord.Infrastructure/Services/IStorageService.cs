@@ -50,4 +50,10 @@ public interface IStorageService
     /// <param name="key">S3 object key</param>
     /// <returns>Downloaded bytes</returns>
     Task<byte[]> DownloadAsync(string key);
+
+    /// <summary>
+    /// Get the total size of all objects in the bucket.
+    /// </summary>
+    /// <returns>Total size in bytes</returns>
+    Task<long> GetBucketSizeAsync(CancellationToken ct);
 }

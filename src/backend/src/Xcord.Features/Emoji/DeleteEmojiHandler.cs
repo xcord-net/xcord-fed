@@ -8,6 +8,7 @@ using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Emoji;
 
@@ -71,7 +72,7 @@ public sealed class DeleteEmojiHandler(
         }
 
         // Soft delete
-        emoji.DeletedAt = DateTimeOffset.UtcNow;
+        emoji.SoftDelete();
         await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(

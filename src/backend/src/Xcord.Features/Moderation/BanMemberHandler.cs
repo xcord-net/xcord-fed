@@ -87,28 +87,10 @@ public sealed class BanMemberHandler(
             return Error.NotFound("MEMBER_NOT_FOUND", "User is not a member of this server");
         }
 
-        // Cannot ban yourself
-        if (moderatorId == request.UserId)
-        {
-            return Error.Validation("CANNOT_BAN_SELF", "You cannot ban yourself");
-        }
-
-        // Cannot ban the server owner
-        var server2 = await dbContext.Servers.AsNoTracking()
-            .FirstOrDefaultAsync(s => s.Id == request.ServerId, cancellationToken);
-        if (server2 != null && server2.OwnerId == request.UserId)
-        {
-            return Error.Validation("CANNOT_BAN_OWNER", "You cannot ban the server owner");
-        }
-
-        // Role hierarchy check: cannot ban a user with equal or higher role position
-        var moderatorHighest = await roleService.GetHighestGroupPosition(moderatorId, request.ServerId);
-        var targetHighest = await roleService.GetHighestGroupPosition(request.UserId, request.ServerId);
-        if (moderatorHighest != int.MaxValue && targetHighest >= moderatorHighest)
-        {
-            return Error.Forbidden("ROLE_HIERARCHY",
-                "You cannot ban a member with an equal or higher role position");
-        }
+        // Self-check, owner protection, and role hierarchy
+        var validationResult = await dbContext.ValidateModerationTarget(
+            roleService, moderatorId, request.UserId, request.ServerId, "ban", cancellationToken);
+        if (validationResult.IsFailure) return validationResult.Error;
 
         // Check if already banned
         var existingBan = await dbContext.Bans
@@ -141,11 +123,8 @@ public sealed class BanMemberHandler(
         dbContext.ServerMembers.Remove(serverMember);
 
         // Decrement server member count
-        var server = await dbContext.Servers.FirstOrDefaultAsync(s => s.Id == request.ServerId, cancellationToken);
-        if (server != null)
-        {
-            server.MemberCount--;
-        }
+        var server = validationResult.Value;
+        server.MemberCount--;
 
         // Optionally bulk soft-delete messages
         if (request.DeleteMessageDays.HasValue && request.DeleteMessageDays.Value > 0)
@@ -169,19 +148,7 @@ public sealed class BanMemberHandler(
         }
 
         // Create audit log
-        var auditLogId = snowflakeGenerator.NextId();
-        var auditLog = new AuditLog
-        {
-            Id = auditLogId,
-            ServerId = request.ServerId,
-            ActorId = moderatorId,
-            ActionType = "MemberBan",
-            TargetId = request.UserId,
-            Reason = request.Reason,
-            CreatedAt = now
-        };
-
-        dbContext.AuditLogs.Add(auditLog);
+        dbContext.AuditLogs.AddEntry(snowflakeGenerator, request.ServerId, moderatorId, "MemberBan", request.UserId, request.Reason, now);
 
         // Write outbox event
         await outboxWriter.WriteAsync(dbContext, "Member.Banned", new
@@ -193,47 +160,9 @@ public sealed class BanMemberHandler(
         }, cancellationToken);
 
         // Create system message (MemberBan) in the server's system channel if configured
-        if (server != null && server.SystemChannelId.HasValue)
-        {
-            var systemChannel = await dbContext.Channels
-                .AsNoTracking()
-                .FirstOrDefaultAsync(c => c.Id == server.SystemChannelId.Value, cancellationToken);
-
-            if (systemChannel != null)
-            {
-                var bannedUser = await dbContext.Users
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
-
-                var systemMessageId = snowflakeGenerator.NextId();
-                var systemMessage = new Message
-                {
-                    Id = systemMessageId,
-                    ConversationId = systemChannel.ConversationId,
-                    AuthorId = null,
-                    Type = MessageType.MemberBan,
-                    Content = string.Empty,
-                    Metadata = System.Text.Json.JsonSerializer.Serialize(new
-                    {
-                        UserId = request.UserId.ToString(),
-                        Username = bannedUser?.Username ?? string.Empty,
-                        DisplayName = bannedUser?.DisplayName ?? string.Empty,
-                        ModeratorId = moderatorId.ToString(),
-                        Reason = request.Reason
-                    }),
-                    CreatedAt = now
-                };
-
-                dbContext.Messages.Add(systemMessage);
-
-                await outboxWriter.WriteAsync(dbContext, "Message.Created", new
-                {
-                    MessageId = systemMessage.Id,
-                    ConversationId = systemMessage.ConversationId,
-                    AuthorId = (long?)null
-                }, cancellationToken);
-            }
-        }
+        await dbContext.SendModerationSystemMessage(
+            snowflakeGenerator, outboxWriter, server,
+            request.UserId, moderatorId, MessageType.MemberBan, request.Reason, now, cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

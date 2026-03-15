@@ -7,6 +7,7 @@ using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Webhooks;
 
@@ -65,7 +66,7 @@ public sealed class DeleteOutgoingWebhookHandler(
             return Error.NotFound("WEBHOOK_NOT_FOUND", "Outgoing webhook not found");
 
         // Soft delete
-        webhook.DeletedAt = DateTimeOffset.UtcNow;
+        webhook.SoftDelete();
         await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(

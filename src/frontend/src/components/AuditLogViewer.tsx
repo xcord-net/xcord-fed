@@ -1,5 +1,6 @@
 import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
+import { getErrorMessage } from '../utils/errors';
 
 export interface AuditLogEntry {
   id: string;
@@ -98,8 +99,7 @@ export default function AuditLogViewer(props: AuditLogViewerProps) {
       setEntries(newEntries);
       setHasMore(result.length === LIMIT);
     } catch (err: unknown) {
-      const e = err as { error?: string };
-      setError(e?.error ?? 'Failed to load audit log');
+      setError(getErrorMessage(err, 'Failed to load audit log'));
     } finally {
       setIsLoading(false);
     }

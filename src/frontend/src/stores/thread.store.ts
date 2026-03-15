@@ -1,13 +1,15 @@
 import { createSignal, createRoot } from 'solid-js';
 import { api } from '../api/client';
+import { normalizeIds } from '../utils/snowflake';
 import type { Thread } from '../types/thread';
 
 /** Maps the backend ThreadSummary / CreateThreadResponse field names to the frontend Thread shape. */
 function mapThread(raw: Record<string, unknown>): Thread {
+  const r = normalizeIds(raw, 'id', 'conversationId', 'channelId');
   return {
-    id: String(raw.id),
-    conversationId: String(raw.conversationId),
-    channelId: String(raw.channelId),
+    id: r.id as string,
+    conversationId: r.conversationId as string,
+    channelId: r.channelId as string,
     parentMessageId: raw.parentMessageId != null ? String(raw.parentMessageId) : undefined,
     name: (raw.title as string) ?? (raw.name as string) ?? '',
     archived: Boolean(raw.isArchived ?? raw.archived ?? false),

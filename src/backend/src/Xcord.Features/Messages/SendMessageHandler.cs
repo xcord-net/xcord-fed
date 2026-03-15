@@ -250,21 +250,9 @@ public sealed class SendMessageHandler(
 
             // Write outbox event for new message - include full message data so the
             // client can render it immediately without a separate API fetch.
-            await outboxWriter.WriteAsync(dbContext, "Message.Created", new
-            {
-                conversationId = message.ConversationId,
-                id = message.Id,
-                authorId = message.AuthorId,
-                authorUsername = authorForResponse.Username,
-                authorAvatarUrl = authorForResponse.AvatarUrl,
-                type = message.Type.ToString(),
-                content = message.Content,
-                metadata = message.Metadata,
-                replyToId = message.ReplyToId,
-                isPinned = message.IsPinned,
-                editedAt = (DateTimeOffset?)null,
-                createdAt = message.CreatedAt
-            }, cancellationToken);
+            await outboxWriter.WriteAsync(dbContext, "Message.Created",
+                MessageOutboxPayloads.ForCreated(message, authorForResponse.Username, authorForResponse.AvatarUrl),
+                cancellationToken);
 
             // Write Notify_UnreadUpdated outbox events for each non-author member
             // so their sidebars update in real time.

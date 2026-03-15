@@ -1,6 +1,11 @@
 import { createSignal, createRoot } from 'solid-js';
 import { api } from '../api/client';
+import { normalizeIds } from '../utils/snowflake';
 import type { Server } from '../types/server';
+
+function normalizeServer(s: Server): Server {
+  return normalizeIds(s as unknown as Record<string, unknown>, 'id', 'ownerId') as unknown as Server;
+}
 
 const store = createRoot(() => {
   const [servers, setServers] = createSignal<Server[]>([]);
@@ -20,7 +25,7 @@ export function useServers() {
       store.setIsLoading(true);
       try {
         const servers = await api.get<Server[]>('/api/v1/users/@me/servers');
-        store.setServers(servers.map(s => ({ ...s, id: String(s.id), ownerId: String(s.ownerId) })));
+        store.setServers(servers.map(normalizeServer));
       } finally {
         store.setIsLoading(false);
       }
@@ -28,14 +33,14 @@ export function useServers() {
 
     async createServer(name: string, iconUrl?: string): Promise<Server> {
       const server = await api.post<Server>('/api/v1/servers', { name, iconUrl });
-      const normalized = { ...server, id: String(server.id), ownerId: String(server.ownerId) };
+      const normalized = normalizeServer(server);
       store.setServers([...store.servers(), normalized]);
       return normalized;
     },
 
     async joinByInvite(code: string): Promise<Server> {
       const server = await api.post<Server>(`/api/v1/invites/${code}/accept`);
-      const normalized = { ...server, id: String(server.id), ownerId: String(server.ownerId) };
+      const normalized = normalizeServer(server);
       store.setServers([...store.servers(), normalized]);
       return normalized;
     },

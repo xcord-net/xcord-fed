@@ -176,6 +176,34 @@ public sealed class S3StorageService : IStorageService, IDisposable
         return ms.ToArray();
     }
 
+    public async Task<long> GetBucketSizeAsync(CancellationToken ct)
+    {
+        await EnsureBucketExistsAsync();
+
+        long totalSize = 0;
+        string? continuationToken = null;
+
+        do
+        {
+            var request = new ListObjectsV2Request
+            {
+                BucketName = _bucketName,
+                ContinuationToken = continuationToken
+            };
+
+            var response = await _s3Client.ListObjectsV2Async(request, ct);
+
+            foreach (var obj in response.S3Objects)
+            {
+                totalSize += obj.Size;
+            }
+
+            continuationToken = response.IsTruncated ? response.NextContinuationToken : null;
+        } while (continuationToken != null);
+
+        return totalSize;
+    }
+
     public void Dispose()
     {
         _s3Client?.Dispose();

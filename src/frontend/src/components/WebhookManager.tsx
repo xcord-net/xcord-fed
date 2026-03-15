@@ -1,5 +1,7 @@
 import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
+import { getErrorMessage } from '../utils/errors';
+import ConfirmationButton from './ui/ConfirmationButton';
 
 export type WebhookEvent =
   | 'message.created'
@@ -80,6 +82,7 @@ export default function WebhookManager(props: WebhookManagerProps) {
   const [error, setError] = createSignal<string | null>(null);
   const [showForm, setShowForm] = createSignal(false);
   const [revealedSecret, setRevealedSecret] = createSignal<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = createSignal<string | null>(null);
 
   // Form state
   const [formName, setFormName] = createSignal('');
@@ -96,8 +99,7 @@ export default function WebhookManager(props: WebhookManagerProps) {
       );
       setWebhooks(result);
     } catch (err: unknown) {
-      const e = err as { error?: string };
-      setError(e?.error ?? 'Failed to load webhooks');
+      setError(getErrorMessage(err, 'Failed to load webhooks'));
     } finally {
       setIsLoading(false);
     }
@@ -130,8 +132,7 @@ export default function WebhookManager(props: WebhookManagerProps) {
       setFormUrl('');
       setFormEvents([]);
     } catch (err: unknown) {
-      const e = err as { error?: string };
-      setFormError(e?.error ?? 'Failed to create webhook');
+      setFormError(getErrorMessage(err, 'Failed to create webhook'));
     } finally {
       setIsSaving(false);
     }
@@ -145,8 +146,7 @@ export default function WebhookManager(props: WebhookManagerProps) {
       );
       setWebhooks(webhooks().map((w) => (w.id === webhook.id ? updated : w)));
     } catch (err: unknown) {
-      const e = err as { error?: string };
-      setError(e?.error ?? 'Failed to update webhook');
+      setError(getErrorMessage(err, 'Failed to update webhook'));
     }
   }
 
@@ -156,8 +156,7 @@ export default function WebhookManager(props: WebhookManagerProps) {
       setWebhooks(webhooks().filter((w) => w.id !== webhookId));
       if (revealedSecret() === webhookId) setRevealedSecret(null);
     } catch (err: unknown) {
-      const e = err as { error?: string };
-      setError(e?.error ?? 'Failed to delete webhook');
+      setError(getErrorMessage(err, 'Failed to delete webhook'));
     }
   }
 
@@ -289,13 +288,13 @@ export default function WebhookManager(props: WebhookManagerProps) {
                   >
                     {webhook.enabled ? 'Disable' : 'Enable'}
                   </button>
-                  <button
-                    class="text-xs px-2 py-1 rounded bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
-                    onClick={() => handleDelete(webhook.id)}
-                    title="Delete webhook"
-                  >
-                    Delete
-                  </button>
+                  <ConfirmationButton
+                    isConfirming={confirmingDelete() === webhook.id}
+                    onStartConfirm={() => setConfirmingDelete(webhook.id)}
+                    onConfirm={() => { handleDelete(webhook.id); setConfirmingDelete(null); }}
+                    onCancel={() => setConfirmingDelete(null)}
+                    label="Delete"
+                  />
                 </div>
               </div>
 

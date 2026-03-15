@@ -8,6 +8,7 @@ using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Channels;
 
@@ -47,7 +48,7 @@ public sealed class DeleteCategoryHandler(
         }
 
         // Soft delete category (channels in this category get CategoryId set to null via SetNull FK behavior)
-        category.DeletedAt = DateTimeOffset.UtcNow;
+        category.SoftDelete();
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Federation;
 
@@ -40,7 +41,7 @@ public sealed class UnfollowRemoteChannelHandler(
             return Error.Forbidden("FORBIDDEN", "You can only unfollow your own federation follows");
         }
 
-        follow.DeletedAt = DateTimeOffset.UtcNow;
+        follow.SoftDelete();
         follow.IsActive = false;
         await dbContext.SaveChangesAsync(cancellationToken);
 

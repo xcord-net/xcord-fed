@@ -1,5 +1,6 @@
 import { createSignal, createEffect, For, Show } from 'solid-js';
 import { api } from '../api/client';
+import { getErrorMessage } from '../utils/errors';
 import Modal from './ui/Modal';
 
 export interface Channel {
@@ -36,8 +37,7 @@ export async function fetchFollows(
     );
     return { follows: data, error: '' };
   } catch (err: unknown) {
-    const errObj = err as { error?: string };
-    return { follows: [], error: errObj?.error || 'Failed to load follows' };
+    return { follows: [], error: getErrorMessage(err, 'Failed to load follows') };
   }
 }
 
@@ -52,8 +52,7 @@ export async function fetchAvailableChannels(
       error: '',
     };
   } catch (err: unknown) {
-    const errObj = err as { error?: string };
-    return { channels: [], error: errObj?.error || 'Failed to load channels' };
+    return { channels: [], error: getErrorMessage(err, 'Failed to load channels') };
   }
 }
 
@@ -72,8 +71,7 @@ export async function followChannel(
     );
     return { follow, error: '' };
   } catch (err: unknown) {
-    const errObj = err as { error?: string };
-    return { follow: null, error: errObj?.error || 'Failed to follow channel' };
+    return { follow: null, error: getErrorMessage(err, 'Failed to follow channel') };
   }
 }
 
@@ -88,8 +86,7 @@ export async function unfollowChannel(
     );
     return { error: '', success: true };
   } catch (err: unknown) {
-    const errObj = err as { error?: string };
-    return { error: errObj?.error || 'Failed to unfollow channel', success: false };
+    return { error: getErrorMessage(err, 'Failed to unfollow channel'), success: false };
   }
 }
 
@@ -124,8 +121,7 @@ export default function FollowChannel(props: FollowChannelProps) {
       // Exclude source channel itself
       setChannels(data.filter((c) => c.id !== props.channelId && c.type === 'Text'));
     } catch (err: unknown) {
-      const errObj = err as { error?: string };
-      setError(errObj?.error || 'Failed to load channels');
+      setError(getErrorMessage(err, 'Failed to load channels'));
     }
   };
 
@@ -160,8 +156,7 @@ export default function FollowChannel(props: FollowChannelProps) {
       setShowFollowDialog(false);
       setSelectedChannelId('');
     } catch (err: unknown) {
-      const errObj = err as { error?: string };
-      setError(errObj?.error || 'Failed to follow channel');
+      setError(getErrorMessage(err, 'Failed to follow channel'));
     } finally {
       setIsLoading(false);
     }
@@ -175,8 +170,7 @@ export default function FollowChannel(props: FollowChannelProps) {
       );
       setFollows((prev) => prev.filter((f) => f.id !== subscriptionId));
     } catch (err: unknown) {
-      const errObj = err as { error?: string };
-      setError(errObj?.error || 'Failed to unfollow channel');
+      setError(getErrorMessage(err, 'Failed to unfollow channel'));
     } finally {
       setIsUnfollowing(null);
     }

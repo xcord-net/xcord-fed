@@ -5,6 +5,7 @@ using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Servers;
 
@@ -26,7 +27,7 @@ public sealed class UnboostServerHandler(
         if (boost == null) return Error.NotFound("NO_BOOST", "You are not boosting this server");
 
         boost.IsActive = false;
-        boost.DeletedAt = DateTimeOffset.UtcNow;
+        boost.SoftDelete();
 
         var server = await dbContext.Servers.FirstOrDefaultAsync(s => s.Id == request.ServerId, ct);
         if (server != null)

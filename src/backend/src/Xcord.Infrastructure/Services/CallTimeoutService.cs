@@ -1,10 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Xcord.Entities;
 using Xcord.Infrastructure.Data;
-using Xcord.Infrastructure.Services;
 
 namespace Xcord.Infrastructure.Services;
 
@@ -12,43 +10,16 @@ namespace Xcord.Infrastructure.Services;
 /// Background service that automatically marks ringing calls as missed after 30 seconds.
 /// Runs every 5 seconds.
 /// </summary>
-public sealed class CallTimeoutService : BackgroundService
+public sealed class CallTimeoutService(
+    IServiceScopeFactory serviceScopeFactory,
+    ILogger<CallTimeoutService> logger)
+    : PollingBackgroundService(serviceScopeFactory, logger)
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly ILogger<CallTimeoutService> _logger;
+    protected override TimeSpan Interval => TimeSpan.FromSeconds(5);
 
-    public CallTimeoutService(
-        IServiceScopeFactory serviceScopeFactory,
-        ILogger<CallTimeoutService> logger)
+    protected override async Task ProcessAsync(CancellationToken ct)
     {
-        _serviceScopeFactory = serviceScopeFactory;
-        _logger = logger;
-    }
-
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        _logger.LogInformation("CallTimeoutService started");
-
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
-            {
-                await ProcessTimedOutCallsAsync(stoppingToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error processing timed-out calls");
-            }
-
-            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
-        }
-
-        _logger.LogInformation("CallTimeoutService stopped");
-    }
-
-    private async Task ProcessTimedOutCallsAsync(CancellationToken cancellationToken)
-    {
-        using var scope = _serviceScopeFactory.CreateScope();
+        using var scope = ServiceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var outboxWriter = scope.ServiceProvider.GetRequiredService<IOutboxWriter>();
 
@@ -61,16 +32,16 @@ public sealed class CallTimeoutService : BackgroundService
                 .ThenInclude(dm => dm.Members)
             .Where(c => c.Status == CallStatus.Ringing)
             .Where(c => c.StartedAt < timeoutThreshold)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
 
         if (timedOutCalls.Count == 0)
         {
             return;
         }
 
-        _logger.LogInformation("Found {Count} timed-out calls to process", timedOutCalls.Count);
+        Logger.LogInformation("Found {Count} timed-out calls to process", timedOutCalls.Count);
 
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(ct);
 
         try
         {
@@ -91,17 +62,17 @@ public sealed class CallTimeoutService : BackgroundService
                     CallerId = call.CallerId,
                     RecipientId = recipientId,
                     Status = CallStatus.Missed
-                }, cancellationToken);
+                }, ct);
 
-                _logger.LogInformation("Call {CallId} marked as missed (timeout)", call.Id);
+                Logger.LogInformation("Call {CallId} marked as missed (timeout)", call.Id);
             }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(ct);
             throw;
         }
     }

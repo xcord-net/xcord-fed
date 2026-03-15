@@ -1,6 +1,7 @@
 import { createSignal, createRoot } from 'solid-js';
 import { HubConnection, HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
 import { api } from '../api/client';
+import { normalizeIds } from '../utils/snowflake';
 import { usePresence } from './presence.store';
 import { useTyping } from './typing.store';
 import { useVoice } from './voice.store';
@@ -150,13 +151,10 @@ export function useSignalR() {
 
     // Channel events - broadcast to all server members when a channel is created
     connection.on('Chat_ChannelCreated', (channel: Channel) => {
-      const normalized: Channel = {
-        ...channel,
-        id: String(channel.id),
-        serverId: String(channel.serverId),
-        conversationId: String(channel.conversationId),
-        categoryId: channel.categoryId ? String(channel.categoryId) : undefined,
-      };
+      const normalized = normalizeIds(
+        channel as unknown as Record<string, unknown>,
+        'id', 'serverId', 'conversationId', 'categoryId',
+      ) as unknown as Channel;
       channels.addChannel(normalized);
     });
 

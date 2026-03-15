@@ -11,6 +11,7 @@ using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Blocks;
 
@@ -77,7 +78,7 @@ public sealed class BlockUserHandler(
 
         foreach (var friendship in friendships)
         {
-            friendship.DeletedAt = DateTimeOffset.UtcNow;
+            friendship.SoftDelete();
         }
 
         // Remove blocked user from any shared 1:1 DM

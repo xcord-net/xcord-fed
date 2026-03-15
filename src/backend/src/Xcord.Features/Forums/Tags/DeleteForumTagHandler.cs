@@ -9,6 +9,7 @@ using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Forums;
 
@@ -48,7 +49,7 @@ public sealed class DeleteForumTagHandler(
             return permissionResult.Error;
         }
 
-        forumTag.DeletedAt = DateTimeOffset.UtcNow;
+        forumTag.SoftDelete();
 
         var postTags = await dbContext.ForumPostTags
             .Where(fpt => fpt.ForumTagId == request.TagId)

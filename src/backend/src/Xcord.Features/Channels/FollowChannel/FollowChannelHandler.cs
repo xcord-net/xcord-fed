@@ -80,14 +80,8 @@ public sealed class FollowChannelHandler(
         }
 
         // Caller must be a member of the source server
-        var isMember = await dbContext.ServerMembers
-            .AsNoTracking()
-            .AnyAsync(sm => sm.UserId == userId && sm.ServerId == request.ServerId, cancellationToken);
-
-        if (!isMember)
-        {
-            return Error.Forbidden("NOT_A_MEMBER", "You must be a member of this server to follow its channels");
-        }
+        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken);
+        if (memberCheck.IsFailure) return memberCheck.Error;
 
         // Check for duplicate subscription
         var existing = await dbContext.CrosspostSubscriptions

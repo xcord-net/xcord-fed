@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Channels;
 
@@ -24,14 +25,8 @@ public sealed class UnfollowChannelHandler(
         var userId = userIdResult.Value;
 
         // Caller must be a member of the source server
-        var isMember = await dbContext.ServerMembers
-            .AsNoTracking()
-            .AnyAsync(sm => sm.UserId == userId && sm.ServerId == request.ServerId, cancellationToken);
-
-        if (!isMember)
-        {
-            return Error.Forbidden("NOT_A_MEMBER", "You must be a member of this server");
-        }
+        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken);
+        if (memberCheck.IsFailure) return memberCheck.Error;
 
         var subscription = await dbContext.CrosspostSubscriptions
             .FirstOrDefaultAsync(cs =>
@@ -45,7 +40,7 @@ public sealed class UnfollowChannelHandler(
         }
 
         // Soft delete
-        subscription.DeletedAt = DateTimeOffset.UtcNow;
+        subscription.SoftDelete();
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return true;

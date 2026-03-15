@@ -145,9 +145,7 @@ export default function MessageCompose(props: MessageComposeProps) {
       // Start slow mode countdown after successful send
       startSlowModeCountdown();
     } catch (err: unknown) {
-      const e = err as { error?: string; detail?: string; message?: string };
-      const msg = e?.detail ?? e?.error ?? e?.message ?? 'Failed to send message';
-      setSendError(msg);
+      setSendError(getErrorMessage(err, 'Failed to send message'));
       // Auto-clear error after 5 seconds
       setTimeout(() => setSendError(null), 5_000);
       console.error('Failed to send message:', err);
@@ -280,9 +278,7 @@ export default function MessageCompose(props: MessageComposeProps) {
       await messageStore.sendMessage(props.conversationId, gifUrl);
       startSlowModeCountdown();
     } catch (err: unknown) {
-      const e = err as { error?: string; detail?: string; message?: string };
-      const msg = e?.detail ?? e?.error ?? e?.message ?? 'Failed to send GIF';
-      setSendError(msg);
+      setSendError(getErrorMessage(err, 'Failed to send GIF'));
       setTimeout(() => setSendError(null), 5_000);
       console.error('Failed to send GIF:', err);
     } finally {

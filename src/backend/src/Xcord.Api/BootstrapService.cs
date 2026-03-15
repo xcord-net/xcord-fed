@@ -47,6 +47,9 @@ public static class BootstrapService
 
         // Seed admin account if it doesn't exist yet
         await SeedAdminAsync(db, scope);
+
+        // Seed dev test users if configured
+        await SeedDevUsersAsync(db, scope);
     }
 
     private static async Task SeedAdminAsync(AppDbContext db, IServiceScope scope)
@@ -95,6 +98,55 @@ public static class BootstrapService
         db.Users.Add(admin);
         await db.SaveChangesAsync();
         Log.Information("Admin account seeded: {Username}", adminOptions.Username);
+    }
+
+    private static async Task SeedDevUsersAsync(AppDbContext db, IServiceScope scope)
+    {
+        var devUsersOptions = scope.ServiceProvider.GetRequiredService<IOptions<DevUsersOptions>>().Value;
+
+        if (devUsersOptions.Users.Count == 0)
+            return;
+
+        var encryptionService = scope.ServiceProvider.GetRequiredService<IEncryptionService>();
+        var snowflakeGenerator = scope.ServiceProvider.GetRequiredService<SnowflakeIdGenerator>();
+        var now = DateTimeOffset.UtcNow;
+
+        foreach (var devUser in devUsersOptions.Users)
+        {
+            if (string.IsNullOrWhiteSpace(devUser.Email) ||
+                string.IsNullOrWhiteSpace(devUser.Password) ||
+                string.IsNullOrWhiteSpace(devUser.Username))
+                continue;
+
+            var emailHash = encryptionService.ComputeHmac(devUser.Email.ToLowerInvariant());
+            if (await db.Users.AnyAsync(u => u.EmailHash == emailHash))
+                continue;
+
+            var passwordHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(devUser.Password, 12));
+
+            db.Users.Add(new User
+            {
+                Id = snowflakeGenerator.NextId(),
+                Username = devUser.Username,
+                DisplayName = devUser.Username,
+                Email = encryptionService.Encrypt(devUser.Email.ToLowerInvariant()),
+                EmailHash = emailHash,
+                PasswordHash = passwordHash,
+                EmailConfirmed = true,
+                TwoFactorEnabled = false,
+                IsAdmin = false,
+                IsBot = false,
+                IsDisabled = false,
+                CreatedAt = now,
+                LastLoginAt = now
+            });
+        }
+
+        if (db.ChangeTracker.HasChanges())
+        {
+            await db.SaveChangesAsync();
+            Log.Information("Dev test users seeded");
+        }
     }
 
     private static async Task InitializeEncryptionAsync(AppDbContext db, WebApplication app, IServiceScope scope)

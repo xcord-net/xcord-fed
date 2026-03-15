@@ -1,5 +1,6 @@
 import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
+import { getErrorMessage } from '../utils/errors';
 import type { CustomEmoji } from '../types/emoji';
 
 interface EmojiManagerProps {
@@ -87,8 +88,7 @@ export default function EmojiManager(props: EmojiManagerProps) {
       const result = await api.get<{ emojis: CustomEmoji[] }>(`/api/v1/servers/${props.serverId}/emojis`);
       setEmojis(result.emojis ?? []);
     } catch (err: unknown) {
-      const e = err as { error?: string };
-      setError(e?.error ?? 'Failed to load emojis');
+      setError(getErrorMessage(err, 'Failed to load emojis'));
     } finally {
       setIsLoading(false);
     }
@@ -157,8 +157,7 @@ export default function EmojiManager(props: EmojiManagerProps) {
         setPreviewUrl(null);
       }
     } catch (err: unknown) {
-      const e = err as { error?: string; detail?: string; title?: string };
-      setUploadError(e?.detail ?? e?.error ?? e?.title ?? 'Failed to upload emoji');
+      setUploadError(getErrorMessage(err, 'Failed to upload emoji'));
     } finally {
       setIsUploading(false);
     }
@@ -170,8 +169,7 @@ export default function EmojiManager(props: EmojiManagerProps) {
       setEmojis(emojis().filter((em) => em.id !== emojiId));
       setConfirmingDelete(null);
     } catch (err: unknown) {
-      const e = err as { error?: string };
-      setError(e?.error ?? 'Failed to delete emoji');
+      setError(getErrorMessage(err, 'Failed to delete emoji'));
     }
   }
 

@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Xcord.Entities;
 using Xcord.Infrastructure.Data;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Infrastructure.Services;
 
@@ -12,45 +12,18 @@ namespace Xcord.Infrastructure.Services;
 /// and dispatches them through the normal message creation pipeline.
 /// Runs every 30 seconds, processing messages in batches of 50.
 /// </summary>
-public sealed class ScheduledMessageDispatcher : BackgroundService
+public sealed class ScheduledMessageDispatcher(
+    IServiceScopeFactory serviceScopeFactory,
+    ILogger<ScheduledMessageDispatcher> logger)
+    : PollingBackgroundService(serviceScopeFactory, logger)
 {
-    private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<ScheduledMessageDispatcher> _logger;
-    private readonly TimeSpan _interval = TimeSpan.FromSeconds(30);
     private const int BatchSize = 50;
 
-    public ScheduledMessageDispatcher(
-        IServiceScopeFactory scopeFactory,
-        ILogger<ScheduledMessageDispatcher> logger)
+    protected override TimeSpan Interval => TimeSpan.FromSeconds(30);
+
+    protected override async Task ProcessAsync(CancellationToken ct)
     {
-        _scopeFactory = scopeFactory;
-        _logger = logger;
-    }
-
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        _logger.LogInformation("ScheduledMessageDispatcher background service started");
-
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
-            {
-                await DispatchDueMessagesAsync(stoppingToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error dispatching scheduled messages");
-            }
-
-            await Task.Delay(_interval, stoppingToken);
-        }
-
-        _logger.LogInformation("ScheduledMessageDispatcher background service stopped");
-    }
-
-    private async Task DispatchDueMessagesAsync(CancellationToken cancellationToken)
-    {
-        using var scope = _scopeFactory.CreateScope();
+        using var scope = ServiceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var snowflakeGenerator = scope.ServiceProvider.GetRequiredService<SnowflakeIdGenerator>();
         var outboxWriter = scope.ServiceProvider.GetRequiredService<IOutboxWriter>();
@@ -64,18 +37,18 @@ public sealed class ScheduledMessageDispatcher : BackgroundService
             .Where(sm => sm.ScheduledAt <= now && sm.SentAt == null)
             .OrderBy(sm => sm.ScheduledAt)
             .Take(BatchSize)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
 
         if (dueMessages.Count == 0)
             return;
 
-        _logger.LogInformation("Dispatching {Count} scheduled messages", dueMessages.Count);
+        Logger.LogInformation("Dispatching {Count} scheduled messages", dueMessages.Count);
 
         foreach (var scheduled in dueMessages)
         {
             await DispatchOneAsync(
                 dbContext, snowflakeGenerator, outboxWriter, roleService,
-                scheduled, cancellationToken);
+                scheduled, ct);
         }
     }
 
@@ -95,10 +68,10 @@ public sealed class ScheduledMessageDispatcher : BackgroundService
         if (channel == null)
         {
             // Conversation no longer has an associated channel - soft-delete the scheduled message.
-            _logger.LogWarning(
+            Logger.LogWarning(
                 "Scheduled message {Id}: no channel found for conversation {ConversationId}. Soft-deleting.",
                 scheduled.Id, scheduled.ConversationId);
-            scheduled.DeletedAt = DateTimeOffset.UtcNow;
+            scheduled.SoftDelete();
             await dbContext.SaveChangesAsync(cancellationToken);
             return;
         }
@@ -109,10 +82,10 @@ public sealed class ScheduledMessageDispatcher : BackgroundService
 
         if (permissionResult.IsFailure)
         {
-            _logger.LogInformation(
+            Logger.LogInformation(
                 "Scheduled message {Id}: author {AuthorId} no longer has SendMessages in channel {ChannelId}. Soft-deleting.",
                 scheduled.Id, scheduled.AuthorId, channel.Id);
-            scheduled.DeletedAt = DateTimeOffset.UtcNow;
+            scheduled.SoftDelete();
             await dbContext.SaveChangesAsync(cancellationToken);
             return;
         }
@@ -124,10 +97,10 @@ public sealed class ScheduledMessageDispatcher : BackgroundService
 
         if (author == null)
         {
-            _logger.LogWarning(
+            Logger.LogWarning(
                 "Scheduled message {Id}: author {AuthorId} not found. Soft-deleting.",
                 scheduled.Id, scheduled.AuthorId);
-            scheduled.DeletedAt = DateTimeOffset.UtcNow;
+            scheduled.SoftDelete();
             await dbContext.SaveChangesAsync(cancellationToken);
             return;
         }
@@ -175,14 +148,14 @@ public sealed class ScheduledMessageDispatcher : BackgroundService
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-            _logger.LogInformation(
+            Logger.LogInformation(
                 "Dispatched scheduled message {ScheduledId} as message {MessageId} in conversation {ConversationId}",
                 scheduled.Id, messageId, scheduled.ConversationId);
         }
         catch (Exception ex)
         {
             await transaction.RollbackAsync(cancellationToken);
-            _logger.LogError(ex,
+            Logger.LogError(ex,
                 "Failed to dispatch scheduled message {ScheduledId}", scheduled.Id);
         }
     }

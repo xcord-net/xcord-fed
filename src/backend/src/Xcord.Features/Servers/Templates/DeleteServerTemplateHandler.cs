@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Servers;
 
@@ -22,7 +23,7 @@ public sealed class DeleteServerTemplateHandler(AppDbContext dbContext, ICurrent
         var template = await dbContext.ServerTemplates.FirstOrDefaultAsync(t => t.Id == request.TemplateId, ct);
         if (template == null) return Error.NotFound("TEMPLATE_NOT_FOUND", "Template not found");
 
-        template.DeletedAt = DateTimeOffset.UtcNow;
+        template.SoftDelete();
         await dbContext.SaveChangesAsync(ct);
         return new DeleteServerTemplateResponse(true);
     }

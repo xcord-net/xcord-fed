@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Xcord.Entities;
 using Xcord.Infrastructure.Data;
@@ -13,50 +12,19 @@ namespace Xcord.Infrastructure.Services;
 /// - Delivered entries are deleted after 7 days.
 /// - DeadLettered entries are deleted after 30 days.
 /// </summary>
-public sealed class OutgoingWebhookDeliveryCleanup : BackgroundService
+public sealed class OutgoingWebhookDeliveryCleanup(
+    IServiceScopeFactory serviceScopeFactory,
+    ILogger<OutgoingWebhookDeliveryCleanup> logger)
+    : PollingBackgroundService(serviceScopeFactory, logger)
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly ILogger<OutgoingWebhookDeliveryCleanup> _logger;
-    private static readonly TimeSpan CleanupInterval = TimeSpan.FromHours(1);
     private static readonly TimeSpan DeliveredRetention = TimeSpan.FromDays(7);
     private static readonly TimeSpan DeadLetteredRetention = TimeSpan.FromDays(30);
 
-    public OutgoingWebhookDeliveryCleanup(
-        IServiceScopeFactory serviceScopeFactory,
-        ILogger<OutgoingWebhookDeliveryCleanup> logger)
+    protected override TimeSpan Interval => TimeSpan.FromHours(1);
+
+    protected override async Task ProcessAsync(CancellationToken ct)
     {
-        _serviceScopeFactory = serviceScopeFactory;
-        _logger = logger;
-    }
-
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        _logger.LogInformation("OutgoingWebhookDeliveryCleanup started");
-
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
-            {
-                await CleanupAsync(stoppingToken);
-            }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                break;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error cleaning up outgoing webhook deliveries");
-            }
-
-            await Task.Delay(CleanupInterval, stoppingToken);
-        }
-
-        _logger.LogInformation("OutgoingWebhookDeliveryCleanup stopped");
-    }
-
-    private async Task CleanupAsync(CancellationToken cancellationToken)
-    {
-        using var scope = _serviceScopeFactory.CreateScope();
+        using var scope = ServiceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         var now = DateTimeOffset.UtcNow;
@@ -66,18 +34,18 @@ public sealed class OutgoingWebhookDeliveryCleanup : BackgroundService
         var deliveredDeleted = await dbContext.OutgoingWebhookDeliveries
             .Where(d => d.Status == OutgoingWebhookDeliveryStatus.Delivered
                      && d.CreatedAt < deliveredCutoff)
-            .ExecuteDeleteAsync(cancellationToken);
+            .ExecuteDeleteAsync(ct);
 
         // Hard-delete DeadLettered entries older than 30 days
         var deadLetteredCutoff = now.Subtract(DeadLetteredRetention);
         var deadLetteredDeleted = await dbContext.OutgoingWebhookDeliveries
             .Where(d => d.Status == OutgoingWebhookDeliveryStatus.DeadLettered
                      && d.CreatedAt < deadLetteredCutoff)
-            .ExecuteDeleteAsync(cancellationToken);
+            .ExecuteDeleteAsync(ct);
 
         if (deliveredDeleted > 0 || deadLetteredDeleted > 0)
         {
-            _logger.LogInformation(
+            Logger.LogInformation(
                 "Cleaned up {Delivered} delivered and {DeadLettered} dead-lettered webhook delivery records",
                 deliveredDeleted, deadLetteredDeleted);
         }

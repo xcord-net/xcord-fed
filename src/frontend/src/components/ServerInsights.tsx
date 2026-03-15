@@ -1,5 +1,6 @@
 import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
+import { getErrorMessage } from '../utils/errors';
 
 export type InsightsRange = '7d' | '30d' | '90d';
 
@@ -107,8 +108,7 @@ export default function ServerInsights(props: ServerInsightsProps) {
       );
       setData(mapInsightsResponse(raw));
     } catch (err: unknown) {
-      const e = err as { error?: string };
-      setError(e?.error ?? 'Failed to load insights');
+      setError(getErrorMessage(err, 'Failed to load insights'));
     } finally {
       setIsLoading(false);
     }

@@ -8,6 +8,7 @@ using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Webhooks;
 
@@ -88,7 +89,7 @@ public sealed class DeleteWebhookHandler(
         }
 
         // Soft delete webhook
-        webhook.DeletedAt = DateTimeOffset.UtcNow;
+        webhook.SoftDelete();
         await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(

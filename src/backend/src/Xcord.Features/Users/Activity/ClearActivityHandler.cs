@@ -5,6 +5,7 @@ using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Users;
 
@@ -24,7 +25,7 @@ public sealed class ClearActivityHandler(
         var activity = await dbContext.UserActivities.FirstOrDefaultAsync(a => a.UserId == userId, ct);
         if (activity != null)
         {
-            activity.DeletedAt = DateTimeOffset.UtcNow;
+            activity.SoftDelete();
             await dbContext.SaveChangesAsync(ct);
         }
         return new ClearActivityResponse(true);

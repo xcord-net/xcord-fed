@@ -7,6 +7,7 @@ using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Automod;
 
@@ -49,7 +50,7 @@ public sealed class DeleteRuleHandler(
         }
 
         // Soft delete
-        rule.DeletedAt = DateTimeOffset.UtcNow;
+        rule.SoftDelete();
         await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(

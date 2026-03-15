@@ -6,6 +6,7 @@ using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Billing;
 
@@ -42,7 +43,7 @@ public sealed class DeleteTierHandler(
             return Error.NotFound("TIER_NOT_FOUND", "Subscription tier not found");
 
         // Soft delete
-        tier.DeletedAt = DateTimeOffset.UtcNow;
+        tier.SoftDelete();
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return new DeleteTierResponse("Subscription tier deleted");

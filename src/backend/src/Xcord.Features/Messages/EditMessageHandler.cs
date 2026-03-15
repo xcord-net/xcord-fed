@@ -151,21 +151,9 @@ public sealed class EditMessageHandler(
 
         // Write outbox event - include full message data so clients can update their
         // message store immediately without a separate API fetch.
-        await outboxWriter.WriteAsync(dbContext, "Message.Edited", new
-        {
-            conversationId = message.ConversationId,
-            id = message.Id,
-            authorId = message.AuthorId,
-            authorUsername = message.Author?.Username,
-            authorAvatarUrl = message.Author?.AvatarUrl,
-            type = message.Type.ToString(),
-            content = message.Content,
-            metadata = message.Metadata,
-            replyToId = message.ReplyToId,
-            isPinned = message.IsPinned,
-            editedAt = message.EditedAt,
-            createdAt = message.CreatedAt
-        }, cancellationToken);
+        await outboxWriter.WriteAsync(dbContext, "Message.Edited",
+            MessageOutboxPayloads.ForCreated(message, message.Author?.Username, message.Author?.AvatarUrl, message.EditedAt),
+            cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

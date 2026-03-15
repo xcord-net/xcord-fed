@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Xcord.Infrastructure.Data;
@@ -11,48 +10,19 @@ namespace Xcord.Infrastructure.Services;
 /// <summary>
 /// Background service that periodically hard-deletes processed outbox events after retention period.
 /// </summary>
-public sealed class OutboxCleanup : BackgroundService
+public sealed class OutboxCleanup(
+    IServiceScopeFactory serviceScopeFactory,
+    ILogger<OutboxCleanup> logger,
+    IOptions<OutboxOptions> options)
+    : PollingBackgroundService(serviceScopeFactory, logger)
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly ILogger<OutboxCleanup> _logger;
-    private readonly OutboxOptions _options;
+    private readonly OutboxOptions _options = options.Value;
 
-    public OutboxCleanup(
-        IServiceScopeFactory serviceScopeFactory,
-        ILogger<OutboxCleanup> logger,
-        IOptions<OutboxOptions> options)
+    protected override TimeSpan Interval => TimeSpan.FromMinutes(_options.CleanupIntervalMinutes);
+
+    protected override async Task ProcessAsync(CancellationToken ct)
     {
-        _serviceScopeFactory = serviceScopeFactory;
-        _logger = logger;
-        _options = options.Value;
-    }
-
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        _logger.LogInformation(
-            "OutboxCleanup starting with cleanup interval {CleanupIntervalMinutes} minutes and retention {RetentionMinutes} minutes",
-            _options.CleanupIntervalMinutes, _options.RetentionMinutes);
-
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
-            {
-                await CleanupAsync(stoppingToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error cleaning up outbox events");
-            }
-
-            await Task.Delay(TimeSpan.FromMinutes(_options.CleanupIntervalMinutes), stoppingToken);
-        }
-
-        _logger.LogInformation("OutboxCleanup stopping");
-    }
-
-    private async Task CleanupAsync(CancellationToken cancellationToken)
-    {
-        using var scope = _serviceScopeFactory.CreateScope();
+        using var scope = ServiceScopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         var cutoffTime = DateTime.UtcNow.AddMinutes(-_options.RetentionMinutes);
@@ -60,11 +30,11 @@ public sealed class OutboxCleanup : BackgroundService
         // Hard-delete processed events older than retention period
         var deletedCount = await context.OutboxEvents
             .Where(e => e.ProcessedAt != null && e.ProcessedAt < cutoffTime)
-            .ExecuteDeleteAsync(cancellationToken);
+            .ExecuteDeleteAsync(ct);
 
         if (deletedCount > 0)
         {
-            _logger.LogInformation("Cleaned up {DeletedCount} processed outbox events older than {CutoffTime}", deletedCount, cutoffTime);
+            Logger.LogInformation("Cleaned up {DeletedCount} processed outbox events older than {CutoffTime}", deletedCount, cutoffTime);
         }
     }
 }

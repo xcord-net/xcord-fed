@@ -114,19 +114,14 @@ public sealed class CreateReportHandler(
         dbContext.Reports.Add(report);
 
         // Create audit log
-        var auditLogId = snowflakeGenerator.NextId();
-        var auditLog = new AuditLog
-        {
-            Id = auditLogId,
-            ServerId = request.ServerId,
-            ActorId = reporterId,
-            ActionType = "report.create",
-            TargetId = request.ReportedUserId ?? request.ReportedMessageId,
-            Reason = request.Reason,
-            CreatedAt = now
-        };
-
-        dbContext.AuditLogs.Add(auditLog);
+        dbContext.AuditLogs.AddEntry(
+            snowflakeGenerator,
+            serverId: request.ServerId,
+            actorId: reporterId,
+            actionType: "report.create",
+            targetId: request.ReportedUserId ?? request.ReportedMessageId ?? 0L,
+            reason: request.Reason,
+            createdAt: now);
 
         // Write outbox event
         await outboxWriter.WriteAsync(dbContext, "Report.Created", new

@@ -1,5 +1,6 @@
 import { createSignal, Show } from 'solid-js';
 import { api } from '../api/client';
+import { getErrorMessage } from '../utils/errors';
 import Modal from './ui/Modal';
 
 interface AccountDeletionProps {
@@ -51,8 +52,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
       setPassword('');
       props.onDeletionScheduled?.(response.scheduledDeletionAt);
     } catch (err: unknown) {
-      const errObj = err as { error?: string };
-      setError(errObj?.error || 'Failed to schedule account deletion');
+      setError(getErrorMessage(err, 'Failed to schedule account deletion'));
     } finally {
       setIsLoading(false);
     }
@@ -66,8 +66,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
       await api.post('/api/v1/users/@me/cancel-deletion');
       props.onDeletionCancelled?.();
     } catch (err: unknown) {
-      const errObj = err as { error?: string };
-      setError(errObj?.error || 'Failed to cancel account deletion');
+      setError(getErrorMessage(err, 'Failed to cancel account deletion'));
     } finally {
       setIsLoading(false);
     }

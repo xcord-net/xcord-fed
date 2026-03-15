@@ -1,5 +1,6 @@
 import { createSignal, Show, For } from 'solid-js';
 import { api } from '../api/client';
+import { getErrorMessage } from '../utils/errors';
 
 type TwoFactorPhase = 'idle' | 'enable-pending' | 'backup-codes' | 'disable-confirm';
 
@@ -19,8 +20,7 @@ export async function enableTwoFactor(): Promise<{ error: string; success: boole
     await api.post('/api/v1/auth/2fa/enable');
     return { error: '', success: true };
   } catch (err: unknown) {
-    const errObj = err as { error?: string };
-    return { error: errObj?.error || 'Failed to initiate 2FA setup', success: false };
+    return { error: getErrorMessage(err, 'Failed to initiate 2FA setup'), success: false };
   }
 }
 
@@ -34,8 +34,7 @@ export async function confirmEnableTwoFactor(
     await api.post('/api/v1/auth/2fa/confirm-enable', { code: code.trim() });
     return { error: '', success: true };
   } catch (err: unknown) {
-    const errObj = err as { error?: string };
-    return { error: errObj?.error || 'Invalid verification code', success: false };
+    return { error: getErrorMessage(err, 'Invalid verification code'), success: false };
   }
 }
 
@@ -49,8 +48,7 @@ export async function disableTwoFactor(
     await api.post('/api/v1/auth/2fa/disable', { currentPassword: password.trim() });
     return { error: '', success: true };
   } catch (err: unknown) {
-    const errObj = err as { error?: string };
-    return { error: errObj?.error || 'Invalid password', success: false };
+    return { error: getErrorMessage(err, 'Invalid password'), success: false };
   }
 }
 
@@ -79,8 +77,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
       await api.post('/api/v1/auth/2fa/enable');
       setPhase('enable-pending');
     } catch (err: unknown) {
-      const errObj = err as { error?: string };
-      setError(errObj?.error || 'Failed to initiate 2FA setup');
+      setError(getErrorMessage(err, 'Failed to initiate 2FA setup'));
     } finally {
       setLoading(false);
     }
@@ -100,8 +97,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
       setBackupCodes(response.backupCodes ?? []);
       setPhase('backup-codes');
     } catch (err: unknown) {
-      const errObj = err as { error?: string };
-      setError(errObj?.error || 'Invalid verification code');
+      setError(getErrorMessage(err, 'Invalid verification code'));
     } finally {
       setLoading(false);
     }
@@ -146,8 +142,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
       setPhase('idle');
       setSuccess('Two-factor authentication disabled successfully');
     } catch (err: unknown) {
-      const errObj = err as { error?: string };
-      setError(errObj?.error || 'Invalid password');
+      setError(getErrorMessage(err, 'Invalid password'));
     } finally {
       setLoading(false);
     }

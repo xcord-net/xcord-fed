@@ -166,6 +166,9 @@ public static class ServiceCollectionExtensions
         // Admin options are optional - hub-managed instances get admin via provisioning
         services.AddOptions<AdminOptions>().Bind(config.GetSection(AdminOptions.SectionName));
 
+        // Dev users are optional - only used in Development to seed test accounts
+        services.AddOptions<DevUsersOptions>().Bind(config.GetSection(DevUsersOptions.SectionName));
+
         // Tier options default to permissive when not provided (standalone instances)
         services.AddOptions<TierOptions>().Bind(config.GetSection(TierOptions.SectionName));
 

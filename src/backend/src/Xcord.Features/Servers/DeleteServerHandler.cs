@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Servers;
 
@@ -39,7 +40,7 @@ public sealed class DeleteServerHandler(
         }
 
         // Soft delete
-        server.DeletedAt = DateTimeOffset.UtcNow;
+        server.SoftDelete();
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

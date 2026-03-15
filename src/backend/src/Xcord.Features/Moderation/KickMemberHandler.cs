@@ -69,12 +69,6 @@ public sealed class KickMemberHandler(
             return permissionResult.Error;
         }
 
-        // Cannot kick yourself
-        if (moderatorId == request.UserId)
-        {
-            return Error.Validation("CANNOT_KICK_SELF", "You cannot kick yourself");
-        }
-
         // Verify target user is a member of the server
         var serverMember = await dbContext.ServerMembers
             .FirstOrDefaultAsync(sm => sm.UserId == request.UserId && sm.ServerId == request.ServerId, cancellationToken);
@@ -84,28 +78,11 @@ public sealed class KickMemberHandler(
             return Error.NotFound("MEMBER_NOT_FOUND", "User is not a member of this server");
         }
 
-        var server = await dbContext.Servers
-            .FirstOrDefaultAsync(s => s.Id == request.ServerId, cancellationToken);
-
-        if (server == null)
-        {
-            return Error.NotFound("SERVER_NOT_FOUND", "Server not found");
-        }
-
-        // Cannot kick the server owner
-        if (server.OwnerId == request.UserId)
-        {
-            return Error.Validation("CANNOT_KICK_OWNER", "You cannot kick the server owner");
-        }
-
-        // Role hierarchy check: cannot kick a user with equal or higher role position
-        var moderatorHighest = await roleService.GetHighestGroupPosition(moderatorId, request.ServerId);
-        var targetHighest = await roleService.GetHighestGroupPosition(request.UserId, request.ServerId);
-        if (moderatorHighest != int.MaxValue && targetHighest >= moderatorHighest)
-        {
-            return Error.Forbidden("ROLE_HIERARCHY",
-                "You cannot kick a member with an equal or higher role position");
-        }
+        // Self-check, owner protection, and role hierarchy
+        var validationResult = await dbContext.ValidateModerationTarget(
+            roleService, moderatorId, request.UserId, request.ServerId, "kick", cancellationToken);
+        if (validationResult.IsFailure) return validationResult.Error;
+        var server = validationResult.Value;
 
         var now = DateTimeOffset.UtcNow;
 
@@ -116,19 +93,7 @@ public sealed class KickMemberHandler(
         server.MemberCount--;
 
         // Create audit log
-        var auditLogId = snowflakeGenerator.NextId();
-        var auditLog = new AuditLog
-        {
-            Id = auditLogId,
-            ServerId = request.ServerId,
-            ActorId = moderatorId,
-            ActionType = "MemberKick",
-            TargetId = request.UserId,
-            Reason = request.Reason,
-            CreatedAt = now
-        };
-
-        dbContext.AuditLogs.Add(auditLog);
+        dbContext.AuditLogs.AddEntry(snowflakeGenerator, request.ServerId, moderatorId, "MemberKick", request.UserId, request.Reason, now);
 
         // Write outbox event
         await outboxWriter.WriteAsync(dbContext, "Member.Kicked", new
@@ -140,47 +105,9 @@ public sealed class KickMemberHandler(
         }, cancellationToken);
 
         // Create system message (MemberKick) in the server's system channel if configured
-        if (server.SystemChannelId.HasValue)
-        {
-            var systemChannel = await dbContext.Channels
-                .AsNoTracking()
-                .FirstOrDefaultAsync(c => c.Id == server.SystemChannelId.Value, cancellationToken);
-
-            if (systemChannel != null)
-            {
-                var kickedUser = await dbContext.Users
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
-
-                var systemMessageId = snowflakeGenerator.NextId();
-                var systemMessage = new Message
-                {
-                    Id = systemMessageId,
-                    ConversationId = systemChannel.ConversationId,
-                    AuthorId = null,
-                    Type = MessageType.MemberKick,
-                    Content = string.Empty,
-                    Metadata = System.Text.Json.JsonSerializer.Serialize(new
-                    {
-                        UserId = request.UserId.ToString(),
-                        Username = kickedUser?.Username ?? string.Empty,
-                        DisplayName = kickedUser?.DisplayName ?? string.Empty,
-                        ModeratorId = moderatorId.ToString(),
-                        Reason = request.Reason
-                    }),
-                    CreatedAt = now
-                };
-
-                dbContext.Messages.Add(systemMessage);
-
-                await outboxWriter.WriteAsync(dbContext, "Message.Created", new
-                {
-                    MessageId = systemMessage.Id,
-                    ConversationId = systemMessage.ConversationId,
-                    AuthorId = (long?)null
-                }, cancellationToken);
-            }
-        }
+        await dbContext.SendModerationSystemMessage(
+            snowflakeGenerator, outboxWriter, server,
+            request.UserId, moderatorId, MessageType.MemberKick, request.Reason, now, cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

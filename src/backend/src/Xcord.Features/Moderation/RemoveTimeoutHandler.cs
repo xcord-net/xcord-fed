@@ -61,18 +61,14 @@ public sealed class RemoveTimeoutHandler(
         }
 
         // Create audit log
-        var auditLogId = snowflakeGenerator.NextId();
-        var auditLog = new AuditLog
-        {
-            Id = auditLogId,
-            ServerId = request.ServerId,
-            ActorId = moderatorId,
-            ActionType = "MemberUpdate",
-            TargetId = request.UserId,
-            CreatedAt = now
-        };
-
-        dbContext.AuditLogs.Add(auditLog);
+        dbContext.AuditLogs.AddEntry(
+            snowflakeGenerator,
+            serverId: request.ServerId,
+            actorId: moderatorId,
+            actionType: "MemberUpdate",
+            targetId: request.UserId,
+            reason: null,
+            createdAt: now);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(

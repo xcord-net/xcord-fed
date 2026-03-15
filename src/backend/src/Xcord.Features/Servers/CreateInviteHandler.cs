@@ -56,13 +56,8 @@ public sealed class CreateInviteHandler(
         }
 
         // Check if user is a member of the server
-        var isMember = await dbContext.ServerMembers
-            .AnyAsync(sm => sm.UserId == userId && sm.ServerId == request.ServerId, cancellationToken);
-
-        if (!isMember)
-        {
-            return Error.Forbidden("NOT_A_MEMBER", "You must be a member of this server to create invites");
-        }
+        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken);
+        if (memberCheck.IsFailure) return memberCheck.Error;
 
         // Check CreateInvite permission
         var permResult = await roleService.EnsureServerRole(userId, request.ServerId, Role.CreateInvite);

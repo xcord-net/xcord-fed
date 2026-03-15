@@ -8,6 +8,7 @@ using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Channels;
 
@@ -47,7 +48,7 @@ public sealed class DeleteChannelHandler(
         }
 
         // Soft delete
-        channel.DeletedAt = DateTimeOffset.UtcNow;
+        channel.SoftDelete();
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

@@ -8,6 +8,7 @@ using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Servers;
 
@@ -57,7 +58,7 @@ public sealed class DeleteGroupHandler(
         await roleService.InvalidateGroupMembersRolesAsync(request.GroupId, request.ServerId, cancellationToken);
 
         // Soft delete the group
-        group.DeletedAt = DateTimeOffset.UtcNow;
+        group.SoftDelete();
         await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(

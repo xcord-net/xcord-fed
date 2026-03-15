@@ -3,6 +3,7 @@ import { api } from '../api/client';
 import type { LoginRequest, RegisterRequest, AuthResponse, User, UserInfo } from '../types/auth';
 import { resetAllStores } from './index';
 import { useProfiles } from './profile.store';
+import { normalizeIds } from '../utils/snowflake';
 
 const store = createRoot(() => {
   const [user, setUser] = createSignal<User | null>(null);
@@ -41,11 +42,11 @@ export function useAuth() {
       if (response.authenticated) {
         api.setAuthenticated(true);
         store.setIsAuthenticated(true);
-        store.setUser({
-          id: String(response.userId),
+        store.setUser(normalizeIds({
+          id: response.userId,
           username: response.username ?? '',
           email: '',
-        });
+        }, 'id'));
         await fetchAndStoreProfile();
       }
     },
@@ -55,11 +56,11 @@ export function useAuth() {
       if (response.authenticated) {
         api.setAuthenticated(true);
         store.setIsAuthenticated(true);
-        store.setUser({
-          id: String(response.userId),
+        store.setUser(normalizeIds({
+          id: response.userId,
           username: response.username ?? '',
           email: '',
-        });
+        }, 'id'));
         await fetchAndStoreProfile();
       }
     },
@@ -85,12 +86,12 @@ export function useAuth() {
         const userInfo = await api.get<UserInfo>('/api/v1/auth/me');
         api.setAuthenticated(true);
         store.setIsAuthenticated(true);
-        store.setUser({
-          id: String(userInfo.userId),
+        store.setUser(normalizeIds({
+          id: userInfo.userId,
           username: userInfo.username,
           email: '',
           avatarUrl: userInfo.avatarUrl ?? undefined,
-        });
+        }, 'id'));
 
         // Fetch full profile data
         const profileLoaded = useProfiles().userProfile;
@@ -106,12 +107,12 @@ export function useAuth() {
           const userInfo = await api.get<UserInfo>('/api/v1/auth/me');
           api.setAuthenticated(true);
           store.setIsAuthenticated(true);
-          store.setUser({
-            id: String(userInfo.userId),
+          store.setUser(normalizeIds({
+            id: userInfo.userId,
             username: userInfo.username,
             email: '',
             avatarUrl: userInfo.avatarUrl ?? undefined,
-          });
+          }, 'id'));
           await fetchAndStoreProfile();
           return true;
         } catch {

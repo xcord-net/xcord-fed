@@ -1,5 +1,7 @@
 import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
+import { getErrorMessage } from '../utils/errors';
+import ConfirmationButton from './ui/ConfirmationButton';
 
 interface Invite {
   code: string;
@@ -43,8 +45,7 @@ export default function InviteManager(props: InviteManagerProps) {
       const result = await api.get<Invite[]>(`/api/v1/servers/${props.serverId}/invites`);
       setInvites(result);
     } catch (err: unknown) {
-      const e = err as { error?: string; detail?: string };
-      setError(e?.detail ?? e?.error ?? 'Failed to load invites');
+      setError(getErrorMessage(err, 'Failed to load invites'));
     } finally {
       setIsLoading(false);
     }
@@ -57,8 +58,7 @@ export default function InviteManager(props: InviteManagerProps) {
       setInvites(invites().filter((i) => i.code !== code));
       setConfirmingRevoke(null);
     } catch (err: unknown) {
-      const e = err as { error?: string; detail?: string };
-      setError(e?.detail ?? e?.error ?? 'Failed to revoke invite');
+      setError(getErrorMessage(err, 'Failed to revoke invite'));
     } finally {
       setRevokingCode(null);
     }
@@ -104,38 +104,17 @@ export default function InviteManager(props: InviteManagerProps) {
                 </p>
               </div>
 
-              <Show
-                when={confirmingRevoke() === invite.code}
-                fallback={
-                  <button
-                    class="ml-3 bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 flex-shrink-0"
-                    aria-label={`Revoke invite ${invite.code}`}
-                    onClick={() => setConfirmingRevoke(invite.code)}
-                  >
-                    Revoke
-                  </button>
-                }
-              >
-                <div class="ml-3 flex flex-col items-end space-y-1 flex-shrink-0">
-                  <p class="text-xs text-xcord-text-muted">Revoke?</p>
-                  <div class="flex space-x-2">
-                    <button
-                      class="bg-xcord-bg-primary text-xcord-text-muted px-2 py-1 rounded text-xs hover:bg-xcord-bg-tertiary"
-                      onClick={() => setConfirmingRevoke(null)}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 disabled:opacity-50"
-                      aria-label={`Confirm revoke invite ${invite.code}`}
-                      disabled={revokingCode() === invite.code}
-                      onClick={() => revokeInvite(invite.code)}
-                    >
-                      {revokingCode() === invite.code ? 'Revoking...' : 'Confirm'}
-                    </button>
-                  </div>
-                </div>
-              </Show>
+              <div class="ml-3">
+                <ConfirmationButton
+                  isConfirming={confirmingRevoke() === invite.code}
+                  onStartConfirm={() => setConfirmingRevoke(invite.code)}
+                  onConfirm={() => revokeInvite(invite.code)}
+                  onCancel={() => setConfirmingRevoke(null)}
+                  isLoading={revokingCode() === invite.code}
+                  label="Revoke"
+                  confirmText="Revoke?"
+                />
+              </div>
             </div>
           )}
         </For>

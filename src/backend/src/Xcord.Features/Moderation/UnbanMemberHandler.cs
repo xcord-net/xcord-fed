@@ -59,18 +59,14 @@ public sealed class UnbanMemberHandler(
         ban.DeletedAt = now;
 
         // Create audit log
-        var auditLogId = snowflakeGenerator.NextId();
-        var auditLog = new AuditLog
-        {
-            Id = auditLogId,
-            ServerId = request.ServerId,
-            ActorId = moderatorId,
-            ActionType = "MemberUnban",
-            TargetId = request.UserId,
-            CreatedAt = now
-        };
-
-        dbContext.AuditLogs.Add(auditLog);
+        dbContext.AuditLogs.AddEntry(
+            snowflakeGenerator,
+            serverId: request.ServerId,
+            actorId: moderatorId,
+            actionType: "MemberUnban",
+            targetId: request.UserId,
+            reason: null,
+            createdAt: now);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

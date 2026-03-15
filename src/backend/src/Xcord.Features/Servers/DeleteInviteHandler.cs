@@ -8,6 +8,7 @@ using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Servers;
 
@@ -43,7 +44,7 @@ public sealed class DeleteInviteHandler(
         }
 
         // Soft delete
-        invite.DeletedAt = DateTimeOffset.UtcNow;
+        invite.SoftDelete();
         await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(

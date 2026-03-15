@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Dms;
 
@@ -77,7 +78,7 @@ public sealed class RemoveGroupDmMemberHandler(
                 if (remainingMembers.Count == 0)
                 {
                     // No members left, soft-delete the DM channel
-                    dmChannel.DeletedAt = DateTimeOffset.UtcNow;
+                    dmChannel.SoftDelete();
                     logger.LogInformation(
                         "Group DM {DmChannelId} soft-deleted (all members left)",
                         request.DmChannelId);

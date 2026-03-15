@@ -1,16 +1,19 @@
 import { createSignal, createRoot } from 'solid-js';
 import { api } from '../api/client';
+import { normalizeIds } from '../utils/snowflake';
 import type { Message } from '../types/message';
 
 function normalizeMessage(m: Message): Message {
+  const base = normalizeIds(
+    m as unknown as Record<string, unknown>,
+    'id', 'conversationId',
+  ) as unknown as Message;
   return {
-    ...m,
-    id: String(m.id),
-    conversationId: String(m.conversationId),
+    ...base,
     authorId: m.authorId ? String(m.authorId) : '',
     // Guard against null/undefined content from incomplete SignalR payloads
     // (system messages dispatched by backend handlers like BanMemberHandler).
-    content: m.content ?? '',
+    content: base.content ?? '',
     replyToId: m.replyToId ? String(m.replyToId) : undefined,
     pollId: m.pollId ? String(m.pollId) : undefined,
   };

@@ -67,14 +67,8 @@ public sealed class ListChannelsHandler(
         }
 
         // Check if user is a member
-        var isMember = await dbContext.ServerMembers
-            .AsNoTracking()
-            .AnyAsync(sm => sm.UserId == userId && sm.ServerId == request.ServerId, cancellationToken);
-
-        if (!isMember)
-        {
-            return Error.Forbidden("NOT_A_MEMBER", "You are not a member of this server");
-        }
+        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken);
+        if (memberCheck.IsFailure) return memberCheck.Error;
 
         // Get server-level permissions to determine if the user is an admin/owner
         // (admins see all channels regardless of overrides)

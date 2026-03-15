@@ -1,5 +1,7 @@
 import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
+import { getErrorMessage } from '../utils/errors';
+import ConfirmationButton from './ui/ConfirmationButton';
 
 interface BannedUser {
   id: string;
@@ -50,8 +52,7 @@ export default function BanManager(props: BanManagerProps) {
       const result = await api.get<BannedUser[]>(`/api/v1/servers/${props.serverId}/bans`);
       setBans(result);
     } catch (err: unknown) {
-      const e = err as { error?: string };
-      setError(e?.error ?? 'Failed to load bans');
+      setError(getErrorMessage(err, 'Failed to load bans'));
     } finally {
       setIsLoading(false);
     }
@@ -63,8 +64,7 @@ export default function BanManager(props: BanManagerProps) {
       setBans(bans().filter((b) => b.userId !== userId));
       setConfirmingUnban(null);
     } catch (err: unknown) {
-      const e = err as { error?: string };
-      setError(e?.error ?? 'Failed to unban user');
+      setError(getErrorMessage(err, 'Failed to unban user'));
     }
   }
 
@@ -144,35 +144,14 @@ export default function BanManager(props: BanManagerProps) {
                 </p>
               </div>
 
-              <Show
-                when={confirmingUnban() === ban.userId}
-                fallback={
-                  <button
-                    class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 flex-shrink-0"
-                    onClick={() => setConfirmingUnban(ban.userId)}
-                  >
-                    Unban
-                  </button>
-                }
-              >
-                <div class="flex flex-col items-end space-y-1">
-                  <p class="text-xs text-xcord-text-muted">Confirm unban?</p>
-                  <div class="flex space-x-2">
-                    <button
-                      class="bg-xcord-bg-primary text-xcord-text-muted px-2 py-1 rounded text-xs hover:bg-xcord-bg-tertiary"
-                      onClick={() => setConfirmingUnban(null)}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      class="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700"
-                      onClick={() => unban(ban.userId)}
-                    >
-                      Confirm
-                    </button>
-                  </div>
-                </div>
-              </Show>
+              <ConfirmationButton
+                isConfirming={confirmingUnban() === ban.userId}
+                onStartConfirm={() => setConfirmingUnban(ban.userId)}
+                onConfirm={() => unban(ban.userId)}
+                onCancel={() => setConfirmingUnban(null)}
+                label="Unban"
+                confirmText="Confirm unban?"
+              />
             </div>
           )}
         </For>

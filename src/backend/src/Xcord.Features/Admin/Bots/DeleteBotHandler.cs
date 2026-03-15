@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Xcord.Infrastructure.Data;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Admin;
 
@@ -43,7 +44,7 @@ public sealed class DeleteBotHandler(
         }
 
         // Soft delete the bot user
-        bot.DeletedAt = DateTimeOffset.UtcNow;
+        bot.SoftDelete();
 
         // Revoke all tokens
         var tokens = await dbContext.BotTokens

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Friends;
 
@@ -41,7 +42,7 @@ public sealed class RemoveFriendHandler(
         }
 
         // Soft delete the friendship
-        friendship.DeletedAt = DateTimeOffset.UtcNow;
+        friendship.SoftDelete();
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

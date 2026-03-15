@@ -8,6 +8,7 @@ using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.ScheduledMessages;
 
@@ -51,7 +52,7 @@ public sealed class DeleteScheduledMessageHandler(
             return Error.Forbidden("CANNOT_DELETE_SCHEDULED_MESSAGE", "You can only cancel your own scheduled messages");
 
         // Soft delete
-        scheduledMessage.DeletedAt = DateTimeOffset.UtcNow;
+        scheduledMessage.SoftDelete();
         await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Notes;
 
@@ -34,7 +35,7 @@ public sealed class DeleteUserNoteHandler(
             return Error.NotFound("NOTE_NOT_FOUND", "No note found for this user");
         }
 
-        note.DeletedAt = DateTimeOffset.UtcNow;
+        note.SoftDelete();
         await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("User {UserId} deleted note about user {TargetUserId}", userId, request.TargetUserId);

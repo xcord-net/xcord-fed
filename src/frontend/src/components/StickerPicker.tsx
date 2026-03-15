@@ -1,5 +1,6 @@
 import { createSignal, For, Show, onMount, createMemo } from 'solid-js';
 import { api } from '../api/client';
+import { getErrorMessage } from '../utils/errors';
 
 export interface Sticker {
   id: string;
@@ -158,8 +159,7 @@ export default function StickerPicker(props: StickerPickerProps) {
       );
       setStickers(allStickers);
     } catch (err: unknown) {
-      const e = err as { error?: string };
-      setError(e?.error ?? 'Failed to load stickers');
+      setError(getErrorMessage(err, 'Failed to load stickers'));
     } finally {
       setIsLoading(false);
     }
@@ -251,8 +251,7 @@ export default function StickerPicker(props: StickerPickerProps) {
       setUploadFile(null);
       setShowUpload(false);
     } catch (err: unknown) {
-      const e = err as { error?: string; detail?: string; title?: string };
-      setUploadError(e?.detail ?? e?.error ?? e?.title ?? 'Failed to upload sticker');
+      setUploadError(getErrorMessage(err, 'Failed to upload sticker'));
     } finally {
       setIsUploading(false);
     }
@@ -264,8 +263,7 @@ export default function StickerPicker(props: StickerPickerProps) {
       setStickers(stickers().filter((s) => s.id !== stickerId));
       setConfirmDeleteId(null);
     } catch (err: unknown) {
-      const e = err as { error?: string };
-      setError(e?.error ?? 'Failed to delete sticker');
+      setError(getErrorMessage(err, 'Failed to delete sticker'));
     }
   }
 

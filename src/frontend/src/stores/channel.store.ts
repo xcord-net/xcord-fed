@@ -1,6 +1,15 @@
 import { createSignal, createRoot } from 'solid-js';
 import { api } from '../api/client';
+import { normalizeIds } from '../utils/snowflake';
 import type { Channel, Category } from '../types/channel';
+
+function normalizeChannel(c: Channel): Channel {
+  return normalizeIds(c as unknown as Record<string, unknown>, 'id', 'serverId', 'conversationId', 'categoryId') as unknown as Channel;
+}
+
+function normalizeCategory(cat: Category): Category {
+  return normalizeIds(cat as unknown as Record<string, unknown>, 'id', 'serverId') as unknown as Category;
+}
 
 const store = createRoot(() => {
   const [channels, setChannels] = createSignal<Channel[]>([]);
@@ -37,18 +46,8 @@ export function useChannels() {
         const response = await api.get<{ channels: Channel[]; categories: Category[] }>(
           `/api/v1/servers/${serverId}/channels`
         );
-        store.setChannels(response.channels.map(c => ({
-          ...c,
-          id: String(c.id),
-          serverId: String(c.serverId),
-          conversationId: String(c.conversationId),
-          categoryId: c.categoryId ? String(c.categoryId) : undefined,
-        })));
-        store.setCategories((response.categories ?? []).map(cat => ({
-          ...cat,
-          id: String(cat.id),
-          serverId: String(cat.serverId),
-        })));
+        store.setChannels(response.channels.map(normalizeChannel));
+        store.setCategories((response.categories ?? []).map(normalizeCategory));
       } finally {
         store.setIsLoading(false);
       }
@@ -56,13 +55,7 @@ export function useChannels() {
 
     async createChannel(serverId: string, name: string, type: 'Text' | 'Voice' | 'Forum' = 'Text'): Promise<Channel> {
       const channel = await api.post<Channel>(`/api/v1/servers/${serverId}/channels`, { name, type });
-      const normalized: Channel = {
-        ...channel,
-        id: String(channel.id),
-        serverId: String(channel.serverId),
-        conversationId: String(channel.conversationId),
-        categoryId: channel.categoryId ? String(channel.categoryId) : undefined,
-      };
+      const normalized = normalizeChannel(channel);
       // Guard against duplicates - the SignalR Chat_ChannelCreated broadcast may
       // have already added this channel to the store while the HTTP response was
       // in flight.

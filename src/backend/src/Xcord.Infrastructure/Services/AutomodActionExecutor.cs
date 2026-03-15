@@ -4,6 +4,7 @@ using Xcord.Entities;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Xcord;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Infrastructure.Services;
 
@@ -47,7 +48,7 @@ public sealed class AutomodActionExecutor : IAutomodActionExecutor
                         var msg = await _dbContext.Messages.FindAsync(messageId);
                         if (msg != null)
                         {
-                            msg.DeletedAt = DateTimeOffset.UtcNow;
+                            msg.SoftDelete();
                             await _dbContext.SaveChangesAsync(cancellationToken);
                         }
                         break;

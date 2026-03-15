@@ -8,6 +8,7 @@ using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Stickers;
 
@@ -77,7 +78,7 @@ public sealed class DeleteStickerHandler(
         }
 
         // Soft delete
-        sticker.DeletedAt = DateTimeOffset.UtcNow;
+        sticker.SoftDelete();
         await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(

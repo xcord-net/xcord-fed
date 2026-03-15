@@ -1,6 +1,7 @@
 import { createSignal, onMount, Show } from 'solid-js';
 import { useNavigate, A } from '@solidjs/router';
 import { api } from '../api/client';
+import { getErrorMessage } from '../utils/errors';
 
 export default function ResetPassword() {
   const [token, setToken] = createSignal('');
@@ -46,8 +47,7 @@ export default function ResetPassword() {
       });
       setSuccess(true);
     } catch (err: unknown) {
-      const errObj = err as { error?: string; message?: string };
-      setError(errObj?.error || errObj?.message || 'Failed to reset password. The link may have expired.');
+      setError(getErrorMessage(err, 'Failed to reset password. The link may have expired.'));
     } finally {
       setLoading(false);
     }

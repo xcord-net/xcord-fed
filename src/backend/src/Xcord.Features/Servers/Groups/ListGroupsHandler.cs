@@ -25,14 +25,8 @@ public sealed class ListGroupsHandler(
         var userId = userIdResult.Value;
 
         // Check if user is a member of the server
-        var isMember = await dbContext.ServerMembers
-            .AsNoTracking()
-            .AnyAsync(sm => sm.UserId == userId && sm.ServerId == request.ServerId, cancellationToken);
-
-        if (!isMember)
-        {
-            return Error.Forbidden("NOT_A_MEMBER", "You are not a member of this server");
-        }
+        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken);
+        if (memberCheck.IsFailure) return memberCheck.Error;
 
         // Get all groups for the server, ordered by position
         var groups = await dbContext.Groups

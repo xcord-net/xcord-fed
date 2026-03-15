@@ -1,5 +1,6 @@
 import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
+import { getErrorMessage } from '../utils/errors';
 
 export type PermissionState = 'Allow' | 'Deny' | 'Inherit';
 
@@ -101,8 +102,7 @@ export default function ChannelPermissions(props: ChannelPermissionsProps) {
       setSelectedOverrideId(null);
       setDirtyPermissions(null);
     } catch (err: unknown) {
-      const e = err as { error?: string };
-      setError(e?.error ?? 'Failed to load permissions');
+      setError(getErrorMessage(err, 'Failed to load permissions'));
     } finally {
       setIsLoading(false);
     }
@@ -138,8 +138,7 @@ export default function ChannelPermissions(props: ChannelPermissionsProps) {
       setDirtyPermissions(null);
       setSelectedOverrideId(null);
     } catch (err: unknown) {
-      const e = err as { error?: string };
-      setError(e?.error ?? 'Failed to save permissions');
+      setError(getErrorMessage(err, 'Failed to save permissions'));
     } finally {
       setIsSaving(false);
     }

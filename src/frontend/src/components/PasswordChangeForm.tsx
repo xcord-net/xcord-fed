@@ -1,5 +1,6 @@
 import { createSignal } from 'solid-js';
 import { api } from '../api/client';
+import { getErrorMessage } from '../utils/errors';
 
 // ---- Pure helpers ----
 
@@ -46,8 +47,7 @@ export default function PasswordChangeForm() {
       setNewPassword('');
       setConfirmPassword('');
     } catch (err: unknown) {
-      const errObj = err as { error?: string };
-      setError(errObj?.error || 'Failed to change password');
+      setError(getErrorMessage(err, 'Failed to change password'));
     } finally {
       setLoading(false);
     }

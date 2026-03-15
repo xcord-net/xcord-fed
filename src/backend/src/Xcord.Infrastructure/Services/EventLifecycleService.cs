@@ -1,10 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Xcord.Entities;
 using Xcord.Infrastructure.Data;
-using Xcord.Infrastructure.Services;
 
 namespace Xcord.Infrastructure.Services;
 
@@ -13,44 +11,16 @@ namespace Xcord.Infrastructure.Services;
 /// Transitions events from Scheduled -> Active -> Completed based on timestamps.
 /// Runs every 60 seconds.
 /// </summary>
-public sealed class EventLifecycleService : BackgroundService
+public sealed class EventLifecycleService(
+    IServiceScopeFactory serviceScopeFactory,
+    ILogger<EventLifecycleService> logger)
+    : PollingBackgroundService(serviceScopeFactory, logger)
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly ILogger<EventLifecycleService> _logger;
-    private readonly TimeSpan _interval = TimeSpan.FromSeconds(60);
+    protected override TimeSpan Interval => TimeSpan.FromSeconds(60);
 
-    public EventLifecycleService(
-        IServiceScopeFactory serviceScopeFactory,
-        ILogger<EventLifecycleService> logger)
+    protected override async Task ProcessAsync(CancellationToken ct)
     {
-        _serviceScopeFactory = serviceScopeFactory;
-        _logger = logger;
-    }
-
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        _logger.LogInformation("EventLifecycleService background service started");
-
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
-            {
-                await ProcessEventTransitionsAsync(stoppingToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error processing event lifecycle transitions");
-            }
-
-            await Task.Delay(_interval, stoppingToken);
-        }
-
-        _logger.LogInformation("EventLifecycleService background service stopped");
-    }
-
-    private async Task ProcessEventTransitionsAsync(CancellationToken cancellationToken)
-    {
-        using var scope = _serviceScopeFactory.CreateScope();
+        using var scope = ServiceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var outboxWriter = scope.ServiceProvider.GetRequiredService<IOutboxWriter>();
 
@@ -60,7 +30,7 @@ public sealed class EventLifecycleService : BackgroundService
         var eventsToActivate = await dbContext.ScheduledEvents
             .Where(e => e.Status == EventStatus.Scheduled &&
                         e.ScheduledStartTime <= now)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
 
         foreach (var scheduledEvent in eventsToActivate)
         {
@@ -76,12 +46,12 @@ public sealed class EventLifecycleService : BackgroundService
                     ServerId = scheduledEvent.ServerId,
                     Name = scheduledEvent.Name
                 },
-                cancellationToken);
+                ct);
         }
 
         if (eventsToActivate.Count > 0)
         {
-            _logger.LogInformation(
+            Logger.LogInformation(
                 "Activated {Count} scheduled events",
                 eventsToActivate.Count);
         }
@@ -91,7 +61,7 @@ public sealed class EventLifecycleService : BackgroundService
             .Where(e => e.Status == EventStatus.Active &&
                         e.ScheduledEndTime != null &&
                         e.ScheduledEndTime <= now)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
 
         foreach (var scheduledEvent in eventsToComplete)
         {
@@ -107,16 +77,16 @@ public sealed class EventLifecycleService : BackgroundService
                     ServerId = scheduledEvent.ServerId,
                     Name = scheduledEvent.Name
                 },
-                cancellationToken);
+                ct);
         }
 
         if (eventsToComplete.Count > 0)
         {
-            _logger.LogInformation(
+            Logger.LogInformation(
                 "Completed {Count} active events",
                 eventsToComplete.Count);
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(ct);
     }
 }

@@ -1,5 +1,6 @@
 import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
+import { getErrorMessage } from '../utils/errors';
 
 // -- Types ------------------------------------------------------------------
 
@@ -310,8 +311,7 @@ export default function AutomodManager(props: AutomodManagerProps) {
       );
       setRules(result.rules ?? []);
     } catch (err: unknown) {
-      const e = err as { error?: string; detail?: string };
-      setError(e?.detail ?? e?.error ?? 'Failed to load automod rules');
+      setError(getErrorMessage(err, 'Failed to load automod rules'));
     } finally {
       setIsLoading(false);
     }
@@ -346,8 +346,7 @@ export default function AutomodManager(props: AutomodManagerProps) {
       setCreateEnabled(true);
       showSuccess('Rule created successfully.');
     } catch (err: unknown) {
-      const e = err as { error?: string; detail?: string };
-      setError(e?.detail ?? e?.error ?? 'Failed to create rule');
+      setError(getErrorMessage(err, 'Failed to create rule'));
     } finally {
       setIsCreating(false);
     }
@@ -387,8 +386,7 @@ export default function AutomodManager(props: AutomodManagerProps) {
       setEditingRuleId(null);
       showSuccess('Rule updated successfully.');
     } catch (err: unknown) {
-      const e = err as { error?: string; detail?: string };
-      setError(e?.detail ?? e?.error ?? 'Failed to update rule');
+      setError(getErrorMessage(err, 'Failed to update rule'));
     } finally {
       setIsSavingEdit(false);
     }
@@ -402,8 +400,7 @@ export default function AutomodManager(props: AutomodManagerProps) {
       setConfirmDeleteId(null);
       showSuccess('Rule deleted.');
     } catch (err: unknown) {
-      const e = err as { error?: string; detail?: string };
-      setError(e?.detail ?? e?.error ?? 'Failed to delete rule');
+      setError(getErrorMessage(err, 'Failed to delete rule'));
     }
   }
 

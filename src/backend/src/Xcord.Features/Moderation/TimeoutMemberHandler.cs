@@ -94,28 +94,10 @@ public sealed class TimeoutMemberHandler(
             return Error.NotFound("MEMBER_NOT_FOUND", "User is not a member of this server");
         }
 
-        // Cannot timeout yourself
-        if (moderatorId == request.UserId)
-        {
-            return Error.Validation("CANNOT_TIMEOUT_SELF", "You cannot timeout yourself");
-        }
-
-        // Cannot timeout the server owner
-        var server = await dbContext.Servers.AsNoTracking()
-            .FirstOrDefaultAsync(s => s.Id == request.ServerId, cancellationToken);
-        if (server != null && server.OwnerId == request.UserId)
-        {
-            return Error.Validation("CANNOT_TIMEOUT_OWNER", "You cannot timeout the server owner");
-        }
-
-        // Role hierarchy check: cannot timeout a user with equal or higher role position
-        var moderatorHighest = await roleService.GetHighestGroupPosition(moderatorId, request.ServerId);
-        var targetHighest = await roleService.GetHighestGroupPosition(request.UserId, request.ServerId);
-        if (moderatorHighest != int.MaxValue && targetHighest >= moderatorHighest)
-        {
-            return Error.Forbidden("ROLE_HIERARCHY",
-                "You cannot timeout a member with an equal or higher role position");
-        }
+        // Self-check, owner protection, and role hierarchy
+        var validationResult = await dbContext.ValidateModerationTarget(
+            roleService, moderatorId, request.UserId, request.ServerId, "timeout", cancellationToken);
+        if (validationResult.IsFailure) return validationResult.Error;
 
         var now = DateTimeOffset.UtcNow;
         var expiresAt = now.AddMinutes(request.DurationMinutes);
@@ -136,19 +118,7 @@ public sealed class TimeoutMemberHandler(
         dbContext.Timeouts.Add(timeout);
 
         // Create audit log
-        var auditLogId = snowflakeGenerator.NextId();
-        var auditLog = new AuditLog
-        {
-            Id = auditLogId,
-            ServerId = request.ServerId,
-            ActorId = moderatorId,
-            ActionType = "MemberTimeout",
-            TargetId = request.UserId,
-            Reason = request.Reason,
-            CreatedAt = now
-        };
-
-        dbContext.AuditLogs.Add(auditLog);
+        dbContext.AuditLogs.AddEntry(snowflakeGenerator, request.ServerId, moderatorId, "MemberTimeout", request.UserId, request.Reason, now);
 
         // Write outbox event
         await outboxWriter.WriteAsync(dbContext, "Member.TimedOut", new

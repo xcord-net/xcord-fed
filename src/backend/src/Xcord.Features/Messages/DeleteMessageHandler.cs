@@ -8,6 +8,7 @@ using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Messages;
 
@@ -72,7 +73,7 @@ public sealed class DeleteMessageHandler(
         }
 
         // Soft delete the message
-        message.DeletedAt = DateTimeOffset.UtcNow;
+        message.SoftDelete();
 
         // Write outbox event
         await outboxWriter.WriteAsync(dbContext, "Message.Deleted", new

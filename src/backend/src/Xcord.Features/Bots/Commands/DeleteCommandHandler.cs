@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Bots;
 
@@ -25,7 +26,7 @@ public sealed class DeleteCommandHandler(
             c => c.Id == request.CommandId && c.ServerId == request.ServerId && c.BotTokenId == botTokenId, ct);
         if (cmd == null) return Error.NotFound("COMMAND_NOT_FOUND", "Command not found");
 
-        cmd.DeletedAt = DateTimeOffset.UtcNow;
+        cmd.SoftDelete();
         await dbContext.SaveChangesAsync(ct);
         return new DeleteCommandResponse(true);
     }

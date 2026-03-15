@@ -58,12 +58,8 @@ public sealed class UpdateNotificationSettingHandler(
             }
 
             // Check if user is a member
-            var isMember = await dbContext.ServerMembers
-                .AnyAsync(sm => sm.UserId == userId && sm.ServerId == request.ServerId.Value, cancellationToken);
-            if (!isMember)
-            {
-                return Error.Forbidden("NOT_A_MEMBER", "You must be a member of this server");
-            }
+            var memberCheck = await dbContext.EnsureMembership(request.ServerId.Value, userId, cancellationToken);
+            if (memberCheck.IsFailure) return memberCheck.Error;
         }
 
         if (request.ChannelId.HasValue)

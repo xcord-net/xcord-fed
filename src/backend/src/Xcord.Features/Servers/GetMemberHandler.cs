@@ -33,12 +33,8 @@ public sealed class GetMemberHandler(
         var currentUserId = userIdResult.Value;
 
         // Verify requesting user is a member of the server
-        var isMember = await dbContext.ServerMembers
-            .AsNoTracking()
-            .AnyAsync(sm => sm.UserId == currentUserId && sm.ServerId == request.ServerId, cancellationToken);
-
-        if (!isMember)
-            return Error.Forbidden("NOT_A_MEMBER", "You must be a member of this server to view its members");
+        var memberCheck = await dbContext.EnsureMembership(request.ServerId, currentUserId, cancellationToken);
+        if (memberCheck.IsFailure) return memberCheck.Error;
 
         // Query the target member
         var member = await dbContext.ServerMembers

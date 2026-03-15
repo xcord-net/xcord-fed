@@ -1,5 +1,6 @@
 import { createSignal, For, Show, onMount, onCleanup } from 'solid-js';
 import { api } from '../api/client';
+import { getErrorMessage } from '../utils/errors';
 
 interface GifDto {
   id: string;
@@ -53,8 +54,7 @@ export default function GifPicker(props: GifPickerProps) {
       );
       setGifs(response.gifs ?? []);
     } catch (err: unknown) {
-      const e = err as { error?: string };
-      setError(e?.error ?? 'Failed to load trending GIFs');
+      setError(getErrorMessage(err, 'Failed to load trending GIFs'));
     } finally {
       setIsLoading(false);
     }
@@ -74,8 +74,7 @@ export default function GifPicker(props: GifPickerProps) {
       );
       setGifs(response.gifs ?? []);
     } catch (err: unknown) {
-      const e = err as { error?: string };
-      setError(e?.error ?? 'Failed to search GIFs');
+      setError(getErrorMessage(err, 'Failed to search GIFs'));
     } finally {
       setIsLoading(false);
     }

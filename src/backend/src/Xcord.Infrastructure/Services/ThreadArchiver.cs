@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Xcord.Infrastructure.Data;
 
@@ -11,44 +10,16 @@ namespace Xcord.Infrastructure.Services;
 /// based on their AutoArchiveDurationMinutes setting.
 /// Runs every 5 minutes.
 /// </summary>
-public sealed class ThreadArchiver : BackgroundService
+public sealed class ThreadArchiver(
+    IServiceScopeFactory serviceScopeFactory,
+    ILogger<ThreadArchiver> logger)
+    : PollingBackgroundService(serviceScopeFactory, logger)
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly ILogger<ThreadArchiver> _logger;
-    private readonly TimeSpan _interval = TimeSpan.FromMinutes(5);
+    protected override TimeSpan Interval => TimeSpan.FromMinutes(5);
 
-    public ThreadArchiver(
-        IServiceScopeFactory serviceScopeFactory,
-        ILogger<ThreadArchiver> logger)
+    protected override async Task ProcessAsync(CancellationToken ct)
     {
-        _serviceScopeFactory = serviceScopeFactory;
-        _logger = logger;
-    }
-
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        _logger.LogInformation("ThreadArchiver background service started");
-
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
-            {
-                await ArchiveInactiveThreadsAsync(stoppingToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error archiving inactive threads");
-            }
-
-            await Task.Delay(_interval, stoppingToken);
-        }
-
-        _logger.LogInformation("ThreadArchiver background service stopped");
-    }
-
-    private async Task ArchiveInactiveThreadsAsync(CancellationToken cancellationToken)
-    {
-        using var scope = _serviceScopeFactory.CreateScope();
+        using var scope = ServiceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         var now = DateTime.UtcNow;
@@ -57,7 +28,7 @@ public sealed class ThreadArchiver : BackgroundService
         var threadsToArchive = await dbContext.Threads
             .Where(t => !t.IsArchived &&
                         t.LastActivityAt.AddMinutes(t.AutoArchiveDurationMinutes) < now)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
 
         if (threadsToArchive.Count == 0)
         {
@@ -69,9 +40,9 @@ public sealed class ThreadArchiver : BackgroundService
             thread.IsArchived = true;
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(ct);
 
-        _logger.LogInformation(
+        Logger.LogInformation(
             "Auto-archived {Count} inactive threads",
             threadsToArchive.Count);
     }

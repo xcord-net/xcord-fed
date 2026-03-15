@@ -1,5 +1,6 @@
 import { Show, createSignal, createEffect } from 'solid-js';
 import { api } from '../api/client';
+import { getErrorMessage } from '../utils/errors';
 
 // ---- Types ----
 
@@ -94,11 +95,7 @@ export default function VanityInvite(props: VanityInviteProps) {
       setSuccessMessage('Vanity URL saved.');
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: unknown) {
-      const msg =
-        typeof err === 'object' && err !== null && 'error' in err
-          ? String((err as { error: string }).error)
-          : 'Failed to save vanity URL. Please try again.';
-      setSubmitError(msg);
+      setSubmitError(getErrorMessage(err, 'Failed to save vanity URL. Please try again.'));
     } finally {
       setIsSubmitting(false);
     }
