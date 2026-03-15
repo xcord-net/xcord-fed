@@ -161,6 +161,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
               {isLoading() ? 'Scheduling...' : 'Delete My Account'}
             </button>
             <button
+              data-testid="delete-account-cancel-button"
               ref={cancelButtonRef}
               class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
               onClick={() => {
