@@ -103,7 +103,7 @@ export default function InviteModal(props: InviteModalProps) {
   };
 
   return (
-    <Modal open={true} onClose={props.onClose} title="Invite People" size="md">
+    <Modal data-testid="invite-dialog" open={true} onClose={props.onClose} title="Invite People" size="md">
       <div class="p-6">
         <p class="text-xcord-text-secondary text-sm mb-4">Share this link to invite people to your server.</p>
 
@@ -182,6 +182,7 @@ export default function InviteModal(props: InviteModalProps) {
         {/* Actions */}
         <div class="flex justify-between items-center">
           <button
+            data-testid="invite-generate-button"
             type="button"
             onClick={handleGenerateNew}
             disabled={loading()}
@@ -190,6 +191,7 @@ export default function InviteModal(props: InviteModalProps) {
             Generate New Link
           </button>
           <button
+            data-testid="invite-close-button"
             type="button"
             onClick={() => props.onClose()}
             class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"

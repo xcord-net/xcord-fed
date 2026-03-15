@@ -46,6 +46,7 @@ export default function StatusPicker() {
   return (
     <div class="relative">
       <button
+        data-testid="nav-set-status-button"
         ref={triggerRef}
         type="button"
         aria-label="Set status"

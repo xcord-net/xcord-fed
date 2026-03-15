@@ -118,9 +118,10 @@ export default function DmList() {
     <div class="flex flex-col h-full bg-xcord-bg-secondary">
       <div class="px-4 py-3 border-b border-xcord-border">
         <div class="flex items-center justify-between">
-          <h2 class="text-white font-semibold">Direct Messages</h2>
+          <h2 data-testid="dm-heading" class="text-white font-semibold">Direct Messages</h2>
           <div class="flex space-x-2">
             <button
+              data-testid="dm-new-message-button"
               class="text-xcord-text-muted hover:text-white text-sm"
               onClick={() => {
                 if (showNewDm() && dmMode() === 'single') {
@@ -134,6 +135,7 @@ export default function DmList() {
               {showNewDm() && dmMode() === 'single' ? 'Cancel' : 'New Message'}
             </button>
             <button
+              data-testid="dm-new-group-button"
               id="new-group-dm-btn"
               class="text-xcord-text-muted hover:text-white text-sm"
               onClick={() => {

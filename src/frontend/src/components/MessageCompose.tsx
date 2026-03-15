@@ -448,6 +448,7 @@ export default function MessageCompose(props: MessageComposeProps) {
       <div class={`bg-xcord-bg-primary ${hasTopSection() ? 'rounded-b-lg' : 'rounded-lg'} px-4 py-3 flex items-end gap-2`}>
         {/* Attachment button */}
         <button
+          data-testid="compose-attach-button"
           class="flex-shrink-0 text-xcord-text-muted hover:text-xcord-text-primary transition-colors pb-0.5 disabled:opacity-40 disabled:cursor-not-allowed"
           onClick={handleAttachmentClick}
           disabled={uploading() || isSending()}
@@ -459,6 +460,7 @@ export default function MessageCompose(props: MessageComposeProps) {
 
         {/* Poll button */}
         <button
+          data-testid="compose-poll-button"
           class="flex-shrink-0 text-xcord-text-muted hover:text-xcord-text-primary transition-colors pb-0.5 disabled:opacity-40 disabled:cursor-not-allowed"
           onClick={() => setShowPollForm(!showPollForm())}
           disabled={isSending()}
@@ -471,6 +473,7 @@ export default function MessageCompose(props: MessageComposeProps) {
         {/* GIF button */}
         <div class="relative flex-shrink-0">
           <button
+            data-testid="compose-gif-button"
             class="text-xcord-text-muted hover:text-xcord-text-primary transition-colors pb-0.5 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold"
             onClick={() => setShowGifPicker(!showGifPicker())}
             disabled={isSending() || isSlowModeActive()}
@@ -494,6 +497,7 @@ export default function MessageCompose(props: MessageComposeProps) {
         {/* Schedule message button */}
         <Show when={props.channelId}>
           <button
+            data-testid="compose-schedule-button"
             class="flex-shrink-0 text-xcord-text-muted hover:text-xcord-text-primary transition-colors pb-0.5 disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={openScheduleModal}
             disabled={isSending() || isSlowModeActive()}
@@ -532,6 +536,7 @@ export default function MessageCompose(props: MessageComposeProps) {
       {/* View scheduled messages link */}
       <Show when={props.channelId}>
         <button
+          data-testid="compose-view-scheduled-button"
           class="mt-1 text-xs text-xcord-text-muted hover:text-xcord-brand transition-colors"
           onClick={() => modals.toggleScheduledMessages()}
           aria-label="View scheduled messages"

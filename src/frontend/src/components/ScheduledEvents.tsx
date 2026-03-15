@@ -193,6 +193,7 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
       <div class="px-4 py-3 border-b border-xcord-bg-tertiary flex items-center justify-between flex-shrink-0">
         <h2 class="text-xcord-text-primary font-semibold">Scheduled Events</h2>
         <button
+          data-testid="scheduled-events-create-button"
           class="bg-xcord-brand text-white px-3 py-1.5 rounded hover:bg-xcord-brand-hover transition-colors text-sm"
           onClick={() => setShowCreateForm(true)}
         >
@@ -202,7 +203,7 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
 
       {/* Create Event Form */}
       <Show when={showCreateForm()}>
-        <div class="px-4 py-4 bg-xcord-bg-primary border-b border-xcord-bg-tertiary space-y-3 flex-shrink-0 overflow-y-auto max-h-[60vh]">
+        <div data-testid="scheduled-events-form" class="px-4 py-4 bg-xcord-bg-primary border-b border-xcord-bg-tertiary space-y-3 flex-shrink-0 overflow-y-auto max-h-[60vh]">
           <h3 class="text-xcord-text-primary font-semibold text-sm">New Scheduled Event</h3>
 
           {/* Title */}
@@ -313,6 +314,7 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
 
           <div class="flex gap-2 pt-1">
             <button
+              data-testid="scheduled-events-form-submit"
               class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleCreateEvent}
               disabled={isSubmitting() || !isFormValid()}
@@ -351,10 +353,10 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
         </Show>
 
         <Show when={!isLoading() && events().length > 0}>
-          <div class="divide-y divide-xcord-bg-tertiary">
+          <div data-testid="scheduled-events-list" class="divide-y divide-xcord-bg-tertiary">
             <For each={events()}>
               {(event) => (
-                <div class="px-4 py-4">
+                <div data-testid="scheduled-event-item" class="px-4 py-4">
                   <div class="flex items-start justify-between gap-3">
                     <div class="flex-1 min-w-0">
                       {/* Event name */}

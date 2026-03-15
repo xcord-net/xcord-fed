@@ -108,6 +108,10 @@ if [ -n "${XCORD_CONFIG_INLINE:-}" ]; then
         },
         Auth: {
             BcryptWorkFactor: (.auth.bcryptWorkFactor // 12)
+        },
+        MemberBilling: {
+            StripeSecretKey: (.memberBilling.stripeSecretKey // ""),
+            StripeWebhookSecret: (.memberBilling.stripeWebhookSecret // "")
         }
     }' > "$APPSETTINGS_PATH"
     echo "Configuration generated at $APPSETTINGS_PATH"
@@ -212,6 +216,10 @@ elif [ -f "$CONFIG_PATH" ]; then
         },
         Auth: {
             BcryptWorkFactor: (.auth.bcryptWorkFactor // 12)
+        },
+        MemberBilling: {
+            StripeSecretKey: (.memberBilling.stripeSecretKey // ""),
+            StripeWebhookSecret: (.memberBilling.stripeWebhookSecret // "")
         }
     }' "$CONFIG_PATH" > "$APPSETTINGS_PATH"
 

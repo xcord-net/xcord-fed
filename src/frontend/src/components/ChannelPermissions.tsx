@@ -160,7 +160,7 @@ export default function ChannelPermissions(props: ChannelPermissionsProps) {
     <div class="flex flex-col h-full bg-xcord-bg-secondary">
       {/* Header */}
       <div class="px-4 py-3 border-b border-xcord-border">
-        <h2 class="text-white font-semibold">Channel Permissions</h2>
+        <h2 data-testid="channel-permissions-heading" class="text-white font-semibold">Channel Permissions</h2>
         <p class="text-xcord-text-muted text-xs mt-0.5">
           Configure per-group and per-member permission overrides for this channel.
         </p>
@@ -180,7 +180,7 @@ export default function ChannelPermissions(props: ChannelPermissionsProps) {
         <div class="flex flex-1 overflow-hidden">
           {/* Override list (left panel) */}
           <div class="w-56 border-r border-xcord-border overflow-y-auto flex-shrink-0">
-            <div class="px-3 py-2 text-xcord-text-muted text-xs uppercase font-semibold tracking-wide">
+            <div data-testid="channel-permissions-groups-label" class="px-3 py-2 text-xcord-text-muted text-xs uppercase font-semibold tracking-wide">
               Groups
             </div>
             <For each={data()!.overrides.filter((o) => o.subjectType === 'Group')}>
@@ -231,7 +231,7 @@ export default function ChannelPermissions(props: ChannelPermissionsProps) {
               when={selectedOverride() !== null && dirtyPermissions() !== null}
               fallback={
                 <div class="flex flex-col items-center justify-center py-8 text-center">
-                  <p class="text-xcord-text-muted text-sm">Select a group or member to edit permissions.</p>
+                  <p data-testid="channel-permissions-placeholder" class="text-xcord-text-muted text-sm">Select a group or member to edit permissions.</p>
                 </div>
               }
             >
@@ -251,6 +251,7 @@ export default function ChannelPermissions(props: ChannelPermissionsProps) {
                       Discard
                     </button>
                     <button
+                      data-testid="channel-permissions-save-button"
                       class="text-xs px-3 py-1.5 rounded bg-xcord-brand text-white hover:bg-xcord-brand-hover disabled:opacity-50 transition-colors"
                       onClick={handleSave}
                       disabled={isSaving()}
@@ -265,12 +266,13 @@ export default function ChannelPermissions(props: ChannelPermissionsProps) {
                   {(key) => {
                     const state = () => dirtyPermissions()?.[key] ?? 'Inherit';
                     return (
-                      <div class="flex items-center justify-between py-2 border-b border-xcord-border/50">
+                      <div data-testid={`channel-perm-row-${key}`} class="flex items-center justify-between py-2 border-b border-xcord-border/50">
                         <span class="text-xcord-text-primary text-sm">{PERMISSION_LABELS[key]}</span>
                         <div class="flex items-center space-x-1">
                           <For each={['Allow', 'Deny', 'Inherit'] as PermissionState[]}>
                             {(option) => (
                               <button
+                                data-testid={`channel-perm-${key}-${option.toLowerCase()}`}
                                 class={`text-xs px-2.5 py-1 rounded transition-colors ${
                                   state() === option
                                     ? permissionStateColor(option) + ' font-semibold'

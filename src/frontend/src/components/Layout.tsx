@@ -44,6 +44,20 @@ export default function Layout() {
   const unreadStore = useUnread();
   const modals = useModals();
 
+  createEffect(() => {
+    const server = serverStore.servers.find(s => s.id === params.serverId);
+    const channel = channelStore.channels.find(c => c.id === params.channelId);
+    if (channel && server) {
+      document.title = `#${channel.name} | ${server.name}`;
+    } else if (server) {
+      document.title = server.name;
+    } else if (params.serverId === undefined) {
+      document.title = 'Friends - Xcord';
+    } else {
+      document.title = 'Xcord';
+    }
+  });
+
   // Load servers, DMs, and connect to SignalR on mount
   onMount(() => {
     serverStore.fetchServers();
@@ -249,6 +263,7 @@ export default function Layout() {
                   {/* Header action buttons */}
                   <div class="ml-auto flex items-center space-x-2">
                     <button
+                      data-testid="search-button"
                       title="Search"
                       class={`px-2 py-1 text-sm rounded transition ${modals.showSearch ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
                       onClick={() => modals.toggleSearch()}
@@ -256,6 +271,7 @@ export default function Layout() {
                       &#128269;
                     </button>
                     <button
+                      data-testid="pinned-messages-button"
                       title="Pinned Messages"
                       class={`px-2 py-1 text-sm rounded transition ${modals.showPins ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
                       onClick={() => modals.togglePins()}
@@ -263,6 +279,7 @@ export default function Layout() {
                       &#128204;
                     </button>
                     <button
+                      data-testid="threads-button"
                       title="Threads"
                       class={`px-2 py-1 text-sm rounded transition ${modals.showThreads ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
                       onClick={() => modals.toggleThreads()}
@@ -270,6 +287,7 @@ export default function Layout() {
                       &#35;&#xFE0F;&#8203;
                     </button>
                     <button
+                      data-testid="channel-settings-button"
                       title="Channel Settings"
                       aria-label="Channel Settings"
                       class={`px-2 py-1 text-sm rounded transition ${modals.showChannelSettings ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
@@ -278,6 +296,7 @@ export default function Layout() {
                       &#9965;
                     </button>
                     <button
+                      data-testid="group-manager-button"
                       title="Groups"
                       aria-label="Group Manager"
                       class={`px-2 py-1 text-sm rounded transition ${modals.showGroupManager ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
@@ -286,6 +305,7 @@ export default function Layout() {
                       &#127775;
                     </button>
                     <button
+                      data-testid="scheduled-events-button"
                       title="Scheduled Events"
                       aria-label="Scheduled Events"
                       class={`px-2 py-1 text-sm rounded transition ${modals.showEvents ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
@@ -294,6 +314,7 @@ export default function Layout() {
                       &#128197;
                     </button>
                     <button
+                      data-testid="user-settings-button"
                       title="Settings"
                       class={`px-2 py-1 text-sm rounded transition ${modals.showSettings ? 'text-white bg-xcord-bg-secondary' : 'text-xcord-text-muted hover:text-white hover:bg-xcord-bg-secondary'}`}
                       onClick={() => modals.toggleSettings()}
@@ -411,6 +432,7 @@ export default function Layout() {
         <div id="settings-modal-panel">
         <div class="flex border-b border-xcord-border">
           <button
+            data-testid="settings-tab-profile"
             class={`px-4 py-3 text-sm ${modals.showSettings === 'profile' ? 'text-white border-b-2 border-xcord-brand' : 'text-xcord-text-muted hover:text-white'}`}
             onClick={() => modals.openSettings('profile')}
           >
@@ -452,7 +474,7 @@ export default function Layout() {
       </Show>
 
       {/* Group Manager modal */}
-      <Modal open={modals.showGroupManager && !!serverStore.selectedServerId} onClose={() => modals.closeGroupManager()} aria-label="Group Manager" size="xl">
+      <Modal data-testid="group-manager-modal" open={modals.showGroupManager && !!serverStore.selectedServerId} onClose={() => modals.closeGroupManager()} aria-label="Group Manager" size="xl">
         <div class="h-[min(600px,70vh)]">
           <GroupManager serverId={serverStore.selectedServerId!} />
         </div>

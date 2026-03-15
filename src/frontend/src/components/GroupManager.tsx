@@ -184,8 +184,9 @@ export default function GroupManager(props: GroupManagerProps) {
     <div class="flex flex-col h-full bg-xcord-bg-secondary">
       {/* Header */}
       <div class="px-4 py-3 border-b border-xcord-border flex items-center justify-between">
-        <h2 class="text-xcord-text-primary font-bold text-xl">Groups</h2>
+        <h2 data-testid="group-manager-heading" class="text-xcord-text-primary font-bold text-xl">Groups</h2>
         <button
+          data-testid="create-group-button"
           type="button"
           onClick={() => { setShowCreateForm(true); setSaveSuccess(''); setSaveError(''); }}
           class="px-3 py-1.5 bg-xcord-brand hover:bg-xcord-brand-hover text-white text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
@@ -202,7 +203,7 @@ export default function GroupManager(props: GroupManagerProps) {
 
       <div class="flex flex-1 min-h-0">
         {/* Group list */}
-        <div class="w-56 border-r border-xcord-border overflow-y-auto flex-shrink-0">
+        <div data-testid="group-list-sidebar" class="w-56 border-r border-xcord-border overflow-y-auto flex-shrink-0">
           <Show when={isLoading()}>
             <div class="flex items-center justify-center h-24">
               <p class="text-xcord-text-muted text-sm">Loading groups...</p>
@@ -218,6 +219,7 @@ export default function GroupManager(props: GroupManagerProps) {
           <For each={groups()}>
             {(group) => (
               <button
+                data-testid={group.name === '@everyone' ? 'group-item-everyone' : `group-item-${group.id}`}
                 type="button"
                 onClick={() => { selectGroup(group); setShowCreateForm(false); }}
                 class={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none ${
@@ -263,6 +265,7 @@ export default function GroupManager(props: GroupManagerProps) {
               <div class="flex gap-2">
                 <button
                   type="submit"
+                  data-testid="create-group-submit-button"
                   disabled={isCreating()}
                   class="px-4 py-1.5 bg-xcord-brand hover:bg-xcord-brand-hover text-white text-sm font-medium rounded disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
                 >
@@ -289,6 +292,7 @@ export default function GroupManager(props: GroupManagerProps) {
                   {/* Delete button */}
                   <button
                     type="button"
+                    data-testid="delete-group-button"
                     onClick={() => setShowDeleteConfirm(true)}
                     class="text-red-400 hover:text-red-300 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none rounded"
                   >
@@ -367,7 +371,7 @@ export default function GroupManager(props: GroupManagerProps) {
                   <div class="space-y-2">
                     <For each={ROLE_FLAGS}>
                       {(flag) => (
-                        <label class="flex items-center gap-3 cursor-pointer group">
+                        <label data-testid={`permission-${flag.label.toLowerCase().replace(/\s+/g, '-')}`} class="flex items-center gap-3 cursor-pointer group">
                           <input
                             type="checkbox"
                             checked={hasRole(editRoles(), flag.bit)}
@@ -398,6 +402,7 @@ export default function GroupManager(props: GroupManagerProps) {
                 {/* Save button */}
                 <div class="flex justify-end">
                   <button
+                    data-testid="group-save-changes-button"
                     type="submit"
                     disabled={isSaving()}
                     class="px-5 py-2 bg-xcord-brand hover:bg-xcord-brand-hover text-white text-sm font-medium rounded transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"

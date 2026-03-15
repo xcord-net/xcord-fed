@@ -82,7 +82,7 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
 
   return (
     <>
-      <Modal open={true} onClose={props.onClose} aria-label="Channel Settings" size="lg">
+      <Modal data-testid="channel-settings-dialog" open={true} onClose={props.onClose} aria-label="Channel Settings" size="lg">
         {/* Header */}
         <div class="flex items-center justify-between px-6 py-4 border-b border-xcord-border">
           <div>
@@ -92,6 +92,7 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
             </p>
           </div>
           <button
+            data-testid="channel-settings-close-button"
             type="button"
             aria-label="Close channel settings"
             onClick={props.onClose}
@@ -104,6 +105,7 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
         {/* Tab navigation */}
         <div class="flex border-b border-xcord-border px-6">
           <button
+            data-testid="channel-settings-tab-overview"
             type="button"
             class={`px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none ${
               activeTab() === 'overview'
@@ -115,6 +117,7 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
             Overview
           </button>
           <button
+            data-testid="channel-settings-tab-permissions"
             type="button"
             aria-label="Channel Permissions tab"
             class={`px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none ${

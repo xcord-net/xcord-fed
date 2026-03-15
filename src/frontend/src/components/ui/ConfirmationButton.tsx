@@ -8,6 +8,7 @@ interface ConfirmationButtonProps {
   isLoading?: boolean;
   label?: string;
   confirmText?: string;
+  testId?: string;
 }
 
 export default function ConfirmationButton(props: ConfirmationButtonProps) {
@@ -20,6 +21,7 @@ export default function ConfirmationButton(props: ConfirmationButtonProps) {
       fallback={
         <button
           class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 flex-shrink-0"
+          data-testid={props.testId}
           onClick={props.onStartConfirm}
         >
           {label()}
@@ -37,6 +39,7 @@ export default function ConfirmationButton(props: ConfirmationButtonProps) {
           </button>
           <button
             class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 disabled:opacity-50"
+            data-testid={props.testId ? `${props.testId}-confirm` : undefined}
             disabled={props.isLoading}
             onClick={props.onConfirm}
           >

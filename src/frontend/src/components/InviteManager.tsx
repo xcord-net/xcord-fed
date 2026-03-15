@@ -96,7 +96,7 @@ export default function InviteManager(props: InviteManagerProps) {
           {(invite) => (
             <div class="px-4 py-3 flex items-start justify-between hover:bg-xcord-bg-primary/50 border-b border-xcord-border">
               <div class="flex-1 min-w-0">
-                <p class="text-white font-mono text-sm font-medium" aria-label={`Invite code ${invite.code}`}>
+                <p class="text-white font-mono text-sm font-medium" data-testid={`invite-code-${invite.code}`} aria-label={`Invite code ${invite.code}`}>
                   {invite.code}
                 </p>
                 <p class="text-xcord-text-muted text-xs mt-0.5">
@@ -113,6 +113,7 @@ export default function InviteManager(props: InviteManagerProps) {
                   isLoading={revokingCode() === invite.code}
                   label="Revoke"
                   confirmText="Revoke?"
+                  testId={`invite-revoke-${invite.code}`}
                 />
               </div>
             </div>

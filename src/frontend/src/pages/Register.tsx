@@ -1,4 +1,4 @@
-import { createSignal } from 'solid-js';
+import { createSignal, onMount } from 'solid-js';
 import { useNavigate, A } from '@solidjs/router';
 import { useAuth } from '../stores/auth.store';
 
@@ -9,6 +9,8 @@ export default function Register() {
   const [error, setError] = createSignal('');
   const [loading, setLoading] = createSignal(false);
   const auth = useAuth();
+
+  onMount(() => { document.title = 'Register - Xcord'; });
   const navigate = useNavigate();
 
   const handleSubmit = async (e: Event) => {
@@ -28,8 +30,8 @@ export default function Register() {
   return (
     <div class="min-h-screen bg-xcord-bg-tertiary flex items-center justify-center">
       <form onSubmit={handleSubmit} class="bg-xcord-bg-secondary p-8 rounded-lg shadow-xl w-full max-w-md">
-        <h1 class="text-2xl font-bold text-xcord-text-primary mb-6 text-center">Create an account</h1>
-        {error() && <p class="text-red-400 text-sm mb-4">{error()}</p>}
+        <h1 data-testid="register-heading" class="text-2xl font-bold text-xcord-text-primary mb-6 text-center">Create an account</h1>
+        {error() && <p data-testid="register-error" class="text-red-400 text-sm mb-4">{error()}</p>}
         <div class="mb-4">
           <label for="reg-username" class="block text-xcord-text-secondary text-sm font-medium mb-2">Username</label>
           <input
@@ -64,6 +66,7 @@ export default function Register() {
           />
         </div>
         <button
+          data-testid="register-submit-button"
           type="submit"
           disabled={loading()}
           class="w-full bg-xcord-brand hover:bg-xcord-brand-hover text-white font-medium py-2 rounded disabled:opacity-50"

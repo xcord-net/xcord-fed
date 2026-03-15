@@ -57,6 +57,7 @@ export default function ServerSidebar() {
     <div class="w-16 bg-xcord-bg-tertiary flex flex-col items-center py-3 space-y-2">
       {/* Home button */}
       <button
+        data-testid="nav-home-button"
         class="w-12 h-12 rounded-full bg-xcord-brand hover:bg-xcord-brand-hover flex items-center justify-center text-white font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
         aria-label="Home"
         onClick={() => { serverStore.selectServer(null); navigate('/channels/me'); }}
@@ -116,6 +117,7 @@ export default function ServerSidebar() {
 
       {/* Add server button */}
       <button
+        data-testid="nav-add-server-button"
         class="w-12 h-12 rounded-full bg-xcord-bg-primary hover:bg-green-600 hover:rounded-2xl flex items-center justify-center text-green-500 hover:text-white text-2xl font-semibold transition-all focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:outline-none"
         title="Add a Server"
         aria-label="Add a Server"
@@ -129,6 +131,7 @@ export default function ServerSidebar() {
       <Show when={profileStore.userProfile}>
         {(profile) => (
           <div
+            data-testid="nav-user-avatar"
             id="current-user-bar"
             class="mt-auto relative"
             aria-label={`Current user: ${profile().username}`}
@@ -150,6 +153,7 @@ export default function ServerSidebar() {
 
       {/* Log out button */}
       <button
+        data-testid="nav-logout-button"
         class="w-12 h-12 rounded-full bg-xcord-bg-primary hover:bg-red-600 flex items-center justify-center text-xcord-text-muted hover:text-white transition-all focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
         aria-label="Log Out"
         title="Log Out"

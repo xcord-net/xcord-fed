@@ -55,10 +55,10 @@ export default function PasswordChangeForm() {
 
   return (
     <div class="border-t border-xcord-border pt-6 mt-6">
-      <h3 class="text-white font-semibold mb-4">Change Password</h3>
+      <h3 data-testid="change-password-heading" class="text-white font-semibold mb-4">Change Password</h3>
       <form onSubmit={handleSubmit} class="space-y-3">
         {error() && <p class="text-red-400 text-sm">{error()}</p>}
-        {success() && <p class="text-green-400 text-sm">{success()}</p>}
+        {success() && <p data-testid="change-password-success" class="text-green-400 text-sm">{success()}</p>}
         <div>
           <label for="current-password" class="block text-xcord-text-secondary text-sm font-medium mb-1">
             Current Password
@@ -99,6 +99,7 @@ export default function PasswordChangeForm() {
           />
         </div>
         <button
+          data-testid="change-password-submit-button"
           type="submit"
           disabled={loading()}
           class="px-4 py-2 bg-xcord-brand hover:bg-xcord-brand-hover text-white rounded font-medium disabled:opacity-50"

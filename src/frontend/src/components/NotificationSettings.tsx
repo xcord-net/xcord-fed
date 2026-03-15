@@ -48,7 +48,7 @@ export default function NotificationSettings() {
   return (
     <div class="flex flex-col h-full bg-xcord-bg-secondary">
       <div class="px-4 py-3 border-b border-xcord-border">
-        <h2 class="text-white font-semibold">Notification Settings</h2>
+        <h2 data-testid="notification-settings-heading" class="text-white font-semibold">Notification Settings</h2>
       </div>
 
       <div class="flex-1 overflow-y-auto p-4 space-y-6">

@@ -116,11 +116,12 @@ export default function ServerSettings(props: ServerSettingsProps) {
 
   return (
     <>
-      <Modal open={true} onClose={props.onClose} aria-label="Server Settings" size="xl">
+      <Modal data-testid="server-settings-dialog" open={true} onClose={props.onClose} aria-label="Server Settings" size="xl">
         {/* Header */}
         <div class="flex items-center justify-between px-6 py-4 border-b border-xcord-border">
           <h2 class="text-xl font-bold text-xcord-text-primary">Server Settings</h2>
           <button
+            data-testid="server-settings-close-button"
             type="button"
             aria-label="Close settings"
             onClick={props.onClose}
@@ -135,6 +136,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
           <For each={visibleTabs()}>
             {(tab) => (
               <button
+                data-testid={`server-settings-tab-${tab.id}`}
                 type="button"
                 class={`px-4 py-2 text-sm font-medium transition-colors ${
                   activeTab() === tab.id
@@ -280,6 +282,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
                 Cancel
               </button>
               <button
+                data-testid="server-settings-save-button"
                 type="submit"
                 disabled={isSaving()}
                 class="px-5 py-2 bg-xcord-brand hover:bg-xcord-brand-hover text-white text-sm font-medium rounded transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"

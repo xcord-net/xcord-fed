@@ -1,4 +1,4 @@
-import { createSignal } from 'solid-js';
+import { createSignal, onMount } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
 import { api } from '../api/client';
 
@@ -7,6 +7,8 @@ export default function ConfirmEmail() {
   const [error, setError] = createSignal('');
   const [loading, setLoading] = createSignal(false);
   const navigate = useNavigate();
+
+  onMount(() => { document.title = 'Confirm Email - Xcord'; });
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
@@ -27,7 +29,7 @@ export default function ConfirmEmail() {
   return (
     <div class="min-h-screen bg-xcord-bg-tertiary flex items-center justify-center">
       <form onSubmit={handleSubmit} class="bg-xcord-bg-secondary p-8 rounded-lg shadow-xl w-full max-w-md">
-        <h1 class="text-2xl font-bold text-xcord-text-primary mb-2 text-center">Confirm your email</h1>
+        <h1 data-testid="confirm-email-heading" class="text-2xl font-bold text-xcord-text-primary mb-2 text-center">Confirm your email</h1>
         <p class="text-xcord-text-muted text-sm mb-6 text-center">
           We sent a 6-digit code to your email address. Enter it below to verify your account.
         </p>
@@ -47,6 +49,7 @@ export default function ConfirmEmail() {
           />
         </div>
         <button
+          data-testid="confirm-email-submit-button"
           type="submit"
           disabled={loading() || code().length !== 6}
           class="w-full bg-xcord-brand hover:bg-xcord-brand-hover text-white font-medium py-2 rounded disabled:opacity-50"

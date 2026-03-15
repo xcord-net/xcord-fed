@@ -1,4 +1,4 @@
-import { createSignal, Show } from 'solid-js';
+import { createSignal, onMount, Show } from 'solid-js';
 import { A } from '@solidjs/router';
 import { api } from '../api/client';
 
@@ -7,6 +7,8 @@ export default function ForgotPassword() {
   const [loading, setLoading] = createSignal(false);
   const [error, setError] = createSignal('');
   const [submitted, setSubmitted] = createSignal(false);
+
+  onMount(() => { document.title = 'Forgot Password - Xcord'; });
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
@@ -29,13 +31,13 @@ export default function ForgotPassword() {
   return (
     <div class="min-h-screen bg-xcord-bg-tertiary flex items-center justify-center">
       <div class="bg-xcord-bg-secondary p-8 rounded-lg shadow-xl w-full max-w-md">
-        <h1 class="text-2xl font-bold text-xcord-text-primary mb-2 text-center">Forgot your password?</h1>
+        <h1 data-testid="forgot-password-heading" class="text-2xl font-bold text-xcord-text-primary mb-2 text-center">Forgot your password?</h1>
         <p class="text-xcord-text-muted text-sm mb-6 text-center">
           Enter your email and we'll send you a reset link.
         </p>
 
         <Show when={submitted()}>
-          <div class="text-sm text-xcord-text-primary bg-xcord-bg-tertiary border border-xcord-brand/30 rounded p-3 mb-4">
+          <div data-testid="forgot-password-success" class="text-sm text-xcord-text-primary bg-xcord-bg-tertiary border border-xcord-brand/30 rounded p-3 mb-4">
             If an account with that email exists, you'll receive a reset link shortly.
           </div>
           <p class="text-xcord-text-muted text-sm mt-4 text-center">
@@ -45,7 +47,7 @@ export default function ForgotPassword() {
 
         <Show when={!submitted()}>
           <form onSubmit={handleSubmit}>
-            {error() && <p class="text-red-400 text-sm mb-4">{error()}</p>}
+            {error() && <p data-testid="forgot-password-error" class="text-red-400 text-sm mb-4">{error()}</p>}
             <div class="mb-6">
               <label for="forgot-email" class="block text-xcord-text-secondary text-sm font-medium mb-2">Email</label>
               <input
@@ -59,6 +61,7 @@ export default function ForgotPassword() {
               />
             </div>
             <button
+              data-testid="forgot-password-submit-button"
               type="submit"
               disabled={loading()}
               class="w-full bg-xcord-brand hover:bg-xcord-brand-hover text-white font-medium py-2 rounded disabled:opacity-50"

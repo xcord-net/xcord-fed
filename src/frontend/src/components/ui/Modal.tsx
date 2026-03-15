@@ -22,6 +22,7 @@ interface ModalProps {
   onClose: () => void;
   title?: string;
   'aria-label'?: string;
+  'data-testid'?: string;
   size?: ModalSize;
   role?: 'dialog' | 'alertdialog';
   children: JSX.Element;
@@ -49,6 +50,7 @@ export default function Modal(props: ModalProps) {
     'onClose',
     'title',
     'aria-label',
+    'data-testid',
     'size',
     'role',
     'children',
@@ -111,6 +113,7 @@ export default function Modal(props: ModalProps) {
             panelEl = el;
             dialogRef = el;
           }}
+          data-testid={local['data-testid']}
           role={dialogRole()}
           aria-modal="true"
           aria-label={ariaLabel()}

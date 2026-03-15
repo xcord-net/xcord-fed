@@ -35,7 +35,7 @@ export default function CreateServerModal(props: CreateServerModalProps) {
   };
 
   return (
-    <Modal open={true} onClose={props.onClose} title="Create a Server" size="md">
+    <Modal data-testid="create-server-dialog" open={true} onClose={props.onClose} title="Create a Server" size="md">
       <div class="p-6">
         <form onSubmit={handleCreate}>
           <div class="mb-4">
@@ -63,6 +63,7 @@ export default function CreateServerModal(props: CreateServerModalProps) {
               Cancel
             </button>
             <button
+              data-testid="create-server-submit-button"
               type="submit"
               disabled={!name().trim() || loading()}
               class="px-4 py-2 bg-xcord-brand hover:bg-xcord-brand-hover text-white font-medium rounded disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"

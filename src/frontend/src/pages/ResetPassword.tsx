@@ -13,6 +13,7 @@ export default function ResetPassword() {
   const navigate = useNavigate();
 
   onMount(() => {
+    document.title = 'Reset Password - Xcord';
     const params = new URLSearchParams(window.location.search);
     const t = params.get('token');
     if (t) {
@@ -59,7 +60,7 @@ export default function ResetPassword() {
         when={!success()}
         fallback={
           <div class="bg-xcord-bg-secondary p-8 rounded-lg shadow-xl w-full max-w-md text-center">
-            <h1 class="text-2xl font-bold text-xcord-text-primary mb-4">Password reset successfully!</h1>
+            <h1 data-testid="reset-password-success" class="text-2xl font-bold text-xcord-text-primary mb-4">Password reset successfully!</h1>
             <p class="text-xcord-text-muted text-sm mb-6">
               Your password has been changed successfully. You can now log in with your new password.
             </p>
@@ -73,11 +74,11 @@ export default function ResetPassword() {
         }
       >
         <form onSubmit={handleSubmit} class="bg-xcord-bg-secondary p-8 rounded-lg shadow-xl w-full max-w-md">
-          <h1 class="text-2xl font-bold text-xcord-text-primary mb-2 text-center">Choose a new password</h1>
+          <h1 data-testid="reset-password-heading" class="text-2xl font-bold text-xcord-text-primary mb-2 text-center">Choose a new password</h1>
           <p class="text-xcord-text-muted text-sm mb-6 text-center">
             Enter a new password for your account. This link expires after 1 hour.
           </p>
-          {error() && <p class="text-red-400 text-sm mb-4">{error()}</p>}
+          {error() && <p data-testid="reset-password-error" class="text-red-400 text-sm mb-4">{error()}</p>}
           <div class="mb-4">
             <label for="reset-new-password" class="block text-xcord-text-secondary text-sm font-medium mb-2">New Password</label>
             <input
@@ -104,6 +105,7 @@ export default function ResetPassword() {
             />
           </div>
           <button
+            data-testid="reset-password-submit-button"
             type="submit"
             disabled={loading() || !token()}
             class="w-full bg-xcord-brand hover:bg-xcord-brand-hover text-white font-medium py-2 rounded disabled:opacity-50"

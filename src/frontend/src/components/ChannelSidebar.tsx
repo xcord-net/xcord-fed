@@ -126,6 +126,7 @@ export default function ChannelSidebar() {
         <h2 class="font-semibold text-white truncate flex-1">{currentServer()?.name || 'Select a server'}</h2>
         <Show when={serverStore.selectedServerId}>
           <button
+            data-testid="server-menu-trigger"
             ref={menuButtonRef}
             type="button"
             aria-label="Server options"
@@ -149,6 +150,7 @@ export default function ChannelSidebar() {
           placement="bottom-start"
         >
           <button
+            data-testid="server-menu-settings"
             type="button"
             role="menuitem"
             onClick={() => { setShowServerSettings(true); setShowServerMenu(false); }}
@@ -157,6 +159,7 @@ export default function ChannelSidebar() {
             Server Settings
           </button>
           <button
+            data-testid="server-menu-invite"
             type="button"
             role="menuitem"
             onClick={() => { setShowInviteModal(true); setShowServerMenu(false); }}
@@ -166,6 +169,7 @@ export default function ChannelSidebar() {
           </button>
           <div class="border-t border-xcord-border my-1" />
           <button
+            data-testid="server-menu-leave"
             type="button"
             role="menuitem"
             onClick={() => {
@@ -184,6 +188,7 @@ export default function ChannelSidebar() {
         <div class="px-2 py-1 border-b border-xcord-border">
           <Show when={showCreateChannel()} fallback={
             <button
+              data-testid="create-channel-button"
               class="w-full text-left px-2 py-1 text-xs text-xcord-text-muted hover:text-white"
               onClick={() => setShowCreateChannel(true)}
               title="Create Channel"
@@ -386,11 +391,12 @@ export default function ChannelSidebar() {
       </Show>
 
       {/* Leave server confirmation */}
-      <Modal open={showLeaveConfirm()} onClose={() => setShowLeaveConfirm(false)} title="Leave Server" size="sm" role="alertdialog">
+      <Modal data-testid="leave-server-dialog" open={showLeaveConfirm()} onClose={() => setShowLeaveConfirm(false)} title="Leave Server" size="sm" role="alertdialog">
         <div class="p-6">
           <p class="text-xcord-text-secondary text-sm mb-6">Are you sure you want to leave this server?</p>
           <div class="flex justify-end gap-3">
             <button
+              data-testid="leave-server-cancel-button"
               type="button"
               onClick={() => setShowLeaveConfirm(false)}
               class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
@@ -398,6 +404,7 @@ export default function ChannelSidebar() {
               Cancel
             </button>
             <button
+              data-testid="leave-server-confirm-button"
               type="button"
               onClick={() => {
                 setShowLeaveConfirm(false);

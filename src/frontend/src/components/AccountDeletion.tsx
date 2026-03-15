@@ -73,7 +73,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
   };
 
   return (
-    <div class="mt-6 border-t border-red-800 pt-6">
+    <div data-testid="danger-zone-section" class="mt-6 border-t border-red-800 pt-6">
       <h3 class="text-red-400 font-semibold text-sm uppercase tracking-wide mb-3">
         Danger Zone
       </h3>
@@ -105,6 +105,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
           period. You can cancel the deletion during this time.
         </p>
         <button
+          data-testid="delete-account-button"
           class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition text-sm disabled:opacity-50"
           onClick={() => {
             setError('');
@@ -117,6 +118,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
       </Show>
 
       <Modal
+        data-testid="delete-account-dialog"
         open={showConfirmDialog()}
         onClose={() => { setShowConfirmDialog(false); setPassword(''); setError(''); }}
         title="Confirm Account Deletion"
@@ -139,6 +141,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
               Password
             </label>
             <input
+              data-testid="delete-account-password-input"
               type="password"
               class="w-full bg-xcord-bg-primary text-xcord-text-primary px-3 py-2 rounded text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
               value={password()}
@@ -149,6 +152,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
 
           <div class="flex gap-3">
             <button
+              data-testid="delete-account-confirm-button"
               class="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-700 transition disabled:opacity-50"
               onClick={handleRequestDeletion}
               disabled={isLoading()}

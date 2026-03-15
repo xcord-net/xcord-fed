@@ -2872,6 +2872,7 @@ namespace Xcord.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+
             migrationBuilder.DropForeignKey(
                 name: "FK_servers_users_OwnerId",
                 table: "servers");
