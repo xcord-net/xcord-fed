@@ -78,6 +78,12 @@ app.MapHandlerEndpoints(typeof(Xcord.Features.FeaturesAssemblyMarker).Assembly);
 Xcord.Features.Billing.MemberBillingWebhookHandler.Map(app);
 app.MapHub<MainHub>("/hubs/main");
 
+// Dev-only test seed endpoint for E2E tests
+if (app.Environment.IsDevelopment())
+{
+    TestSeedEndpoint.Map(app);
+}
+
 // Admin SPA Fallback
 app.MapWhen(
     ctx => ctx.Request.Path.StartsWithSegments("/admin"),

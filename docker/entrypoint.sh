@@ -2,7 +2,8 @@
 set -e
 
 CONFIG_PATH="/run/secrets/xcord-config"
-APPSETTINGS_PATH="/app/appsettings.Production.json"
+APPSETTINGS_ENV="${ASPNETCORE_ENVIRONMENT:-Production}"
+APPSETTINGS_PATH="/app/appsettings.${APPSETTINGS_ENV}.json"
 
 # XCORD_CONFIG_INLINE is a developer escape hatch that allows the config JSON
 # to be passed as an environment variable instead of a Docker secret file.
@@ -62,7 +63,8 @@ if [ -n "${XCORD_CONFIG_INLINE:-}" ]; then
             MaxRequests: (.rateLimiting.maxRequests // 100),
             WindowSeconds: (.rateLimiting.windowSeconds // 60),
             AuthRegisterPermitLimit: (.rateLimiting.authRegisterPermitLimit // 3),
-            AuthForgotPasswordPermitLimit: (.rateLimiting.authForgotPasswordPermitLimit // 3)
+            AuthForgotPasswordPermitLimit: (.rateLimiting.authForgotPasswordPermitLimit // 3),
+            AuthPermitLimit: (.rateLimiting.authPermitLimit // 10)
         },
         Gif: {
             Provider: (.gif.provider // "none"),
@@ -112,6 +114,9 @@ if [ -n "${XCORD_CONFIG_INLINE:-}" ]; then
         MemberBilling: {
             StripeSecretKey: (.memberBilling.stripeSecretKey // ""),
             StripeWebhookSecret: (.memberBilling.stripeWebhookSecret // "")
+        },
+        TestSeed: {
+            Key: (.testSeed.key // "")
         }
     }' > "$APPSETTINGS_PATH"
     echo "Configuration generated at $APPSETTINGS_PATH"
@@ -170,7 +175,8 @@ elif [ -f "$CONFIG_PATH" ]; then
             MaxRequests: (.rateLimiting.maxRequests // 100),
             WindowSeconds: (.rateLimiting.windowSeconds // 60),
             AuthRegisterPermitLimit: (.rateLimiting.authRegisterPermitLimit // 3),
-            AuthForgotPasswordPermitLimit: (.rateLimiting.authForgotPasswordPermitLimit // 3)
+            AuthForgotPasswordPermitLimit: (.rateLimiting.authForgotPasswordPermitLimit // 3),
+            AuthPermitLimit: (.rateLimiting.authPermitLimit // 10)
         },
         Gif: {
             Provider: (.gif.provider // "none"),
@@ -220,6 +226,9 @@ elif [ -f "$CONFIG_PATH" ]; then
         MemberBilling: {
             StripeSecretKey: (.memberBilling.stripeSecretKey // ""),
             StripeWebhookSecret: (.memberBilling.stripeWebhookSecret // "")
+        },
+        TestSeed: {
+            Key: (.testSeed.key // "")
         }
     }' "$CONFIG_PATH" > "$APPSETTINGS_PATH"
 
