@@ -214,6 +214,17 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<OpenGraphParser>();
         services.AddScoped<IMemberBillingService, MemberBillingService>();
         services.AddScoped<Xcord.Features.Billing.MemberBillingWebhookHandler>();
+
+        // Hub client (optional - only when hub-connected)
+        var hubOpts = config.GetSection(HubOptions.SectionName).Get<HubOptions>();
+        if (hubOpts?.Enabled == true)
+        {
+            services.AddHttpClient<IHubClient, HubClient>();
+        }
+        else
+        {
+            services.AddSingleton<IHubClient, NullHubClient>();
+        }
     }
 
     private static void AddBackgroundServices(IServiceCollection services)

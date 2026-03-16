@@ -13,5 +13,7 @@ public sealed class HubOptions
 
     public string? BootstrapToken { get; set; }
 
+    public string? FederationToken { get; set; }
+
     public string? Origin { get; set; }
 }
