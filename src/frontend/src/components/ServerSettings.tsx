@@ -18,6 +18,7 @@ import InviteManager from './InviteManager';
 import AppDirectory from './AppDirectory';
 import OwnershipTransfer from './OwnershipTransfer';
 import WelcomeScreen from './WelcomeScreen';
+import UpdatesTab from './UpdatesTab';
 import Modal from './ui/Modal';
 import { getErrorMessage } from '../utils/errors';
 
@@ -27,7 +28,7 @@ interface ServerSettingsProps {
 }
 
 type NotificationLevel = 'AllMessages' | 'OnlyMentions' | 'Nothing';
-type SettingsTab = 'overview' | 'automod' | 'bans' | 'audit-log' | 'emoji' | 'stickers' | 'vanity-url' | 'templates' | 'boost' | 'insights' | 'invites' | 'app-directory' | 'welcome-screen';
+type SettingsTab = 'overview' | 'automod' | 'bans' | 'audit-log' | 'emoji' | 'stickers' | 'vanity-url' | 'templates' | 'boost' | 'insights' | 'invites' | 'app-directory' | 'welcome-screen' | 'updates';
 
 const NOTIFICATION_OPTIONS: { label: string; value: NotificationLevel }[] = [
   { label: 'All Messages', value: 'AllMessages' },
@@ -49,6 +50,7 @@ const TABS: { id: SettingsTab; label: string; ownerOnly?: boolean }[] = [
   { id: 'invites', label: 'Invites', ownerOnly: true },
   { id: 'app-directory', label: 'App Directory' },
   { id: 'welcome-screen', label: 'Welcome Screen' },
+  { id: 'updates', label: 'Updates', ownerOnly: true },
 ];
 
 export default function ServerSettings(props: ServerSettingsProps) {
@@ -382,6 +384,13 @@ export default function ServerSettings(props: ServerSettingsProps) {
         {/* Welcome Screen tab */}
         <Show when={activeTab() === 'welcome-screen'}>
           <WelcomeScreen serverId={props.serverId} isOwner={isOwner()} />
+        </Show>
+
+        {/* Updates tab */}
+        <Show when={activeTab() === 'updates'}>
+          <div class="px-6 py-5">
+            <UpdatesTab />
+          </div>
         </Show>
       </Modal>
 

@@ -1,9 +1,10 @@
-import { createSignal, For, Show } from 'solid-js';
+import { createSignal, For, Show, onMount } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
 import { useServers } from '../stores/server.store';
 import { useChannels } from '../stores/channel.store';
 import { useAuth } from '../stores/auth.store';
 import { useProfiles } from '../stores/profile.store';
+import { api } from '../api/client';
 import CreateServerModal from './CreateServerModal';
 import StatusPicker from './StatusPicker';
 
@@ -15,6 +16,16 @@ export default function ServerSidebar() {
   const profileStore = useProfiles();
   const [showCreateModal, setShowCreateModal] = createSignal(false);
   const [focusedIndex, setFocusedIndex] = createSignal(-1);
+  const [version, setVersion] = createSignal<string | null>(null);
+
+  onMount(async () => {
+    try {
+      const data = await api.get<{ currentVersion: string }>('/api/v1/admin/system/version');
+      setVersion(data.currentVersion);
+    } catch {
+      // Version display is best-effort; don't block sidebar on failure
+    }
+  });
 
   const navigateToServer = async (serverId: string) => {
     serverStore.selectServer(serverId);
@@ -168,6 +179,14 @@ export default function ServerSidebar() {
 
       <Show when={showCreateModal()}>
         <CreateServerModal onClose={() => setShowCreateModal(false)} />
+      </Show>
+
+      <Show when={version()}>
+        <div class="mt-auto pt-2 pb-1 text-center">
+          <span data-testid="version-badge" class="text-[10px] text-xcord-text-muted opacity-60">
+            v{version()}
+          </span>
+        </div>
       </Show>
     </div>
   );
