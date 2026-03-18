@@ -63,6 +63,7 @@ export default function Register() {
             onInput={(e) => setPassword(e.currentTarget.value)}
             class="w-full bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-2 border border-xcord-border focus:border-xcord-brand focus:outline-none"
             required
+            autocomplete="new-password"
           />
         </div>
         <button
