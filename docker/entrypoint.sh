@@ -109,7 +109,14 @@ if [ -n "${XCORD_CONFIG_INLINE:-}" ]; then
             MaxScreenShareBitrateKbps: (.tier.maxScreenShareBitrateKbps // 0)
         },
         Auth: {
-            BcryptWorkFactor: (.auth.bcryptWorkFactor // 12)
+            BcryptWorkFactor: (.auth.bcryptWorkFactor // 12),
+            RegistrationEnabled: (if .auth.registrationEnabled == null then true else .auth.registrationEnabled end)
+        },
+        Admin: {
+            Email: (.admin.email // ""),
+            Username: (.admin.username // ""),
+            DisplayName: (.admin.displayName // ""),
+            PasswordHash: (.admin.passwordHash // "")
         },
         MemberBilling: {
             StripeSecretKey: (.memberBilling.stripeSecretKey // ""),
@@ -221,7 +228,14 @@ elif [ -f "$CONFIG_PATH" ]; then
             MaxScreenShareBitrateKbps: (.tier.maxScreenShareBitrateKbps // 0)
         },
         Auth: {
-            BcryptWorkFactor: (.auth.bcryptWorkFactor // 12)
+            BcryptWorkFactor: (.auth.bcryptWorkFactor // 12),
+            RegistrationEnabled: (if .auth.registrationEnabled == null then true else .auth.registrationEnabled end)
+        },
+        Admin: {
+            Email: (.admin.email // ""),
+            Username: (.admin.username // ""),
+            DisplayName: (.admin.displayName // ""),
+            PasswordHash: (.admin.passwordHash // "")
         },
         MemberBilling: {
             StripeSecretKey: (.memberBilling.stripeSecretKey // ""),

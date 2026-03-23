@@ -10,8 +10,21 @@ export default function Register() {
   const [loading, setLoading] = createSignal(false);
   const auth = useAuth();
 
-  onMount(() => { document.title = 'Register - Xcord'; });
   const navigate = useNavigate();
+
+  onMount(async () => {
+    document.title = 'Register - Xcord';
+    try {
+      const res = await fetch('/api/v1/config');
+      if (res.ok) {
+        const data = await res.json();
+        if (!data.registrationEnabled) {
+          navigate('/login');
+          return;
+        }
+      }
+    } catch {}
+  });
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();

@@ -41,6 +41,9 @@ public sealed partial class RegisterHandler(
 
     public Error? Validate(RegisterRequest request)
     {
+        if (!_authOptions.RegistrationEnabled)
+            return Error.Forbidden("REGISTRATION_DISABLED", "Public registration is disabled. Join via invite from an existing member.");
+
         if (string.IsNullOrWhiteSpace(request.Username))
             return Error.Validation("VALIDATION_FAILED", "Username is required");
 

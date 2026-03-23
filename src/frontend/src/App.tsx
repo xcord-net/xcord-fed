@@ -3,7 +3,6 @@ import { ErrorBoundary, Show, lazy, onMount } from 'solid-js';
 import AuthGuard from './components/AuthGuard';
 import { useAuth } from './stores/auth.store';
 import { useSignalR } from './stores/signalr.store';
-import { requestPermission } from './services/notification.service';
 
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
@@ -43,9 +42,6 @@ export default function App() {
 
   onMount(() => {
     auth.validateAuth();
-    // Request desktop notification permission on app init. The browser will only
-    // show the permission prompt once; subsequent calls are no-ops.
-    requestPermission().catch(() => { /* permission denied or not supported */ });
   });
 
   return (

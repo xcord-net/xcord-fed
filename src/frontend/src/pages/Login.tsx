@@ -10,9 +10,19 @@ export default function Login() {
   const [loading, setLoading] = createSignal(false);
   const [twoFactorToken, setTwoFactorToken] = createSignal('');
   const [twoFactorCode, setTwoFactorCode] = createSignal('');
+  const [registrationEnabled, setRegistrationEnabled] = createSignal(true);
   const auth = useAuth();
 
-  onMount(() => { document.title = 'Log In - Xcord'; });
+  onMount(async () => {
+    document.title = 'Log In - Xcord';
+    try {
+      const res = await fetch('/api/v1/config');
+      if (res.ok) {
+        const data = await res.json();
+        setRegistrationEnabled(data.registrationEnabled);
+      }
+    } catch {}
+  });
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -92,9 +102,11 @@ export default function Login() {
           >
             {loading() ? 'Logging in...' : 'Log In'}
           </button>
-          <p class="text-xcord-text-muted text-sm mt-4 text-center">
-            Need an account? <A data-testid="login-register-link" href="/register" class="text-xcord-brand hover:underline">Register</A>
-          </p>
+          <Show when={registrationEnabled()}>
+            <p class="text-xcord-text-muted text-sm mt-4 text-center">
+              Need an account? <A data-testid="login-register-link" href="/register" class="text-xcord-brand hover:underline">Register</A>
+            </p>
+          </Show>
           <p class="text-xcord-text-muted text-sm mt-2 text-center">
             <A data-testid="login-forgot-password-link" href="/forgot-password" class="text-xcord-brand hover:underline">Forgot your password?</A>
           </p>

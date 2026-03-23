@@ -56,9 +56,12 @@ public static class BootstrapService
     {
         var adminOptions = scope.ServiceProvider.GetRequiredService<IOptions<AdminOptions>>().Value;
 
+        var hasPassword = !string.IsNullOrWhiteSpace(adminOptions.Password);
+        var hasPasswordHash = !string.IsNullOrWhiteSpace(adminOptions.PasswordHash);
+
         if (string.IsNullOrWhiteSpace(adminOptions.Email) ||
-            string.IsNullOrWhiteSpace(adminOptions.Password) ||
-            string.IsNullOrWhiteSpace(adminOptions.Username))
+            string.IsNullOrWhiteSpace(adminOptions.Username) ||
+            (!hasPassword && !hasPasswordHash))
         {
             return; // No admin config, skip seeding
         }
@@ -76,13 +79,18 @@ public static class BootstrapService
         }
 
         var now = DateTimeOffset.UtcNow;
-        var passwordHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(adminOptions.Password, 12));
+        var passwordHash = hasPasswordHash
+            ? adminOptions.PasswordHash
+            : await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(adminOptions.Password, 12));
+        var displayName = !string.IsNullOrWhiteSpace(adminOptions.DisplayName)
+            ? adminOptions.DisplayName
+            : adminOptions.Username;
 
         var admin = new User
         {
             Id = snowflakeGenerator.NextId(),
             Username = adminOptions.Username,
-            DisplayName = adminOptions.Username,
+            DisplayName = displayName,
             Email = encryptionService.Encrypt(adminOptions.Email.ToLowerInvariant()),
             EmailHash = emailHash,
             PasswordHash = passwordHash,

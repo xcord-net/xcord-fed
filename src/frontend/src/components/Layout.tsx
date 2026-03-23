@@ -30,6 +30,7 @@ import { useDms } from '../stores/dm.store';
 import { useSignalR } from '../stores/signalr.store';
 import { useUnread } from '../stores/unread.store';
 import { useModals } from '../stores/modal.store';
+import { requestPermission } from '../services/notification.service';
 
 export default function Layout() {
   const params = useParams<{ serverId?: string; channelId?: string }>();
@@ -62,6 +63,8 @@ export default function Layout() {
   onMount(() => {
     serverStore.fetchServers();
     dmStore.loadDms();
+    // Request notification permission after auth (not on login page)
+    requestPermission().catch(() => {});
     // Connect to the real-time hub so message/presence/typing events are received.
     // After connecting, join the current conversation in case the channels effect
     // fired before SignalR was ready (a common race on initial page load).
