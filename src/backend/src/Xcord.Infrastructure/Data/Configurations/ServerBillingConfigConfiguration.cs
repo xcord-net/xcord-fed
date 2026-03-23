@@ -16,5 +16,8 @@ public sealed class ServerBillingConfigConfiguration : IEntityTypeConfiguration<
         builder.Property(c => c.CreatedAt).IsRequired();
         builder.HasOne(c => c.Server).WithMany().HasForeignKey(c => c.ServerId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(c => c.ServerId).IsUnique();
+
+        // Suppress EF Core warning: required principal Server has a global query filter
+        builder.HasQueryFilter(c => c.Server!.DeletedAt == null);
     }
 }

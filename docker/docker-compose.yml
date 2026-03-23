@@ -1,50 +1,81 @@
 services:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      livekit:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      XCORD_CONFIG_INLINE: |
+        {
+          "database": { "connectionString": "Host=postgres;Database=xcord_dev;Username=xcord;Password=xcord_dev" },
+          "redis": { "connectionString": "redis:6379", "channelPrefix": "xcord-dev" },
+          "jwt": { "issuer": "xcord-dev", "audience": "xcord-dev" },
+          "storage": { "endpoint": "http://minio:9000", "bucket": "xcord-dev", "accessKey": "minioadmin", "secretKey": "minioadmin", "useSsl": false },
+          "livekit": { "host": "http://livekit:7880", "apiKey": "devkey", "apiSecret": "devsecretdevsecretdevsecretdevsecret" },
+          "cors": { "allowedOrigins": ["http://localhost:8080"] },
+          "instance": { "domain": "localhost", "name": "Xcord" },
+          "snowflake": { "workerId": 0 },
+          "email": { "smtpHost": "mailpit", "smtpPort": 1025, "fromAddress": "noreply@xcord.local", "fromName": "Xcord", "useSsl": false, "devMode": true },
+          "rateLimiting": { "maxRequests": 10000, "windowSeconds": 60, "authPermitLimit": 100 },
+          "auth": { "bcryptWorkFactor": 10, "registrationEnabled": true },
+          "admin": { "email": "admin@xcord.local", "password": "Admin123!", "username": "admin" },
+          "gif": { "provider": "none" },
+          "testSeed": { "key": "dev-test-seed-key" }
+        }
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
   postgres:
     image: postgres:17-alpine
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-xcord_dev}
-      POSTGRES_USER: ${POSTGRES_USER:-xcord}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-xcord_dev}
+      POSTGRES_DB: xcord_dev
+      POSTGRES_USER: xcord
+      POSTGRES_PASSWORD: xcord_dev
     volumes:
       - postgres-data:/var/lib/postgresql/data
-    ports:
-      - "127.0.0.1:5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-xcord} -d ${POSTGRES_DB:-xcord_dev}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD-SHELL", "pg_isready -U xcord -d xcord_dev"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
       start_period: 10s
 
   redis:
     image: redis:7-alpine
     volumes:
       - redis-data:/data
-    ports:
-      - "127.0.0.1:6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 5s
+      timeout: 3s
+      retries: 10
       start_period: 5s
 
   minio:
     image: minio/minio:latest
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
     command: server /data --console-address ":9001"
     volumes:
       - minio-data:/data
-    ports:
-      - "127.0.0.1:9002:9000"
-      - "127.0.0.1:9003:9001"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 5s
+      timeout: 3s
+      retries: 10
       start_period: 10s
 
   livekit:
@@ -52,26 +83,22 @@ services:
     command: --config /etc/livekit.yaml
     volumes:
       - ./livekit.yaml:/etc/livekit.yaml:ro
-    ports:
-      - "127.0.0.1:7880:7880"
-      - "127.0.0.1:7881:7881"
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:7880"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
 
   mailpit:
     image: axllent/mailpit:latest
     ports:
-      - "127.0.0.1:1025:1025"
       - "127.0.0.1:8025:8025"
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:8025"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 5s
+      timeout: 3s
+      retries: 10
       start_period: 5s
 
 volumes:

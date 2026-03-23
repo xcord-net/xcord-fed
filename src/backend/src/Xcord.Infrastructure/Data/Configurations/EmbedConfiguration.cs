@@ -24,9 +24,13 @@ public sealed class EmbedConfiguration : IEntityTypeConfiguration<Embed>
             .IsRequired();
 
         builder.HasOne(e => e.Message)
-            .WithMany()
+            .WithMany(m => m.Embeds)
             .HasForeignKey(e => e.MessageId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Suppress EF Core warning: required principal Message has a global query filter.
+        // Also preserves the entity's own soft-delete filter since this overrides the global one.
+        builder.HasQueryFilter(e => e.DeletedAt == null && e.Message!.DeletedAt == null);
 
         builder.HasIndex(e => e.MessageId);
 

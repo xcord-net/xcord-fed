@@ -18,5 +18,9 @@ public sealed class MessageComponentConfiguration : IEntityTypeConfiguration<Mes
         builder.Property(c => c.CreatedAt).IsRequired();
         builder.HasOne(c => c.Message).WithMany().HasForeignKey(c => c.MessageId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(c => c.MessageId);
+
+        // Suppress EF Core warning: required principal Message has a global query filter.
+        // Also preserves the entity's own soft-delete filter since this overrides the global one.
+        builder.HasQueryFilter(c => c.DeletedAt == null && c.Message!.DeletedAt == null);
     }
 }

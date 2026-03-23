@@ -116,6 +116,7 @@ if [ -n "${XCORD_CONFIG_INLINE:-}" ]; then
             Email: (.admin.email // ""),
             Username: (.admin.username // ""),
             DisplayName: (.admin.displayName // ""),
+            Password: (.admin.password // ""),
             PasswordHash: (.admin.passwordHash // "")
         },
         MemberBilling: {
@@ -235,6 +236,7 @@ elif [ -f "$CONFIG_PATH" ]; then
             Email: (.admin.email // ""),
             Username: (.admin.username // ""),
             DisplayName: (.admin.displayName // ""),
+            Password: (.admin.password // ""),
             PasswordHash: (.admin.passwordHash // "")
         },
         MemberBilling: {

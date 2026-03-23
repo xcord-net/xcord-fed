@@ -61,9 +61,9 @@ namespace Xcord.Infrastructure.Migrations
                     TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     TwoFactorFailureCount = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
                     TwoFactorLockedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    MuteAll = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     LastLoginAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    MuteAll = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     ScheduledDeletionAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
@@ -563,8 +563,7 @@ namespace Xcord.Infrastructure.Migrations
                     SiteName = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
                     Color = table.Column<string>(type: "character varying(7)", maxLength: 7, nullable: true),
                     Position = table.Column<int>(type: "integer", nullable: false),
-                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    MessageId1 = table.Column<long>(type: "bigint", nullable: true)
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -575,11 +574,6 @@ namespace Xcord.Infrastructure.Migrations
                         principalTable: "messages",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_embeds_messages_MessageId1",
-                        column: x => x.MessageId1,
-                        principalTable: "messages",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -2197,11 +2191,6 @@ namespace Xcord.Infrastructure.Migrations
                 column: "MessageId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_embeds_MessageId1",
-                table: "embeds",
-                column: "MessageId1");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_event_rsvps_UserId",
                 table: "event_rsvps",
                 column: "UserId");
@@ -2846,7 +2835,6 @@ namespace Xcord.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-
             migrationBuilder.DropForeignKey(
                 name: "FK_servers_users_OwnerId",
                 table: "servers");

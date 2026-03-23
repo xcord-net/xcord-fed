@@ -13,7 +13,6 @@ Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
     .Enrich.WithProperty("Application", "Xcord.Instance")
-    .WriteTo.Console()
     .CreateLogger();
 
 builder.Host.UseSerilog();

@@ -12,7 +12,7 @@ using Xcord.Infrastructure.Data;
 namespace Xcord.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260225100800_InitialCreate")]
+    [Migration("20260323210114_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -728,9 +728,6 @@ namespace Xcord.Infrastructure.Migrations
                     b.Property<long>("MessageId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("MessageId1")
-                        .HasColumnType("bigint");
-
                     b.Property<int>("Position")
                         .HasColumnType("integer");
 
@@ -750,8 +747,6 @@ namespace Xcord.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("MessageId");
-
-                    b.HasIndex("MessageId1");
 
                     b.ToTable("embeds", (string)null);
                 });
@@ -2558,6 +2553,11 @@ namespace Xcord.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("LastLoginAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("MuteAll")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -2581,11 +2581,6 @@ namespace Xcord.Infrastructure.Migrations
 
                     b.Property<DateTimeOffset?>("TwoFactorLockedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("MuteAll")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
 
                     b.Property<string>("Username")
                         .IsRequired()
@@ -3116,14 +3111,10 @@ namespace Xcord.Infrastructure.Migrations
             modelBuilder.Entity("Xcord.Entities.Embed", b =>
                 {
                     b.HasOne("Xcord.Entities.Message", "Message")
-                        .WithMany()
+                        .WithMany("Embeds")
                         .HasForeignKey("MessageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("Xcord.Entities.Message", null)
-                        .WithMany("Embeds")
-                        .HasForeignKey("MessageId1");
 
                     b.Navigation("Message");
                 });
