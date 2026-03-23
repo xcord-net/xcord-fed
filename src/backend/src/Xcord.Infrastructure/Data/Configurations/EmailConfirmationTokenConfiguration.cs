@@ -43,5 +43,8 @@ public sealed class EmailConfirmationTokenConfiguration : IEntityTypeConfigurati
         // CreatedAt (required)
         builder.Property(ect => ect.CreatedAt)
             .IsRequired();
+
+        // Suppress EF Core warning: required principal User has a global query filter
+        builder.HasQueryFilter(ect => ect.User!.DeletedAt == null);
     }
 }

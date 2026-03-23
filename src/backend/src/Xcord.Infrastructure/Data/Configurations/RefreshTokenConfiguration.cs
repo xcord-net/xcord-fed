@@ -43,5 +43,8 @@ public sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refresh
         // CreatedAt (required)
         builder.Property(rt => rt.CreatedAt)
             .IsRequired();
+
+        // Suppress EF Core warning: required principal User has a global query filter
+        builder.HasQueryFilter(rt => rt.User!.DeletedAt == null);
     }
 }

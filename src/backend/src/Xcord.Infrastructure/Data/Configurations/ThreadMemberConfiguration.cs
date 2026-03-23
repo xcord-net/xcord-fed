@@ -32,5 +32,8 @@ public sealed class ThreadMemberConfiguration : IEntityTypeConfiguration<ThreadM
         // JoinedAt (required)
         builder.Property(tm => tm.JoinedAt)
             .IsRequired();
+
+        // Suppress EF Core warning: required principals User and Thread have global query filters
+        builder.HasQueryFilter(tm => tm.User!.DeletedAt == null && tm.Thread!.DeletedAt == null);
     }
 }

@@ -36,5 +36,8 @@ public sealed class TwoFactorBackupCodeConfiguration : IEntityTypeConfiguration<
         // CreatedAt (required)
         builder.Property(tfbc => tfbc.CreatedAt)
             .IsRequired();
+
+        // Suppress EF Core warning: required principal User has a global query filter
+        builder.HasQueryFilter(tfbc => tfbc.User!.DeletedAt == null);
     }
 }

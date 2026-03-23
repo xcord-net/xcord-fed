@@ -59,5 +59,8 @@ public sealed class TimeoutConfiguration : IEntityTypeConfiguration<Entities.Tim
             .WithMany()
             .HasForeignKey(t => t.ModeratorId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // Suppress EF Core warning: required principals User and Server have global query filters
+        builder.HasQueryFilter(t => t.User!.DeletedAt == null && t.Server!.DeletedAt == null);
     }
 }

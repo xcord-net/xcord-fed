@@ -58,5 +58,8 @@ public sealed class NotificationSettingConfiguration : IEntityTypeConfiguration<
         // Unique index on (UserId, ServerId, ChannelId) - only one setting per scope
         builder.HasIndex(ns => new { ns.UserId, ns.ServerId, ns.ChannelId })
             .IsUnique();
+
+        // Suppress EF Core warning: required principal User has a global query filter
+        builder.HasQueryFilter(ns => ns.User!.DeletedAt == null);
     }
 }

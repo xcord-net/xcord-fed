@@ -45,6 +45,8 @@ public sealed class PollVoteConfiguration : IEntityTypeConfiguration<PollVote>
         // Index on UserId for efficient lookups
         builder.HasIndex(pv => pv.UserId);
 
-        // NOTE: No soft delete filter - hard-deleted on retraction
+        // Suppress EF Core warning: required principal User has a global query filter
+        // Note: PollOption is not soft-deletable, so only User needs the filter
+        builder.HasQueryFilter(pv => pv.User!.DeletedAt == null);
     }
 }

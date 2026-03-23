@@ -31,5 +31,8 @@ public sealed class MemberGroupConfiguration : IEntityTypeConfiguration<MemberGr
 
         // Index for querying all members with a specific group
         builder.HasIndex(mg => mg.GroupId);
+
+        // Suppress EF Core warning: required principals ServerMember and Group have global query filters
+        builder.HasQueryFilter(mg => mg.ServerMember!.DeletedAt == null && mg.Group!.DeletedAt == null);
     }
 }

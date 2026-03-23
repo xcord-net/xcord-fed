@@ -80,6 +80,7 @@ public sealed class OutgoingWebhookDeliveryConfiguration : IEntityTypeConfigurat
         builder.HasIndex(d => d.CreatedAt)
             .HasDatabaseName("ix_outgoing_webhook_deliveries_created_at");
 
-        // NOTE: No soft-delete filter - this entity is hard-deleted after retention period
+        // Suppress EF Core warning: required principal OutgoingWebhook has a global query filter
+        builder.HasQueryFilter(d => d.Webhook!.DeletedAt == null);
     }
 }

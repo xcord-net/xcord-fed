@@ -61,5 +61,8 @@ public sealed class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
             .WithMany()
             .HasForeignKey(a => a.ActorId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // Suppress EF Core warning: required principal Server has a global query filter
+        builder.HasQueryFilter(a => a.Server!.DeletedAt == null);
     }
 }

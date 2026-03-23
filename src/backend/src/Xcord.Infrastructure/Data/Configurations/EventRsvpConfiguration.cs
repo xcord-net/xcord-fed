@@ -41,5 +41,8 @@ public sealed class EventRsvpConfiguration : IEntityTypeConfiguration<EventRsvp>
 
         // Indexes
         builder.HasIndex(r => r.UserId);
+
+        // Suppress EF Core warning: required principals ScheduledEvent and User have global query filters
+        builder.HasQueryFilter(r => r.ScheduledEvent!.DeletedAt == null && r.User!.DeletedAt == null);
     }
 }

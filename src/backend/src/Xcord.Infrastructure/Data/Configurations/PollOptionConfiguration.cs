@@ -49,6 +49,7 @@ public sealed class PollOptionConfiguration : IEntityTypeConfiguration<PollOptio
         builder.Property(po => po.Position)
             .IsRequired();
 
-        // NOTE: No soft delete filter - follows poll lifecycle
+        // Suppress EF Core warning: required principal Poll has a global query filter
+        builder.HasQueryFilter(po => po.Poll!.DeletedAt == null);
     }
 }

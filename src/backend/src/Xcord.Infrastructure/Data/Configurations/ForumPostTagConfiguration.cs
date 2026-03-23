@@ -31,5 +31,8 @@ public sealed class ForumPostTagConfiguration : IEntityTypeConfiguration<ForumPo
 
         // Index for querying all posts with a specific tag
         builder.HasIndex(fpt => fpt.ForumTagId);
+
+        // Suppress EF Core warning: required principals Thread and ForumTag have global query filters
+        builder.HasQueryFilter(fpt => fpt.Thread!.DeletedAt == null && fpt.ForumTag!.DeletedAt == null);
     }
 }

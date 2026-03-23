@@ -141,12 +141,14 @@ wait_for() {
 
 wait_for "Postgres" "docker compose -f '$COMPOSE_FILE' exec -T postgres pg_isready -U xcord -d xcord_dev"
 wait_for "Redis"    "docker compose -f '$COMPOSE_FILE' exec -T redis redis-cli ping"
-wait_for "MinIO"    "curl -sf http://localhost:9000/minio/health/live"
+wait_for "MinIO"    "curl -sf http://localhost:9002/minio/health/live"
 wait_for "LiveKit"  "curl -sf http://localhost:7880"
 wait_for "Mailpit"  "curl -sf http://localhost:8025"
 
 echo ""
-echo "==> Infrastructure ready. Starting host processes..."
+echo "==> Infrastructure ready. Waiting for services to stabilize..."
+sleep 3
+echo "==> Starting host processes..."
 echo ""
 
 # ── Color codes ──────────────────────────────────────────────────────────────
@@ -170,9 +172,10 @@ for kv in "${TIER_ENV[@]+"${TIER_ENV[@]}"}"; do
     [ -n "$kv" ] && export "$kv"
 done
 
+DOTNET_USE_POLLING_FILE_WATCHER=true \
 ASPNETCORE_ENVIRONMENT=Development \
 ASPNETCORE_URLS="http://0.0.0.0:5041" \
-dotnet watch run --project "$BACKEND_PROJECT" 2>&1 | \
+dotnet watch run --project "$BACKEND_PROJECT" --no-launch-profile 2>&1 | \
     sed -u "s/^/${GREEN}[backend]${NC}  /" &
 
 # ── Frontend: vite dev ───────────────────────────────────────────────────────

@@ -56,5 +56,8 @@ public sealed class CallConfiguration : IEntityTypeConfiguration<Call>
 
         // Composite index for finding active/ringing calls by DM
         builder.HasIndex(c => new { c.DmChannelId, c.Status });
+
+        // Suppress EF Core warning: required principals DmChannel and Caller have global query filters
+        builder.HasQueryFilter(c => c.DmChannel!.DeletedAt == null && c.Caller!.DeletedAt == null);
     }
 }

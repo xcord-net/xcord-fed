@@ -40,6 +40,7 @@ public sealed class UserBlockConfiguration : IEntityTypeConfiguration<UserBlock>
             .HasForeignKey(ub => ub.BlockedId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // NOTE: No soft delete filter - UserBlock is hard-deleted
+        // Suppress EF Core warning: required principals Blocker and Blocked (both User) have global query filters
+        builder.HasQueryFilter(ub => ub.Blocker!.DeletedAt == null && ub.Blocked!.DeletedAt == null);
     }
 }

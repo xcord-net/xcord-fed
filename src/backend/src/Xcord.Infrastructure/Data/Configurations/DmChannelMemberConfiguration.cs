@@ -32,5 +32,8 @@ public sealed class DmChannelMemberConfiguration : IEntityTypeConfiguration<DmCh
         // JoinedAt (required)
         builder.Property(dcm => dcm.JoinedAt)
             .IsRequired();
+
+        // Suppress EF Core warning: required principals DmChannel and User have global query filters
+        builder.HasQueryFilter(dcm => dcm.DmChannel!.DeletedAt == null && dcm.User!.DeletedAt == null);
     }
 }

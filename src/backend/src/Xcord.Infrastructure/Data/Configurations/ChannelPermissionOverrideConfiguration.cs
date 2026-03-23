@@ -51,5 +51,8 @@ public sealed class ChannelPermissionOverrideConfiguration : IEntityTypeConfigur
 
         // Index for querying all overrides in a channel
         builder.HasIndex(cpo => cpo.ChannelId);
+
+        // Suppress EF Core warning: required principal Channel has a global query filter
+        builder.HasQueryFilter(cpo => cpo.Channel!.DeletedAt == null);
     }
 }

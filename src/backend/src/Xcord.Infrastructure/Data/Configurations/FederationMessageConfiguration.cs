@@ -52,5 +52,8 @@ public sealed class FederationMessageConfiguration : IEntityTypeConfiguration<Fe
             .WithMany()
             .HasForeignKey(m => m.LocalMessageId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Suppress EF Core warning: required principals FederationFollow and Message have global query filters
+        builder.HasQueryFilter(m => m.Follow!.DeletedAt == null && m.LocalMessage!.DeletedAt == null);
     }
 }

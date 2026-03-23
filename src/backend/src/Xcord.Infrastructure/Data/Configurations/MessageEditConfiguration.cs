@@ -38,6 +38,7 @@ public sealed class MessageEditConfiguration : IEntityTypeConfiguration<MessageE
         builder.Property(me => me.EditedAt)
             .IsRequired();
 
-        // NOTE: No soft delete filter - edit history is preserved permanently
+        // Suppress EF Core warning: required principal Message has a global query filter
+        builder.HasQueryFilter(me => me.Message!.DeletedAt == null);
     }
 }

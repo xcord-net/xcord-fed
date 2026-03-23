@@ -49,5 +49,8 @@ public sealed class ReadStateConfiguration : IEntityTypeConfiguration<ReadState>
 
         // Index on UserId for total unread queries
         builder.HasIndex(rs => rs.UserId);
+
+        // Suppress EF Core warning: required principal User has a global query filter
+        builder.HasQueryFilter(rs => rs.User!.DeletedAt == null);
     }
 }

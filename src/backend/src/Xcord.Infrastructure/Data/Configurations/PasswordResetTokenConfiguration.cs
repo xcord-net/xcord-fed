@@ -43,5 +43,8 @@ public sealed class PasswordResetTokenConfiguration : IEntityTypeConfiguration<P
         // CreatedAt (required)
         builder.Property(prt => prt.CreatedAt)
             .IsRequired();
+
+        // Suppress EF Core warning: required principal User has a global query filter
+        builder.HasQueryFilter(prt => prt.User!.DeletedAt == null);
     }
 }

@@ -36,5 +36,8 @@ public sealed class VoiceStateConfiguration : IEntityTypeConfiguration<VoiceStat
         // JoinedAt timestamp
         builder.Property(vs => vs.JoinedAt)
             .IsRequired();
+
+        // Suppress EF Core warning: required principals User and Channel have global query filters
+        builder.HasQueryFilter(vs => vs.User!.DeletedAt == null && vs.Channel!.DeletedAt == null);
     }
 }

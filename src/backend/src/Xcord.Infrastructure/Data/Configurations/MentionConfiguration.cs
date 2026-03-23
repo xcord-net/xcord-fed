@@ -50,5 +50,8 @@ public sealed class MentionConfiguration : IEntityTypeConfiguration<Mention>
         builder.Property(m => m.IsEveryone)
             .IsRequired()
             .HasDefaultValue(false);
+
+        // Suppress EF Core warning: required principal Message has a global query filter
+        builder.HasQueryFilter(m => m.Message!.DeletedAt == null);
     }
 }

@@ -17,5 +17,8 @@ public sealed class ReactionConfiguration : IEntityTypeConfiguration<Reaction>
         builder.Property(r => r.Emoji).IsRequired().HasMaxLength(32);
         builder.Property(r => r.CreatedAt).IsRequired();
         builder.HasIndex(r => r.MessageId);
+
+        // Suppress EF Core warning: required principals Message and User have global query filters
+        builder.HasQueryFilter(r => r.Message!.DeletedAt == null && r.User!.DeletedAt == null);
     }
 }
