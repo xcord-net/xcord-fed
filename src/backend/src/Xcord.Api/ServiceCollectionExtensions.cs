@@ -105,8 +105,7 @@ public static class ServiceCollectionExtensions
                 .SetResourceBuilder(ResourceBuilder.CreateDefault()
                     .AddService("xcord-instance", serviceInstanceId: instanceOpts?.Domain ?? "unknown"))
                 .AddAspNetCoreInstrumentation()
-                .AddHttpClientInstrumentation()
-                .AddConsoleExporter());
+                .AddHttpClientInstrumentation());
 
         // SignalR with Redis backplane
         services.AddSignalR(options => options.EnableDetailedErrors = builder.Environment.IsDevelopment())

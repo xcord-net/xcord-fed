@@ -46,13 +46,16 @@ public static class BootstrapService
         }
 
         // Seed admin account if it doesn't exist yet
-        await SeedAdminAsync(db, scope);
+        var adminId = await SeedAdminAsync(db, scope);
 
         // Seed dev test users if configured
-        await SeedDevUsersAsync(db, scope);
+        var devUserIds = await SeedDevUsersAsync(db, scope);
+
+        // Seed default server if no servers exist yet
+        await SeedDefaultServerAsync(db, scope, adminId, devUserIds);
     }
 
-    private static async Task SeedAdminAsync(AppDbContext db, IServiceScope scope)
+    private static async Task<long?> SeedAdminAsync(AppDbContext db, IServiceScope scope)
     {
         var adminOptions = scope.ServiceProvider.GetRequiredService<IOptions<AdminOptions>>().Value;
 
@@ -63,7 +66,7 @@ public static class BootstrapService
             string.IsNullOrWhiteSpace(adminOptions.Username) ||
             (!hasPassword && !hasPasswordHash))
         {
-            return; // No admin config, skip seeding
+            return null; // No admin config, skip seeding
         }
 
         var encryptionService = scope.ServiceProvider.GetRequiredService<IEncryptionService>();
@@ -71,11 +74,14 @@ public static class BootstrapService
 
         // Check if admin already exists by email hash
         var emailHash = encryptionService.ComputeHmac(adminOptions.Email.ToLowerInvariant());
-        var adminExists = await db.Users.AnyAsync(u => u.EmailHash == emailHash);
+        var existingAdmin = await db.Users
+            .Where(u => u.EmailHash == emailHash)
+            .Select(u => (long?)u.Id)
+            .FirstOrDefaultAsync();
 
-        if (adminExists)
+        if (existingAdmin.HasValue)
         {
-            return; // Admin already exists
+            return existingAdmin.Value; // Admin already exists - return existing ID
         }
 
         var now = DateTimeOffset.UtcNow;
@@ -106,14 +112,17 @@ public static class BootstrapService
         db.Users.Add(admin);
         await db.SaveChangesAsync();
         Log.Information("Admin account seeded: {Username}", adminOptions.Username);
+
+        return admin.Id;
     }
 
-    private static async Task SeedDevUsersAsync(AppDbContext db, IServiceScope scope)
+    private static async Task<List<long>> SeedDevUsersAsync(AppDbContext db, IServiceScope scope)
     {
         var devUsersOptions = scope.ServiceProvider.GetRequiredService<IOptions<DevUsersOptions>>().Value;
+        var newUserIds = new List<long>();
 
         if (devUsersOptions.Users.Count == 0)
-            return;
+            return newUserIds;
 
         var encryptionService = scope.ServiceProvider.GetRequiredService<IEncryptionService>();
         var snowflakeGenerator = scope.ServiceProvider.GetRequiredService<SnowflakeIdGenerator>();
@@ -131,10 +140,11 @@ public static class BootstrapService
                 continue;
 
             var passwordHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(devUser.Password, 12));
+            var userId = snowflakeGenerator.NextId();
 
             db.Users.Add(new User
             {
-                Id = snowflakeGenerator.NextId(),
+                Id = userId,
                 Username = devUser.Username,
                 DisplayName = devUser.Username,
                 Email = encryptionService.Encrypt(devUser.Email.ToLowerInvariant()),
@@ -148,6 +158,8 @@ public static class BootstrapService
                 CreatedAt = now,
                 LastLoginAt = now
             });
+
+            newUserIds.Add(userId);
         }
 
         if (db.ChangeTracker.HasChanges())
@@ -155,6 +167,186 @@ public static class BootstrapService
             await db.SaveChangesAsync();
             Log.Information("Dev test users seeded");
         }
+
+        return newUserIds;
+    }
+
+    private static async Task SeedDefaultServerAsync(
+        AppDbContext db, IServiceScope scope, long? adminId, List<long> devUserIds)
+    {
+        if (adminId == null)
+            return;
+
+        // Only create a default server if none exist yet
+        if (await db.Servers.AnyAsync())
+            return;
+
+        var instanceOptions = scope.ServiceProvider.GetRequiredService<IOptions<InstanceOptions>>().Value;
+        var snowflakeGenerator = scope.ServiceProvider.GetRequiredService<SnowflakeIdGenerator>();
+
+        var serverName = !string.IsNullOrWhiteSpace(instanceOptions.Name)
+            ? instanceOptions.Name
+            : "Xcord";
+
+        var now = DateTimeOffset.UtcNow;
+        var serverId = snowflakeGenerator.NextId();
+
+        var server = new Server
+        {
+            Id = serverId,
+            Name = serverName,
+            OwnerId = adminId.Value,
+            MemberCount = 1,
+            CreatedAt = now
+        };
+
+        db.Servers.Add(server);
+
+        // Admin is the first member
+        db.ServerMembers.Add(new ServerMember
+        {
+            UserId = adminId.Value,
+            ServerId = serverId,
+            JoinedAt = now
+        });
+
+        // @everyone group
+        var everyoneGroupId = snowflakeGenerator.NextId();
+        db.Groups.Add(new Group
+        {
+            Id = everyoneGroupId,
+            ServerId = serverId,
+            Name = "@everyone",
+            Color = null,
+            Roles = (long)(Role.ViewChannels | Role.SendMessages |
+                           Role.EmbedLinks | Role.AttachFiles |
+                           Role.ReadMessageHistory | Role.AddReactions |
+                           Role.Connect | Role.Speak |
+                           Role.CreatePublicThreads | Role.SendMessagesInThreads),
+            Position = 0,
+            IsEveryone = true,
+            CreatedAt = now
+        });
+
+        // Member group
+        var memberGroupRoles = (long)(Role.ViewChannels | Role.SendMessages | Role.EmbedLinks |
+                                      Role.AttachFiles | Role.ReadMessageHistory | Role.AddReactions |
+                                      Role.Connect | Role.Speak | Role.CreatePublicThreads |
+                                      Role.SendMessagesInThreads | Role.UseExternalEmojis |
+                                      Role.ChangeNickname | Role.Video);
+        db.Groups.Add(new Group
+        {
+            Id = snowflakeGenerator.NextId(),
+            ServerId = serverId,
+            Name = "Member",
+            Roles = memberGroupRoles,
+            Position = 1,
+            CreatedAt = now
+        });
+
+        // Moderator group
+        db.Groups.Add(new Group
+        {
+            Id = snowflakeGenerator.NextId(),
+            ServerId = serverId,
+            Name = "Moderator",
+            Color = "#e06a8a",
+            Roles = memberGroupRoles | (long)(Role.ManageMessages | Role.KickMembers |
+                                              Role.BanMembers | Role.TimeoutMembers |
+                                              Role.ManageEmojis | Role.ManageStickers |
+                                              Role.ManageNicknames),
+            Position = 2,
+            CreatedAt = now
+        });
+
+        // Bot group
+        db.Groups.Add(new Group
+        {
+            Id = snowflakeGenerator.NextId(),
+            ServerId = serverId,
+            Name = "Bot",
+            Color = "#7289da",
+            Roles = (long)(Role.SendMessages | Role.EmbedLinks | Role.AttachFiles |
+                           Role.ReadMessageHistory | Role.AddReactions |
+                           Role.Connect | Role.Speak),
+            Position = 3,
+            CreatedAt = now
+        });
+
+        // "General" category
+        var generalCategoryId = snowflakeGenerator.NextId();
+        db.Categories.Add(new Category
+        {
+            Id = generalCategoryId,
+            ServerId = serverId,
+            Name = "General",
+            Position = 0,
+            CreatedAt = now
+        });
+
+        // Conversation for the general channel
+        var generalConversationId = snowflakeGenerator.NextId();
+        db.Conversations.Add(new Conversation
+        {
+            Id = generalConversationId,
+            Type = ConversationType.Channel
+        });
+
+        // #general text channel
+        var generalChannelId = snowflakeGenerator.NextId();
+        db.Channels.Add(new Channel
+        {
+            Id = generalChannelId,
+            ConversationId = generalConversationId,
+            ServerId = serverId,
+            CategoryId = generalCategoryId,
+            Name = "general",
+            Type = ChannelType.Text,
+            Position = 0,
+            IsNsfw = false,
+            RequireTag = false,
+            CreatedAt = now
+        });
+
+        // ReadState for the admin
+        db.ReadStates.Add(new ReadState
+        {
+            UserId = adminId.Value,
+            ConversationId = generalConversationId,
+            UnreadCount = 0,
+            MentionCount = 0
+        });
+
+        // Add dev users as members (with their own ReadStates)
+        foreach (var devUserId in devUserIds)
+        {
+            db.ServerMembers.Add(new ServerMember
+            {
+                UserId = devUserId,
+                ServerId = serverId,
+                JoinedAt = now
+            });
+
+            db.ReadStates.Add(new ReadState
+            {
+                UserId = devUserId,
+                ConversationId = generalConversationId,
+                UnreadCount = 0,
+                MentionCount = 0
+            });
+        }
+
+        // Update member count to include dev users
+        server.MemberCount = 1 + devUserIds.Count;
+
+        // First SaveChanges - persists server, channel, groups, members, conversations
+        await db.SaveChangesAsync();
+
+        // Second SaveChanges - set SystemChannelId (avoids circular FK: servers.SystemChannelId -> channels.Id -> servers.Id)
+        server.SystemChannelId = generalChannelId;
+        await db.SaveChangesAsync();
+
+        Log.Information("Default server '{ServerName}' seeded with #general channel", serverName);
     }
 
     private static async Task InitializeEncryptionAsync(AppDbContext db, WebApplication app, IServiceScope scope)
