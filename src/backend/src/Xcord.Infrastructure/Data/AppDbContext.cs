@@ -94,6 +94,10 @@ public DbSet<VoiceState> VoiceStates => Set<VoiceState>();
     // Scheduled messages
     public DbSet<ScheduledMessage> ScheduledMessages => Set<ScheduledMessage>();
 
+    // Discord migration
+    public DbSet<DiscordMigration> DiscordMigrations => Set<DiscordMigration>();
+    public DbSet<DiscordIdMapping> DiscordIdMappings => Set<DiscordIdMapping>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

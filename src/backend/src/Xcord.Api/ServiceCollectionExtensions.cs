@@ -15,6 +15,7 @@ using Xcord.Features;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
+using Xcord.Infrastructure.Services.Discord;
 
 namespace Xcord.Api;
 
@@ -213,6 +214,15 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<OpenGraphParser>();
         services.AddScoped<IMemberBillingService, MemberBillingService>();
         services.AddScoped<Xcord.Features.Billing.MemberBillingWebhookHandler>();
+
+        // Discord migration
+        services.AddSingleton<DiscordRateLimiter>();
+        services.AddHttpClient<DiscordApiClient>(client =>
+        {
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("Xcord-Migration/1.0");
+            client.Timeout = TimeSpan.FromSeconds(60);
+        });
+        services.AddScoped<DiscordMigrationOrchestrator>();
 
         // Hub client (optional - only when hub-connected)
         var hubOpts = config.GetSection(HubOptions.SectionName).Get<HubOptions>();
