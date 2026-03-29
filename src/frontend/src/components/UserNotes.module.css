@@ -1,0 +1,187 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-xcord-bg-secondary);
+}
+
+.header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-bg-tertiary);
+}
+
+.heading {
+  color: var(--color-xcord-text-primary);
+  font-weight: 600;
+}
+
+.headerSubtext {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  margin-top: 0.125rem;
+}
+
+.lookupSection {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-bg-tertiary);
+}
+
+.lookupLabel {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  display: block;
+  margin-bottom: 0.375rem;
+}
+
+.lookupRow {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.searchInput {
+  flex: 1;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.searchInput:focus {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.findButton {
+  background-color: var(--color-xcord-brand);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.findButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.findButton:disabled {
+  opacity: 0.5;
+}
+
+.lookupError {
+  color: #f87171;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+/* Note editor */
+.editorSection {
+  padding: 0.75rem 1rem;
+}
+
+.userInfo {
+  margin-bottom: 0.75rem;
+}
+
+.displayName {
+  color: var(--color-xcord-text-primary);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.usernameHandle {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+}
+
+.noteUpdatedAt {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  margin-top: 0.125rem;
+}
+
+.noteLabel {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  display: block;
+  margin-bottom: 0.375rem;
+}
+
+.noteTextarea {
+  width: 100%;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  outline: none;
+  resize: none;
+}
+
+.noteTextarea:focus {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.saveError {
+  color: #f87171;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.actionRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.saveButton {
+  background-color: var(--color-xcord-brand);
+  color: white;
+  padding: 0.375rem 1rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.saveButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.saveButton:disabled {
+  opacity: 0.5;
+}
+
+.deleteButton {
+  background-color: var(--color-xcord-bg-tertiary);
+  color: #f87171;
+  padding: 0.375rem 1rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.deleteButton:hover {
+  background-color: #dc2626;
+  color: white;
+}
+
+.deleteButton:disabled {
+  opacity: 0.5;
+}
+
+.saveSuccessText {
+  color: #4ade80;
+  font-size: 0.875rem;
+}
+
+.deleteSuccessText {
+  color: #4ade80;
+  font-size: 0.875rem;
+}

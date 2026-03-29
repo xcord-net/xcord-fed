@@ -1,0 +1,494 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--color-xcord-bg-secondary);
+}
+
+.header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerTitle {
+  color: white;
+  font-weight: 600;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.headerActionBtn {
+  color: var(--color-xcord-text-muted);
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.headerActionBtn:hover {
+  color: white;
+  background-color: color-mix(in srgb, var(--color-xcord-bg-primary) 50%, transparent);
+}
+
+/* 1:1 DM creation form */
+.dmForm {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.dmInput {
+  flex: 1;
+  background-color: var(--color-xcord-bg-primary);
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.dmInput:focus {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.dmStartBtn {
+  background-color: var(--color-xcord-brand);
+  color: white;
+  border: none;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.dmStartBtn:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.dmStartBtn:disabled {
+  opacity: 0.5;
+}
+
+.dmError {
+  color: #f87171;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+/* Group DM creation form */
+.groupForm {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.groupInput {
+  background-color: var(--color-xcord-bg-primary);
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.groupInput:focus {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.groupMemberRow {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.groupMemberInput {
+  flex: 1;
+  background-color: var(--color-xcord-bg-primary);
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.groupMemberInput:focus {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.addMemberBtn {
+  background-color: var(--color-xcord-brand);
+  color: white;
+  border: none;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.addMemberBtn:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.addMemberBtn:disabled {
+  opacity: 0.5;
+}
+
+.memberChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.memberChip {
+  background-color: var(--color-xcord-bg-primary);
+  color: white;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.memberChipRemove {
+  background: none;
+  border: none;
+  color: var(--color-xcord-text-muted);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.memberChipRemove:hover {
+  color: white;
+}
+
+.createGroupBtn {
+  background-color: var(--color-xcord-brand);
+  color: white;
+  border: none;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.createGroupBtn:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.createGroupBtn:disabled {
+  opacity: 0.5;
+}
+
+.groupError {
+  color: #f87171;
+  font-size: 0.875rem;
+}
+
+/* Group management panel */
+.managementPanel {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+  background-color: var(--color-xcord-bg-primary);
+}
+
+.managementHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.managementTitle {
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.managementCloseBtn {
+  background: none;
+  border: none;
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.managementCloseBtn:hover {
+  color: white;
+}
+
+.managementMemberCount {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.managementAddRow {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.managementAddInput {
+  flex: 1;
+  background-color: var(--color-xcord-bg-secondary);
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  outline: none;
+}
+
+.managementAddInput:focus {
+  box-shadow: 0 0 0 1px var(--color-xcord-brand);
+}
+
+.managementAddBtn {
+  background-color: var(--color-xcord-brand);
+  color: white;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.managementAddBtn:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.managementAddBtn:disabled {
+  opacity: 0.5;
+}
+
+.managementAddError {
+  color: #f87171;
+  font-size: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.leaveGroupBtn {
+  width: 100%;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  margin-top: 0.25rem;
+}
+
+.leaveGroupBtn:hover {
+  background-color: #b91c1c;
+}
+
+.removeMembersSection {
+  margin-top: 0.5rem;
+}
+
+.removeMembersLabel {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.removeMemberBtn {
+  background: none;
+  border: none;
+  color: #f87171;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: block;
+  padding: 0;
+}
+
+.removeMemberBtn:hover {
+  color: #fca5a5;
+}
+
+/* List */
+.listArea {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.loadingCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 8rem;
+}
+
+.loadingText {
+  color: var(--color-xcord-text-muted);
+}
+
+/* DM channel item */
+.dmChannelBtn {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+  text-align: left;
+}
+
+.dmChannelBtn:hover {
+  background-color: color-mix(in srgb, var(--color-xcord-bg-primary) 50%, transparent);
+}
+
+.dmChannelBtnActive {
+  background-color: var(--color-xcord-bg-primary);
+}
+
+.avatarWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background-color: var(--color-xcord-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  overflow: hidden;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
+.dmInfo {
+  flex: 1;
+  text-align: left;
+  min-width: 0;
+}
+
+.dmInfoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dmUsername {
+  color: white;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dmTime {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+}
+
+/* Group DM item */
+.groupDmRow {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.groupDmRow:hover {
+  background-color: color-mix(in srgb, var(--color-xcord-bg-primary) 50%, transparent);
+}
+
+.groupDmRowActive {
+  background-color: var(--color-xcord-bg-primary);
+}
+
+.groupDmBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.groupDmInfo {
+  flex: 1;
+  text-align: left;
+  min-width: 0;
+}
+
+.groupDmInfoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.groupDmName {
+  color: white;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.groupDmTime {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.groupDmMemberCount {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.manageGroupBtn {
+  background: none;
+  border: none;
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  padding: 0 0.25rem;
+  cursor: pointer;
+}
+
+.manageGroupBtn:hover {
+  color: white;
+}

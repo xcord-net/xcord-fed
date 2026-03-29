@@ -18,6 +18,8 @@ public sealed class DiscordIdMappingConfiguration : IEntityTypeConfiguration<Dis
         builder.Property(m => m.XcordId).IsRequired();
         builder.Property(m => m.EntityType).IsRequired().HasMaxLength(20);
 
+        builder.HasQueryFilter(m => m.Migration.DeletedAt == null);
+
         builder.HasOne(m => m.Migration)
             .WithMany()
             .HasForeignKey(m => m.MigrationId)

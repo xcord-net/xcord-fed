@@ -1,5 +1,6 @@
 import { For, Show, createEffect } from 'solid-js';
 import { usePins } from '../stores/pin.store';
+import styles from './PinList.module.css';
 
 interface PinListProps {
   conversationId: string;
@@ -18,50 +19,50 @@ export default function PinList(props: PinListProps) {
   };
 
   return (
-    <div data-testid="pin-list-panel" class="flex flex-col h-full bg-xcord-bg-secondary border-l border-xcord-border w-80">
-      <div class="px-4 py-3 border-b border-xcord-border">
-        <h2 class="text-white font-semibold">Pinned Messages</h2>
+    <div data-testid="pin-list-panel" class={styles.panel}>
+      <div class={styles.header}>
+        <h2 class={styles.headerTitle}>Pinned Messages</h2>
       </div>
 
-      <div class="flex-1 overflow-y-auto">
+      <div class={styles.body}>
         <Show when={pinStore.isLoading}>
-          <div class="flex items-center justify-center h-32">
-            <p class="text-xcord-text-muted">Loading pins...</p>
+          <div class={styles.centeredStatus}>
+            <p class={styles.mutedText}>Loading pins...</p>
           </div>
         </Show>
 
         <Show when={!pinStore.isLoading && pinStore.pinnedMessages.length === 0}>
-          <div data-testid="pin-list-empty" class="flex items-center justify-center h-32">
-            <p class="text-xcord-text-muted">No pinned messages</p>
+          <div data-testid="pin-list-empty" class={styles.centeredStatus}>
+            <p class={styles.mutedText}>No pinned messages</p>
           </div>
         </Show>
 
         <For each={pinStore.pinnedMessages}>
           {(message) => (
-            <div data-testid="pin-list-item" class="px-4 py-3 border-b border-xcord-border hover:bg-xcord-bg-primary/30">
-              <div class="flex items-start space-x-3">
-                <div class="w-8 h-8 rounded-full bg-xcord-brand flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+            <div data-testid="pin-list-item" class={styles.item}>
+              <div class={styles.itemRow}>
+                <div class={styles.avatar}>
                   {message.authorUsername?.charAt(0).toUpperCase() || 'U'}
                 </div>
 
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-baseline justify-between">
-                    <div class="flex items-baseline space-x-2">
-                      <span class="font-semibold text-white text-sm">
+                <div class={styles.itemContent}>
+                  <div class={styles.itemMeta}>
+                    <div class={styles.itemAuthorRow}>
+                      <span class={styles.authorName}>
                         {message.authorUsername || 'Unknown User'}
                       </span>
-                      <span class="text-xs text-xcord-text-muted">{formatTime(message.createdAt)}</span>
+                      <span class={styles.timestamp}>{formatTime(message.createdAt)}</span>
                     </div>
                     <button
                       data-testid="pin-list-unpin-button"
-                      class="text-xcord-text-muted hover:text-white text-xs"
+                      class={styles.unpinButton}
                       onClick={() => pinStore.unpinMessage(props.conversationId, message.id)}
                     >
                       Unpin
                     </button>
                   </div>
 
-                  <p class="text-sm text-xcord-text-primary mt-1 break-words">{message.content}</p>
+                  <p class={styles.messageContent}>{message.content}</p>
                 </div>
               </div>
             </div>

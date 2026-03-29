@@ -1,0 +1,80 @@
+.errorFallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  gap: 1rem;
+}
+
+.errorMessage {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.errorDetail {
+  font-size: 0.875rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.errorReloadButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-brand);
+  color: #fff;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.errorReloadButton:hover {
+  opacity: 0.9;
+}
+
+.suspensionOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: color-mix(in srgb, var(--color-xcord-bg-primary) 95%, transparent);
+  color: var(--color-xcord-text-primary);
+  gap: 1rem;
+}
+
+.suspensionContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 28rem;
+  text-align: center;
+  padding: 0 1.5rem;
+}
+
+.suspensionIcon {
+  width: 4rem;
+  height: 4rem;
+  color: var(--color-xcord-brand);
+}
+
+.suspensionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.suspensionBody {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.suspensionReason {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  opacity: 0.6;
+  text-transform: capitalize;
+}

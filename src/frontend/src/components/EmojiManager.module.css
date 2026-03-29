@@ -1,0 +1,290 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--color-xcord-bg-secondary);
+}
+
+.header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+}
+
+.headerTitle {
+  color: white;
+  font-weight: 600;
+}
+
+.uploadSection {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+  background-color: color-mix(in srgb, var(--color-xcord-bg-primary) 30%, transparent);
+}
+
+.uploadTitle {
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.uploadForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fileRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.previewImg {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.25rem;
+  object-fit: contain;
+  background-color: var(--color-xcord-bg-tertiary);
+}
+
+.fileLabel {
+  flex: 1;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-muted);
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.fileLabel:hover {
+  background-color: var(--color-xcord-bg-primary);
+}
+
+.hiddenFileInput {
+  display: none;
+}
+
+.nameInput {
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-xcord-border);
+  outline: none;
+}
+
+.nameInput::placeholder {
+  color: var(--color-xcord-text-muted);
+}
+
+.nameInput:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.uploadError {
+  color: #f87171;
+  font-size: 0.75rem;
+}
+
+.uploadButton {
+  background-color: var(--color-xcord-brand);
+  color: white;
+  padding: 0.375rem 1rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: color 150ms, background-color 150ms;
+}
+
+.uploadButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.uploadButton:disabled {
+  opacity: 0.5;
+}
+
+.errorBanner {
+  padding: 0.5rem 1rem;
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  font-size: 0.875rem;
+}
+
+.emojiListArea {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 8rem;
+}
+
+.mutedText {
+  color: var(--color-xcord-text-muted);
+}
+
+.emptyContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 8rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.emptyTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.emptySubtitle {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.emojiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .emojiGrid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .emojiGrid {
+    grid-template-columns: repeat(8, 1fr);
+  }
+}
+
+.emojiItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  position: relative;
+}
+
+.emojiItem:hover .deleteEmojiButton {
+  opacity: 1;
+}
+
+.emojiImageBox {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 0.25rem;
+  background-color: var(--color-xcord-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.emojiImage {
+  width: 3rem;
+  height: 3rem;
+  object-fit: contain;
+}
+
+.emojiName {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
+}
+
+.deleteEmojiButton {
+  opacity: 0;
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
+  background-color: #ef4444;
+  color: white;
+  border-radius: 50%;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 150ms, opacity 150ms;
+}
+
+.deleteEmojiButton:hover {
+  background-color: #dc2626;
+}
+
+.deleteConfirmOverlay {
+  position: absolute;
+  inset: 0;
+  background-color: color-mix(in srgb, var(--color-xcord-bg-primary) 90%, transparent);
+  border-radius: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.25rem;
+}
+
+.deleteConfirmText {
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.deleteConfirmButtons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.deleteNoBtn {
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-muted);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  border: none;
+  cursor: pointer;
+  transition: color 150ms;
+}
+
+.deleteNoBtn:hover {
+  color: white;
+}
+
+.deleteYesBtn {
+  background-color: #ef4444;
+  color: white;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.deleteYesBtn:hover {
+  background-color: #dc2626;
+}

@@ -1,0 +1,165 @@
+.section {
+  margin-top: 1.5rem;
+  border-top: 1px solid #991b1b;
+  padding-top: 1.5rem;
+}
+
+.dangerHeading {
+  color: #f87171;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.errorBanner {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 1rem;
+  background-color: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.25rem;
+  color: #f87171;
+  font-size: 0.875rem;
+}
+
+.scheduledWarning {
+  background-color: rgba(127, 29, 29, 0.2);
+  border: 1px solid #b91c1c;
+  border-radius: 0.25rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.scheduledWarningText {
+  color: #fca5a5;
+  font-size: 0.875rem;
+}
+
+.cancelButton {
+  background-color: var(--color-xcord-bg-primary);
+  border: 1px solid #dc2626;
+  color: #f87171;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.cancelButton:hover {
+  background-color: rgba(127, 29, 29, 0.2);
+}
+
+.cancelButton:disabled {
+  opacity: 0.5;
+}
+
+.warningText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+.deleteButton {
+  background-color: #dc2626;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.deleteButton:hover {
+  background-color: #b91c1c;
+}
+
+.deleteButton:disabled {
+  opacity: 0.5;
+}
+
+/* Modal interior */
+.modalBody {
+  padding: 1.5rem;
+}
+
+.modalDescription {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.fieldGroup {
+  margin-bottom: 1rem;
+}
+
+.fieldLabel {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.passwordInput {
+  width: 100%;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-xcord-border);
+  outline: none;
+}
+
+.passwordInput:focus {
+  border-color: var(--color-xcord-brand);
+}
+
+.passwordInput:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.modalActions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.confirmDeleteButton {
+  flex: 1;
+  background-color: #dc2626;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.confirmDeleteButton:hover {
+  background-color: #b91c1c;
+}
+
+.confirmDeleteButton:disabled {
+  opacity: 0.5;
+}
+
+.modalCancelButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.modalCancelButton:hover {
+  background-color: var(--color-xcord-bg-tertiary);
+}
+
+.modalCancelButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}

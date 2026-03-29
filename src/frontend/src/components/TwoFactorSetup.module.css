@@ -1,0 +1,223 @@
+.section {
+  border-top: 1px solid var(--color-xcord-border);
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.heading {
+  color: white;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.description {
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.errorText {
+  color: #f87171;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+.successText {
+  color: #4ade80;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Idle phase */
+.statusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.statusIndicatorGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.statusDotEnabled {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: #4ade80;
+}
+
+.statusDotDisabled {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--color-xcord-text-muted);
+}
+
+.statusLabel {
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Shared button styles */
+.primaryButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-brand);
+  color: white;
+  border-radius: 0.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.primaryButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.primaryButton:disabled {
+  opacity: 0.5;
+}
+
+.dangerButton {
+  padding: 0.5rem 1rem;
+  background-color: #dc2626;
+  color: white;
+  border-radius: 0.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.dangerButton:hover {
+  background-color: #b91c1c;
+}
+
+.dangerButton:disabled {
+  opacity: 0.5;
+}
+
+.secondaryButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-secondary);
+  border-radius: 0.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.secondaryButton:hover {
+  background-color: var(--color-xcord-bg-primary);
+}
+
+.secondaryButton:disabled {
+  opacity: 0.5;
+}
+
+/* Enable-pending / disable-confirm phases */
+.phaseContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.phaseText {
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.875rem;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  display: block;
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.codeInput {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  border: 1px solid var(--color-xcord-border);
+  outline: none;
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+
+.codeInput:focus {
+  border-color: var(--color-xcord-brand);
+}
+
+.passwordInput {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  border: 1px solid var(--color-xcord-border);
+  outline: none;
+}
+
+.passwordInput:focus {
+  border-color: var(--color-xcord-brand);
+}
+
+.buttonRow {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Backup codes phase */
+.backupCodesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.warningBox {
+  background-color: rgba(113, 63, 18, 0.3);
+  border: 1px solid rgba(202, 138, 4, 0.4);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.warningTitle {
+  color: #fde047;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.warningBody {
+  color: rgba(254, 240, 138, 0.8);
+  font-size: 0.875rem;
+}
+
+.codesBox {
+  background-color: var(--color-xcord-bg-tertiary);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
+.codesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.codeItem {
+  color: var(--color-xcord-text-primary);
+  letter-spacing: 0.1em;
+}

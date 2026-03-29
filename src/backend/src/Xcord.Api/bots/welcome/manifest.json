@@ -1,0 +1,11 @@
+{
+  "id": "xcord.welcome",
+  "name": "Welcome Bot",
+  "description": "Automatically welcomes new members with a customizable message and assigns a default role.",
+  "category": "Utility",
+  "parameters": [
+    { "key": "welcomeMessage", "label": "Welcome message template", "type": "string", "default": "Welcome to the server, {username}!" },
+    { "key": "welcomeChannelName", "label": "Welcome channel name", "type": "string", "default": "general" },
+    { "key": "assignRoleName", "label": "Auto-assign role name", "type": "string", "default": "" }
+  ]
+}

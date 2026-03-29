@@ -15,6 +15,7 @@ using Xcord.Features;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
+using Xcord.Infrastructure.Services.Bots;
 using Xcord.Infrastructure.Services.Discord;
 
 namespace Xcord.Api;
@@ -210,6 +211,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITimeoutService, TimeoutService>();
         services.AddSingleton<ISystemBroadcaster, SignalRSystemBroadcaster>();
         services.AddSingleton<BotInteractionForwarder>();
+        services.AddSingleton<BotAgentRegistry>();
+        services.AddSingleton<BotProcessManager>();
         services.AddSingleton<SsrfSafeHttpClient>();
         services.AddSingleton<OpenGraphParser>();
         services.AddScoped<IMemberBillingService, MemberBillingService>();

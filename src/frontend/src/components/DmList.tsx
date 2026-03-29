@@ -3,6 +3,7 @@ import { useDms } from '../stores/dm.store';
 import { useAuth } from '../stores/auth.store';
 import PresenceDot from './PresenceDot';
 import { getErrorMessage } from '../utils/errors';
+import styles from './DmList.module.css';
 
 export default function DmList() {
   const dmStore = useDms();
@@ -116,14 +117,14 @@ export default function DmList() {
     managingGroupId() ? dmStore.dmGroups.find((g) => g.id === managingGroupId()) : null;
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
-      <div class="px-4 py-3 border-b border-xcord-border">
-        <div class="flex items-center justify-between">
-          <h2 data-testid="dm-heading" class="text-white font-semibold">Direct Messages</h2>
-          <div class="flex space-x-2">
+    <div class={styles.container}>
+      <div class={styles.header}>
+        <div class={styles.headerRow}>
+          <h2 data-testid="dm-heading" class={styles.headerTitle}>Direct Messages</h2>
+          <div class={styles.headerActions}>
             <button
               data-testid="dm-new-message-button"
-              class="text-xcord-text-muted hover:text-white text-sm"
+              class={styles.headerActionBtn}
               onClick={() => {
                 if (showNewDm() && dmMode() === 'single') {
                   setShowNewDm(false);
@@ -138,7 +139,7 @@ export default function DmList() {
             <button
               data-testid="dm-new-group-button"
               id="new-group-dm-btn"
-              class="text-xcord-text-muted hover:text-white text-sm"
+              class={styles.headerActionBtn}
               onClick={() => {
                 if (showNewDm() && dmMode() === 'group') {
                   setShowNewDm(false);
@@ -155,7 +156,7 @@ export default function DmList() {
 
         {/* 1:1 DM creation */}
         <Show when={showNewDm() && dmMode() === 'single'}>
-          <div class="mt-2 flex space-x-2">
+          <div class={styles.dmForm}>
             <input
               id="new-dm-input"
               data-testid="dm-username-input"
@@ -163,11 +164,11 @@ export default function DmList() {
               placeholder="Enter a username"
               value={dmUsername()}
               onInput={(e) => setDmUsername(e.currentTarget.value)}
-              class="flex-1 bg-xcord-bg-primary text-white px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+              class={styles.dmInput}
             />
             <button
               data-testid="dm-start-button"
-              class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand-hover disabled:opacity-50"
+              class={styles.dmStartBtn}
               disabled={!dmUsername().trim()}
               onClick={handleCreateDm}
             >
@@ -175,22 +176,22 @@ export default function DmList() {
             </button>
           </div>
           <Show when={dmError()}>
-            <p class="text-red-400 text-sm mt-2" id="dm-error">{dmError()}</p>
+            <p class={styles.dmError} id="dm-error">{dmError()}</p>
           </Show>
         </Show>
 
         {/* Group DM creation */}
         <Show when={showNewDm() && dmMode() === 'group'}>
-          <div class="mt-2 flex flex-col space-y-2">
+          <div class={styles.groupForm}>
             <input
               id="group-dm-name-input"
               type="text"
               placeholder="Group name (optional)"
               value={groupName()}
               onInput={(e) => setGroupName(e.currentTarget.value)}
-              class="bg-xcord-bg-primary text-white px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+              class={styles.groupInput}
             />
-            <div class="flex space-x-2">
+            <div class={styles.groupMemberRow}>
               <input
                 id="group-dm-member-input"
                 type="text"
@@ -198,11 +199,11 @@ export default function DmList() {
                 value={groupMemberInput()}
                 onInput={(e) => setGroupMemberInput(e.currentTarget.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddGroupMember(); } }}
-                class="flex-1 bg-xcord-bg-primary text-white px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+                class={styles.groupMemberInput}
               />
               <button
                 id="group-dm-add-member-btn"
-                class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand-hover disabled:opacity-50"
+                class={styles.addMemberBtn}
                 disabled={!groupMemberInput().trim()}
                 onClick={handleAddGroupMember}
               >
@@ -210,13 +211,13 @@ export default function DmList() {
               </button>
             </div>
             <Show when={groupMembers().length > 0}>
-              <div id="group-dm-member-list" class="flex flex-wrap gap-1">
+              <div id="group-dm-member-list" class={styles.memberChips}>
                 <For each={groupMembers()}>
                   {(username) => (
-                    <span class="bg-xcord-bg-primary text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                    <span class={styles.memberChip}>
                       {username}
                       <button
-                        class="text-xcord-text-muted hover:text-white"
+                        class={styles.memberChipRemove}
                         onClick={() => handleRemoveGroupMember(username)}
                         aria-label={`Remove ${username}`}
                       >
@@ -229,14 +230,14 @@ export default function DmList() {
             </Show>
             <button
               id="create-group-dm-btn"
-              class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand-hover disabled:opacity-50"
+              class={styles.createGroupBtn}
               disabled={groupMembers().length < 2}
               onClick={handleCreateGroup}
             >
               Create Group
             </button>
             <Show when={groupError()}>
-              <p class="text-red-400 text-sm" id="group-dm-error">{groupError()}</p>
+              <p class={styles.groupError} id="group-dm-error">{groupError()}</p>
             </Show>
           </div>
         </Show>
@@ -245,29 +246,29 @@ export default function DmList() {
       {/* Group management panel */}
       <Show when={managingGroup()}>
         {(group) => (
-          <div id="group-dm-management" class="px-4 py-3 border-b border-xcord-border bg-xcord-bg-primary">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="text-white text-sm font-semibold">Manage: {group().name}</h3>
+          <div id="group-dm-management" class={styles.managementPanel}>
+            <div class={styles.managementHeader}>
+              <h3 class={styles.managementTitle}>Manage: {group().name}</h3>
               <button
-                class="text-xcord-text-muted hover:text-white text-xs"
+                class={styles.managementCloseBtn}
                 onClick={() => setManagingGroupId(null)}
               >
                 Close
               </button>
             </div>
-            <p class="text-xcord-text-muted text-xs mb-2">{group().memberIds.length} members</p>
-            <div class="flex space-x-2 mb-2">
+            <p class={styles.managementMemberCount}>{group().memberIds.length} members</p>
+            <div class={styles.managementAddRow}>
               <input
                 id="group-add-member-input"
                 type="text"
                 placeholder="Add member by username"
                 value={addMemberInput()}
                 onInput={(e) => setAddMemberInput(e.currentTarget.value)}
-                class="flex-1 bg-xcord-bg-secondary text-white px-2 py-1 rounded text-xs focus:outline-none focus:ring-1 focus:ring-xcord-brand"
+                class={styles.managementAddInput}
               />
               <button
                 id="group-add-member-btn"
-                class="bg-xcord-brand text-white px-2 py-1 rounded text-xs hover:bg-xcord-brand-hover disabled:opacity-50"
+                class={styles.managementAddBtn}
                 disabled={!addMemberInput().trim()}
                 onClick={() => handleAddMemberToGroup(group().id, addMemberInput())}
               >
@@ -275,23 +276,23 @@ export default function DmList() {
               </button>
             </div>
             <Show when={addMemberError()}>
-              <p class="text-red-400 text-xs mb-2" id="group-add-member-error">{addMemberError()}</p>
+              <p class={styles.managementAddError} id="group-add-member-error">{addMemberError()}</p>
             </Show>
             <button
               id="leave-group-dm-btn"
-              class="w-full bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 mt-1"
+              class={styles.leaveGroupBtn}
               onClick={() => handleLeaveGroup(group().id)}
             >
               Leave Group
             </button>
             <Show when={group().ownerId === auth.user?.id}>
-              <div class="mt-2">
-                <p class="text-xcord-text-muted text-xs mb-1">Members (click to remove):</p>
+              <div class={styles.removeMembersSection}>
+                <p class={styles.removeMembersLabel}>Members (click to remove):</p>
                 <For each={group().members}>
                   {(member) => (
                     <Show when={member.userId !== auth.user?.id}>
                       <button
-                        class="text-xs text-red-400 hover:text-red-300 block"
+                        class={styles.removeMemberBtn}
                         data-member-id={member.userId}
                         data-testid={`remove-member-${member.username}`}
                         onClick={() => handleRemoveMemberFromGroup(group().id, member.userId)}
@@ -307,10 +308,10 @@ export default function DmList() {
         )}
       </Show>
 
-      <div class="flex-1 overflow-y-auto">
+      <div class={styles.listArea}>
         <Show when={dmStore.isLoading}>
-          <div class="flex items-center justify-center h-32">
-            <p class="text-xcord-text-muted">Loading...</p>
+          <div class={styles.loadingCenter}>
+            <p class={styles.loadingText}>Loading...</p>
           </div>
         </Show>
 
@@ -318,28 +319,28 @@ export default function DmList() {
           {(dm) => (
             <button
               data-testid={`dm-channel-item-${dm.recipientUsername}`}
-              class={`w-full px-4 py-2 flex items-center space-x-3 hover:bg-xcord-bg-primary/50 transition ${
-                dmStore.selectedDmId === dm.id ? 'bg-xcord-bg-primary' : ''
-              }`}
+              class={dmStore.selectedDmId === dm.id
+                ? `${styles.dmChannelBtn} ${styles.dmChannelBtnActive}`
+                : styles.dmChannelBtn}
               onClick={() => dmStore.selectDm(dm.id)}
             >
-              <div class="relative flex-shrink-0">
-                <div class="w-10 h-10 rounded-full bg-xcord-brand flex items-center justify-center text-white font-semibold">
+              <div class={styles.avatarWrapper}>
+                <div class={styles.avatar}>
                   <Show when={dm.recipientAvatarUrl} fallback={dm.recipientUsername.charAt(0).toUpperCase()}>
                     <img
                       src={dm.recipientAvatarUrl}
                       alt={dm.recipientUsername}
-                      class="w-full h-full rounded-full object-cover"
+                      class={styles.avatarImg}
                     />
                   </Show>
                 </div>
                 <PresenceDot userId={dm.recipientId} size="md" />
               </div>
 
-              <div class="flex-1 text-left min-w-0">
-                <div class="flex items-center justify-between">
-                  <span class="text-white font-medium truncate">{dm.recipientUsername}</span>
-                  <span class="text-xs text-xcord-text-muted">{formatTime(dm.lastMessageAt)}</span>
+              <div class={styles.dmInfo}>
+                <div class={styles.dmInfoRow}>
+                  <span class={styles.dmUsername}>{dm.recipientUsername}</span>
+                  <span class={styles.dmTime}>{formatTime(dm.lastMessageAt)}</span>
                 </div>
               </div>
             </button>
@@ -349,36 +350,36 @@ export default function DmList() {
         <For each={dmStore.dmGroups}>
           {(group) => (
             <div
-              class={`w-full px-4 py-2 flex items-center space-x-3 hover:bg-xcord-bg-primary/50 transition cursor-pointer ${
-                dmStore.selectedDmId === group.id ? 'bg-xcord-bg-primary' : ''
-              }`}
+              class={dmStore.selectedDmId === group.id
+                ? `${styles.groupDmRow} ${styles.groupDmRowActive}`
+                : styles.groupDmRow}
             >
               <button
-                class="flex items-center space-x-3 flex-1 min-w-0 text-left"
+                class={styles.groupDmBtn}
                 onClick={() => dmStore.selectDm(group.id)}
               >
-                <div class="w-10 h-10 rounded-full bg-xcord-brand flex items-center justify-center text-white font-semibold flex-shrink-0">
+                <div class={styles.avatar}>
                   <Show when={group.iconUrl} fallback={group.name.charAt(0).toUpperCase()}>
                     <img
                       src={group.iconUrl}
                       alt={group.name}
-                      class="w-full h-full rounded-full object-cover"
+                      class={styles.avatarImg}
                     />
                   </Show>
                 </div>
 
-                <div class="flex-1 text-left min-w-0">
-                  <div class="flex items-center justify-between">
-                    <span class="text-white font-medium truncate">{group.name}</span>
-                    <span class="text-xs text-xcord-text-muted">{formatTime(group.lastMessageAt)}</span>
+                <div class={styles.groupDmInfo}>
+                  <div class={styles.groupDmInfoRow}>
+                    <span class={styles.groupDmName}>{group.name}</span>
+                    <span class={styles.groupDmTime}>{formatTime(group.lastMessageAt)}</span>
                   </div>
-                  <p class="text-xs text-xcord-text-muted">{group.memberIds.length} members</p>
+                  <p class={styles.groupDmMemberCount}>{group.memberIds.length} members</p>
                 </div>
               </button>
 
               {/* Manage button for group DM */}
               <button
-                class="text-xcord-text-muted hover:text-white text-xs flex-shrink-0 px-1"
+                class={styles.manageGroupBtn}
                 title="Manage group"
                 aria-label={`Manage ${group.name}`}
                 onClick={(e) => {

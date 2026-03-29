@@ -3,8 +3,9 @@ import { usePresence } from '../stores/presence.store';
 import { useAuth } from '../stores/auth.store';
 import { useSignalR } from '../stores/signalr.store';
 import type { PresenceStatus } from '../types/presence';
-import { statusColorMap } from './PresenceDot';
+import { statusClassMap } from './PresenceDot';
 import Menu from './ui/Menu';
+import styles from './StatusPicker.module.css';
 
 const STATUS_OPTIONS: { status: PresenceStatus; label: string }[] = [
   { status: 'online', label: 'Online' },
@@ -44,7 +45,7 @@ export default function StatusPicker() {
   }
 
   return (
-    <div class="relative">
+    <div class={styles.wrapper}>
       <button
         data-testid="nav-set-status-button"
         ref={triggerRef}
@@ -53,9 +54,9 @@ export default function StatusPicker() {
         aria-haspopup="true"
         aria-expanded={isOpen()}
         onClick={() => setIsOpen(!isOpen())}
-        class="w-4 h-4 rounded-full border-2 border-xcord-bg-tertiary absolute -bottom-0.5 -right-0.5 cursor-pointer"
+        class={styles.triggerButton}
         classList={{
-          [statusColorMap[currentStatus()]]: true,
+          [statusClassMap[currentStatus()]]: true,
         }}
       />
 
@@ -73,15 +74,15 @@ export default function StatusPicker() {
               aria-label={`Set status to ${option.status}`}
               disabled={isSaving()}
               onClick={() => selectStatus(option.status)}
-              class="w-full px-3 py-2 text-left text-sm text-xcord-text-secondary hover:bg-xcord-bg-primary hover:text-white transition-colors flex items-center gap-2.5 disabled:opacity-50"
+              class={styles.menuItem}
             >
               <span
-                class={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${statusColorMap[option.status]}`}
+                class={`${styles.statusDot} ${statusClassMap[option.status]}`}
                 aria-hidden="true"
               />
               <span>{option.label}</span>
               <Show when={currentStatus() === option.status}>
-                <span class="ml-auto text-xcord-text-muted text-xs" aria-hidden="true">&check;</span>
+                <span class={styles.checkmark} aria-hidden="true">&check;</span>
               </Show>
             </button>
           )}

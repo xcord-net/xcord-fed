@@ -2,6 +2,7 @@ import { createSignal, For, Show } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import Modal from './ui/Modal';
+import styles from './OwnershipTransfer.module.css';
 
 interface Member {
   userId: string;
@@ -105,16 +106,16 @@ export default function OwnershipTransfer(props: OwnershipTransferProps) {
 
   return (
     <Show when={isOwner()}>
-      <div class="mt-4">
-        <h3 class="text-xcord-text-muted text-sm font-semibold uppercase tracking-wide mb-2">
+      <div class={styles.section}>
+        <h3 class={styles.sectionTitle}>
           Server Ownership
         </h3>
-        <p class="text-xcord-text-muted text-sm mb-3">
+        <p class={styles.sectionDescription}>
           Transfer server ownership to another member. You will lose owner
           privileges.
         </p>
         <button
-          class="bg-xcord-bg-primary border border-xcord-border text-xcord-text-primary px-4 py-2 rounded hover:bg-xcord-bg-secondary/80 transition text-sm"
+          class={styles.openButton}
           onClick={handleOpenDialog}
         >
           Transfer Ownership
@@ -122,31 +123,31 @@ export default function OwnershipTransfer(props: OwnershipTransferProps) {
 
         {/* Step 1: Select Member */}
         <Modal open={step() === 'select-member'} onClose={handleClose} title="Select New Owner" size="md">
-          <div class="p-6">
+          <div class={styles.modalBody}>
             <Show when={error()}>
-              <div class="mb-3 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">{error()}</div>
+              <div class={styles.errorBanner}>{error()}</div>
             </Show>
 
             <Show when={isLoading()}>
-              <p class="text-xcord-text-muted text-sm">Loading members...</p>
+              <p class={styles.loadingText}>Loading members...</p>
             </Show>
 
             <Show when={!isLoading()}>
-              <div class="space-y-2 max-h-64 overflow-y-auto mb-4">
+              <div class={styles.memberList}>
                 <For each={members()}>
                   {(member) => (
                     <button
-                      class="w-full flex items-center gap-3 p-3 rounded bg-xcord-bg-primary hover:bg-xcord-bg-primary/80 transition text-left"
+                      class={styles.memberButton}
                       onClick={() => handleSelectMember(member)}
                     >
-                      <div class="w-8 h-8 rounded-full bg-xcord-brand flex items-center justify-center text-white text-sm font-semibold">
+                      <div class={styles.memberAvatar}>
                         {(member.displayName || member.username).charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p class="text-white text-sm font-medium">
+                        <p class={styles.memberDisplayName}>
                           {member.displayName || member.username}
                         </p>
-                        <p class="text-xcord-text-muted text-xs">
+                        <p class={styles.memberUsername}>
                           @{member.username}
                         </p>
                       </div>
@@ -154,15 +155,15 @@ export default function OwnershipTransfer(props: OwnershipTransferProps) {
                   )}
                 </For>
                 <Show when={members().length === 0}>
-                  <div class="flex flex-col items-center justify-center py-8 text-center">
-                    <p class="text-xcord-text-muted text-sm">No other members to transfer to.</p>
+                  <div class={styles.emptyMembers}>
+                    <p class={styles.emptyMembersText}>No other members to transfer to.</p>
                   </div>
                 </Show>
               </div>
             </Show>
 
             <button
-              class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+              class={styles.cancelButton}
               onClick={handleClose}
             >
               Cancel
@@ -172,44 +173,44 @@ export default function OwnershipTransfer(props: OwnershipTransferProps) {
 
         {/* Step 2: Confirm with server name */}
         <Modal open={step() === 'confirm-name'} onClose={handleClose} title="Confirm Ownership Transfer" size="md">
-          <div class="p-6">
-            <p class="text-xcord-text-muted text-sm mb-4">
+          <div class={styles.modalBody}>
+            <p class={styles.confirmDescription}>
               You are about to transfer ownership of this server to{' '}
-              <strong class="text-white">
+              <strong class={styles.confirmHighlight}>
                 {selectedMember()?.displayName || selectedMember()?.username}
               </strong>
               . Type the server name{' '}
-              <strong class="text-white">{props.serverName}</strong> to
+              <strong class={styles.confirmHighlight}>{props.serverName}</strong> to
               confirm.
             </p>
 
             <Show when={error()}>
-              <div class="mb-3 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">{error()}</div>
+              <div class={styles.errorBanner}>{error()}</div>
             </Show>
 
-            <div class="mb-4">
-              <label class="text-xs text-xcord-text-muted block mb-1">
+            <div class={styles.fieldGroup}>
+              <label class={styles.fieldLabel}>
                 Server Name
               </label>
               <input
                 type="text"
-                class="w-full bg-xcord-bg-primary text-xcord-text-primary px-3 py-2 rounded text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+                class={styles.textInput}
                 value={serverNameInput()}
                 onInput={(e) => setServerNameInput(e.currentTarget.value)}
                 placeholder={props.serverName}
               />
             </div>
 
-            <div class="flex gap-3">
+            <div class={styles.actionRow}>
               <button
-                class="flex-1 bg-xcord-brand text-white py-2 rounded hover:bg-xcord-brand-hover transition disabled:opacity-50"
+                class={styles.confirmButton}
                 onClick={handleConfirmTransfer}
                 disabled={isLoading() || serverNameInput().trim() !== props.serverName}
               >
                 {isLoading() ? 'Transferring...' : 'Confirm Transfer'}
               </button>
               <button
-                class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+                class={styles.cancelButton}
                 onClick={handleClose}
               >
                 Cancel

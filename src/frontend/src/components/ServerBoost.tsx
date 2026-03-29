@@ -1,6 +1,7 @@
 import { For, Show, createSignal, createEffect } from 'solid-js';
 import { api } from '../api/client';
 import { useAuth } from '../stores/auth.store';
+import styles from './ServerBoost.module.css';
 
 // ---- Types ----
 
@@ -176,80 +177,80 @@ export default function ServerBoost(props: ServerBoostProps) {
   const isMaxTier = () => currentTier() >= 3;
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
+    <div class={styles.container}>
       {/* Header */}
-      <div class="px-4 py-3 border-b border-xcord-bg-tertiary flex-shrink-0">
-        <h2 class="text-xcord-text-primary font-semibold">Server Boost</h2>
-        <p class="text-xcord-text-muted text-xs mt-0.5">
+      <div class={styles.header}>
+        <h2 class={styles.headerTitle}>Server Boost</h2>
+        <p class={styles.headerSubtitle}>
           Boost this server to unlock perks for everyone.
         </p>
       </div>
 
       {/* Loading */}
       <Show when={isLoading()}>
-        <div class="flex items-center justify-center flex-1">
-          <div class="w-5 h-5 border-2 border-xcord-text-muted border-t-transparent rounded-full animate-spin" />
+        <div class={styles.loadingCenter}>
+          <div class={styles.spinner} />
         </div>
       </Show>
 
       <Show when={error()}>
-        <p class="text-red-400 text-xs px-4 py-2">{error()}</p>
+        <p class={styles.errorText}>{error()}</p>
       </Show>
 
       <Show when={!isLoading() && boostStatus() !== null}>
-        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        <div class={styles.scrollArea}>
           {/* Current tier banner */}
-          <div class="bg-xcord-bg-primary rounded-lg p-4 text-center">
-            <div class="text-4xl mb-2">
+          <div class={styles.tierBanner}>
+            <div class={styles.tierEmoji}>
               {currentTier() === 0 ? '🔘' : currentTier() === 1 ? '🥉' : currentTier() === 2 ? '🥈' : '🥇'}
             </div>
-            <h3 class="text-xcord-text-primary font-bold text-lg">
+            <h3 class={styles.tierLabel}>
               {currentTierPerks().label}
             </h3>
-            <p class="text-xcord-text-muted text-sm mt-1">
+            <p class={styles.boostCount}>
               {boostCount()} boost{boostCount() !== 1 ? 's' : ''} active
             </p>
-            <p class="text-xcord-text-muted text-xs mt-0.5">
+            <p class={styles.boosterCount}>
               {boostStatus()!.premiumSubscriberCount} booster{boostStatus()!.premiumSubscriberCount !== 1 ? 's' : ''}
             </p>
           </div>
 
           {/* Progress to next tier */}
           <Show when={!isMaxTier() && nextTierPerks()}>
-            <div class="space-y-2">
-              <div class="flex justify-between text-xs text-xcord-text-muted">
+            <div class={styles.progressSection}>
+              <div class={styles.progressLabels}>
                 <span>{currentTierPerks().label}</span>
                 <span>{nextTierPerks()!.label}</span>
               </div>
-              <div class="w-full bg-xcord-bg-tertiary rounded-full h-2">
+              <div class={styles.progressTrack}>
                 <div
-                  class="bg-xcord-brand h-2 rounded-full transition-all"
+                  class={styles.progressFill}
                   style={{ width: `${progressPercent()}%` }}
                   aria-label={`${progressPercent()}% to next tier`}
                 />
               </div>
-              <p class="text-xcord-text-muted text-xs text-center">
+              <p class={styles.progressHint}>
                 {boostsNeeded()} more boost{boostsNeeded() !== 1 ? 's' : ''} needed for {nextTierPerks()!.label}
               </p>
             </div>
           </Show>
 
           <Show when={isMaxTier()}>
-            <p class="text-center text-xcord-brand text-sm font-medium">
+            <p class={styles.maxTierText}>
               Maximum tier reached!
             </p>
           </Show>
 
           {/* Current perks */}
-          <div class="space-y-2">
-            <h4 class="text-xcord-text-muted text-xs font-semibold uppercase tracking-wide">
+          <div class={styles.progressSection}>
+            <h4 class={styles.sectionHeading}>
               Current Perks
             </h4>
-            <ul class="space-y-1">
+            <ul class={styles.perkList}>
               <For each={currentTierPerks().perks}>
                 {(perk) => (
-                  <li class="flex items-center gap-2 text-xcord-text-primary text-sm">
-                    <span class="text-green-400 flex-shrink-0">&#10003;</span>
+                  <li class={styles.perkItem}>
+                    <span class={styles.perkCheck}>&#10003;</span>
                     {perk}
                   </li>
                 )}
@@ -259,15 +260,15 @@ export default function ServerBoost(props: ServerBoostProps) {
 
           {/* Next tier perks preview */}
           <Show when={nextTierPerks()}>
-            <div class="space-y-2">
-              <h4 class="text-xcord-text-muted text-xs font-semibold uppercase tracking-wide">
+            <div class={styles.progressSection}>
+              <h4 class={styles.sectionHeading}>
                 {nextTierPerks()!.label} Perks
               </h4>
-              <ul class="space-y-1 opacity-60">
+              <ul class={styles.nextPerkList}>
                 <For each={nextTierPerks()!.perks}>
                   {(perk) => (
-                    <li class="flex items-center gap-2 text-xcord-text-muted text-sm">
-                      <span class="text-xcord-text-muted flex-shrink-0">&#8226;</span>
+                    <li class={styles.nextPerkItem}>
+                      <span class={styles.nextPerkBullet}>&#8226;</span>
                       {perk}
                     </li>
                   )}
@@ -277,26 +278,22 @@ export default function ServerBoost(props: ServerBoostProps) {
           </Show>
 
           {/* All tiers overview */}
-          <div class="space-y-2">
-            <h4 class="text-xcord-text-muted text-xs font-semibold uppercase tracking-wide">
+          <div class={styles.progressSection}>
+            <h4 class={styles.sectionHeading}>
               All Tiers
             </h4>
             <For each={TIER_PERKS.slice(1)}>
               {(tier) => (
                 <div
-                  class={`rounded p-3 border ${
-                    currentTier() >= tier.tier
-                      ? 'border-xcord-brand bg-xcord-brand/10'
-                      : 'border-xcord-bg-tertiary bg-xcord-bg-primary'
-                  }`}
+                  class={currentTier() >= tier.tier ? `${styles.tierCard} ${styles.tierCardActive}` : styles.tierCard}
                 >
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="text-xcord-text-primary text-sm font-medium">{tier.label}</span>
-                    <span class="text-xcord-text-muted text-xs">
+                  <div class={styles.tierCardHeader}>
+                    <span class={styles.tierCardName}>{tier.label}</span>
+                    <span class={styles.tierCardBoosts}>
                       {tier.requiredBoosts} boosts
                     </span>
                   </div>
-                  <p class="text-xcord-text-muted text-xs">{tier.perks.join(' · ')}</p>
+                  <p class={styles.tierCardPerks}>{tier.perks.join(' · ')}</p>
                 </div>
               )}
             </For>
@@ -304,33 +301,33 @@ export default function ServerBoost(props: ServerBoostProps) {
         </div>
 
         {/* Boost button */}
-        <div class="px-4 py-3 border-t border-xcord-bg-tertiary flex-shrink-0 space-y-2">
+        <div class={styles.footer}>
           <Show when={boostSuccess()}>
-            <p class="text-green-400 text-sm text-center">Server boosted successfully!</p>
+            <p class={styles.successText}>Server boosted successfully!</p>
           </Show>
 
           <Show when={boostStatus()?.boostedByMe}>
-            <p class="text-xcord-text-muted text-xs text-center">
+            <p class={styles.boostedByText}>
               You are boosting this server ({boostStatus()!.myBoostCount} boost{boostStatus()!.myBoostCount !== 1 ? 's' : ''})
             </p>
           </Show>
 
           {/* Confirm dialog */}
           <Show when={showConfirm()}>
-            <div class="bg-xcord-bg-primary rounded p-3 space-y-2 text-center">
-              <p class="text-xcord-text-primary text-sm">
+            <div class={styles.confirmDialog}>
+              <p class={styles.confirmText}>
                 Boost this server? This uses one of your available server boosts.
               </p>
-              <div class="flex gap-2 justify-center">
+              <div class={styles.confirmButtons}>
                 <button
-                  class="px-4 py-1.5 bg-xcord-brand text-white rounded text-sm font-medium hover:bg-xcord-brand-hover transition-colors"
+                  class={styles.confirmBoostBtn}
                   onClick={handleBoost}
                   aria-label="Confirm boost"
                 >
                   Confirm Boost
                 </button>
                 <button
-                  class="px-4 py-1.5 bg-xcord-bg-tertiary text-xcord-text-muted rounded text-sm hover:bg-xcord-bg-primary hover:text-xcord-text-primary transition-colors"
+                  class={styles.confirmCancelBtn}
                   onClick={() => setShowConfirm(false)}
                   aria-label="Cancel boost"
                 >
@@ -342,7 +339,7 @@ export default function ServerBoost(props: ServerBoostProps) {
 
           <Show when={!showConfirm()}>
             <button
-              class="w-full bg-xcord-brand text-white py-2 rounded font-medium text-sm hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class={styles.boostBtn}
               onClick={() => setShowConfirm(true)}
               disabled={isBoosting()}
               aria-label="Boost Server"

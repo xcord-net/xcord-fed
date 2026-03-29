@@ -1,6 +1,7 @@
 import { createSignal, For, Show, onMount, onCleanup } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
+import styles from './GifPicker.module.css';
 
 interface GifDto {
   id: string;
@@ -143,15 +144,15 @@ export default function GifPicker(props: GifPickerProps) {
     <div
       role="dialog"
       aria-label="GIF picker"
-      class="w-96 h-[28rem] bg-xcord-bg-secondary rounded-lg shadow-xl border border-xcord-border flex flex-col"
+      class={styles.picker}
     >
       {/* Header */}
-      <div class="px-4 py-2 border-b border-xcord-border">
-        <h3 class="text-white font-semibold text-sm">GIFs</h3>
+      <div class={styles.header}>
+        <h3 class={styles.headerTitle}>GIFs</h3>
       </div>
 
       {/* Search input */}
-      <div class="px-3 py-2 border-b border-xcord-border">
+      <div class={styles.searchBar}>
         <input
           ref={searchInputRef}
           type="text"
@@ -164,45 +165,45 @@ export default function GifPicker(props: GifPickerProps) {
               props.onClose?.();
             }
           }}
-          class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+          class={styles.searchInput}
           aria-label="Search GIFs"
         />
       </div>
 
       {/* Error state */}
       <Show when={error()}>
-        <div class="px-4 py-2 bg-red-500/20 text-red-400 text-sm">{error()}</div>
+        <div class={styles.errorBanner}>{error()}</div>
       </Show>
 
       {/* GIF grid */}
       <div
-        class="flex-1 overflow-y-auto p-2"
+        class={styles.gridArea}
         onKeyDown={handleGridKeyDown}
       >
         {/* Loading state */}
         <Show when={isLoading()}>
-          <div class="flex items-center justify-center h-24">
-            <p class="text-xcord-text-muted text-sm">Loading GIFs...</p>
+          <div class={styles.loadingState}>
+            <p class={styles.loadingText}>Loading GIFs...</p>
           </div>
         </Show>
 
         {/* Empty state */}
         <Show when={!isLoading() && gifs().length === 0 && !error()}>
-          <div class="flex flex-col items-center justify-center h-24 text-xcord-text-muted">
-            <p class="font-semibold text-sm">No GIFs found</p>
+          <div class={styles.emptyState}>
+            <p class={styles.emptyTitle}>No GIFs found</p>
             <Show when={searchQuery()}>
-              <p class="text-xs mt-1">Try a different search term.</p>
+              <p class={styles.emptySubtitle}>Try a different search term.</p>
             </Show>
           </div>
         </Show>
 
         {/* Results grid */}
         <Show when={!isLoading() && gifs().length > 0}>
-          <div class="grid grid-cols-3 gap-1">
+          <div class={styles.gifGrid}>
             <For each={gifs()}>
               {(gif, index) => (
                 <button
-                  class="relative rounded overflow-hidden bg-xcord-bg-primary hover:ring-2 hover:ring-xcord-brand focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none transition-all"
+                  class={styles.gifBtn}
                   style={{ 'aspect-ratio': `${gif.width} / ${gif.height}` }}
                   onClick={() => props.onSelect(gif.url)}
                   title={gif.title}
@@ -212,7 +213,7 @@ export default function GifPicker(props: GifPickerProps) {
                   <img
                     src={gif.previewUrl}
                     alt={gif.title || 'GIF'}
-                    class="w-full h-full object-cover"
+                    class={styles.gifImage}
                     loading="lazy"
                   />
                 </button>
@@ -223,8 +224,8 @@ export default function GifPicker(props: GifPickerProps) {
       </div>
 
       {/* Footer hint */}
-      <div class="px-3 py-1.5 border-t border-xcord-border">
-        <p class="text-xcord-text-muted text-xs">
+      <div class={styles.footer}>
+        <p class={styles.footerText}>
           {searchQuery() ? 'Search results' : 'Trending'}
         </p>
       </div>

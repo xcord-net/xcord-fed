@@ -1,0 +1,155 @@
+.componentArea {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ---- Button styles ---- */
+
+.componentButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color 150ms, color 150ms, opacity 150ms;
+  border: none;
+  cursor: pointer;
+}
+
+.componentButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.buttonPrimary {
+  background-color: var(--color-xcord-brand);
+  color: #ffffff;
+}
+
+.buttonPrimary:hover:not(:disabled) {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.buttonSecondary {
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+}
+
+.buttonSecondary:hover:not(:disabled) {
+  background-color: var(--color-xcord-bg-primary);
+}
+
+.buttonSuccess {
+  background-color: #16a34a;
+  color: #ffffff;
+}
+
+.buttonSuccess:hover:not(:disabled) {
+  background-color: #15803d;
+}
+
+.buttonDanger {
+  background-color: #dc2626;
+  color: #ffffff;
+}
+
+.buttonDanger:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+.buttonLink {
+  background-color: transparent;
+  color: var(--color-xcord-brand);
+  text-decoration: underline;
+}
+
+.buttonLink:hover:not(:disabled) {
+  color: color-mix(in srgb, var(--color-xcord-brand) 80%, transparent);
+}
+
+/* ---- Spinner ---- */
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-width: 1px;
+  border-style: solid;
+  border-color: currentColor;
+  border-top-color: transparent;
+  border-radius: 9999px;
+  animation: spin 600ms linear infinite;
+}
+
+.spinnerMuted {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 1px solid var(--color-xcord-text-muted);
+  border-top-color: transparent;
+  border-radius: 9999px;
+  animation: spin 600ms linear infinite;
+}
+
+/* ---- Select menu ---- */
+
+.selectMenuRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.selectMenu {
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  outline: none;
+  border: none;
+  min-width: 180px;
+}
+
+.selectMenu:focus {
+  box-shadow: 0 0 0 1px var(--color-xcord-brand);
+}
+
+.selectMenu:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.confirmButton {
+  padding: 0.375rem 0.75rem;
+  background-color: var(--color-xcord-brand);
+  color: #ffffff;
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+  border: none;
+  transition: background-color 150ms, opacity 150ms;
+  cursor: pointer;
+}
+
+.confirmButton:hover:not(:disabled) {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.confirmButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

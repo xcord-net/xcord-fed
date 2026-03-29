@@ -1,0 +1,86 @@
+.content {
+  word-break: break-word;
+}
+
+.codeInline {
+  background-color: var(--color-xcord-bg-tertiary);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-family: monospace;
+}
+
+.codeBlock {
+  background-color: var(--color-xcord-bg-tertiary);
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-family: monospace;
+  display: block;
+  margin: 0.25rem 0;
+  overflow-x: auto;
+}
+
+.blockquote {
+  border-left: 4px solid var(--color-xcord-text-muted);
+  padding-left: 0.75rem;
+  color: var(--color-xcord-text-secondary);
+  margin: 0;
+}
+
+.spoiler {
+  border-radius: 0.25rem;
+  padding: 0 0.25rem;
+  cursor: pointer;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: transparent;
+}
+
+.spoiler:hover {
+  color: var(--color-xcord-text-primary);
+}
+
+.spoilerRevealed {
+  border-radius: 0.25rem;
+  padding: 0 0.25rem;
+  cursor: pointer;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+}
+
+.link {
+  color: #60a5fa;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.mentionUser {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border-radius: 0.25rem;
+  padding: 0 0.125rem;
+}
+
+.mentionGroup {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border-radius: 0.25rem;
+  padding: 0 0.125rem;
+}
+
+.mentionEveryone {
+  background-color: rgba(234, 179, 8, 0.2);
+  color: #facc15;
+  border-radius: 0.25rem;
+  padding: 0 0.125rem;
+}
+
+.mentionHere {
+  background-color: rgba(234, 179, 8, 0.2);
+  color: #facc15;
+  border-radius: 0.25rem;
+  padding: 0 0.125rem;
+}

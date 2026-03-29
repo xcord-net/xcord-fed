@@ -1,6 +1,7 @@
 import { createSignal, For, Show, onMount, createMemo } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
+import styles from './StickerPicker.module.css';
 
 export interface Sticker {
   id: string;
@@ -272,13 +273,13 @@ export default function StickerPicker(props: StickerPickerProps) {
   });
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
+    <div class={styles.picker}>
       {/* Header */}
-      <div class="px-4 py-3 border-b border-xcord-border flex items-center justify-between">
-        <h2 class="text-white font-semibold">Stickers</h2>
+      <div class={styles.header}>
+        <h2 class={styles.headerTitle}>Stickers</h2>
         <Show when={props.canManage}>
           <button
-            class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand-hover transition-colors"
+            class={styles.uploadToggleBtn}
             onClick={() => setShowUpload(!showUpload())}
           >
             {showUpload() ? 'Cancel' : 'Upload Sticker'}
@@ -288,47 +289,47 @@ export default function StickerPicker(props: StickerPickerProps) {
 
       {/* Upload form */}
       <Show when={showUpload() && props.canManage}>
-        <div class="px-4 py-3 border-b border-xcord-border bg-xcord-bg-primary/30 space-y-2">
-          <h3 class="text-white text-sm font-semibold">Upload New Sticker</h3>
-          <form onSubmit={handleUpload} class="space-y-2">
+        <div class={styles.uploadPanel}>
+          <h3 class={styles.uploadPanelTitle}>Upload New Sticker</h3>
+          <form onSubmit={handleUpload} class={styles.uploadForm}>
             <input
               type="text"
               placeholder="Sticker name (2-32 characters)"
               value={uploadName()}
               onInput={(e) => setUploadName(e.currentTarget.value)}
               maxLength={32}
-              class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+              class={styles.textInput}
             />
             <input
               type="text"
               placeholder="Description (optional)"
               value={uploadDescription()}
               onInput={(e) => setUploadDescription(e.currentTarget.value)}
-              class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+              class={styles.textInput}
             />
             <input
               type="text"
               placeholder="Tags (comma-separated, e.g. happy,funny,cute)"
               value={uploadTags()}
               onInput={(e) => setUploadTags(e.currentTarget.value)}
-              class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+              class={styles.textInput}
             />
-            <label class="block bg-xcord-bg-tertiary text-xcord-text-muted rounded px-3 py-1.5 text-sm cursor-pointer hover:bg-xcord-bg-primary transition-colors">
+            <label class={styles.fileLabel}>
               {uploadFile() ? uploadFile()!.name : 'Choose image (PNG, GIF, WEBP - max 512 KB)'}
               <input
                 type="file"
                 accept="image/png,image/gif,image/webp"
-                class="hidden"
+                class={styles.hiddenInput}
                 onChange={handleFileSelect}
               />
             </label>
             <Show when={uploadError()}>
-              <p class="text-red-400 text-xs">{uploadError()}</p>
+              <p class={styles.uploadError}>{uploadError()}</p>
             </Show>
             <button
               type="submit"
               disabled={isUploading()}
-              class="bg-xcord-brand text-white px-4 py-1.5 rounded text-sm hover:bg-xcord-brand-hover disabled:opacity-50 transition-colors"
+              class={styles.uploadSubmitBtn}
             >
               {isUploading() ? 'Uploading...' : 'Upload Sticker'}
             </button>
@@ -337,59 +338,59 @@ export default function StickerPicker(props: StickerPickerProps) {
       </Show>
 
       {/* Search */}
-      <div class="px-4 py-2 border-b border-xcord-border">
+      <div class={styles.searchBar}>
         <input
           type="text"
           placeholder="Search stickers..."
           value={searchQuery()}
           onInput={(e) => setSearchQuery(e.currentTarget.value)}
-          class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+          class={styles.textInput}
         />
       </div>
 
       <Show when={error()}>
-        <div class="px-4 py-2 bg-red-500/20 text-red-400 text-sm">{error()}</div>
+        <div class={styles.errorBanner}>{error()}</div>
       </Show>
 
       {/* Sticker grid */}
-      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+      <div class={styles.stickerArea}>
         <Show when={isLoading()}>
-          <div class="flex items-center justify-center h-24">
-            <p class="text-xcord-text-muted">Loading stickers...</p>
+          <div class={styles.loadingState}>
+            <p class={styles.loadingText}>Loading stickers...</p>
           </div>
         </Show>
 
         <Show when={!isLoading() && filteredStickers().length === 0}>
-          <div class="flex flex-col items-center justify-center h-24 text-xcord-text-muted">
-            <p class="font-semibold">No stickers found</p>
+          <div class={styles.emptyState}>
+            <p class={styles.emptyTitle}>No stickers found</p>
             <Show when={searchQuery()}>
-              <p class="text-sm mt-1">Try a different search term.</p>
+              <p class={styles.emptySubtitle}>Try a different search term.</p>
             </Show>
           </div>
         </Show>
 
         <For each={stickerPacks()}>
           {(pack) => (
-            <div>
-              <p class="text-xcord-text-muted text-xs uppercase font-semibold tracking-wide mb-2">
+            <div class={styles.packSection}>
+              <p class={styles.packName}>
                 {pack.serverName}
               </p>
-              <div class="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
+              <div class={styles.stickerGrid}>
                 <For each={pack.stickers}>
                   {(sticker) => (
-                    <div class="relative group">
+                    <div class={styles.stickerItem}>
                       <button
-                        class="w-full aspect-square rounded-lg bg-xcord-bg-primary hover:bg-xcord-bg-tertiary transition-colors overflow-hidden flex items-center justify-center p-1"
+                        class={styles.stickerBtn}
                         onClick={() => props.onSelect?.(sticker)}
                         title={sticker.name}
                       >
                         <img
                           src={sticker.imageUrl}
                           alt={sticker.name}
-                          class="w-full h-full object-contain"
+                          class={styles.stickerImage}
                         />
                       </button>
-                      <p class="text-xcord-text-muted text-xs text-center mt-0.5 truncate">
+                      <p class={styles.stickerName}>
                         {sticker.name}
                       </p>
 
@@ -399,7 +400,7 @@ export default function StickerPicker(props: StickerPickerProps) {
                           when={confirmDeleteId() === sticker.id}
                           fallback={
                             <button
-                              class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                              class={styles.deleteBtn}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setConfirmDeleteId(sticker.id);
@@ -410,17 +411,17 @@ export default function StickerPicker(props: StickerPickerProps) {
                             </button>
                           }
                         >
-                          <div class="absolute inset-0 bg-xcord-bg-primary/90 rounded-lg flex flex-col items-center justify-center space-y-1 p-1">
-                            <p class="text-white text-xs font-medium">Delete?</p>
-                            <div class="flex space-x-1">
+                          <div class={styles.confirmOverlay}>
+                            <p class={styles.confirmTitle}>Delete?</p>
+                            <div class={styles.confirmActions}>
                               <button
-                                class="bg-xcord-bg-tertiary text-xcord-text-muted px-1.5 py-0.5 rounded text-xs hover:text-white"
+                                class={styles.confirmNoBtn}
                                 onClick={() => setConfirmDeleteId(null)}
                               >
                                 No
                               </button>
                               <button
-                                class="bg-red-500 text-white px-1.5 py-0.5 rounded text-xs hover:bg-red-600"
+                                class={styles.confirmYesBtn}
                                 onClick={() => handleDelete(sticker.id)}
                               >
                                 Yes

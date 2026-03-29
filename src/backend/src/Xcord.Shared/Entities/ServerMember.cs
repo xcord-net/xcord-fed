@@ -32,6 +32,11 @@ public sealed class ServerMember : ISoftDeletable
     public DateTimeOffset JoinedAt { get; set; }
 
     /// <summary>
+    /// Channel IDs the member has favorited (stored as JSON array).
+    /// </summary>
+    public long[] FavoriteChannelIds { get; set; } = Array.Empty<long>();
+
+    /// <summary>
     /// Soft delete timestamp (implements ISoftDeletable).
     /// </summary>
     public DateTimeOffset? DeletedAt { get; set; }

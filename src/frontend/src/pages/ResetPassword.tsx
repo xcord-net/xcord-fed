@@ -2,6 +2,7 @@ import { createSignal, onMount, Show } from 'solid-js';
 import { useNavigate, A } from '@solidjs/router';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
+import styles from './ResetPassword.module.css';
 
 export default function ResetPassword() {
   const [token, setToken] = createSignal('');
@@ -55,51 +56,51 @@ export default function ResetPassword() {
   };
 
   return (
-    <div class="min-h-screen bg-xcord-bg-tertiary flex items-center justify-center">
+    <div class={styles.pageWrapper}>
       <Show
         when={!success()}
         fallback={
-          <div class="bg-xcord-bg-secondary p-8 rounded-lg shadow-xl w-full max-w-md text-center">
-            <h1 data-testid="reset-password-success" class="text-2xl font-bold text-xcord-text-primary mb-4">Password reset successfully!</h1>
-            <p class="text-xcord-text-muted text-sm mb-6">
+          <div class={styles.successCard}>
+            <h1 data-testid="reset-password-success" class={styles.successHeading}>Password reset successfully!</h1>
+            <p class={styles.successDescription}>
               Your password has been changed successfully. You can now log in with your new password.
             </p>
             <button
               onClick={() => navigate('/login')}
-              class="w-full bg-xcord-brand hover:bg-xcord-brand-hover text-white font-medium py-2 rounded"
+              class={styles.submitButton}
             >
               Go to Login
             </button>
           </div>
         }
       >
-        <form onSubmit={handleSubmit} class="bg-xcord-bg-secondary p-8 rounded-lg shadow-xl w-full max-w-md">
-          <h1 data-testid="reset-password-heading" class="text-2xl font-bold text-xcord-text-primary mb-2 text-center">Choose a new password</h1>
-          <p class="text-xcord-text-muted text-sm mb-6 text-center">
+        <form onSubmit={handleSubmit} class={styles.card}>
+          <h1 data-testid="reset-password-heading" class={styles.heading}>Choose a new password</h1>
+          <p class={styles.description}>
             Enter a new password for your account. This link expires after 1 hour.
           </p>
-          {error() && <p data-testid="reset-password-error" class="text-red-400 text-sm mb-4">{error()}</p>}
-          <div class="mb-4">
-            <label for="reset-new-password" class="block text-xcord-text-secondary text-sm font-medium mb-2">New Password</label>
+          {error() && <p data-testid="reset-password-error" class={styles.errorText}>{error()}</p>}
+          <div class={styles.fieldGroup}>
+            <label for="reset-new-password" class={styles.label}>New Password</label>
             <input
               id="reset-new-password"
               type="password"
               value={newPassword()}
               onInput={(e) => setNewPassword(e.currentTarget.value)}
-              class="w-full bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-2 border border-xcord-border focus:border-xcord-brand focus:outline-none"
+              class={styles.input}
               placeholder="At least 8 characters"
               required
               minLength={8}
             />
           </div>
-          <div class="mb-6">
-            <label for="reset-confirm-password" class="block text-xcord-text-secondary text-sm font-medium mb-2">Confirm Password</label>
+          <div class={styles.fieldGroupLast}>
+            <label for="reset-confirm-password" class={styles.label}>Confirm Password</label>
             <input
               id="reset-confirm-password"
               type="password"
               value={confirmPassword()}
               onInput={(e) => setConfirmPassword(e.currentTarget.value)}
-              class="w-full bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-2 border border-xcord-border focus:border-xcord-brand focus:outline-none"
+              class={styles.input}
               placeholder="Repeat your new password"
               required
             />
@@ -108,12 +109,12 @@ export default function ResetPassword() {
             data-testid="reset-password-submit-button"
             type="submit"
             disabled={loading() || !token()}
-            class="w-full bg-xcord-brand hover:bg-xcord-brand-hover text-white font-medium py-2 rounded disabled:opacity-50"
+            class={styles.submitButton}
           >
             {loading() ? 'Resetting...' : 'Reset Password'}
           </button>
-          <p class="text-xcord-text-muted text-sm mt-4 text-center">
-            Remembered it? <A href="/login" class="text-xcord-brand hover:underline">Back to Login</A>
+          <p class={styles.footerText}>
+            Remembered it? <A href="/login" class={styles.link}>Back to Login</A>
           </p>
         </form>
       </Show>

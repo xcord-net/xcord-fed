@@ -1,0 +1,66 @@
+.deleteButton {
+  background-color: #ef4444;
+  color: #ffffff;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.deleteButton:hover {
+  background-color: #dc2626;
+}
+
+.confirmWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.confirmPrompt {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  margin: 0;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cancelButton {
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-muted);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  border: none;
+  cursor: pointer;
+}
+
+.cancelButton:hover {
+  background-color: var(--color-xcord-bg-tertiary);
+}
+
+.confirmButton {
+  background-color: #dc2626;
+  color: #ffffff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  border: none;
+  cursor: pointer;
+}
+
+.confirmButton:hover {
+  background-color: #b91c1c;
+}
+
+.confirmButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

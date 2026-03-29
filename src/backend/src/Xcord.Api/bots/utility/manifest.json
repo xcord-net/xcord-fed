@@ -1,0 +1,11 @@
+{
+  "id": "xcord.utility",
+  "name": "Utility Bot",
+  "description": "General-purpose utility commands: server info, user info, ping, and quick polls.",
+  "category": "Utility",
+  "parameters": [
+    { "key": "prefix", "label": "Command prefix", "type": "string", "default": "!" },
+    { "key": "enablePing", "label": "Enable ping command", "type": "boolean", "default": true },
+    { "key": "enablePolls", "label": "Enable poll command", "type": "boolean", "default": true }
+  ]
+}

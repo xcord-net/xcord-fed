@@ -1,5 +1,6 @@
 import { For, Show, createSignal, createEffect } from 'solid-js';
 import { api } from '../api/client';
+import styles from './ScheduledEvents.module.css';
 
 // ---- Types ----
 
@@ -188,13 +189,13 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
   const isFormValid = () => formTitle().trim().length > 0 && formStartTime().length > 0;
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
+    <div class={styles.container}>
       {/* Header */}
-      <div class="px-4 py-3 border-b border-xcord-bg-tertiary flex items-center justify-between flex-shrink-0">
-        <h2 class="text-xcord-text-primary font-semibold">Scheduled Events</h2>
+      <div class={styles.header}>
+        <h2 class={styles.headerTitle}>Scheduled Events</h2>
         <button
           data-testid="scheduled-events-create-button"
-          class="bg-xcord-brand text-white px-3 py-1.5 rounded hover:bg-xcord-brand-hover transition-colors text-sm"
+          class={styles.createBtn}
           onClick={() => setShowCreateForm(true)}
         >
           + Create Event
@@ -203,17 +204,17 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
 
       {/* Create Event Form */}
       <Show when={showCreateForm()}>
-        <div data-testid="scheduled-events-form" class="px-4 py-4 bg-xcord-bg-primary border-b border-xcord-bg-tertiary space-y-3 flex-shrink-0 overflow-y-auto max-h-[60vh]">
-          <h3 class="text-xcord-text-primary font-semibold text-sm">New Scheduled Event</h3>
+        <div data-testid="scheduled-events-form" class={styles.formPanel}>
+          <h3 class={styles.formTitle}>New Scheduled Event</h3>
 
           {/* Title */}
           <div>
-            <label class="block text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-1">
+            <label class={styles.fieldLabel}>
               Event Name *
             </label>
             <input
               type="text"
-              class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
+              class={styles.textInput}
               placeholder="Event name..."
               value={formTitle()}
               onInput={(e) => setFormTitle(e.currentTarget.value)}
@@ -222,11 +223,11 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
 
           {/* Description */}
           <div>
-            <label class="block text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-1">
+            <label class={styles.fieldLabel}>
               Description
             </label>
             <textarea
-              class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xcord-brand resize-none"
+              class={styles.textarea}
               placeholder="Describe the event..."
               rows={3}
               value={formDescription()}
@@ -235,25 +236,25 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
           </div>
 
           {/* Start + End times */}
-          <div class="grid grid-cols-2 gap-3">
+          <div class={styles.timeGrid}>
             <div>
-              <label class="block text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-1">
+              <label class={styles.fieldLabel}>
                 Start Time *
               </label>
               <input
                 type="datetime-local"
-                class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
+                class={styles.textInput}
                 value={formStartTime()}
                 onInput={(e) => setFormStartTime(e.currentTarget.value)}
               />
             </div>
             <div>
-              <label class="block text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-1">
+              <label class={styles.fieldLabel}>
                 End Time
               </label>
               <input
                 type="datetime-local"
-                class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
+                class={styles.textInput}
                 value={formEndTime()}
                 onInput={(e) => setFormEndTime(e.currentTarget.value)}
               />
@@ -262,11 +263,11 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
 
           {/* Location type */}
           <div>
-            <label class="block text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-1">
+            <label class={styles.fieldLabel}>
               Location Type
             </label>
             <select
-              class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
+              class={styles.selectInput}
               value={formLocationType()}
               onChange={(e) =>
                 setFormLocationType(e.currentTarget.value as 'VoiceChannel' | 'External')
@@ -280,12 +281,12 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
           {/* Conditional location field */}
           <Show when={formLocationType() === 'VoiceChannel'}>
             <div>
-              <label class="block text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-1">
+              <label class={styles.fieldLabel}>
                 Voice Channel ID
               </label>
               <input
                 type="text"
-                class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
+                class={styles.textInput}
                 placeholder="Channel ID..."
                 value={formLocationChannelId()}
                 onInput={(e) => setFormLocationChannelId(e.currentTarget.value)}
@@ -295,12 +296,12 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
 
           <Show when={formLocationType() === 'External'}>
             <div>
-              <label class="block text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-1">
+              <label class={styles.fieldLabel}>
                 External URL
               </label>
               <input
                 type="url"
-                class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
+                class={styles.textInput}
                 placeholder="https://..."
                 value={formLocationExternalUrl()}
                 onInput={(e) => setFormLocationExternalUrl(e.currentTarget.value)}
@@ -309,20 +310,20 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
           </Show>
 
           <Show when={submitError()}>
-            <p class="text-red-400 text-xs">{submitError()}</p>
+            <p class={styles.errorText}>{submitError()}</p>
           </Show>
 
-          <div class="flex gap-2 pt-1">
+          <div class={styles.formButtons}>
             <button
               data-testid="scheduled-events-form-submit"
-              class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class={styles.primaryBtn}
               onClick={handleCreateEvent}
               disabled={isSubmitting() || !isFormValid()}
             >
               {isSubmitting() ? 'Creating...' : 'Create Event'}
             </button>
             <button
-              class="px-4 py-2 bg-xcord-bg-tertiary text-xcord-text-muted text-sm rounded hover:bg-xcord-bg-primary hover:text-xcord-text-primary transition-colors"
+              class={styles.secondaryBtn}
               onClick={handleCancelCreate}
             >
               Cancel
@@ -332,19 +333,19 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
       </Show>
 
       {/* Events list */}
-      <div class="flex-1 overflow-y-auto">
+      <div class={styles.listArea}>
         <Show when={isLoading()}>
-          <div class="flex items-center justify-center h-32">
-            <div class="w-5 h-5 border-2 border-xcord-text-muted border-t-transparent rounded-full animate-spin" />
+          <div class={styles.loadingCenter}>
+            <div class={styles.spinner} />
           </div>
         </Show>
 
         <Show when={!isLoading() && events().length === 0}>
-          <div class="flex flex-col items-center justify-center h-48 space-y-3">
-            <div class="text-4xl text-xcord-text-muted">📅</div>
-            <p class="text-xcord-text-muted text-sm">No upcoming events</p>
+          <div class={styles.emptyState}>
+            <div class={styles.emptyIcon}>📅</div>
+            <p class={styles.emptyText}>No upcoming events</p>
             <button
-              class="text-xcord-brand hover:underline text-sm"
+              class={styles.scheduleLink}
               onClick={() => setShowCreateForm(true)}
             >
               Schedule an event
@@ -353,41 +354,41 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
         </Show>
 
         <Show when={!isLoading() && events().length > 0}>
-          <div data-testid="scheduled-events-list" class="divide-y divide-xcord-bg-tertiary">
+          <div data-testid="scheduled-events-list" class={styles.eventList}>
             <For each={events()}>
               {(event) => (
-                <div data-testid="scheduled-event-item" class="px-4 py-4">
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="flex-1 min-w-0">
+                <div data-testid="scheduled-event-item" class={styles.eventItem}>
+                  <div class={styles.eventItemInner}>
+                    <div class={styles.eventInfo}>
                       {/* Event name */}
-                      <h3 class="text-xcord-text-primary font-semibold text-sm">{event.name}</h3>
+                      <h3 class={styles.eventName}>{event.name}</h3>
 
                       {/* Date and time */}
-                      <div class="flex items-center gap-2 mt-1">
-                        <span class="text-xcord-text-muted text-xs">📅</span>
-                        <span class="text-xcord-text-muted text-xs">
+                      <div class={styles.eventTimeRow}>
+                        <span class={styles.eventTimeIcon}>📅</span>
+                        <span class={styles.eventTimeText}>
                           {formatEventDate(event.scheduledStartTime)} at {formatEventTime(event.scheduledStartTime)}
                         </span>
                         <Show when={event.scheduledEndTime}>
-                          <span class="text-xcord-text-muted text-xs">
+                          <span class={styles.eventTimeText}>
                             - {formatEventTime(event.scheduledEndTime!)}
                           </span>
                         </Show>
                       </div>
 
                       {/* Location */}
-                      <div class="flex items-center gap-2 mt-0.5">
+                      <div class={styles.eventLocationRow}>
                         <Show when={event.channelId}>
-                          <span class="text-xcord-text-muted text-xs">🔊</span>
-                          <span class="text-xcord-text-muted text-xs">Voice Channel</span>
+                          <span class={styles.eventLocationIcon}>🔊</span>
+                          <span class={styles.eventLocationText}>Voice Channel</span>
                         </Show>
                         <Show when={!event.channelId && event.location}>
-                          <span class="text-xcord-text-muted text-xs">🔗</span>
+                          <span class={styles.eventLocationIcon}>🔗</span>
                           <a
                             href={event.location}
                             target="_blank"
                             rel="noreferrer"
-                            class="text-xcord-brand text-xs hover:underline truncate"
+                            class={styles.eventLocationLink}
                             onClick={(e) => e.stopPropagation()}
                           >
                             {event.location}
@@ -397,24 +398,20 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
 
                       {/* Description */}
                       <Show when={event.description}>
-                        <p class="text-xcord-text-muted text-xs mt-1.5 line-clamp-2">
+                        <p class={styles.eventDescription}>
                           {event.description}
                         </p>
                       </Show>
 
                       {/* Interested count */}
-                      <p class="text-xcord-text-muted text-xs mt-2">
+                      <p class={styles.eventInterestedCount}>
                         {event.interestedCount} interested
                       </p>
                     </div>
 
                     {/* RSVP button */}
                     <button
-                      class={`flex-shrink-0 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                        event.isInterested
-                          ? 'bg-xcord-brand text-white hover:bg-xcord-brand-hover'
-                          : 'bg-xcord-bg-tertiary text-xcord-text-muted hover:bg-xcord-bg-primary hover:text-xcord-text-primary'
-                      }`}
+                      class={event.isInterested ? styles.rsvpBtnActive : styles.rsvpBtnInactive}
                       onClick={() => toggleInterested(event)}
                       aria-label={event.isInterested ? 'Remove interest' : 'Mark as interested'}
                     >

@@ -64,7 +64,7 @@ public sealed class FollowChannelHandler(
         }
 
         // Source must be an announcement channel
-        if (sourceChannel.Type != ChannelType.Announcement)
+        if (!sourceChannel.Capabilities.HasFlag(ChannelCapability.Announcement))
         {
             return Error.Validation("NOT_ANNOUNCEMENT", "Only announcement channels can be followed");
         }

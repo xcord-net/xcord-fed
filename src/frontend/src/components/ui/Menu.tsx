@@ -1,5 +1,6 @@
 import { Show, createEffect, onCleanup, splitProps } from 'solid-js';
 import type { JSX } from 'solid-js';
+import styles from './Menu.module.css';
 
 // Whether the user has requested reduced motion at the OS level.
 const prefersReducedMotion = () =>
@@ -222,7 +223,7 @@ export default function Menu(props: MenuProps) {
     <Show when={local.open}>
       {/* Click-outside overlay - transparent, covers the whole viewport */}
       <div
-        class="fixed inset-0 z-40"
+        class={styles.overlay}
         aria-hidden="true"
         onClick={() => local.onClose()}
       />
@@ -231,7 +232,7 @@ export default function Menu(props: MenuProps) {
       <div
         ref={menuEl}
         role="menu"
-        class="fixed z-60 min-w-[10rem] bg-xcord-bg-tertiary border border-xcord-border rounded-lg shadow-lg py-1 transition-all duration-150 origin-top-left"
+        class={styles.menu}
         style={{ top: '0px', left: '0px' }}
       >
         {local.children}

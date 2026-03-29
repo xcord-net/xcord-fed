@@ -86,6 +86,8 @@ namespace Xcord.Infrastructure.Migrations
                     LastUsedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     InteractionEndpointUrl = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: true),
                     InteractionSigningKey = table.Column<byte[]>(type: "bytea", nullable: true),
+                    AgentId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    AgentConfigJson = table.Column<string>(type: "text", nullable: true),
                     DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
@@ -902,6 +904,8 @@ namespace Xcord.Infrastructure.Migrations
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Topic = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: true),
                     Type = table.Column<int>(type: "integer", nullable: false),
+                    Capabilities = table.Column<long>(type: "bigint", nullable: false),
+                    AccessGroupId = table.Column<long>(type: "bigint", nullable: true),
                     Position = table.Column<int>(type: "integer", nullable: false),
                     SlowModeSeconds = table.Column<int>(type: "integer", nullable: true),
                     IsNsfw = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
@@ -1174,6 +1178,39 @@ namespace Xcord.Infrastructure.Migrations
                         name: "FK_custom_emojis_users_CreatorId",
                         column: x => x.CreatorId,
                         principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "discord_migrations",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false),
+                    DiscordGuildId = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                    ServerId = table.Column<long>(type: "bigint", nullable: false),
+                    Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false, defaultValue: "Pending"),
+                    CurrentPhase = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    CheckpointJson = table.Column<string>(type: "jsonb", nullable: true),
+                    OptionsJson = table.Column<string>(type: "jsonb", nullable: false, defaultValueSql: "'{}'"),
+                    TotalChannels = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    MigratedChannels = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    TotalMessages = table.Column<long>(type: "bigint", nullable: false, defaultValue: 0L),
+                    MigratedMessages = table.Column<long>(type: "bigint", nullable: false, defaultValue: 0L),
+                    TotalMembers = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    MigratedMembers = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    ErrorMessage = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    CompletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_discord_migrations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_discord_migrations_servers_ServerId",
+                        column: x => x.ServerId,
+                        principalTable: "servers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -1506,6 +1543,7 @@ namespace Xcord.Infrastructure.Migrations
                     Nickname = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: true),
                     ServerAvatarUrl = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: true),
                     JoinedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    FavoriteChannelIds = table.Column<long[]>(type: "bigint[]", nullable: false),
                     DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
@@ -1732,6 +1770,27 @@ namespace Xcord.Infrastructure.Migrations
                         name: "FK_thread_members_users_UserId",
                         column: x => x.UserId,
                         principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "discord_id_mappings",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false),
+                    MigrationId = table.Column<long>(type: "bigint", nullable: false),
+                    DiscordId = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                    XcordId = table.Column<long>(type: "bigint", nullable: false),
+                    EntityType = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_discord_id_mappings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_discord_id_mappings_discord_migrations_MigrationId",
+                        column: x => x.MigrationId,
+                        principalTable: "discord_migrations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -2115,6 +2174,11 @@ namespace Xcord.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_channels_AccessGroupId",
+                table: "channels",
+                column: "AccessGroupId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_channels_CategoryId",
                 table: "channels",
                 column: "CategoryId");
@@ -2158,6 +2222,21 @@ namespace Xcord.Infrastructure.Migrations
                 columns: new[] { "ServerId", "Name" },
                 unique: true,
                 filter: "\"DeletedAt\" IS NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_discord_id_mappings_MigrationId_DiscordId_EntityType",
+                table: "discord_id_mappings",
+                columns: new[] { "MigrationId", "DiscordId", "EntityType" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_discord_id_mappings_MigrationId_EntityType",
+                table: "discord_id_mappings",
+                columns: new[] { "MigrationId", "EntityType" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_discord_migrations_ServerId",
+                table: "discord_migrations",
+                column: "ServerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_dm_channel_members_DmChannelId",
@@ -2824,6 +2903,14 @@ namespace Xcord.Infrastructure.Migrations
                 onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
+                name: "FK_channels_groups_AccessGroupId",
+                table: "channels",
+                column: "AccessGroupId",
+                principalTable: "groups",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.SetNull);
+
+            migrationBuilder.AddForeignKey(
                 name: "FK_channels_servers_ServerId",
                 table: "channels",
                 column: "ServerId",
@@ -2846,6 +2933,10 @@ namespace Xcord.Infrastructure.Migrations
             migrationBuilder.DropForeignKey(
                 name: "FK_channels_servers_ServerId",
                 table: "channels");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_groups_servers_ServerId",
+                table: "groups");
 
             migrationBuilder.DropTable(
                 name: "app_reviews");
@@ -2873,6 +2964,9 @@ namespace Xcord.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "custom_emojis");
+
+            migrationBuilder.DropTable(
+                name: "discord_id_mappings");
 
             migrationBuilder.DropTable(
                 name: "dm_channel_members");
@@ -3001,6 +3095,9 @@ namespace Xcord.Infrastructure.Migrations
                 name: "app_listings");
 
             migrationBuilder.DropTable(
+                name: "discord_migrations");
+
+            migrationBuilder.DropTable(
                 name: "dm_channels");
 
             migrationBuilder.DropTable(
@@ -3017,9 +3114,6 @@ namespace Xcord.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "tiers");
-
-            migrationBuilder.DropTable(
-                name: "groups");
 
             migrationBuilder.DropTable(
                 name: "onboarding_configs");
@@ -3062,6 +3156,9 @@ namespace Xcord.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "conversations");
+
+            migrationBuilder.DropTable(
+                name: "groups");
         }
     }
 }

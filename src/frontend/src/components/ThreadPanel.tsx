@@ -4,6 +4,7 @@ import { useAuth } from '../stores/auth.store';
 import { useMessages } from '../stores/message.store';
 import { api } from '../api/client';
 import MessageList from './MessageList';
+import styles from './ThreadPanel.module.css';
 
 interface ThreadPanelProps {
   channelId: string;
@@ -113,24 +114,24 @@ export default function ThreadPanel(props: ThreadPanelProps) {
   };
 
   return (
-    <div data-testid="thread-panel" class="flex flex-col h-full bg-xcord-bg-secondary border-l border-xcord-border w-80">
-      <div class="px-4 py-3 border-b border-xcord-border">
-        <h2 class="text-white font-semibold">Threads</h2>
+    <div data-testid="thread-panel" class={styles.panel}>
+      <div class={styles.panelHeader}>
+        <h2 class={styles.panelTitle}>Threads</h2>
       </div>
 
       <Show
         when={threadStore.activeThreadId}
         fallback={
-          <div data-testid="thread-list" class="flex-1 overflow-y-auto">
+          <div data-testid="thread-list" class={styles.threadList}>
             <Show when={threadStore.isLoading}>
-              <div class="flex items-center justify-center h-32">
-                <p class="text-xcord-text-muted">Loading threads...</p>
+              <div class={styles.centeredStatus}>
+                <p class={styles.mutedText}>Loading threads...</p>
               </div>
             </Show>
 
             <Show when={!threadStore.isLoading && threadStore.threads.length === 0}>
-              <div class="flex items-center justify-center h-32">
-                <p data-testid="thread-list-empty" class="text-xcord-text-muted">No active threads</p>
+              <div class={styles.centeredStatus}>
+                <p data-testid="thread-list-empty" class={styles.mutedText}>No active threads</p>
               </div>
             </Show>
 
@@ -138,21 +139,21 @@ export default function ThreadPanel(props: ThreadPanelProps) {
               {(thread) => (
                 <button
                   data-testid="thread-list-item"
-                  class="w-full px-4 py-3 hover:bg-xcord-bg-primary/50 transition border-b border-xcord-border text-left"
+                  class={styles.threadItem}
                   onClick={() => threadStore.setActiveThread(thread.id)}
                 >
-                  <div class="flex items-start justify-between">
-                    <div class="flex-1 min-w-0">
-                      <h3 class="text-white font-medium truncate">{thread.name}</h3>
-                      <p class="text-xs text-xcord-text-muted mt-1">
+                  <div class={styles.threadItemInner}>
+                    <div class={styles.threadItemBody}>
+                      <h3 class={styles.threadName}>{thread.name}</h3>
+                      <p class={styles.threadMeta}>
                         {thread.messageCount} {thread.messageCount === 1 ? 'message' : 'messages'}
                         {thread.memberCount > 0 && (
-                          <span class="ml-2">{thread.memberCount} {thread.memberCount === 1 ? 'member' : 'members'}</span>
+                          <span class={styles.memberCount}>{thread.memberCount} {thread.memberCount === 1 ? 'member' : 'members'}</span>
                         )}
                       </p>
                     </div>
                     <Show when={thread.archived}>
-                      <span class="text-xs bg-xcord-bg-primary text-xcord-text-muted px-2 py-1 rounded">
+                      <span class={styles.archivedBadge}>
                         Archived
                       </span>
                     </Show>
@@ -163,18 +164,18 @@ export default function ThreadPanel(props: ThreadPanelProps) {
           </div>
         }
       >
-        <div class="flex-1 flex flex-col min-h-0">
+        <div class={styles.activeThreadContainer}>
           {/* Thread header */}
-          <div class="px-4 py-2 border-b border-xcord-border flex items-center justify-between gap-2">
+          <div class={styles.threadHeader}>
             <Show
               when={editingName()}
               fallback={
-                <div class="flex items-center gap-2 flex-1 min-w-0">
-                  <h3 class="text-white font-medium truncate flex-1">
+                <div class={styles.threadNameRow}>
+                  <h3 class={styles.activeThreadName}>
                     {activeThread()?.name}
                   </h3>
                   <button
-                    class="text-xcord-text-muted hover:text-white text-xs flex-shrink-0"
+                    class={styles.editNameButton}
                     onClick={handleEditName}
                     aria-label="Edit Thread Name"
                   >
@@ -183,11 +184,11 @@ export default function ThreadPanel(props: ThreadPanelProps) {
                 </div>
               }
             >
-              <div class="flex items-center gap-1 flex-1 min-w-0">
+              <div class={styles.editNameRow}>
                 <input
                   id="thread-name-edit"
                   type="text"
-                  class="flex-1 bg-xcord-bg-primary text-xcord-text-primary text-sm rounded px-2 py-1 border border-xcord-border outline-none focus:border-xcord-brand min-w-0"
+                  class={styles.editNameInput}
                   value={editNameInput()}
                   onInput={(e) => setEditNameInput(e.currentTarget.value)}
                   onKeyDown={(e) => {
@@ -196,7 +197,7 @@ export default function ThreadPanel(props: ThreadPanelProps) {
                   }}
                 />
                 <button
-                  class="text-xcord-brand hover:text-white text-xs flex-shrink-0 px-2 py-1 rounded border border-xcord-brand hover:bg-xcord-brand transition-colors"
+                  class={styles.saveNameButton}
                   onClick={handleSaveName}
                 >
                   Save
@@ -204,7 +205,7 @@ export default function ThreadPanel(props: ThreadPanelProps) {
               </div>
             </Show>
             <button
-              class="text-xcord-text-muted hover:text-white flex-shrink-0"
+              class={styles.closeButton}
               onClick={() => {
                 setEditingName(false);
                 threadStore.setActiveThread(null);
@@ -216,8 +217,8 @@ export default function ThreadPanel(props: ThreadPanelProps) {
           </div>
 
           {/* Member info and join/leave */}
-          <div class="px-4 py-2 border-b border-xcord-border flex items-center justify-between">
-            <span class="text-xs text-xcord-text-muted">
+          <div class={styles.memberBar}>
+            <span class={styles.memberBarCount}>
               {activeThread()?.memberCount ?? 0}{' '}
               {(activeThread()?.memberCount ?? 0) === 1 ? 'member' : 'members'}
             </span>
@@ -226,7 +227,7 @@ export default function ThreadPanel(props: ThreadPanelProps) {
                 when={isMember()}
                 fallback={
                   <button
-                    class="text-xs px-2 py-1 bg-xcord-brand text-white rounded hover:bg-xcord-brand-hover transition-colors"
+                    class={styles.joinButton}
                     onClick={handleJoin}
                   >
                     Join Thread
@@ -234,7 +235,7 @@ export default function ThreadPanel(props: ThreadPanelProps) {
                 }
               >
                 <button
-                  class="text-xs px-2 py-1 bg-xcord-bg-primary text-xcord-text-muted rounded hover:text-white hover:bg-xcord-bg-tertiary transition-colors border border-xcord-border"
+                  class={styles.leaveButton}
                   onClick={handleLeave}
                 >
                   Leave Thread
@@ -244,7 +245,7 @@ export default function ThreadPanel(props: ThreadPanelProps) {
           </div>
 
           {/* Thread messages */}
-          <div data-testid="thread-message-list" class="flex-1 min-h-0 overflow-hidden">
+          <div data-testid="thread-message-list" class={styles.messageListWrapper}>
             <MessageList
               conversationId={
                 activeThread()?.conversationId || ''
@@ -253,11 +254,11 @@ export default function ThreadPanel(props: ThreadPanelProps) {
           </div>
 
           {/* Thread compose */}
-          <div class="px-3 pb-3 pt-1 border-t border-xcord-border">
-            <div class="bg-xcord-bg-primary rounded-lg px-3 py-2 flex items-end gap-2">
+          <div class={styles.composeArea}>
+            <div class={styles.composeBox}>
               <textarea
                 data-testid="thread-compose-input"
-                class="flex-1 bg-transparent text-xcord-text-primary placeholder-xcord-text-muted resize-none outline-none text-sm"
+                class={styles.composeInput}
                 placeholder="Reply in thread..."
                 rows={1}
                 value={threadMsg()}

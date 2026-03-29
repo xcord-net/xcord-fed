@@ -24,7 +24,9 @@ public sealed record CreateChannelCommand(
     bool IsNsfw = false,
     ForumSort? DefaultSortOrder = null,
     bool RequireTag = false,
-    int? DefaultAutoArchiveDuration = null
+    int? DefaultAutoArchiveDuration = null,
+    ChannelCapability Capabilities = ChannelCapability.None,
+    long? AccessGroupId = null
 );
 
 public sealed record CreateChannelResponse(
@@ -35,6 +37,8 @@ public sealed record CreateChannelResponse(
     string Name,
     string? Topic,
     ChannelType Type,
+    ChannelCapability Capabilities,
+    long? AccessGroupId,
     int Position,
     int? SlowModeSeconds,
     bool IsNsfw,
@@ -54,7 +58,9 @@ public sealed record CreateChannelRequest(
     bool IsNsfw = false,
     ForumSort? DefaultSortOrder = null,
     bool RequireTag = false,
-    int? DefaultAutoArchiveDuration = null
+    int? DefaultAutoArchiveDuration = null,
+    ChannelCapability Capabilities = ChannelCapability.None,
+    long? AccessGroupId = null
 );
 
 public sealed class CreateChannelHandler(
@@ -120,8 +126,33 @@ public sealed class CreateChannelHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
+        // Resolve capabilities and type from each other for backward compatibility.
+        // If Capabilities is provided (non-zero), use it and derive Type from the primary capability.
+        // If only Type is provided, derive Capabilities from Type.
+        ChannelType resolvedType;
+        ChannelCapability resolvedCapabilities;
+        if (request.Capabilities != ChannelCapability.None)
+        {
+            resolvedCapabilities = request.Capabilities;
+            resolvedType = resolvedCapabilities.HasFlag(ChannelCapability.Forum) ? ChannelType.Forum
+                : resolvedCapabilities.HasFlag(ChannelCapability.Announcement) ? ChannelType.Announcement
+                : resolvedCapabilities.HasFlag(ChannelCapability.Voice) ? ChannelType.Voice
+                : ChannelType.Text;
+        }
+        else
+        {
+            resolvedType = request.Type;
+            resolvedCapabilities = resolvedType switch
+            {
+                ChannelType.Voice => ChannelCapability.Voice | ChannelCapability.Video,
+                ChannelType.Forum => ChannelCapability.Forum | ChannelCapability.Chat,
+                ChannelType.Announcement => ChannelCapability.Announcement | ChannelCapability.Chat,
+                _ => ChannelCapability.Chat
+            };
+        }
+
         // Tier gating: reject voice channel creation when feature is disabled
-        if (request.Type == ChannelType.Voice && !tierOptions.Value.CanUseVoiceChannels)
+        if (resolvedCapabilities.HasFlag(ChannelCapability.Voice) && !tierOptions.Value.CanUseVoiceChannels)
         {
             return Error.Forbidden("FEATURE_DISABLED", "Voice channels are not available on your current plan");
         }
@@ -182,7 +213,9 @@ public sealed class CreateChannelHandler(
             CategoryId = request.CategoryId,
             Name = request.Name,
             Topic = request.Topic,
-            Type = request.Type,
+            Type = resolvedType,
+            Capabilities = resolvedCapabilities,
+            AccessGroupId = request.AccessGroupId,
             Position = request.Position,
             SlowModeSeconds = request.SlowModeSeconds,
             IsNsfw = request.IsNsfw,
@@ -196,7 +229,7 @@ public sealed class CreateChannelHandler(
 
         // Create ReadState rows for all server members so the unread notification
         // system can track messages in the new channel.
-        if (request.Type != ChannelType.Voice)
+        if (resolvedCapabilities.HasFlag(ChannelCapability.Chat))
         {
             var memberUserIds = await dbContext.ServerMembers
                 .AsNoTracking()
@@ -246,6 +279,8 @@ public sealed class CreateChannelHandler(
             Name: channel.Name,
             Topic: channel.Topic,
             Type: channel.Type,
+            Capabilities: channel.Capabilities,
+            AccessGroupId: channel.AccessGroupId,
             Position: channel.Position,
             SlowModeSeconds: channel.SlowModeSeconds,
             IsNsfw: channel.IsNsfw,
@@ -275,7 +310,9 @@ public sealed class CreateChannelHandler(
                 IsNsfw: request.IsNsfw,
                 DefaultSortOrder: request.DefaultSortOrder,
                 RequireTag: request.RequireTag,
-                DefaultAutoArchiveDuration: request.DefaultAutoArchiveDuration
+                DefaultAutoArchiveDuration: request.DefaultAutoArchiveDuration,
+                Capabilities: request.Capabilities,
+                AccessGroupId: request.AccessGroupId
             );
 
             return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/channels/{success.Id}", success));

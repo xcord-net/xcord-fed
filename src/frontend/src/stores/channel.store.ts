@@ -53,8 +53,9 @@ export function useChannels() {
       }
     },
 
-    async createChannel(serverId: string, name: string, type: 'Text' | 'Voice' | 'Forum' = 'Text', categoryId?: string): Promise<Channel> {
-      const body: Record<string, unknown> = { name, type };
+    async createChannel(serverId: string, name: string, capabilities: number, accessGroupId?: string, categoryId?: string): Promise<Channel> {
+      const body: Record<string, unknown> = { name, capabilities };
+      if (accessGroupId) body.accessGroupId = accessGroupId;
       if (categoryId) body.categoryId = categoryId;
       const channel = await api.post<Channel>(`/api/v1/servers/${serverId}/channels`, body);
       const normalized = normalizeChannel(channel);

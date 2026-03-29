@@ -1,5 +1,6 @@
 import { For, Show, createSignal, createEffect } from 'solid-js';
 import { api } from '../api/client';
+import styles from './ServerTemplates.module.css';
 
 // ---- Types ----
 
@@ -206,13 +207,13 @@ export default function ServerTemplates(props: ServerTemplatesProps) {
   };
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
+    <div class={styles.container}>
       {/* Header */}
-      <div class="px-4 py-3 border-b border-xcord-bg-tertiary flex items-center justify-between flex-shrink-0">
-        <h2 class="text-xcord-text-primary font-semibold">Server Templates</h2>
+      <div class={styles.header}>
+        <h2 class={styles.headerTitle}>Server Templates</h2>
         <Show when={props.isOwner}>
           <button
-            class="bg-xcord-brand text-white px-3 py-1.5 rounded hover:bg-xcord-brand-hover transition-colors text-sm"
+            class={styles.saveBtn}
             onClick={() => {
               setShowSaveForm(true);
               setShowCreateForm(false);
@@ -227,23 +228,23 @@ export default function ServerTemplates(props: ServerTemplatesProps) {
 
       {/* Success banner */}
       <Show when={successMessage()}>
-        <div class="px-4 py-2 bg-green-600/20 text-green-400 text-sm flex-shrink-0">
+        <div class={styles.successBanner}>
           {successMessage()}
         </div>
       </Show>
 
       {/* Save Template Form */}
       <Show when={showSaveForm()}>
-        <div class="px-4 py-4 bg-xcord-bg-primary border-b border-xcord-bg-tertiary space-y-3 flex-shrink-0">
-          <h3 class="text-xcord-text-primary font-semibold text-sm">Save Server as Template</h3>
+        <div class={styles.formPanel}>
+          <h3 class={styles.formTitle}>Save Server as Template</h3>
 
           <div>
-            <label class="block text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-1">
+            <label class={styles.fieldLabel}>
               Template Name *
             </label>
             <input
               type="text"
-              class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
+              class={styles.textInput}
               placeholder="Template name..."
               value={formName()}
               onInput={(e) => setFormName(e.currentTarget.value)}
@@ -252,11 +253,11 @@ export default function ServerTemplates(props: ServerTemplatesProps) {
           </div>
 
           <div>
-            <label class="block text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-1">
+            <label class={styles.fieldLabel}>
               Description
             </label>
             <textarea
-              class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xcord-brand resize-none"
+              class={styles.textarea}
               placeholder="Describe this template..."
               rows={3}
               value={formDescription()}
@@ -266,14 +267,14 @@ export default function ServerTemplates(props: ServerTemplatesProps) {
           </div>
 
           <Show when={submitError()}>
-            <p class="text-red-400 text-xs" role="alert">
+            <p class={styles.errorText} role="alert">
               {submitError()}
             </p>
           </Show>
 
-          <div class="flex gap-2">
+          <div class={styles.formButtons}>
             <button
-              class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class={styles.primaryBtn}
               onClick={handleSaveTemplate}
               disabled={isSubmitting()}
               aria-label="Save Template"
@@ -281,7 +282,7 @@ export default function ServerTemplates(props: ServerTemplatesProps) {
               {isSubmitting() ? 'Saving...' : 'Save Template'}
             </button>
             <button
-              class="px-4 py-2 bg-xcord-bg-tertiary text-xcord-text-muted text-sm rounded hover:bg-xcord-bg-primary hover:text-xcord-text-primary transition-colors"
+              class={styles.secondaryBtn}
               onClick={handleCancelSave}
             >
               Cancel
@@ -292,18 +293,18 @@ export default function ServerTemplates(props: ServerTemplatesProps) {
 
       {/* Create from Template Form */}
       <Show when={showCreateForm() && selectedTemplate()}>
-        <div class="px-4 py-4 bg-xcord-bg-primary border-b border-xcord-bg-tertiary space-y-3 flex-shrink-0">
-          <h3 class="text-xcord-text-primary font-semibold text-sm">
+        <div class={styles.formPanel}>
+          <h3 class={styles.formTitle}>
             Create Server from "{selectedTemplate()!.name}"
           </h3>
 
           <div>
-            <label class="block text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-1">
+            <label class={styles.fieldLabel}>
               New Server Name *
             </label>
             <input
               type="text"
-              class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
+              class={styles.textInput}
               placeholder="My new server..."
               value={newServerName()}
               onInput={(e) => setNewServerName(e.currentTarget.value)}
@@ -312,32 +313,32 @@ export default function ServerTemplates(props: ServerTemplatesProps) {
           </div>
 
           {/* Template preview */}
-          <div class="bg-xcord-bg-tertiary rounded p-3 space-y-1">
-            <p class="text-xcord-text-muted text-xs font-medium uppercase tracking-wide">
+          <div class={styles.templatePreview}>
+            <p class={styles.previewLabel}>
               Template Preview
             </p>
-            <p class="text-xcord-text-primary text-xs">
+            <p class={styles.previewStat}>
               {templateChannelCount(selectedTemplate()!)} channel
               {templateChannelCount(selectedTemplate()!) !== 1 ? 's' : ''}
             </p>
-            <p class="text-xcord-text-primary text-xs">
+            <p class={styles.previewStat}>
               {templateGroupCount(selectedTemplate()!)} group
               {templateGroupCount(selectedTemplate()!) !== 1 ? 's' : ''}
             </p>
             <Show when={selectedTemplate()!.description}>
-              <p class="text-xcord-text-muted text-xs mt-1">{selectedTemplate()!.description}</p>
+              <p class={styles.previewDesc}>{selectedTemplate()!.description}</p>
             </Show>
           </div>
 
           <Show when={submitError()}>
-            <p class="text-red-400 text-xs" role="alert">
+            <p class={styles.errorText} role="alert">
               {submitError()}
             </p>
           </Show>
 
-          <div class="flex gap-2">
+          <div class={styles.formButtons}>
             <button
-              class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class={styles.primaryBtn}
               onClick={handleCreateFromTemplate}
               disabled={isSubmitting() || !newServerName().trim()}
               aria-label="Create Server"
@@ -345,7 +346,7 @@ export default function ServerTemplates(props: ServerTemplatesProps) {
               {isSubmitting() ? 'Creating...' : 'Create Server'}
             </button>
             <button
-              class="px-4 py-2 bg-xcord-bg-tertiary text-xcord-text-muted text-sm rounded hover:bg-xcord-bg-primary hover:text-xcord-text-primary transition-colors"
+              class={styles.secondaryBtn}
               onClick={handleCancelCreate}
             >
               Cancel
@@ -355,19 +356,19 @@ export default function ServerTemplates(props: ServerTemplatesProps) {
       </Show>
 
       {/* Templates list */}
-      <div class="flex-1 overflow-y-auto">
+      <div class={styles.listArea}>
         <Show when={isLoading()}>
-          <div class="flex items-center justify-center h-32">
-            <div class="w-5 h-5 border-2 border-xcord-text-muted border-t-transparent rounded-full animate-spin" />
+          <div class={styles.loadingCenter}>
+            <div class={styles.spinner} />
           </div>
         </Show>
 
         <Show when={!isLoading() && templates().length === 0}>
-          <div class="flex flex-col items-center justify-center h-48 space-y-3">
-            <p class="text-xcord-text-muted text-sm">No templates available</p>
+          <div class={styles.emptyState}>
+            <p class={styles.emptyText}>No templates available</p>
             <Show when={props.isOwner}>
               <button
-                class="text-xcord-brand hover:underline text-sm"
+                class={styles.linkBtn}
                 onClick={() => setShowSaveForm(true)}
               >
                 Save current server as a template
@@ -377,37 +378,37 @@ export default function ServerTemplates(props: ServerTemplatesProps) {
         </Show>
 
         <Show when={!isLoading() && templates().length > 0}>
-          <div class="divide-y divide-xcord-bg-tertiary">
+          <div class={styles.divideList}>
             <For each={templates()}>
               {(template) => (
-                <div class="px-4 py-4 hover:bg-xcord-bg-primary/40 transition-colors">
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="flex-1 min-w-0">
-                      <h3 class="text-xcord-text-primary font-semibold text-sm">
+                <div class={styles.templateItem}>
+                  <div class={styles.templateItemInner}>
+                    <div class={styles.templateInfo}>
+                      <h3 class={styles.templateName}>
                         {template.name}
                       </h3>
                       <Show when={template.description}>
-                        <p class="text-xcord-text-muted text-xs mt-0.5 line-clamp-2">
+                        <p class={styles.templateDescription}>
                           {template.description}
                         </p>
                       </Show>
-                      <div class="flex items-center gap-3 mt-1.5">
-                        <span class="text-xcord-text-muted text-xs">
+                      <div class={styles.templateMeta}>
+                        <span class={styles.templateMetaText}>
                           {templateChannelCount(template)} channel
                           {templateChannelCount(template) !== 1 ? 's' : ''}
                         </span>
-                        <span class="text-xcord-text-muted text-xs">
+                        <span class={styles.templateMetaText}>
                           {templateGroupCount(template)} group
                           {templateGroupCount(template) !== 1 ? 's' : ''}
                         </span>
-                        <span class="text-xcord-text-muted text-xs">
+                        <span class={styles.templateMetaText}>
                           Used {template.usageCount} time
                           {template.usageCount !== 1 ? 's' : ''}
                         </span>
                       </div>
                     </div>
                     <button
-                      class="flex-shrink-0 px-3 py-1.5 rounded text-sm font-medium bg-xcord-bg-tertiary text-xcord-text-muted hover:bg-xcord-brand hover:text-white transition-colors"
+                      class={styles.useTemplateBtn}
                       onClick={() => openCreateForm(template)}
                       aria-label={`Use template ${template.name}`}
                     >

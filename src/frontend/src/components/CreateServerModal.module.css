@@ -1,0 +1,103 @@
+.modalBody {
+  padding: 1.5rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+.fieldGroup {
+  margin-bottom: 1rem;
+}
+
+.fieldLabel {
+  display: block;
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.textInput {
+  width: 100%;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  border: 1px solid var(--color-xcord-border);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 150ms;
+}
+
+.textInput:focus {
+  border-color: var(--color-xcord-brand);
+}
+
+.textInput:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+  outline: none;
+}
+
+.errorAlert {
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: color-mix(in srgb, #ef4444 20%, transparent);
+  border: 1px solid color-mix(in srgb, #ef4444 30%, transparent);
+  border-radius: 0.25rem;
+  color: #f87171;
+  font-size: 0.875rem;
+}
+
+.buttonRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.cancelBtn {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.cancelBtn:hover {
+  background-color: var(--color-xcord-bg-tertiary);
+}
+
+.cancelBtn:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+  outline: none;
+}
+
+.submitBtn {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-brand);
+  color: white;
+  font-weight: 500;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.submitBtn:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.submitBtn:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+  outline: none;
+}

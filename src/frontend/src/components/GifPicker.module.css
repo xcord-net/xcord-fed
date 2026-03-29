@@ -1,0 +1,133 @@
+.picker {
+  width: 24rem;
+  height: 28rem;
+  background-color: var(--color-xcord-bg-secondary);
+  border-radius: 0.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5), 0 10px 10px -5px rgba(0,0,0,0.3);
+  border: 1px solid var(--color-xcord-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+}
+
+.headerTitle {
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.searchBar {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+}
+
+.searchInput {
+  width: 100%;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border: none;
+  box-sizing: border-box;
+}
+
+.searchInput::placeholder {
+  color: var(--color-xcord-text-muted);
+}
+
+.searchInput:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.errorBanner {
+  padding: 0.5rem 1rem;
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  font-size: 0.875rem;
+}
+
+.gridArea {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 6rem;
+}
+
+.loadingText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 6rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.emptyTitle {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.emptySubtitle {
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.gifGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.25rem;
+}
+
+.gifBtn {
+  position: relative;
+  border-radius: 0.25rem;
+  overflow: hidden;
+  background-color: var(--color-xcord-bg-primary);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: box-shadow 0.15s;
+}
+
+.gifBtn:hover {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.gifBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.gifImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.footer {
+  padding: 0.375rem 0.75rem;
+  border-top: 1px solid var(--color-xcord-border);
+}
+
+.footerText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+}

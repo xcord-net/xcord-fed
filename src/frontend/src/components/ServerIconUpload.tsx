@@ -1,6 +1,7 @@
 import { createSignal, Show } from 'solid-js';
 import { api } from '../api/client';
 import type { Server } from '../types/server';
+import styles from './ServerIconUpload.module.css';
 
 const MAX_FILE_SIZE = 8 * 1024 * 1024; // 8 MB
 
@@ -148,13 +149,13 @@ export default function ServerIconUpload(props: ServerIconUploadProps) {
   const currentBannerUrl = () => bannerPreview() ?? props.server.bannerUrl ?? null;
 
   return (
-    <div class="space-y-6">
+    <div class={styles.container}>
       {/* Hidden file inputs */}
       <input
         ref={iconInputRef}
         type="file"
         accept="image/*"
-        class="hidden"
+        class={styles.hidden}
         data-testid="icon-file-input"
         onChange={(e) => handleFileSelect(e, 'icon')}
       />
@@ -162,29 +163,29 @@ export default function ServerIconUpload(props: ServerIconUploadProps) {
         ref={bannerInputRef}
         type="file"
         accept="image/*"
-        class="hidden"
+        class={styles.hidden}
         data-testid="banner-file-input"
         onChange={(e) => handleFileSelect(e, 'banner')}
       />
 
       {/* Error / success messages */}
       <Show when={error()}>
-        <p class="text-red-400 text-sm" role="alert" data-testid="upload-error">{error()}</p>
+        <p class={styles.errorText} role="alert" data-testid="upload-error">{error()}</p>
       </Show>
       <Show when={success()}>
-        <p class="text-green-400 text-sm" role="status" data-testid="upload-success">{success()}</p>
+        <p class={styles.successText} role="status" data-testid="upload-success">{success()}</p>
       </Show>
 
       {/* Upload progress */}
       <Show when={uploading()}>
-        <div class="space-y-1" aria-live="polite" data-testid="upload-progress-bar">
-          <div class="flex items-center justify-between text-xs text-xcord-text-muted">
+        <div class={styles.progressWrapper} aria-live="polite" data-testid="upload-progress-bar">
+          <div class={styles.progressHeader}>
             <span>Uploading {uploadTarget()}...</span>
             <span>{uploadProgress()}%</span>
           </div>
-          <div class="w-full h-1.5 bg-xcord-bg-primary rounded-full overflow-hidden">
+          <div class={styles.progressTrack}>
             <div
-              class="h-full bg-xcord-brand transition-all duration-200"
+              class={styles.progressFill}
               style={{ width: `${uploadProgress()}%` }}
             />
           </div>
@@ -192,13 +193,13 @@ export default function ServerIconUpload(props: ServerIconUploadProps) {
       </Show>
 
       {/* Server icon */}
-      <div class="space-y-2">
-        <label class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide">
+      <div class={styles.fieldGroup}>
+        <label class={styles.fieldLabel}>
           Server Icon
         </label>
         <button
           type="button"
-          class="relative w-20 h-20 rounded-full overflow-hidden bg-xcord-brand border-2 border-xcord-bg-primary hover:opacity-80 transition-opacity focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none group disabled:cursor-not-allowed disabled:opacity-60"
+          class={styles.iconButton}
           onClick={handleIconClick}
           disabled={uploading()}
           aria-label="Change server icon"
@@ -207,7 +208,7 @@ export default function ServerIconUpload(props: ServerIconUploadProps) {
           <Show
             when={currentIconUrl()}
             fallback={
-              <span class="flex items-center justify-center w-full h-full text-white text-2xl font-bold">
+              <span class={styles.iconInitial}>
                 {props.server.name.charAt(0).toUpperCase()}
               </span>
             }
@@ -215,26 +216,26 @@ export default function ServerIconUpload(props: ServerIconUploadProps) {
             <img
               src={currentIconUrl()!}
               alt={`${props.server.name} icon`}
-              class="w-full h-full object-cover"
+              class={styles.iconImage}
               data-testid="server-icon-preview"
             />
           </Show>
           {/* Hover overlay */}
-          <span class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-medium pointer-events-none">
+          <span class={styles.hoverOverlay}>
             Change
           </span>
         </button>
-        <p class="text-xs text-xcord-text-muted">Images only, max 8 MB. Click icon to change.</p>
+        <p class={styles.hint}>Images only, max 8 MB. Click icon to change.</p>
       </div>
 
       {/* Server banner */}
-      <div class="space-y-2">
-        <label class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide">
+      <div class={styles.fieldGroup}>
+        <label class={styles.fieldLabel}>
           Server Banner
         </label>
         <button
           type="button"
-          class="relative w-full h-32 rounded-lg overflow-hidden bg-gradient-to-r from-xcord-brand to-purple-600 hover:opacity-80 transition-opacity focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none group disabled:cursor-not-allowed disabled:opacity-60"
+          class={styles.bannerButton}
           onClick={handleBannerClick}
           disabled={uploading()}
           aria-label="Change server banner"
@@ -244,16 +245,16 @@ export default function ServerIconUpload(props: ServerIconUploadProps) {
             <img
               src={currentBannerUrl()!}
               alt={`${props.server.name} banner`}
-              class="w-full h-full object-cover"
+              class={styles.bannerImage}
               data-testid="server-banner-preview"
             />
           </Show>
           {/* Hover overlay */}
-          <span class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium pointer-events-none">
+          <span class={`${styles.hoverOverlay} ${styles.bannerHoverText}`}>
             Change Banner
           </span>
         </button>
-        <p class="text-xs text-xcord-text-muted">Images only, max 8 MB. Click banner to change.</p>
+        <p class={styles.hint}>Images only, max 8 MB. Click banner to change.</p>
       </div>
     </div>
   );

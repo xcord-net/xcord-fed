@@ -1,0 +1,43 @@
+.pageWrapper {
+  min-height: 100vh;
+  background-color: var(--color-xcord-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card {
+  background-color: var(--color-xcord-bg-secondary);
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  width: 100%;
+  max-width: 28rem;
+  text-align: center;
+}
+
+.loadingText {
+  color: var(--color-xcord-text-primary);
+}
+
+.successText {
+  color: #4ade80;
+  font-weight: 600;
+}
+
+.errorText {
+  color: #f87171;
+  margin-bottom: 1rem;
+}
+
+.goHomeButton {
+  background-color: var(--color-xcord-brand);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: color 150ms, background-color 150ms;
+}
+
+.goHomeButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}

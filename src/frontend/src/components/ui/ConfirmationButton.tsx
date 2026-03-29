@@ -1,4 +1,5 @@
 import { Show } from 'solid-js';
+import styles from './ConfirmationButton.module.css';
 
 interface ConfirmationButtonProps {
   isConfirming: boolean;
@@ -20,7 +21,7 @@ export default function ConfirmationButton(props: ConfirmationButtonProps) {
       when={props.isConfirming}
       fallback={
         <button
-          class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 flex-shrink-0"
+          class={styles.deleteButton}
           data-testid={props.testId}
           onClick={props.onStartConfirm}
         >
@@ -28,17 +29,17 @@ export default function ConfirmationButton(props: ConfirmationButtonProps) {
         </button>
       }
     >
-      <div class="flex flex-col items-end space-y-1 flex-shrink-0">
-        <p class="text-xs text-xcord-text-muted">{confirmText()}</p>
-        <div class="flex space-x-2">
+      <div class={styles.confirmWrapper}>
+        <p class={styles.confirmPrompt}>{confirmText()}</p>
+        <div class={styles.confirmActions}>
           <button
-            class="bg-xcord-bg-primary text-xcord-text-muted px-2 py-1 rounded text-xs hover:bg-xcord-bg-tertiary"
+            class={styles.cancelButton}
             onClick={props.onCancel}
           >
             Cancel
           </button>
           <button
-            class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 disabled:opacity-50"
+            class={styles.confirmButton}
             data-testid={props.testId ? `${props.testId}-confirm` : undefined}
             disabled={props.isLoading}
             onClick={props.onConfirm}

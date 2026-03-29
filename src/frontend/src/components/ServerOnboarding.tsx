@@ -1,5 +1,6 @@
 import { For, Show, Switch, Match, createSignal, createEffect, createMemo } from 'solid-js';
 import { api } from '../api/client';
+import styles from './ServerOnboarding.module.css';
 
 // ---- Types ----
 
@@ -174,30 +175,30 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
   const totalSteps = steps.length;
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
+    <div class={styles.container}>
       <Show when={isLoading()}>
-        <div class="flex items-center justify-center flex-1">
-          <div class="w-6 h-6 border-2 border-xcord-text-muted border-t-transparent rounded-full animate-spin" />
+        <div class={styles.loadingCenter}>
+          <div class={styles.spinner} />
         </div>
       </Show>
 
       <Show when={!isLoading() && config()}>
-        <div class="flex flex-col h-full">
+        <div class={styles.inner}>
           {/* Progress header */}
-          <div class="px-6 pt-6 pb-4 flex-shrink-0">
-            <div class="flex items-center justify-between mb-2">
-              <h2 class="text-xcord-text-primary font-bold text-lg">
+          <div class={styles.progressHeader}>
+            <div class={styles.progressHeaderRow}>
+              <h2 class={styles.progressTitle}>
                 {config()!.promptMessage}
               </h2>
-              <span class="text-xcord-text-muted text-sm">
+              <span class={styles.stepCounter}>
                 Step {stepIndex(currentStep()) + 1} of {totalSteps}
               </span>
             </div>
 
             {/* Progress bar */}
-            <div class="w-full bg-xcord-bg-tertiary rounded-full h-1.5 overflow-hidden">
+            <div class={styles.progressTrack}>
               <div
-                class="bg-xcord-brand h-1.5 rounded-full transition-all duration-300"
+                class={styles.progressFill}
                 style={{ width: `${progressPercent(currentStep())}%` }}
                 role="progressbar"
                 aria-valuenow={progressPercent(currentStep())}
@@ -208,17 +209,17 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
             </div>
 
             {/* Step indicators */}
-            <div class="flex justify-between mt-2">
+            <div class={styles.stepIndicators}>
               <For each={steps}>
                 {(step) => (
                   <span
-                    class={`text-xs transition-colors ${
+                    class={
                       step === currentStep()
-                        ? 'text-xcord-brand font-semibold'
+                        ? `${styles.stepLabel} ${styles.stepLabelActive}`
                         : stepIndex(step) < stepIndex(currentStep())
-                          ? 'text-xcord-text-primary'
-                          : 'text-xcord-text-muted'
-                    }`}
+                          ? `${styles.stepLabel} ${styles.stepLabelDone}`
+                          : styles.stepLabel
+                    }
                   >
                     {stepLabel(step)}
                   </span>
@@ -228,26 +229,26 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
           </div>
 
           {/* Step content */}
-          <div class="flex-1 overflow-y-auto px-6 pb-4">
+          <div class={styles.stepContent}>
             <Switch>
               {/* Step 1: Rules */}
               <Match when={currentStep() === 'rules'}>
-                <div class="space-y-4">
-                  <h3 class="text-xcord-text-primary font-semibold">Server Rules</h3>
-                  <div class="bg-xcord-bg-primary rounded-lg p-4 max-h-64 overflow-y-auto">
-                    <p class="text-xcord-text-primary text-sm whitespace-pre-wrap">
+                <div class={styles.stepSection}>
+                  <h3 class={styles.stepHeading}>Server Rules</h3>
+                  <div class={styles.rulesBox}>
+                    <p class={styles.rulesText}>
                       {config()!.rules}
                     </p>
                   </div>
-                  <label class="flex items-center gap-3 cursor-pointer select-none">
+                  <label class={styles.rulesLabel}>
                     <input
                       type="checkbox"
-                      class="w-4 h-4 rounded accent-xcord-brand cursor-pointer"
+                      class={styles.rulesCheckbox}
                       checked={rulesAccepted()}
                       onChange={(e) => setRulesAccepted(e.currentTarget.checked)}
                       aria-label="I agree to the server rules"
                     />
-                    <span class="text-xcord-text-primary text-sm">
+                    <span class={styles.rulesCheckboxText}>
                       I have read and agree to the server rules
                     </span>
                   </label>
@@ -256,33 +257,29 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
 
               {/* Step 2: Groups / Interests */}
               <Match when={currentStep() === 'groups'}>
-                <div class="space-y-4">
-                  <h3 class="text-xcord-text-primary font-semibold">Choose Your Interests</h3>
-                  <p class="text-xcord-text-muted text-sm">
+                <div class={styles.stepSection}>
+                  <h3 class={styles.stepHeading}>Choose Your Interests</h3>
+                  <p class={styles.stepDescription}>
                     Select groups that match your interests. You can change these later.
                   </p>
-                  <div class="grid grid-cols-2 gap-2">
+                  <div class={styles.groupGrid}>
                     <For each={config()!.groups}>
                       {(group) => {
                         const isSelected = () => selectedGroupIds().includes(group.id);
                         return (
                           <button
-                            class={`flex items-center gap-2 p-3 rounded-lg border text-left transition-colors ${
-                              isSelected()
-                                ? 'border-xcord-brand bg-xcord-brand/10 text-xcord-text-primary'
-                                : 'border-xcord-bg-tertiary bg-xcord-bg-primary text-xcord-text-muted hover:border-xcord-brand/50 hover:text-xcord-text-primary'
-                            }`}
+                            class={isSelected() ? `${styles.groupBtn} ${styles.groupBtnSelected}` : styles.groupBtn}
                             onClick={() => handleToggleGroup(group.id)}
                             aria-pressed={isSelected()}
                             aria-label={`Select interest: ${group.name}`}
                           >
                             <Show when={group.emoji}>
-                              <span class="text-lg flex-shrink-0">{group.emoji}</span>
+                              <span class={styles.groupEmoji}>{group.emoji}</span>
                             </Show>
-                            <div class="flex-1 min-w-0">
-                              <p class="text-sm font-medium truncate">{group.name}</p>
+                            <div class={styles.groupInfo}>
+                              <p class={styles.groupName}>{group.name}</p>
                               <Show when={group.description}>
-                                <p class="text-xs text-xcord-text-muted truncate">
+                                <p class={styles.groupDesc}>
                                   {group.description}
                                 </p>
                               </Show>
@@ -293,7 +290,7 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
                     </For>
                   </div>
                   <Show when={config()!.groups.length === 0}>
-                    <p class="text-xcord-text-muted text-sm">
+                    <p class={styles.emptyText}>
                       No interest groups configured for this server.
                     </p>
                   </Show>
@@ -302,45 +299,37 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
 
               {/* Step 3: Channels */}
               <Match when={currentStep() === 'channels'}>
-                <div class="space-y-4">
-                  <h3 class="text-xcord-text-primary font-semibold">Browse Channels</h3>
-                  <p class="text-xcord-text-muted text-sm">
+                <div class={styles.stepSection}>
+                  <h3 class={styles.stepHeading}>Browse Channels</h3>
+                  <p class={styles.stepDescription}>
                     Select channels you want to follow. You can always explore more later.
                   </p>
-                  <div class="space-y-2">
+                  <div class={styles.channelList}>
                     <For each={config()!.channels}>
                       {(channel) => {
                         const isSelected = () => selectedChannelIds().includes(channel.channelId);
                         return (
                           <button
-                            class={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${
-                              isSelected()
-                                ? 'border-xcord-brand bg-xcord-brand/10'
-                                : 'border-xcord-bg-tertiary bg-xcord-bg-primary hover:border-xcord-brand/50'
-                            }`}
+                            class={isSelected() ? `${styles.channelBtn} ${styles.channelBtnSelected}` : styles.channelBtn}
                             onClick={() => handleToggleChannel(channel.channelId)}
                             aria-pressed={isSelected()}
                             aria-label={`Select channel: ${channel.channelName}`}
                           >
-                            <span class="text-xcord-text-muted text-sm">#</span>
-                            <div class="flex-1 min-w-0">
+                            <span class={styles.channelHash}>#</span>
+                            <div class={styles.channelInfo}>
                               <p
-                                class={`text-sm font-medium truncate ${
-                                  isSelected()
-                                    ? 'text-xcord-text-primary'
-                                    : 'text-xcord-text-muted'
-                                }`}
+                                class={isSelected() ? `${styles.channelName} ${styles.channelNameSelected}` : styles.channelName}
                               >
                                 {channel.channelName}
                               </p>
                               <Show when={channel.description}>
-                                <p class="text-xs text-xcord-text-muted truncate">
+                                <p class={styles.channelDesc}>
                                   {channel.description}
                                 </p>
                               </Show>
                             </div>
                             <Show when={isSelected()}>
-                              <span class="text-xcord-brand text-sm flex-shrink-0">✓</span>
+                              <span class={styles.channelCheck}>✓</span>
                             </Show>
                           </button>
                         );
@@ -348,7 +337,7 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
                     </For>
                   </div>
                   <Show when={config()!.channels.length === 0}>
-                    <p class="text-xcord-text-muted text-sm">
+                    <p class={styles.emptyText}>
                       No channels configured for this step.
                     </p>
                   </Show>
@@ -357,14 +346,14 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
 
               {/* Step 4: Complete */}
               <Match when={currentStep() === 'complete'}>
-                <div class="flex flex-col items-center justify-center py-12 space-y-4 text-center">
-                  <div class="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
-                    <span class="text-3xl">✓</span>
+                <div class={styles.completeStep}>
+                  <div class={styles.completeIcon}>
+                    <span class={styles.completeIconText}>✓</span>
                   </div>
-                  <h3 class="text-xcord-text-primary font-bold text-xl">
+                  <h3 class={styles.completeTitle}>
                     You're all set!
                   </h3>
-                  <p class="text-xcord-text-muted text-sm max-w-xs">
+                  <p class={styles.completeSubtitle}>
                     Welcome to the server! You can explore channels and customize your preferences
                     anytime.
                   </p>
@@ -375,9 +364,9 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
 
           {/* Navigation footer */}
           <Show when={currentStep() !== 'complete'}>
-            <div class="px-6 py-4 border-t border-xcord-bg-tertiary flex items-center justify-between flex-shrink-0">
+            <div class={styles.navFooter}>
               <button
-                class="px-4 py-2 bg-xcord-bg-tertiary text-xcord-text-muted text-sm rounded hover:bg-xcord-bg-primary hover:text-xcord-text-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                class={styles.backBtn}
                 onClick={handleBack}
                 disabled={stepIndex(currentStep()) === 0}
                 aria-label="Go back"
@@ -385,16 +374,16 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
                 Back
               </button>
 
-              <div class="flex items-center gap-3">
+              <div class={styles.navRight}>
                 <Show when={submitError()}>
-                  <p class="text-red-400 text-xs" role="alert">
+                  <p class={styles.submitError} role="alert">
                     {submitError()}
                   </p>
                 </Show>
 
                 <Show when={currentStep() !== 'channels'}>
                   <button
-                    class="px-5 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    class={styles.nextBtn}
                     onClick={handleNext}
                     disabled={currentStep() === 'rules' && !canProceedFromRules()}
                     aria-label="Next step"
@@ -405,7 +394,7 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
 
                 <Show when={currentStep() === 'channels'}>
                   <button
-                    class="px-5 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    class={styles.nextBtn}
                     onClick={handleComplete}
                     disabled={isSubmitting()}
                     aria-label="Complete onboarding"
@@ -420,8 +409,8 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
       </Show>
 
       <Show when={!isLoading() && !config()}>
-        <div class="flex items-center justify-center flex-1">
-          <p class="text-xcord-text-muted text-sm">
+        <div class={styles.noConfigCenter}>
+          <p class={styles.noConfigText}>
             No onboarding configured for this server.
           </p>
         </div>

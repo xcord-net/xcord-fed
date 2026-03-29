@@ -1,6 +1,7 @@
 import { createSignal } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
+import styles from './PasswordChangeForm.module.css';
 
 // ---- Pure helpers ----
 
@@ -54,13 +55,13 @@ export default function PasswordChangeForm() {
   };
 
   return (
-    <div class="border-t border-xcord-border pt-6 mt-6">
-      <h3 data-testid="change-password-heading" class="text-white font-semibold mb-4">Change Password</h3>
-      <form onSubmit={handleSubmit} class="space-y-3">
-        {error() && <p class="text-red-400 text-sm">{error()}</p>}
-        {success() && <p data-testid="change-password-success" class="text-green-400 text-sm">{success()}</p>}
-        <div>
-          <label for="current-password" class="block text-xcord-text-secondary text-sm font-medium mb-1">
+    <div class={styles.section}>
+      <h3 data-testid="change-password-heading" class={styles.heading}>Change Password</h3>
+      <form onSubmit={handleSubmit} class={styles.form}>
+        {error() && <p class={styles.errorText}>{error()}</p>}
+        {success() && <p data-testid="change-password-success" class={styles.successText}>{success()}</p>}
+        <div class={styles.fieldGroup}>
+          <label for="current-password" class={styles.label}>
             Current Password
           </label>
           <input
@@ -69,12 +70,12 @@ export default function PasswordChangeForm() {
             type="password"
             value={currentPassword()}
             onInput={(e) => setCurrentPassword(e.currentTarget.value)}
-            class="w-full px-3 py-2 bg-xcord-bg-tertiary text-xcord-text-primary rounded border border-xcord-border focus:border-xcord-brand focus:outline-none"
+            class={styles.input}
             required
           />
         </div>
-        <div>
-          <label for="new-password" class="block text-xcord-text-secondary text-sm font-medium mb-1">
+        <div class={styles.fieldGroup}>
+          <label for="new-password" class={styles.label}>
             New Password
           </label>
           <input
@@ -83,12 +84,12 @@ export default function PasswordChangeForm() {
             type="password"
             value={newPassword()}
             onInput={(e) => setNewPassword(e.currentTarget.value)}
-            class="w-full px-3 py-2 bg-xcord-bg-tertiary text-xcord-text-primary rounded border border-xcord-border focus:border-xcord-brand focus:outline-none"
+            class={styles.input}
             required
           />
         </div>
-        <div>
-          <label for="confirm-password" class="block text-xcord-text-secondary text-sm font-medium mb-1">
+        <div class={styles.fieldGroup}>
+          <label for="confirm-password" class={styles.label}>
             Confirm New Password
           </label>
           <input
@@ -97,7 +98,7 @@ export default function PasswordChangeForm() {
             type="password"
             value={confirmPassword()}
             onInput={(e) => setConfirmPassword(e.currentTarget.value)}
-            class="w-full px-3 py-2 bg-xcord-bg-tertiary text-xcord-text-primary rounded border border-xcord-border focus:border-xcord-brand focus:outline-none"
+            class={styles.input}
             required
           />
         </div>
@@ -105,7 +106,7 @@ export default function PasswordChangeForm() {
           data-testid="change-password-submit-button"
           type="submit"
           disabled={loading()}
-          class="px-4 py-2 bg-xcord-brand hover:bg-xcord-brand-hover text-white rounded font-medium disabled:opacity-50"
+          class={styles.submitButton}
         >
           {loading() ? 'Changing...' : 'Change Password'}
         </button>

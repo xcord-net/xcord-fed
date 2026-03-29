@@ -1,6 +1,7 @@
 import { createSignal, Show, For } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
+import styles from './TwoFactorSetup.module.css';
 
 type TwoFactorPhase = 'idle' | 'enable-pending' | 'backup-codes' | 'disable-confirm';
 
@@ -149,24 +150,24 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
   };
 
   return (
-    <div class="border-t border-xcord-border pt-6 mt-6">
-      <h3 class="text-white font-semibold mb-1">Two-Factor Authentication</h3>
-      <p class="text-xcord-text-secondary text-sm mb-4">
+    <div class={styles.section}>
+      <h3 class={styles.heading}>Two-Factor Authentication</h3>
+      <p class={styles.description}>
         Add an extra layer of security to your account using email-based verification codes.
       </p>
 
-      {error() && <p class="text-red-400 text-sm mb-3">{error()}</p>}
-      {success() && <p class="text-green-400 text-sm mb-3">{success()}</p>}
+      {error() && <p class={styles.errorText}>{error()}</p>}
+      {success() && <p class={styles.successText}>{success()}</p>}
 
       <Show when={phase() === 'idle'}>
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-2">
+        <div class={styles.statusRow}>
+          <div class={styles.statusIndicatorGroup}>
             <span
               data-testid="2fa-status-indicator"
               data-2fa-enabled={String(enabled())}
-              class={`inline-block w-2 h-2 rounded-full ${enabled() ? 'bg-green-400' : 'bg-xcord-text-muted'}`}
+              class={enabled() ? styles.statusDotEnabled : styles.statusDotDisabled}
             />
-            <span class="text-xcord-text-secondary text-sm">
+            <span class={styles.statusLabel}>
               {enabled() ? 'Enabled' : 'Disabled'}
             </span>
           </div>
@@ -179,7 +180,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
                 type="button"
                 disabled={loading()}
                 onClick={handleEnableInit}
-                class="px-4 py-2 bg-xcord-brand hover:bg-xcord-brand-hover text-white rounded font-medium disabled:opacity-50"
+                class={styles.primaryButton}
               >
                 {loading() ? 'Sending code...' : 'Enable 2FA'}
               </button>
@@ -190,7 +191,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
               type="button"
               disabled={loading()}
               onClick={handleDisableInit}
-              class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-medium disabled:opacity-50"
+              class={styles.dangerButton}
             >
               Disable 2FA
             </button>
@@ -199,12 +200,12 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
       </Show>
 
       <Show when={phase() === 'enable-pending'}>
-        <div class="space-y-3">
-          <p class="text-xcord-text-secondary text-sm">
+        <div class={styles.phaseContainer}>
+          <p class={styles.phaseText}>
             A verification code has been sent to your email address. Enter it below to complete setup.
           </p>
-          <div>
-            <label for="2fa-enable-code" class="block text-xcord-text-secondary text-sm font-medium mb-1">
+          <div class={styles.fieldGroup}>
+            <label for="2fa-enable-code" class={styles.label}>
               Verification Code
             </label>
             <input
@@ -216,16 +217,16 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
               value={code()}
               onInput={(e) => setCode(e.currentTarget.value)}
               placeholder="000000"
-              class="w-full px-3 py-2 bg-xcord-bg-tertiary text-xcord-text-primary rounded border border-xcord-border focus:border-xcord-brand focus:outline-none tracking-widest text-center"
+              class={styles.codeInput}
             />
           </div>
-          <div class="flex space-x-2">
+          <div class={styles.buttonRow}>
             <button
               data-testid="2fa-verify-button"
               type="button"
               disabled={loading()}
               onClick={handleEnableConfirm}
-              class="px-4 py-2 bg-xcord-brand hover:bg-xcord-brand-hover text-white rounded font-medium disabled:opacity-50"
+              class={styles.primaryButton}
             >
               {loading() ? 'Verifying...' : 'Verify'}
             </button>
@@ -234,7 +235,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
               type="button"
               disabled={loading()}
               onClick={cancelFlow}
-              class="px-4 py-2 bg-xcord-bg-tertiary hover:bg-xcord-bg-primary text-xcord-text-secondary rounded font-medium disabled:opacity-50"
+              class={styles.secondaryButton}
             >
               Cancel
             </button>
@@ -243,30 +244,30 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
       </Show>
 
       <Show when={phase() === 'backup-codes'}>
-        <div class="space-y-4">
-          <div class="bg-yellow-900/30 border border-yellow-600/40 rounded-lg p-4">
-            <p class="text-yellow-300 font-semibold text-sm mb-1">Save these backup codes now.</p>
-            <p class="text-yellow-200/80 text-sm">
+        <div class={styles.backupCodesContainer}>
+          <div class={styles.warningBox}>
+            <p class={styles.warningTitle}>Save these backup codes now.</p>
+            <p class={styles.warningBody}>
               These codes will not be shown again. Each code can only be used once. Store them somewhere safe - if you lose access to your email, you can use a backup code to sign in.
             </p>
           </div>
 
-          <div class="bg-xcord-bg-tertiary rounded-lg p-4 font-mono text-sm">
-            <div class="grid grid-cols-2 gap-2">
+          <div class={styles.codesBox}>
+            <div class={styles.codesGrid}>
               <For each={backupCodes()}>
                 {(code) => (
-                  <span class="text-xcord-text-primary tracking-widest">{code}</span>
+                  <span class={styles.codeItem}>{code}</span>
                 )}
               </For>
             </div>
           </div>
 
-          <div class="flex space-x-2">
+          <div class={styles.buttonRow}>
             <button
               data-testid="2fa-copy-backup-codes-button"
               type="button"
               onClick={handleCopyAll}
-              class="px-4 py-2 bg-xcord-bg-tertiary hover:bg-xcord-bg-primary text-xcord-text-secondary rounded font-medium"
+              class={styles.secondaryButton}
             >
               {copied() ? 'Copied!' : 'Copy all codes'}
             </button>
@@ -274,7 +275,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
               data-testid="2fa-backup-codes-done-button"
               type="button"
               onClick={handleBackupCodesDone}
-              class="px-4 py-2 bg-xcord-brand hover:bg-xcord-brand-hover text-white rounded font-medium"
+              class={styles.primaryButton}
             >
               I have saved these codes
             </button>
@@ -283,12 +284,12 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
       </Show>
 
       <Show when={phase() === 'disable-confirm'}>
-        <div class="space-y-3">
-          <p class="text-xcord-text-secondary text-sm">
+        <div class={styles.phaseContainer}>
+          <p class={styles.phaseText}>
             Enter your current password to confirm disabling two-factor authentication.
           </p>
-          <div>
-            <label for="2fa-disable-password" class="block text-xcord-text-secondary text-sm font-medium mb-1">
+          <div class={styles.fieldGroup}>
+            <label for="2fa-disable-password" class={styles.label}>
               Current Password
             </label>
             <input
@@ -298,16 +299,16 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
               value={code()}
               onInput={(e) => setCode(e.currentTarget.value)}
               placeholder="Enter your password"
-              class="w-full px-3 py-2 bg-xcord-bg-tertiary text-xcord-text-primary rounded border border-xcord-border focus:border-xcord-brand focus:outline-none"
+              class={styles.passwordInput}
             />
           </div>
-          <div class="flex space-x-2">
+          <div class={styles.buttonRow}>
             <button
               data-testid="2fa-disable-confirm-button"
               type="button"
               disabled={loading()}
               onClick={handleDisableConfirm}
-              class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-medium disabled:opacity-50"
+              class={styles.dangerButton}
             >
               {loading() ? 'Disabling...' : 'Disable 2FA'}
             </button>
@@ -316,7 +317,7 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
               type="button"
               disabled={loading()}
               onClick={cancelFlow}
-              class="px-4 py-2 bg-xcord-bg-tertiary hover:bg-xcord-bg-primary text-xcord-text-secondary rounded font-medium disabled:opacity-50"
+              class={styles.secondaryButton}
             >
               Cancel
             </button>

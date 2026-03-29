@@ -15,11 +15,12 @@ import PollDisplay from './PollDisplay';
 import type { Poll } from './PollDisplay';
 import Modal from './ui/Modal';
 import type { Message, MessageAttachment } from '../types/message';
+import styles from './MessageList.module.css';
 
 /** Renders the attachment list for a message, showing image thumbnails and file links. */
 function AttachmentList(props: { attachments: MessageAttachment[] }) {
   return (
-    <div class="mt-1 flex flex-wrap gap-2">
+    <div class={styles.attachmentList}>
       <For each={props.attachments}>
         {(attachment) => (
           <Show
@@ -30,7 +31,7 @@ function AttachmentList(props: { attachments: MessageAttachment[] }) {
                 href={attachment.downloadUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-xs text-xcord-brand underline"
+                class={styles.attachmentLink}
                 aria-label={`Download ${attachment.fileName}`}
               >
                 {attachment.fileName}
@@ -47,7 +48,7 @@ function AttachmentList(props: { attachments: MessageAttachment[] }) {
               <img
                 src={attachment.thumbnailUrl}
                 alt={attachment.fileName}
-                class="max-h-48 max-w-xs rounded object-contain"
+                class={styles.attachmentThumbnail}
                 data-attachment-thumbnail
               />
             </a>
@@ -255,34 +256,34 @@ export default function MessageList(props: MessageListProps) {
   return (
     <div
       ref={scrollContainer}
-      class="flex-1 overflow-y-auto px-4 py-4"
+      class={styles.scrollContainer}
       onScroll={handleScroll}
     >
       {/* Loading indicator while fetching initial messages */}
       <Show when={messageStore.isLoading && messageStore.messages.length === 0}>
-        <div class="flex flex-col items-center justify-center h-full space-y-3">
-          <div class="flex space-x-1">
-            <div class="w-2 h-2 bg-xcord-text-muted rounded-full animate-bounce [animation-delay:-0.3s]" />
-            <div class="w-2 h-2 bg-xcord-text-muted rounded-full animate-bounce [animation-delay:-0.15s]" />
-            <div class="w-2 h-2 bg-xcord-text-muted rounded-full animate-bounce" />
+        <div class={styles.loadingCenter}>
+          <div class={styles.bounceDots}>
+            <div class={styles.bounceDot} />
+            <div class={styles.bounceDot} />
+            <div class={styles.bounceDot} />
           </div>
-          <p data-testid="messages-loading" class="text-xcord-text-muted text-sm">Loading messages...</p>
+          <p data-testid="messages-loading" class={styles.loadingText}>Loading messages...</p>
         </div>
       </Show>
 
       {/* Load-more spinner shown at top when fetching older messages */}
       <Show when={messageStore.isLoading && messageStore.messages.length > 0}>
-        <div class="flex items-center justify-center py-3">
-          <div class="w-5 h-5 border-2 border-xcord-text-muted border-t-transparent rounded-full animate-spin" />
+        <div class={styles.loadMoreSpinner}>
+          <div class={styles.spinner} />
         </div>
       </Show>
 
       {/* Virtual scroll container */}
       <Show when={messageStore.messages.length > 0}>
         <div
+          class={styles.virtualList}
           style={{
             height: `${virtualizer.getTotalSize()}px`,
-            position: 'relative',
           }}
         >
           <For each={virtualizer.getVirtualItems()}>
@@ -304,21 +305,25 @@ export default function MessageList(props: MessageListProps) {
                 >
                   <Show when={message()}>
                     <div
-                      class={`group/msg relative ${grouped() ? 'pl-14 hover:bg-xcord-bg-primary/30' : 'hover:bg-xcord-bg-primary/30'}`}
+                      classList={{
+                        [styles.messageRow]: true,
+                        [styles.messageRowGrouped]: grouped(),
+                      }}
                     >
-                      {/* Hover action bar - uses CSS group-hover for visibility to survive virtualizer DOM re-creation */}
-                      <div role="toolbar" aria-label="Message actions" class={`absolute right-2 top-0 bg-xcord-bg-tertiary rounded shadow-lg border border-xcord-border z-30 ${
-                        messageStore.editingMessageId || createThreadMessageId() === message().id
-                          ? 'hidden'
-                          : reactionPickerMessageId() === message().id
-                            ? 'flex'
-                            : 'hidden group-hover/msg:flex group-focus-within/msg:flex'
-                      }`}>
+                      {/* Hover action bar */}
+                      <div
+                        role="toolbar"
+                        aria-label="Message actions"
+                        classList={{
+                          [styles.actionBar]: true,
+                          [styles.actionBarVisible]: reactionPickerMessageId() === message().id,
+                        }}
+                      >
                           <button
                             data-testid="message-action-reply"
                             title="Reply"
                             aria-label="Reply"
-                            class="px-2 py-1 text-xs text-xcord-text-muted hover:text-white hover:bg-xcord-bg-primary rounded"
+                            class={styles.actionButton}
                           >
                             &#8617;
                           </button>
@@ -327,7 +332,7 @@ export default function MessageList(props: MessageListProps) {
                               data-testid="message-action-edit"
                               title="Edit"
                               aria-label="Edit"
-                              class="px-2 py-1 text-xs text-xcord-text-muted hover:text-white hover:bg-xcord-bg-primary rounded"
+                              class={styles.actionButton}
                               onClick={() => messageStore.startEditing(message().id, message().content)}
                             >
                               &#9999;&#65039;
@@ -338,18 +343,18 @@ export default function MessageList(props: MessageListProps) {
                               data-testid="message-action-delete"
                               title="Delete"
                               aria-label="Delete"
-                              class="px-2 py-1 text-xs text-xcord-text-muted hover:text-red-400 hover:bg-xcord-bg-primary rounded"
+                              class={`${styles.actionButton} ${styles.actionButtonDelete}`}
                               onClick={() => setDeleteConfirmMessageId(message().id)}
                             >
                               &#128465;
                             </button>
                           </Show>
-                          <div class="relative">
+                          <div class={styles.reactionButtonWrap}>
                             <button
                               data-testid="message-action-react"
                               title="Add reaction"
                               aria-label="Add reaction"
-                              class="px-2 py-1 text-xs text-xcord-text-muted hover:text-white hover:bg-xcord-bg-primary rounded"
+                              class={styles.actionButton}
                               onClick={() => setReactionPickerMessageId(
                                 reactionPickerMessageId() === message().id ? null : message().id
                               )}
@@ -357,8 +362,8 @@ export default function MessageList(props: MessageListProps) {
                               &#128578;
                             </button>
                             <Show when={reactionPickerMessageId() === message().id}>
-                              <div class="fixed inset-0 z-40" aria-hidden="true" onClick={() => setReactionPickerMessageId(null)} />
-                              <div class="absolute right-0 top-full mt-1 z-50">
+                              <div class={styles.reactionPickerOverlay} aria-hidden="true" onClick={() => setReactionPickerMessageId(null)} />
+                              <div class={styles.reactionPickerPopover}>
                                 <EmojiPicker
                                   serverId={params.serverId}
                                   onSelect={async (emoji) => {
@@ -383,7 +388,7 @@ export default function MessageList(props: MessageListProps) {
                             data-testid="message-action-pin"
                             title="Pin"
                             aria-label="Pin message"
-                            class="px-2 py-1 text-xs text-xcord-text-muted hover:text-yellow-400 hover:bg-xcord-bg-primary rounded"
+                            class={`${styles.actionButton} ${styles.actionButtonPin}`}
                             onClick={() => {
                               if (message().isPinned) {
                                 pinStore.unpinMessage(props.conversationId, message().id);
@@ -399,7 +404,7 @@ export default function MessageList(props: MessageListProps) {
                               data-testid="message-action-thread"
                               title="Create Thread"
                               aria-label="Start thread"
-                              class="px-2 py-1 text-xs text-xcord-text-muted hover:text-white hover:bg-xcord-bg-primary rounded"
+                              class={styles.actionButton}
                               onClick={() => {
                                 setCreateThreadMessageId(message().id);
                                 setThreadNameInput('');
@@ -412,13 +417,13 @@ export default function MessageList(props: MessageListProps) {
 
                       {/* Thread creation form - shown inline below the action bar when triggered */}
                         <Show when={createThreadMessageId() === message().id}>
-                          <div data-testid="thread-create-form" class="mt-1 ml-14 flex items-center gap-2 p-2 bg-xcord-bg-tertiary rounded border border-xcord-border">
+                          <div data-testid="thread-create-form" class={styles.threadCreateForm}>
                             <input
                               id="thread-name"
                               data-testid="thread-name-input"
                               type="text"
                               placeholder="Thread name"
-                              class="flex-1 bg-xcord-bg-primary text-xcord-text-primary text-sm rounded px-2 py-1 border border-xcord-border outline-none focus:border-xcord-brand"
+                              class={styles.threadNameInput}
                               value={threadNameInput()}
                               onInput={(e) => setThreadNameInput((e.target as HTMLInputElement).value)}
                               onKeyDown={(e) => {
@@ -427,7 +432,7 @@ export default function MessageList(props: MessageListProps) {
                             />
                             <button
                               data-testid="thread-create-submit"
-                              class="px-3 py-1 text-xs bg-xcord-brand text-white rounded hover:bg-xcord-brand-hover"
+                              class={styles.threadCreateSubmit}
                               onClick={async () => {
                                 const name = threadNameInput().trim();
                                 if (!name) return;
@@ -442,7 +447,7 @@ export default function MessageList(props: MessageListProps) {
                             </button>
                             <button
                               data-testid="thread-create-cancel"
-                              class="px-2 py-1 text-xs text-xcord-text-muted hover:text-white"
+                              class={styles.threadCreateCancel}
                               onClick={() => setCreateThreadMessageId(null)}
                             >
                               Cancel
@@ -453,12 +458,12 @@ export default function MessageList(props: MessageListProps) {
                       <Show
                         when={!grouped()}
                         fallback={
-                          <div class="py-0.5">
-                            <span class="text-sm text-xcord-text-primary">
+                          <div class={styles.groupedContent}>
+                            <span class={styles.groupedText}>
                               <MarkdownRenderer content={message().content} />
                             </span>
                             <Show when={message().editedAt}>
-                              <span data-testid="message-edited-indicator" class="text-xs text-xcord-text-muted ml-1">(edited)</span>
+                              <span data-testid="message-edited-indicator" class={styles.editedBadge}>(edited)</span>
                             </Show>
                             {/* Attachments */}
                             <Show when={(message().attachments?.length ?? 0) > 0}>
@@ -491,7 +496,7 @@ export default function MessageList(props: MessageListProps) {
                               {(thread) => (
                                 <button
                                   data-testid="message-thread-indicator"
-                                  class="mt-1 flex items-center gap-1 text-xs text-xcord-brand hover:underline"
+                                  class={styles.threadIndicator}
                                   onClick={() => threadStore.setActiveThread(thread().id)}
                                 >
                                   &#35; {thread().name} &middot; {thread().messageCount} {thread().messageCount === 1 ? 'reply' : 'replies'}
@@ -501,42 +506,42 @@ export default function MessageList(props: MessageListProps) {
                           </div>
                         }
                       >
-                        <div class="flex space-x-3 py-1">
+                        <div class={styles.messageWithHeader}>
                           {/* Avatar */}
-                          <div class="w-10 h-10 rounded-full bg-xcord-brand flex items-center justify-center text-white font-semibold flex-shrink-0">
+                          <div class={styles.avatar}>
                             <Show when={message().authorAvatarUrl} fallback={message().authorUsername?.charAt(0).toUpperCase() || 'U'}>
                               <img
                                 src={message().authorAvatarUrl}
                                 alt={message().authorUsername}
-                                class="w-full h-full rounded-full object-cover"
+                                class={styles.avatarImg}
                               />
                             </Show>
                           </div>
 
                           {/* Message content */}
-                          <div class="flex-1 min-w-0">
-                            <div class="flex items-baseline space-x-2">
+                          <div class={styles.messageBody}>
+                            <div class={styles.messageHeader}>
                               {/* Card 170: group color applied inline to username */}
                               <span
-                                class="font-semibold"
+                                class={styles.authorName}
                                 style={{ color: message().authorGroupColor ?? 'white' }}
                               >
                                 {message().authorUsername || 'Unknown User'}
                               </span>
-                              <span class="text-xs text-xcord-text-muted">{formatTime(message().createdAt)}</span>
+                              <span class={styles.messageTimestamp}>{formatTime(message().createdAt)}</span>
                             </div>
 
                             <Show when={message().replyToId}>
-                              <div class="text-xs text-xcord-text-muted mb-1">
+                              <div class={styles.replyIndicator}>
                                 Replying to a message
                               </div>
                             </Show>
 
-                            <div class="text-sm text-xcord-text-primary break-words">
+                            <div class={styles.messageContent}>
                               <MarkdownRenderer content={message().content} />
                             </div>
                             <Show when={message().editedAt}>
-                              <span data-testid="message-edited-indicator" class="text-xs text-xcord-text-muted">(edited)</span>
+                              <span data-testid="message-edited-indicator" class={styles.editedBadge}>(edited)</span>
                             </Show>
                             {/* Attachments */}
                             <Show when={(message().attachments?.length ?? 0) > 0}>
@@ -569,7 +574,7 @@ export default function MessageList(props: MessageListProps) {
                               {(thread) => (
                                 <button
                                   data-testid="message-thread-indicator"
-                                  class="mt-1 flex items-center gap-1 text-xs text-xcord-brand hover:underline"
+                                  class={styles.threadIndicator}
                                   onClick={() => threadStore.setActiveThread(thread().id)}
                                 >
                                   &#35; {thread().name} &middot; {thread().messageCount} {thread().messageCount === 1 ? 'reply' : 'replies'}
@@ -596,19 +601,19 @@ export default function MessageList(props: MessageListProps) {
         size="sm"
         role="alertdialog"
       >
-        <div class="p-6">
-          <p class="text-xcord-text-secondary text-sm mb-4">Are you sure you want to delete this message? This cannot be undone.</p>
-          <div class="flex justify-end gap-3">
+        <div class={styles.deleteModalBody}>
+          <p class={styles.deleteModalText}>Are you sure you want to delete this message? This cannot be undone.</p>
+          <div class={styles.deleteModalActions}>
             <button
               data-testid="delete-message-cancel-button"
-              class="px-4 py-2 text-sm text-xcord-text-primary bg-xcord-bg-primary hover:bg-xcord-bg-tertiary rounded transition-colors"
+              class={styles.cancelButton}
               onClick={() => setDeleteConfirmMessageId(null)}
             >
               Cancel
             </button>
             <button
               data-testid="delete-message-confirm-button"
-              class="px-4 py-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded transition-colors"
+              class={styles.deleteButton}
               onClick={() => {
                 const id = deleteConfirmMessageId();
                 if (id) messageStore.deleteMessage(props.conversationId, id);

@@ -2,6 +2,7 @@ import { For, Show, createSignal, createMemo } from 'solid-js';
 import { useChannels } from '../stores/channel.store';
 import { api } from '../api/client';
 import type { Channel, Category } from '../types/channel';
+import styles from './ChannelReorder.module.css';
 
 interface ChannelReorderProps {
   serverId: string;
@@ -123,27 +124,27 @@ export default function ChannelReorder(props: ChannelReorderProps) {
 
   const channelRowClass = (channel: Channel) => {
     const isTarget = isDropTarget(channel.id, 'channel');
-    const isDragging = dragging()?.id === channel.id && dragging()?.type === 'channel';
+    const isDraggingThis = dragging()?.id === channel.id && dragging()?.type === 'channel';
     return [
-      'flex items-center gap-2 px-2 py-1.5 rounded text-sm',
-      isDragging ? 'opacity-40' : 'opacity-100',
-      isTarget ? 'border-t-2 border-xcord-brand' : '',
+      styles.channelRow,
+      isDraggingThis ? styles.channelRowDragging : '',
+      isTarget ? styles.channelRowDropTarget : '',
     ].join(' ');
   };
 
   const categoryRowClass = (category: Category) => {
     const isTarget = isDropTarget(category.id, 'category');
-    const isDragging = dragging()?.id === category.id && dragging()?.type === 'category';
+    const isDraggingThis = dragging()?.id === category.id && dragging()?.type === 'category';
     return [
-      'flex items-center gap-2 px-1 py-1 text-xs font-semibold text-xcord-text-muted uppercase tracking-wide',
-      isDragging ? 'opacity-40' : 'opacity-100',
-      isTarget ? 'border-t-2 border-xcord-brand' : '',
+      styles.categoryRow,
+      isDraggingThis ? styles.categoryRowDragging : '',
+      isTarget ? styles.categoryRowDropTarget : '',
     ].join(' ');
   };
 
   return (
     <div
-      class="flex flex-col gap-0.5"
+      class={styles.container}
       onDragEnd={handleDragEnd}
     >
       {/* Uncategorized channels */}
@@ -160,16 +161,16 @@ export default function ChannelReorder(props: ChannelReorderProps) {
           >
             {/* Drag handle */}
             <span
-              class="flex-shrink-0 cursor-grab text-xcord-text-muted hover:text-xcord-text-secondary select-none"
+              class={styles.dragHandle}
               aria-hidden="true"
               data-testid={`drag-handle-${channel.id}`}
             >
               ⠿
             </span>
-            <span class="text-xcord-text-muted flex-shrink-0" aria-hidden="true">
+            <span class={styles.channelIcon} aria-hidden="true">
               {channel.type === 'Voice' ? '🔊' : '#'}
             </span>
-            <span class="flex-1 text-xcord-text-primary truncate">{channel.name}</span>
+            <span class={styles.channelName}>{channel.name}</span>
           </div>
         )}
       </For>
@@ -189,7 +190,7 @@ export default function ChannelReorder(props: ChannelReorderProps) {
               data-testid={`category-row-${category.id}`}
             >
               <span
-                class="cursor-grab text-xcord-text-muted hover:text-xcord-text-secondary select-none"
+                class={styles.dragHandle}
                 aria-hidden="true"
                 data-testid={`drag-handle-cat-${category.id}`}
               >
@@ -199,7 +200,7 @@ export default function ChannelReorder(props: ChannelReorderProps) {
             </div>
 
             {/* Channels within category */}
-            <div class="pl-4 flex flex-col gap-0.5">
+            <div class={styles.categoryChannels}>
               <For each={channelsByCategory(category.id)}>
                 {(channel) => (
                   <div
@@ -212,16 +213,16 @@ export default function ChannelReorder(props: ChannelReorderProps) {
                     data-testid={`channel-row-${channel.id}`}
                   >
                     <span
-                      class="flex-shrink-0 cursor-grab text-xcord-text-muted hover:text-xcord-text-secondary select-none"
+                      class={styles.dragHandle}
                       aria-hidden="true"
                       data-testid={`drag-handle-${channel.id}`}
                     >
                       ⠿
                     </span>
-                    <span class="text-xcord-text-muted flex-shrink-0" aria-hidden="true">
+                    <span class={styles.channelIcon} aria-hidden="true">
                       {channel.type === 'Voice' ? '🔊' : '#'}
                     </span>
-                    <span class="flex-1 text-xcord-text-primary truncate">{channel.name}</span>
+                    <span class={styles.channelName}>{channel.name}</span>
                   </div>
                 )}
               </For>
@@ -232,7 +233,7 @@ export default function ChannelReorder(props: ChannelReorderProps) {
 
       {/* Empty state */}
       <Show when={channelStore.channels.length === 0 && channelStore.categories.length === 0}>
-        <p class="text-xcord-text-muted text-sm px-2 py-4 text-center">No channels to reorder.</p>
+        <p class={styles.emptyState}>No channels to reorder.</p>
       </Show>
     </div>
   );

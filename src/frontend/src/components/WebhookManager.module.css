@@ -1,0 +1,335 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--color-xcord-bg-secondary);
+}
+
+.header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerTitle {
+  color: white;
+  font-weight: 600;
+}
+
+.addButton {
+  background-color: var(--color-xcord-brand);
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.addButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.createFormSection {
+  padding: 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+  background-color: color-mix(in srgb, var(--color-xcord-bg-primary) 30%, transparent);
+}
+
+.createFormTitle {
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.createFormFields {
+  /* space-y-3 */
+}
+
+.createFormFields > * + * {
+  margin-top: 0.75rem;
+}
+
+.textInput {
+  width: 100%;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+  border: none;
+  box-sizing: border-box;
+}
+
+.textInput::placeholder {
+  color: var(--color-xcord-text-muted);
+}
+
+.textInput:focus {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.eventsLabel {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.eventsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem;
+}
+
+.eventCheckLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.eventCheckInput {
+  accent-color: var(--color-xcord-brand);
+}
+
+.eventCheckText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+}
+
+.formError {
+  color: #f87171;
+  font-size: 0.75rem;
+}
+
+.createSubmitButton {
+  background-color: var(--color-xcord-brand);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.createSubmitButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.createSubmitButton:disabled {
+  opacity: 0.5;
+}
+
+.errorBanner {
+  padding: 0.5rem 1rem;
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  font-size: 0.875rem;
+}
+
+.webhookList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.webhookList > * + * {
+  margin-top: 0.75rem;
+}
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 6rem;
+}
+
+.mutedText {
+  color: var(--color-xcord-text-muted);
+}
+
+.emptyContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 8rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.emptyTitle {
+  font-weight: 600;
+}
+
+.emptySubtitle {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.webhookCard {
+  background-color: var(--color-xcord-bg-primary);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.webhookCard > * + * {
+  margin-top: 0.75rem;
+}
+
+.webhookHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.webhookInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.webhookNameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.webhookName {
+  color: white;
+  font-weight: 500;
+  font-size: 0.875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusBadgeActive {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background-color: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.statusBadgeDisabled {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-muted);
+}
+
+.webhookUrl {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.webhookEvents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.eventTag {
+  font-size: 0.75rem;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-muted);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.webhookButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 0.75rem;
+  flex-shrink: 0;
+}
+
+.toggleButtonEnabled {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-muted);
+  transition: color 150ms, background-color 150ms;
+}
+
+.toggleButtonEnabled:hover {
+  color: white;
+}
+
+.toggleButtonDisabled {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  background-color: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  transition: color 150ms, background-color 150ms;
+}
+
+.toggleButtonDisabled:hover {
+  background-color: rgba(34, 197, 94, 0.3);
+}
+
+.secretRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.secretLabel {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+}
+
+.revealButton {
+  font-size: 0.75rem;
+  color: var(--color-xcord-brand);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.revealButton:hover {
+  text-decoration: underline;
+}
+
+.secretCode {
+  font-size: 0.75rem;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: #4ade80;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-family: monospace;
+  word-break: break-all;
+}
+
+.hideButton {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 0.25rem;
+  transition: color 150ms;
+}
+
+.hideButton:hover {
+  color: white;
+}

@@ -3,6 +3,7 @@ import { useFriends } from '../stores/friend.store';
 import { useAuth } from '../stores/auth.store';
 import PresenceDot from './PresenceDot';
 import { getErrorMessage } from '../utils/errors';
+import styles from './FriendList.module.css';
 
 export default function FriendList() {
   const friendStore = useFriends();
@@ -33,42 +34,36 @@ export default function FriendList() {
   });
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
-      <div class="px-4 py-3 border-b border-xcord-border">
-        <h2 data-testid="friends-heading" class="text-white font-semibold mb-3">Friends</h2>
-
-        <div class="flex space-x-2">
-          <button
-            data-testid="friends-tab-all"
-            class={`px-3 py-1 rounded ${
-              activeTab() === 'all'
-                ? 'bg-xcord-brand text-white'
-                : 'text-xcord-text-muted hover:text-white'
-            }`}
-            onClick={() => setActiveTab('all')}
-          >
-            All
-          </button>
-          <button
-            data-testid="friends-tab-pending"
-            class={`px-3 py-1 rounded ${
-              activeTab() === 'pending'
-                ? 'bg-xcord-brand text-white'
-                : 'text-xcord-text-muted hover:text-white'
-            }`}
-            onClick={() => setActiveTab('pending')}
-          >
-            Pending
-            <Show when={friendStore.incomingRequests.length > 0}>
-              <span class="ml-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
-                {friendStore.incomingRequests.length}
-              </span>
-            </Show>
-          </button>
+    <div class={styles.container}>
+      <div class={styles.topBar}>
+        <div class={styles.tabRow}>
+          <h2 data-testid="friends-heading" class={styles.heading}>Friends</h2>
+          <div class={styles.divider} />
+          <div class={styles.tabs}>
+            <button
+              data-testid="friends-tab-all"
+              class={activeTab() === 'all' ? `${styles.tab} ${styles.tabActive}` : styles.tab}
+              onClick={() => setActiveTab('all')}
+            >
+              All
+            </button>
+            <button
+              data-testid="friends-tab-pending"
+              class={activeTab() === 'pending' ? `${styles.tab} ${styles.tabActive}` : styles.tab}
+              onClick={() => setActiveTab('pending')}
+            >
+              Pending
+              <Show when={friendStore.incomingRequests.length > 0}>
+                <span class={styles.pendingBadge}>
+                  {friendStore.incomingRequests.length}
+                </span>
+              </Show>
+            </button>
+          </div>
         </div>
 
         {/* Add Friend section */}
-        <div class="mt-3 flex space-x-2">
+        <div class={styles.addFriendRow}>
           <input
             data-testid="friend-request-input"
             id="add-friend-input"
@@ -76,11 +71,11 @@ export default function FriendList() {
             placeholder="Enter a username"
             value={friendUsername()}
             onInput={(e) => setFriendUsername(e.currentTarget.value)}
-            class="flex-1 bg-xcord-bg-primary text-white px-3 py-1.5 rounded text-sm border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+            class={styles.addFriendInput}
           />
           <button
             data-testid="friend-request-submit-button"
-            class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand-hover disabled:opacity-50"
+            class={styles.addFriendBtn}
             disabled={!friendUsername().trim()}
             onClick={handleAddFriend}
           >
@@ -88,50 +83,52 @@ export default function FriendList() {
           </button>
         </div>
         <Show when={addFriendMessage()}>
-          <p class={`text-sm mt-2 ${addFriendError() ? 'text-red-400' : 'text-green-400'}`}>
+          <p class={addFriendError()
+            ? `${styles.addFriendMessage} ${styles.addFriendMessageError}`
+            : `${styles.addFriendMessage} ${styles.addFriendMessageSuccess}`}>
             {addFriendMessage()}
           </p>
         </Show>
       </div>
 
-      <div class="flex-1 overflow-y-auto">
+      <div class={styles.listArea}>
         <Show when={activeTab() === 'all'}>
           <Show when={friendStore.isLoading}>
-            <div class="flex items-center justify-center h-32">
-              <p class="text-xcord-text-muted">Loading...</p>
+            <div class={styles.loadingCenter}>
+              <p class={styles.loadingText}>Loading...</p>
             </div>
           </Show>
 
           <Show when={!friendStore.isLoading && friendStore.friends.length === 0}>
-            <div class="flex items-center justify-center h-32">
-              <p data-testid="friends-empty-state" class="text-xcord-text-muted">No friends yet</p>
+            <div class={styles.emptyCenter}>
+              <p data-testid="friends-empty-state" class={styles.emptyText}>No friends yet</p>
             </div>
           </Show>
 
           <For each={friendStore.friends}>
             {(friend) => (
-              <div class="px-4 py-3 flex items-center space-x-3 hover:bg-xcord-bg-primary/50 border-b border-xcord-border">
-                <div class="relative">
-                  <div class="w-10 h-10 rounded-full bg-xcord-brand flex items-center justify-center text-white font-semibold">
+              <div class={styles.friendItem}>
+                <div class={styles.avatarWrapper}>
+                  <div class={styles.avatar}>
                     <Show when={friend.avatarUrl} fallback={friend.username.charAt(0).toUpperCase()}>
                       <img
                         src={friend.avatarUrl}
                         alt={friend.username}
-                        class="w-full h-full rounded-full object-cover"
+                        class={styles.avatarImg}
                       />
                     </Show>
                   </div>
                   <PresenceDot userId={friend.userId} size="md" />
                 </div>
 
-                <div class="flex-1 min-w-0">
-                  <h3 class="text-white font-medium truncate">{friend.displayName}</h3>
-                  <p class="text-xs text-xcord-text-muted truncate">{friend.username}</p>
+                <div class={styles.friendInfo}>
+                  <h3 class={styles.friendDisplayName}>{friend.displayName}</h3>
+                  <p class={styles.friendUsername}>{friend.username}</p>
                 </div>
 
                 <button
                   data-testid="friend-remove-button"
-                  class="text-red-500 hover:text-red-400 text-sm"
+                  class={styles.removeBtn}
                   onClick={() => friendStore.removeFriend(friend.userId)}
                 >
                   Remove
@@ -142,29 +139,29 @@ export default function FriendList() {
         </Show>
 
         <Show when={activeTab() === 'pending'}>
-          <div class="p-4">
-            <h3 class="text-white font-semibold mb-3">Incoming Requests</h3>
+          <div class={styles.pendingSection}>
+            <h3 class={styles.pendingSectionTitle}>Incoming Requests</h3>
             <For each={friendStore.incomingRequests}>
               {(request) => (
-                <div class="flex items-center space-x-3 mb-3 p-3 bg-xcord-bg-primary rounded">
-                  <div class="w-10 h-10 rounded-full bg-xcord-brand flex items-center justify-center text-white font-semibold">
+                <div class={styles.requestCard}>
+                  <div class={styles.requestAvatar}>
                     {request.fromUsername.charAt(0).toUpperCase()}
                   </div>
 
-                  <div class="flex-1">
-                    <p class="text-white">{request.fromUsername}</p>
+                  <div class={styles.requestInfo}>
+                    <p class={styles.requestUsername}>{request.fromUsername}</p>
                   </div>
 
                   <button
                     data-testid="friend-accept-button"
-                    class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                    class={styles.acceptBtn}
                     onClick={() => friendStore.acceptFriendRequest(request.id)}
                   >
                     Accept
                   </button>
                   <button
                     data-testid="friend-reject-button"
-                    class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                    class={styles.rejectBtn}
                     onClick={() => friendStore.declineFriendRequest(request.id)}
                   >
                     Decline
@@ -173,21 +170,21 @@ export default function FriendList() {
               )}
             </For>
 
-            <h3 class="text-white font-semibold mt-6 mb-3">Outgoing Requests</h3>
+            <h3 class={styles.pendingSectionTitleSpaced}>Outgoing Requests</h3>
             <For each={friendStore.outgoingRequests}>
               {(request) => (
-                <div class="flex items-center space-x-3 mb-3 p-3 bg-xcord-bg-primary rounded">
-                  <div class="w-10 h-10 rounded-full bg-xcord-brand flex items-center justify-center text-white font-semibold">
+                <div class={styles.requestCard}>
+                  <div class={styles.requestAvatar}>
                     {request.toUsername.charAt(0).toUpperCase()}
                   </div>
 
-                  <div class="flex-1">
-                    <p class="text-white">{request.toUsername}</p>
-                    <p class="text-xs text-xcord-text-muted">Pending</p>
+                  <div class={styles.requestInfo}>
+                    <p class={styles.requestUsername}>{request.toUsername}</p>
+                    <p class={styles.requestStatus}>Pending</p>
                   </div>
 
                   <button
-                    class="text-red-500 hover:text-red-400 text-sm"
+                    class={styles.cancelRequestBtn}
                     onClick={() => friendStore.cancelFriendRequest(request.id)}
                   >
                     Cancel

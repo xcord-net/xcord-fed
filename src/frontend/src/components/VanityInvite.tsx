@@ -1,6 +1,7 @@
 import { Show, createSignal, createEffect } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
+import styles from './VanityInvite.module.css';
 
 // ---- Types ----
 
@@ -125,13 +126,13 @@ export default function VanityInvite(props: VanityInviteProps) {
   };
 
   return (
-    <div class="flex flex-col bg-xcord-bg-secondary rounded-lg">
+    <div class={styles.container}>
       {/* Header */}
-      <div class="px-4 py-3 border-b border-xcord-bg-tertiary flex items-center justify-between">
-        <h2 class="text-xcord-text-primary font-semibold">Vanity Invite URL</h2>
+      <div class={styles.header}>
+        <h2 class={styles.headerTitle}>Vanity Invite URL</h2>
         <Show when={props.isOwner && !isEditing()}>
           <button
-            class="text-xcord-brand hover:underline text-sm"
+            class={styles.editLink}
             onClick={() => setIsEditing(true)}
             aria-label="Edit Vanity URL"
           >
@@ -140,33 +141,33 @@ export default function VanityInvite(props: VanityInviteProps) {
         </Show>
       </div>
 
-      <div class="px-4 py-4 space-y-4">
+      <div class={styles.body}>
         <Show when={isLoading()}>
-          <div class="flex items-center justify-center h-16">
-            <div class="w-5 h-5 border-2 border-xcord-text-muted border-t-transparent rounded-full animate-spin" />
+          <div class={styles.spinnerWrapper}>
+            <div class={styles.spinner} />
           </div>
         </Show>
 
         <Show when={!isLoading()}>
           {/* Success banner */}
           <Show when={successMessage()}>
-            <div class="bg-green-600/20 text-green-400 text-sm px-3 py-2 rounded" role="status">
+            <div class={styles.successBanner} role="status">
               {successMessage()}
             </div>
           </Show>
 
           {/* Current vanity URL display */}
           <Show when={vanityInfo()?.slug}>
-            <div class="space-y-2">
-              <p class="text-xcord-text-muted text-xs font-medium uppercase tracking-wide">
+            <div class={styles.currentUrlSection}>
+              <p class={styles.currentUrlLabel}>
                 Current Vanity URL
               </p>
-              <div class="flex items-center gap-2 bg-xcord-bg-tertiary rounded px-3 py-2">
-                <span class="text-xcord-text-primary text-sm flex-1 font-mono truncate">
+              <div class={styles.currentUrlRow}>
+                <span class={styles.currentUrlValue}>
                   {buildVanityUrl(vanityInfo()!.slug!)}
                 </span>
                 <button
-                  class="flex-shrink-0 px-2.5 py-1 rounded text-xs font-medium bg-xcord-bg-secondary text-xcord-text-muted hover:text-xcord-text-primary transition-colors"
+                  class={styles.copyButton}
                   onClick={handleCopy}
                   aria-label="Copy vanity URL"
                 >
@@ -177,11 +178,11 @@ export default function VanityInvite(props: VanityInviteProps) {
           </Show>
 
           <Show when={!vanityInfo()?.slug && !isEditing()}>
-            <p class="text-xcord-text-muted text-sm">
+            <p class={styles.noVanityText}>
               No vanity URL set.{' '}
               <Show when={props.isOwner}>
                 <button
-                  class="text-xcord-brand hover:underline"
+                  class={styles.setNowButton}
                   onClick={() => setIsEditing(true)}
                 >
                   Set one now
@@ -192,16 +193,16 @@ export default function VanityInvite(props: VanityInviteProps) {
 
           {/* Edit form */}
           <Show when={isEditing() && props.isOwner}>
-            <div class="space-y-3">
+            <div class={styles.editForm}>
               <div>
-                <label class="block text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-1">
+                <label class={styles.fieldLabel}>
                   Custom Slug
                 </label>
-                <div class="flex items-center bg-xcord-bg-tertiary rounded overflow-hidden">
-                  <span class="px-3 py-2 text-xcord-text-muted text-sm select-none">/invite/</span>
+                <div class={styles.slugInputRow}>
+                  <span class={styles.slugPrefix}>/invite/</span>
                   <input
                     type="text"
-                    class="flex-1 bg-transparent text-xcord-text-primary text-sm py-2 pr-3 outline-none"
+                    class={styles.slugInput}
                     placeholder="my-server"
                     value={slugInput()}
                     onInput={(e) => handleSlugInput(e.currentTarget.value)}
@@ -209,26 +210,26 @@ export default function VanityInvite(props: VanityInviteProps) {
                     aria-describedby="slug-hint"
                   />
                 </div>
-                <p id="slug-hint" class="text-xcord-text-muted text-xs mt-1">
-                  3–32 characters: letters, numbers, and hyphens only.
+                <p id="slug-hint" class={styles.slugHint}>
+                  3-32 characters: letters, numbers, and hyphens only.
                 </p>
               </div>
 
               <Show when={validationError()}>
-                <p class="text-red-400 text-xs" role="alert">
+                <p class={styles.validationError} role="alert">
                   {validationError()}
                 </p>
               </Show>
 
               <Show when={submitError()}>
-                <p class="text-red-400 text-xs" role="alert">
+                <p class={styles.submitError} role="alert">
                   {submitError()}
                 </p>
               </Show>
 
-              <div class="flex gap-2">
+              <div class={styles.editActions}>
                 <button
-                  class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  class={styles.saveButton}
                   onClick={handleSave}
                   disabled={isSubmitting() || validationError() !== null}
                   aria-label="Save Vanity URL"
@@ -236,7 +237,7 @@ export default function VanityInvite(props: VanityInviteProps) {
                   {isSubmitting() ? 'Saving...' : 'Save'}
                 </button>
                 <button
-                  class="px-4 py-2 bg-xcord-bg-tertiary text-xcord-text-muted text-sm rounded hover:bg-xcord-bg-primary hover:text-xcord-text-primary transition-colors"
+                  class={styles.cancelButton}
                   onClick={handleCancelEdit}
                 >
                   Cancel

@@ -2,6 +2,7 @@ import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import ConfirmationButton from './ui/ConfirmationButton';
+import styles from './WebhookManager.module.css';
 
 export type WebhookEvent =
   | 'message.created'
@@ -165,12 +166,12 @@ export default function WebhookManager(props: WebhookManagerProps) {
   });
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
+    <div class={styles.container}>
       {/* Header */}
-      <div class="px-4 py-3 border-b border-xcord-border flex items-center justify-between">
-        <h2 class="text-white font-semibold">Outgoing Webhooks</h2>
+      <div class={styles.header}>
+        <h2 class={styles.headerTitle}>Outgoing Webhooks</h2>
         <button
-          class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand-hover transition-colors"
+          class={styles.addButton}
           onClick={() => setShowForm(!showForm())}
         >
           {showForm() ? 'Cancel' : 'Add Webhook'}
@@ -179,49 +180,49 @@ export default function WebhookManager(props: WebhookManagerProps) {
 
       {/* Create form */}
       <Show when={showForm()}>
-        <div class="px-4 py-4 border-b border-xcord-border bg-xcord-bg-primary/30">
-          <h3 class="text-white text-sm font-semibold mb-3">New Webhook</h3>
-          <form onSubmit={handleCreate} class="space-y-3">
+        <div class={styles.createFormSection}>
+          <h3 class={styles.createFormTitle}>New Webhook</h3>
+          <form onSubmit={handleCreate} class={styles.createFormFields}>
             <input
               type="text"
               placeholder="Webhook name"
               value={formName()}
               onInput={(e) => setFormName(e.currentTarget.value)}
               maxLength={64}
-              class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+              class={styles.textInput}
             />
             <input
               type="url"
               placeholder="Target URL (https://...)"
               value={formUrl()}
               onInput={(e) => setFormUrl(e.currentTarget.value)}
-              class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+              class={styles.textInput}
             />
             <div>
-              <p class="text-xcord-text-muted text-xs mb-2">Events to subscribe:</p>
-              <div class="grid grid-cols-2 gap-1">
+              <p class={styles.eventsLabel}>Events to subscribe:</p>
+              <div class={styles.eventsGrid}>
                 <For each={ALL_WEBHOOK_EVENTS}>
                   {(evt) => (
-                    <label class="flex items-center space-x-2 cursor-pointer">
+                    <label class={styles.eventCheckLabel}>
                       <input
                         type="checkbox"
                         checked={formEvents().includes(evt)}
                         onChange={() => setFormEvents(toggleEvent(formEvents(), evt))}
-                        class="accent-xcord-brand"
+                        class={styles.eventCheckInput}
                       />
-                      <span class="text-xcord-text-muted text-xs">{WEBHOOK_EVENT_LABELS[evt]}</span>
+                      <span class={styles.eventCheckText}>{WEBHOOK_EVENT_LABELS[evt]}</span>
                     </label>
                   )}
                 </For>
               </div>
             </div>
             <Show when={formError()}>
-              <p class="text-red-400 text-xs">{formError()}</p>
+              <p class={styles.formError}>{formError()}</p>
             </Show>
             <button
               type="submit"
               disabled={isSaving()}
-              class="bg-xcord-brand text-white px-4 py-2 rounded text-sm hover:bg-xcord-brand-hover disabled:opacity-50 transition-colors"
+              class={styles.createSubmitButton}
             >
               {isSaving() ? 'Creating...' : 'Create Webhook'}
             </button>
@@ -230,59 +231,51 @@ export default function WebhookManager(props: WebhookManagerProps) {
       </Show>
 
       <Show when={error()}>
-        <div class="px-4 py-2 bg-red-500/20 text-red-400 text-sm">{error()}</div>
+        <div class={styles.errorBanner}>{error()}</div>
       </Show>
 
       {/* Webhook list */}
-      <div class="flex-1 overflow-y-auto p-4 space-y-3">
+      <div class={styles.webhookList}>
         <Show when={isLoading()}>
-          <div class="flex items-center justify-center h-24">
-            <p class="text-xcord-text-muted">Loading webhooks...</p>
+          <div class={styles.loadingContainer}>
+            <p class={styles.mutedText}>Loading webhooks...</p>
           </div>
         </Show>
 
         <Show when={!isLoading() && webhooks().length === 0}>
-          <div class="flex flex-col items-center justify-center h-32 text-xcord-text-muted">
-            <p class="font-semibold">No outgoing webhooks</p>
-            <p class="text-sm mt-1">Create a webhook to receive server events at an external URL.</p>
+          <div class={styles.emptyContainer}>
+            <p class={styles.emptyTitle}>No outgoing webhooks</p>
+            <p class={styles.emptySubtitle}>Create a webhook to receive server events at an external URL.</p>
           </div>
         </Show>
 
         <For each={webhooks()}>
           {(webhook) => (
-            <div class="bg-xcord-bg-primary rounded-lg p-4 space-y-3">
-              <div class="flex items-start justify-between">
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center space-x-2">
-                    <p class="text-white font-medium text-sm truncate">{webhook.name}</p>
+            <div class={styles.webhookCard}>
+              <div class={styles.webhookHeader}>
+                <div class={styles.webhookInfo}>
+                  <div class={styles.webhookNameRow}>
+                    <p class={styles.webhookName}>{webhook.name}</p>
                     <span
-                      class={`text-xs px-2 py-0.5 rounded-full ${
-                        webhook.enabled
-                          ? 'bg-green-500/20 text-green-400'
-                          : 'bg-xcord-bg-tertiary text-xcord-text-muted'
-                      }`}
+                      class={webhook.enabled ? styles.statusBadgeActive : styles.statusBadgeDisabled}
                     >
                       {webhook.enabled ? 'Active' : 'Disabled'}
                     </span>
                   </div>
-                  <p class="text-xcord-text-muted text-xs mt-1 truncate">{webhook.targetUrl}</p>
-                  <div class="flex flex-wrap gap-1 mt-2">
+                  <p class={styles.webhookUrl}>{webhook.targetUrl}</p>
+                  <div class={styles.webhookEvents}>
                     <For each={webhook.events}>
                       {(evt) => (
-                        <span class="text-xs bg-xcord-bg-tertiary text-xcord-text-muted px-2 py-0.5 rounded">
+                        <span class={styles.eventTag}>
                           {WEBHOOK_EVENT_LABELS[evt] ?? evt}
                         </span>
                       )}
                     </For>
                   </div>
                 </div>
-                <div class="flex items-center space-x-2 ml-3 flex-shrink-0">
+                <div class={styles.webhookButtons}>
                   <button
-                    class={`text-xs px-2 py-1 rounded transition-colors ${
-                      webhook.enabled
-                        ? 'bg-xcord-bg-tertiary text-xcord-text-muted hover:text-white'
-                        : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
-                    }`}
+                    class={webhook.enabled ? styles.toggleButtonEnabled : styles.toggleButtonDisabled}
                     onClick={() => handleToggleEnabled(webhook)}
                     title={webhook.enabled ? 'Disable webhook' : 'Enable webhook'}
                   >
@@ -299,24 +292,24 @@ export default function WebhookManager(props: WebhookManagerProps) {
               </div>
 
               {/* Secret key */}
-              <div class="flex items-center space-x-2">
-                <span class="text-xcord-text-muted text-xs">Secret:</span>
+              <div class={styles.secretRow}>
+                <span class={styles.secretLabel}>Secret:</span>
                 <Show
                   when={revealedSecret() === webhook.id}
                   fallback={
                     <button
-                      class="text-xs text-xcord-brand hover:underline"
+                      class={styles.revealButton}
                       onClick={() => setRevealedSecret(webhook.id)}
                     >
                       Click to reveal
                     </button>
                   }
                 >
-                  <code class="text-xs bg-xcord-bg-tertiary text-green-400 px-2 py-0.5 rounded font-mono break-all">
+                  <code class={styles.secretCode}>
                     {webhook.secret}
                   </code>
                   <button
-                    class="text-xs text-xcord-text-muted hover:text-white ml-1"
+                    class={styles.hideButton}
                     onClick={() => setRevealedSecret(null)}
                   >
                     Hide

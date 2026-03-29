@@ -1,6 +1,7 @@
 import { Show, onCleanup, createEffect } from 'solid-js';
 import { Track } from 'livekit-client';
 import { useVoice, getLivekitRoom } from '../stores/voice.store';
+import styles from './ScreenShareViewer.module.css';
 
 /**
  * Renders the screen share video when a participant in the current voice
@@ -58,16 +59,16 @@ export default function ScreenShareViewer() {
 
   return (
     <Show when={voice.screenShareParticipantId}>
-      <div class="bg-black rounded-lg overflow-hidden mb-2" data-testid="screen-share-viewer">
-        <div class="relative">
+      <div class={styles.container} data-testid="screen-share-viewer">
+        <div class={styles.videoWrapper}>
           <video
             ref={videoRef!}
             autoplay
             playsinline
-            class="w-full max-h-[40vh] object-contain bg-black"
+            class={styles.video}
           />
-          <div class="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1.5">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3" aria-hidden="true">
+          <div class={styles.badge}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class={styles.badgeIcon} aria-hidden="true">
               <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
               <line x1="8" y1="21" x2="16" y2="21" />
               <line x1="12" y1="17" x2="12" y2="21" />
@@ -76,7 +77,7 @@ export default function ScreenShareViewer() {
           </div>
           <Show when={voice.isScreenSharing}>
             <button
-              class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1 rounded transition-colors"
+              class={styles.stopButton}
               onClick={() => voice.stopScreenShare()}
             >
               Stop Sharing

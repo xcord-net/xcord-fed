@@ -4,6 +4,7 @@ import { useServers } from '../stores/server.store';
 import { useChannels } from '../stores/channel.store';
 import Modal from './ui/Modal';
 import { getErrorMessage } from '../utils/errors';
+import styles from './CreateServerModal.module.css';
 
 interface CreateServerModalProps {
   onClose: () => void;
@@ -36,10 +37,10 @@ export default function CreateServerModal(props: CreateServerModalProps) {
 
   return (
     <Modal data-testid="create-server-dialog" open={true} onClose={props.onClose} title="Create a Server" size="md">
-      <div class="p-6">
-        <form onSubmit={handleCreate}>
-          <div class="mb-4">
-            <label for="server-name" class="block text-xcord-text-secondary text-sm font-medium mb-2">
+      <div class={styles.modalBody}>
+        <form class={styles.form} onSubmit={handleCreate}>
+          <div class={styles.fieldGroup}>
+            <label for="server-name" class={styles.fieldLabel}>
               Server Name
             </label>
             <input
@@ -47,18 +48,18 @@ export default function CreateServerModal(props: CreateServerModalProps) {
               type="text"
               value={name()}
               onInput={(e) => setName(e.currentTarget.value)}
-              class="w-full bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-2 border border-xcord-border focus:border-xcord-brand focus-visible:ring-2 focus-visible:ring-xcord-brand focus:outline-none"
+              class={styles.textInput}
               autofocus
             />
           </div>
           {error() && (
-            <div role="alert" class="mb-4 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">{error()}</div>
+            <div role="alert" class={styles.errorAlert}>{error()}</div>
           )}
-          <div class="flex justify-end space-x-3">
+          <div class={styles.buttonRow}>
             <button
               type="button"
               onClick={() => props.onClose()}
-              class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+              class={styles.cancelBtn}
             >
               Cancel
             </button>
@@ -66,7 +67,7 @@ export default function CreateServerModal(props: CreateServerModalProps) {
               data-testid="create-server-submit-button"
               type="submit"
               disabled={!name().trim() || loading()}
-              class="px-4 py-2 bg-xcord-brand hover:bg-xcord-brand-hover text-white font-medium rounded disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+              class={styles.submitBtn}
             >
               {loading() ? 'Creating...' : 'Create'}
             </button>

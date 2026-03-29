@@ -1,6 +1,7 @@
 import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
+import styles from './ServerInsights.module.css';
 
 export type InsightsRange = '7d' | '30d' | '90d';
 
@@ -121,19 +122,15 @@ export default function ServerInsights(props: ServerInsightsProps) {
   const ranges: InsightsRange[] = ['7d', '30d', '90d'];
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
+    <div class={styles.container}>
       {/* Header */}
-      <div class="px-4 py-3 border-b border-xcord-border flex items-center justify-between">
-        <h2 class="text-white font-semibold">Server Insights</h2>
-        <div class="flex items-center space-x-1">
+      <div class={styles.header}>
+        <h2 class={styles.headerTitle}>Server Insights</h2>
+        <div class={styles.rangeButtons}>
           <For each={ranges}>
             {(r) => (
               <button
-                class={`px-3 py-1 rounded text-sm transition-colors ${
-                  range() === r
-                    ? 'bg-xcord-brand text-white'
-                    : 'bg-xcord-bg-tertiary text-xcord-text-muted hover:text-white'
-                }`}
+                class={`${styles.rangeButton} ${range() === r ? styles.rangeButtonActive : styles.rangeButtonInactive}`}
                 onClick={() => {
                   setRange(r);
                   loadInsights();
@@ -147,50 +144,50 @@ export default function ServerInsights(props: ServerInsightsProps) {
       </div>
 
       <Show when={error()}>
-        <div class="px-4 py-2 bg-red-500/20 text-red-400 text-sm">{error()}</div>
+        <div class={styles.errorBanner}>{error()}</div>
       </Show>
 
       <Show when={isLoading()}>
-        <div class="flex items-center justify-center flex-1">
-          <p class="text-xcord-text-muted">Loading insights...</p>
+        <div class={styles.loadingCenter}>
+          <p class={styles.loadingText}>Loading insights...</p>
         </div>
       </Show>
 
       <Show when={!isLoading() && data() !== null}>
-        <div class="flex-1 overflow-y-auto p-4 space-y-6">
+        <div class={styles.content}>
           {/* Summary stats */}
-          <div class="grid grid-cols-3 gap-3">
-            <div class="bg-xcord-bg-primary rounded-lg p-3 text-center">
-              <p class="text-2xl font-bold text-white">{data()!.memberCount.toLocaleString()}</p>
-              <p class="text-xcord-text-muted text-xs mt-1">Total Members</p>
+          <div class={styles.statsGrid}>
+            <div class={styles.statCard}>
+              <p class={styles.statValue}>{data()!.memberCount.toLocaleString()}</p>
+              <p class={styles.statLabel}>Total Members</p>
             </div>
-            <div class="bg-xcord-bg-primary rounded-lg p-3 text-center">
-              <p class="text-2xl font-bold text-xcord-brand">
+            <div class={styles.statCard}>
+              <p class={styles.statValueBrand}>
                 +{data()!.newMembersInRange.toLocaleString()}
               </p>
-              <p class="text-xcord-text-muted text-xs mt-1">New Members</p>
+              <p class={styles.statLabel}>New Members</p>
             </div>
-            <div class="bg-xcord-bg-primary rounded-lg p-3 text-center">
-              <p class="text-2xl font-bold text-white">{data()!.totalMessages.toLocaleString()}</p>
-              <p class="text-xcord-text-muted text-xs mt-1">Messages Sent</p>
+            <div class={styles.statCard}>
+              <p class={styles.statValue}>{data()!.totalMessages.toLocaleString()}</p>
+              <p class={styles.statLabel}>Messages Sent</p>
             </div>
           </div>
 
           {/* Member Growth Chart */}
-          <div class="bg-xcord-bg-primary rounded-lg p-4">
-            <h3 class="text-white text-sm font-semibold mb-3">Member Growth</h3>
-            <div class="flex items-end space-x-1 h-24">
+          <div class={styles.chartCard}>
+            <h3 class={styles.chartTitle}>Member Growth</h3>
+            <div class={styles.barChart}>
               <For each={data()!.memberGrowth}>
                 {(point) => {
                   const maxVal = getMaxValue(data()!.memberGrowth);
                   const heightPct = computeBarHeightPct(point.value, maxVal);
                   return (
                     <div
-                      class="flex-1 flex flex-col items-center justify-end group"
+                      class={styles.barColumn}
                       title={`${formatInsightsDate(point.date)}: ${point.value}`}
                     >
                       <div
-                        class="w-full bg-xcord-brand/70 rounded-sm hover:bg-xcord-brand transition-colors"
+                        class={styles.barBrand}
                         style={`height: ${heightPct}%`}
                       />
                     </div>
@@ -198,13 +195,13 @@ export default function ServerInsights(props: ServerInsightsProps) {
                 }}
               </For>
             </div>
-            <div class="flex justify-between mt-1">
-              <span class="text-xcord-text-muted text-xs">
+            <div class={styles.chartAxisRow}>
+              <span class={styles.chartAxisLabel}>
                 {data()!.memberGrowth.length > 0
                   ? formatInsightsDate(data()!.memberGrowth[0].date)
                   : ''}
               </span>
-              <span class="text-xcord-text-muted text-xs">
+              <span class={styles.chartAxisLabel}>
                 {data()!.memberGrowth.length > 0
                   ? formatInsightsDate(data()!.memberGrowth[data()!.memberGrowth.length - 1].date)
                   : ''}
@@ -213,20 +210,20 @@ export default function ServerInsights(props: ServerInsightsProps) {
           </div>
 
           {/* Message Activity Chart */}
-          <div class="bg-xcord-bg-primary rounded-lg p-4">
-            <h3 class="text-white text-sm font-semibold mb-3">Message Activity</h3>
-            <div class="flex items-end space-x-1 h-24">
+          <div class={styles.chartCard}>
+            <h3 class={styles.chartTitle}>Message Activity</h3>
+            <div class={styles.barChart}>
               <For each={data()!.messageActivity}>
                 {(point) => {
                   const maxVal = getMaxValue(data()!.messageActivity);
                   const heightPct = computeBarHeightPct(point.value, maxVal);
                   return (
                     <div
-                      class="flex-1 flex flex-col items-center justify-end group"
+                      class={styles.barColumn}
                       title={`${formatInsightsDate(point.date)}: ${point.value}`}
                     >
                       <div
-                        class="w-full bg-green-500/70 rounded-sm hover:bg-green-500 transition-colors"
+                        class={styles.barGreen}
                         style={`height: ${heightPct}%`}
                       />
                     </div>
@@ -234,13 +231,13 @@ export default function ServerInsights(props: ServerInsightsProps) {
                 }}
               </For>
             </div>
-            <div class="flex justify-between mt-1">
-              <span class="text-xcord-text-muted text-xs">
+            <div class={styles.chartAxisRow}>
+              <span class={styles.chartAxisLabel}>
                 {data()!.messageActivity.length > 0
                   ? formatInsightsDate(data()!.messageActivity[0].date)
                   : ''}
               </span>
-              <span class="text-xcord-text-muted text-xs">
+              <span class={styles.chartAxisLabel}>
                 {data()!.messageActivity.length > 0
                   ? formatInsightsDate(
                       data()!.messageActivity[data()!.messageActivity.length - 1].date,
@@ -251,15 +248,15 @@ export default function ServerInsights(props: ServerInsightsProps) {
           </div>
 
           {/* Popular Channels */}
-          <div class="bg-xcord-bg-primary rounded-lg p-4">
-            <h3 class="text-white text-sm font-semibold mb-3">Most Active Channels</h3>
+          <div class={styles.channelsCard}>
+            <h3 class={styles.channelsTitle}>Most Active Channels</h3>
             <Show
               when={data()!.popularChannels.length > 0}
               fallback={
-                <p class="text-xcord-text-muted text-sm">No channel activity in this period.</p>
+                <p class={styles.channelsEmpty}>No channel activity in this period.</p>
               }
             >
-              <div class="space-y-2">
+              <div class={styles.channelList}>
                 <For each={data()!.popularChannels}>
                   {(channel) => {
                     const maxMsgs = Math.max(
@@ -268,17 +265,17 @@ export default function ServerInsights(props: ServerInsightsProps) {
                     );
                     const pct = computeBarHeightPct(channel.messageCount, maxMsgs);
                     return (
-                      <div class="flex items-center space-x-3">
-                        <span class="text-xcord-text-muted text-sm w-32 truncate">
+                      <div class={styles.channelRow}>
+                        <span class={styles.channelName}>
                           # {channel.channelName}
                         </span>
-                        <div class="flex-1 bg-xcord-bg-tertiary rounded-full h-2">
+                        <div class={styles.channelBarTrack}>
                           <div
-                            class="bg-xcord-brand h-2 rounded-full transition-all"
+                            class={styles.channelBarFill}
                             style={`width: ${pct}%`}
                           />
                         </div>
-                        <span class="text-xcord-text-muted text-xs w-10 text-right">
+                        <span class={styles.channelCount}>
                           {channel.messageCount}
                         </span>
                       </div>
@@ -292,7 +289,7 @@ export default function ServerInsights(props: ServerInsightsProps) {
       </Show>
 
       <Show when={!isLoading() && data() === null && !error()}>
-        <div class="flex flex-col items-center justify-center flex-1 text-xcord-text-muted">
+        <div class={styles.emptyState}>
           <p>No insights data available.</p>
         </div>
       </Show>

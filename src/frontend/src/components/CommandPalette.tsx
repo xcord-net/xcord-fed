@@ -1,5 +1,6 @@
 import { For, Show, createSignal, createEffect, onCleanup } from 'solid-js';
 import { api } from '../api/client';
+import styles from './CommandPalette.module.css';
 
 // ---- Types ----
 
@@ -150,17 +151,17 @@ export default function CommandPalette(props: CommandPaletteProps) {
 
   return (
     <div
-      class="absolute bottom-full left-0 w-full max-w-xl bg-xcord-bg-secondary border border-xcord-bg-primary rounded-lg shadow-xl mb-1 overflow-hidden"
+      class={styles.palette}
       role="dialog"
       aria-label="Command palette"
     >
       {/* Header */}
-      <div class="px-3 py-2 border-b border-xcord-bg-primary flex items-center justify-between">
-        <span class="text-xcord-text-muted text-xs font-medium uppercase tracking-wide">
+      <div class={styles.paletteHeader}>
+        <span class={styles.paletteHeaderLabel}>
           Slash Commands
         </span>
         <button
-          class="text-xcord-text-muted hover:text-xcord-text-primary text-xs transition-colors"
+          class={styles.dismissBtn}
           onClick={props.onDismiss}
           aria-label="Close command palette"
         >
@@ -170,34 +171,34 @@ export default function CommandPalette(props: CommandPaletteProps) {
 
       {/* Loading */}
       <Show when={isLoading()}>
-        <div class="flex items-center justify-center py-6">
-          <div class="w-4 h-4 border-2 border-xcord-text-muted border-t-transparent rounded-full animate-spin" />
+        <div class={styles.loadingState}>
+          <div class={styles.spinner} />
         </div>
       </Show>
 
       {/* Arg entry form */}
       <Show when={selectedCommand()}>
         {(cmd) => (
-          <div class="p-3 space-y-3">
-            <div class="flex items-center gap-2">
-              <span class="text-xcord-brand font-mono text-sm">/{cmd().name}</span>
-              <span class="text-xcord-text-muted text-xs">{cmd().description}</span>
+          <div class={styles.argForm}>
+            <div class={styles.argFormHeader}>
+              <span class={styles.cmdName}>/{cmd().name}</span>
+              <span class={styles.cmdDescription}>{cmd().description}</span>
             </div>
 
-            <div class="space-y-2">
+            <div class={styles.paramList}>
               <For each={cmd().parameters}>
                 {(param) => (
                   <div>
-                    <label class="block text-xcord-text-muted text-xs font-medium mb-0.5">
+                    <label class={styles.paramLabel}>
                       {param.name}
                       <Show when={param.required}>
-                        <span class="text-red-400 ml-0.5">*</span>
+                        <span class={styles.requiredStar}>*</span>
                       </Show>
-                      <span class="ml-2 text-xcord-text-muted font-normal">{param.description}</span>
+                      <span class={styles.paramHint}>{param.description}</span>
                     </label>
                     <input
                       type="text"
-                      class="w-full bg-xcord-bg-primary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+                      class={styles.paramInput}
                       placeholder={param.required ? `Required` : `Optional`}
                       value={args()[param.name] ?? ''}
                       onInput={(e) => handleArgInput(param.name, e.currentTarget.value)}
@@ -208,18 +209,18 @@ export default function CommandPalette(props: CommandPaletteProps) {
             </div>
 
             <Show when={argError()}>
-              <p class="text-red-400 text-xs">{argError()}</p>
+              <p class={styles.argError}>{argError()}</p>
             </Show>
 
-            <div class="flex gap-2">
+            <div class={styles.argActions}>
               <button
-                class="px-3 py-1.5 bg-xcord-brand text-white text-sm rounded hover:bg-xcord-brand-hover transition-colors"
+                class={styles.sendBtn}
                 onClick={handleSubmitArgs}
               >
                 Send Command
               </button>
               <button
-                class="px-3 py-1.5 bg-xcord-bg-primary text-xcord-text-muted text-sm rounded hover:text-xcord-text-primary transition-colors"
+                class={styles.backBtn}
                 onClick={() => {
                   setSelectedCommand(null);
                   setArgs({});
@@ -236,14 +237,14 @@ export default function CommandPalette(props: CommandPaletteProps) {
       {/* Command list */}
       <Show when={!isLoading() && !selectedCommand()}>
         <Show when={filtered().length === 0}>
-          <div class="px-3 py-4 text-xcord-text-muted text-sm text-center">
+          <div class={styles.emptyState}>
             No commands found
           </div>
         </Show>
 
         <Show when={filtered().length > 0}>
           <ul
-            class="max-h-64 overflow-y-auto divide-y divide-xcord-bg-primary"
+            class={styles.commandList}
             role="listbox"
             aria-label="Available commands"
           >
@@ -252,23 +253,23 @@ export default function CommandPalette(props: CommandPaletteProps) {
                 <li
                   role="option"
                   aria-selected={selectedIndex() === index()}
-                  class={`px-3 py-2.5 cursor-pointer transition-colors ${
+                  class={`${styles.commandItem} ${
                     selectedIndex() === index()
-                      ? 'bg-xcord-bg-primary'
-                      : 'hover:bg-xcord-bg-primary/50'
+                      ? styles.commandItemActive
+                      : styles.commandItemInactive
                   }`}
                   onClick={() => handleCommandSelect(cmd)}
                   onMouseEnter={() => setSelectedIndex(index())}
                 >
-                  <div class="flex items-baseline gap-2">
-                    <span class="text-xcord-brand font-mono text-sm font-medium">
+                  <div class={styles.commandHeader}>
+                    <span class={styles.commandName}>
                       /{cmd.name}
                     </span>
-                    <span class="text-xcord-text-muted text-xs">{cmd.botName}</span>
+                    <span class={styles.commandBot}>{cmd.botName}</span>
                   </div>
-                  <p class="text-xcord-text-secondary text-xs mt-0.5">{cmd.description}</p>
+                  <p class={styles.commandDesc}>{cmd.description}</p>
                   <Show when={cmd.parameters.length > 0}>
-                    <p class="text-xcord-text-muted text-xs font-mono mt-0.5">
+                    <p class={styles.commandPreview}>
                       {buildCommandPreview(cmd)}
                     </p>
                   </Show>

@@ -3,6 +3,7 @@ import { useProfiles } from '../stores/profile.store';
 import PasswordChangeForm from './PasswordChangeForm';
 import TwoFactorSetup from './TwoFactorSetup';
 import AccountDeletion from './AccountDeletion';
+import styles from './UserProfileEditor.module.css';
 
 interface UserProfileEditorProps {
   serverId?: string;
@@ -46,106 +47,106 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
   };
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
-      <div class="px-4 py-3 border-b border-xcord-border flex items-center justify-between">
-        <h2 class="text-white font-semibold">
+    <div class={styles.container}>
+      <div class={styles.header}>
+        <h2 class={styles.heading}>
           {props.serverId ? 'Server Profile' : 'User Profile'}
         </h2>
         <button
           data-testid="profile-edit-button"
-          class="text-xcord-brand hover:underline text-sm"
+          class={styles.editToggleButton}
           onClick={() => setEditMode(!editMode())}
         >
           {editMode() ? 'Cancel' : 'Edit'}
         </button>
       </div>
 
-      <div class="flex-1 overflow-y-auto p-4">
+      <div class={styles.scrollBody}>
         <Show when={profileStore.isLoading}>
-          <div class="flex items-center justify-center h-32">
-            <p class="text-xcord-text-muted">Loading...</p>
+          <div class={styles.loadingState}>
+            <p class={styles.loadingText}>Loading...</p>
           </div>
         </Show>
 
         <Show when={!props.serverId && profileStore.userProfile}>
-          <div class="space-y-4">
-            <div class="relative h-32 bg-gradient-to-r from-xcord-brand to-purple-600 rounded-t-lg">
+          <div class={styles.profileSection}>
+            <div class={styles.banner}>
               <Show when={profileStore.userProfile!.bannerUrl}>
                 <img
                   src={profileStore.userProfile!.bannerUrl}
                   alt="Banner"
-                  class="w-full h-full object-cover rounded-t-lg"
+                  class={styles.bannerImage}
                 />
               </Show>
             </div>
 
-            <div class="flex items-start space-x-4 -mt-12 px-4">
-              <div class="w-20 h-20 rounded-full bg-xcord-brand border-4 border-xcord-bg-secondary flex items-center justify-center text-white text-2xl font-semibold">
+            <div class={styles.avatarRow}>
+              <div class={styles.avatar}>
                 <Show when={profileStore.userProfile!.avatarUrl} fallback={profileStore.userProfile!.username.charAt(0).toUpperCase()}>
                   <img
                     src={profileStore.userProfile!.avatarUrl}
                     alt={profileStore.userProfile!.username}
-                    class="w-full h-full rounded-full object-cover"
+                    class={styles.avatarImage}
                   />
                 </Show>
               </div>
             </div>
 
-            <div class="px-4 space-y-4">
+            <div class={styles.infoBlockSpaced}>
               <Show when={!editMode()}>
                 <div>
-                  <h3 data-testid="profile-display-name" class="text-white font-semibold text-xl">{profileStore.userProfile!.displayName}</h3>
-                  <p class="text-xcord-text-muted">@{profileStore.userProfile!.username}</p>
+                  <h3 data-testid="profile-display-name" class={styles.displayName}>{profileStore.userProfile!.displayName}</h3>
+                  <p class={styles.username}>@{profileStore.userProfile!.username}</p>
                 </div>
 
                 <Show when={profileStore.userProfile!.pronouns}>
-                  <div>
-                    <label class="text-xs text-xcord-text-muted">Pronouns</label>
-                    <p class="text-white">{profileStore.userProfile!.pronouns}</p>
+                  <div class={styles.fieldView}>
+                    <label class={styles.fieldMeta}>Pronouns</label>
+                    <p class={styles.fieldValue}>{profileStore.userProfile!.pronouns}</p>
                   </div>
                 </Show>
 
                 <Show when={profileStore.userProfile!.bio}>
-                  <div>
-                    <label class="text-xs text-xcord-text-muted">Bio</label>
-                    <p class="text-white whitespace-pre-wrap">{profileStore.userProfile!.bio}</p>
+                  <div class={styles.fieldView}>
+                    <label class={styles.fieldMeta}>Bio</label>
+                    <p class={styles.fieldValuePreWrap}>{profileStore.userProfile!.bio}</p>
                   </div>
                 </Show>
 
-                <div>
-                  <label class="text-xs text-xcord-text-muted">Member Since</label>
-                  <p class="text-white">{new Date(profileStore.userProfile!.createdAt).toLocaleDateString()}</p>
+                <div class={styles.fieldView}>
+                  <label class={styles.fieldMeta}>Member Since</label>
+                  <p class={styles.fieldValue}>{new Date(profileStore.userProfile!.createdAt).toLocaleDateString()}</p>
                 </div>
               </Show>
 
               <Show when={editMode()}>
-                <div class="space-y-3">
-                  <div>
-                    <label class="text-xs text-xcord-text-muted block mb-1">Display Name</label>
+                <div class={styles.editForm}>
+                  <div class={styles.editFieldGroup}>
+                    <label class={styles.editLabel}>Display Name</label>
                     <input
                       data-testid="profile-display-name-input"
                       type="text"
-                      class="w-full bg-xcord-bg-primary text-white px-3 py-2 rounded border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+                      class={styles.textInput}
                       value={displayName() || profileStore.userProfile!.displayName}
                       onInput={(e) => setDisplayName(e.currentTarget.value)}
                     />
                   </div>
 
-                  <div>
-                    <label class="text-xs text-xcord-text-muted block mb-1">Pronouns</label>
+                  <div class={styles.editFieldGroup}>
+                    <label class={styles.editLabel}>Pronouns</label>
                     <input
                       type="text"
-                      class="w-full bg-xcord-bg-primary text-white px-3 py-2 rounded border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+                      class={styles.textInput}
                       value={pronouns() || profileStore.userProfile!.pronouns || ''}
                       onInput={(e) => setPronouns(e.currentTarget.value)}
                       placeholder="e.g., they/them"
                     />
                   </div>
 
-                  <div>
-                    <label class="text-xs text-xcord-text-muted block mb-1">Bio</label>
+                  <div class={styles.editFieldGroup}>
+                    <label class={styles.editLabel}>Bio</label>
                     <textarea
-                      class="w-full bg-xcord-bg-primary text-white px-3 py-2 rounded border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand resize-none"
+                      class={styles.textarea}
                       rows={4}
                       value={bio() || profileStore.userProfile!.bio || ''}
                       onInput={(e) => setBio(e.currentTarget.value)}
@@ -155,7 +156,7 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
 
                   <button
                     data-testid="profile-save-button"
-                    class="w-full bg-xcord-brand text-white py-2 rounded hover:bg-xcord-brand-hover transition"
+                    class={styles.saveButton}
                     onClick={handleSaveUserProfile}
                   >
                     Save Changes
@@ -164,7 +165,7 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
               </Show>
 
               <Show when={saveSuccess()}>
-                <p data-testid="profile-save-success" class="text-sm text-green-400 py-1">Profile saved successfully.</p>
+                <p data-testid="profile-save-success" class={styles.saveSuccess}>Profile saved successfully.</p>
               </Show>
 
               <PasswordChangeForm />
@@ -179,23 +180,23 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
         </Show>
 
         <Show when={props.serverId && profileStore.getServerProfile(props.serverId)}>
-          <div class="space-y-4">
+          <div class={styles.serverProfileSection}>
             <Show when={!editMode()}>
-              <div>
-                <label class="text-xs text-xcord-text-muted">Server Nickname</label>
-                <p class="text-white">
+              <div class={styles.fieldView}>
+                <label class={styles.fieldMeta}>Server Nickname</label>
+                <p class={styles.fieldValue}>
                   {profileStore.getServerProfile(props.serverId!)?.nickname || 'No nickname set'}
                 </p>
               </div>
             </Show>
 
             <Show when={editMode()}>
-              <div class="space-y-3">
-                <div>
-                  <label class="text-xs text-xcord-text-muted block mb-1">Server Nickname</label>
+              <div class={styles.editForm}>
+                <div class={styles.editFieldGroup}>
+                  <label class={styles.editLabel}>Server Nickname</label>
                   <input
                     type="text"
-                    class="w-full bg-xcord-bg-primary text-white px-3 py-2 rounded border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+                    class={styles.textInput}
                     value={nickname() || profileStore.getServerProfile(props.serverId!)?.nickname || ''}
                     onInput={(e) => setNickname(e.currentTarget.value)}
                     placeholder="Enter server nickname..."
@@ -203,7 +204,7 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
                 </div>
 
                 <button
-                  class="w-full bg-xcord-brand text-white py-2 rounded hover:bg-xcord-brand-hover transition"
+                  class={styles.saveButton}
                   onClick={handleSaveServerProfile}
                 >
                   Save Changes

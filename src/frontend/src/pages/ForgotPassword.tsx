@@ -1,6 +1,7 @@
 import { createSignal, onMount, Show } from 'solid-js';
 import { A } from '@solidjs/router';
 import { api } from '../api/client';
+import styles from './ForgotPassword.module.css';
 
 export default function ForgotPassword() {
   const [email, setEmail] = createSignal('');
@@ -29,33 +30,33 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div class="min-h-screen bg-xcord-bg-tertiary flex items-center justify-center">
-      <div class="bg-xcord-bg-secondary p-8 rounded-lg shadow-xl w-full max-w-md">
-        <h1 data-testid="forgot-password-heading" class="text-2xl font-bold text-xcord-text-primary mb-2 text-center">Forgot your password?</h1>
-        <p class="text-xcord-text-muted text-sm mb-6 text-center">
+    <div class={styles.pageWrapper}>
+      <div class={styles.card}>
+        <h1 data-testid="forgot-password-heading" class={styles.heading}>Forgot your password?</h1>
+        <p class={styles.description}>
           Enter your email and we'll send you a reset link.
         </p>
 
         <Show when={submitted()}>
-          <div data-testid="forgot-password-success" class="text-sm text-xcord-text-primary bg-xcord-bg-tertiary border border-xcord-brand/30 rounded p-3 mb-4">
+          <div data-testid="forgot-password-success" class={styles.successBox}>
             If an account with that email exists, you'll receive a reset link shortly.
           </div>
-          <p class="text-xcord-text-muted text-sm mt-4 text-center">
-            <A href="/login" class="text-xcord-brand hover:underline">Back to Login</A>
+          <p class={styles.footerText}>
+            <A href="/login" class={styles.link}>Back to Login</A>
           </p>
         </Show>
 
         <Show when={!submitted()}>
           <form onSubmit={handleSubmit}>
-            {error() && <p data-testid="forgot-password-error" class="text-red-400 text-sm mb-4">{error()}</p>}
-            <div class="mb-6">
-              <label for="forgot-email" class="block text-xcord-text-secondary text-sm font-medium mb-2">Email</label>
+            {error() && <p data-testid="forgot-password-error" class={styles.errorText}>{error()}</p>}
+            <div class={styles.fieldGroup}>
+              <label for="forgot-email" class={styles.label}>Email</label>
               <input
                 id="forgot-email"
                 type="email"
                 value={email()}
                 onInput={(e) => setEmail(e.currentTarget.value)}
-                class="w-full bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-2 border border-xcord-border focus:border-xcord-brand focus:outline-none"
+                class={styles.input}
                 placeholder="your@email.com"
                 required
               />
@@ -64,12 +65,12 @@ export default function ForgotPassword() {
               data-testid="forgot-password-submit-button"
               type="submit"
               disabled={loading()}
-              class="w-full bg-xcord-brand hover:bg-xcord-brand-hover text-white font-medium py-2 rounded disabled:opacity-50"
+              class={styles.submitButton}
             >
               {loading() ? 'Sending...' : 'Send Reset Link'}
             </button>
-            <p class="text-xcord-text-muted text-sm mt-4 text-center">
-              Remembered it? <A href="/login" class="text-xcord-brand hover:underline">Back to Login</A>
+            <p class={styles.footerText}>
+              Remembered it? <A href="/login" class={styles.link}>Back to Login</A>
             </p>
           </form>
         </Show>

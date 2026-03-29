@@ -1,0 +1,400 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--color-xcord-bg-secondary);
+}
+
+/* Header */
+.header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  color: var(--color-xcord-text-primary);
+  font-weight: 600;
+}
+
+.newPostButton {
+  background-color: var(--color-xcord-brand);
+  color: #ffffff;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.15s;
+}
+
+.newPostButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+/* Create post form */
+.createForm {
+  padding: 1rem;
+  background-color: var(--color-xcord-bg-primary);
+  border-bottom: 1px solid var(--color-xcord-bg-tertiary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.createFormTitle {
+  color: var(--color-xcord-text-primary);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.fieldLabel {
+  display: block;
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.textInput {
+  width: 100%;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-xcord-border);
+  outline: none;
+}
+
+.textInput::placeholder {
+  color: var(--color-xcord-text-muted);
+}
+
+.textInput:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.textarea {
+  width: 100%;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-xcord-border);
+  outline: none;
+  resize: none;
+}
+
+.textarea::placeholder {
+  color: var(--color-xcord-text-muted);
+}
+
+.textarea:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.tagInputRow {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.addTagButton {
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.addTagButton:hover {
+  background-color: var(--color-xcord-bg-primary);
+}
+
+.selectedTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.tagChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  background-color: color-mix(in srgb, var(--color-xcord-brand) 20%, transparent);
+  color: var(--color-xcord-brand);
+  font-size: 0.75rem;
+  border-radius: 9999px;
+}
+
+.removeTagButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.removeTagButton:hover {
+  color: #ffffff;
+}
+
+.submitError {
+  color: #f87171;
+  font-size: 0.75rem;
+}
+
+.formActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.submitButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-brand);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.submitButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.cancelButton:hover {
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+}
+
+/* Post list */
+.postList {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.spinnerWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 8rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--color-xcord-text-muted);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 12rem;
+  gap: 0.75rem;
+}
+
+.emptyStateText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.emptyStateLink {
+  color: var(--color-xcord-brand);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  padding: 0;
+}
+
+.emptyStateLink:hover {
+  text-decoration: underline;
+}
+
+.postDividerList {
+  /* divide-y equivalent applied via item borders */
+}
+
+.postItem {
+  padding: 1rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  border-bottom: 1px solid var(--color-xcord-bg-tertiary);
+}
+
+.postItem:hover {
+  background-color: color-mix(in srgb, var(--color-xcord-bg-primary) 30%, transparent);
+}
+
+.postItemRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.authorAvatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background-color: var(--color-xcord-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.authorAvatarImg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.postBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.postBodyInner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.postMeta {
+  flex: 1;
+  min-width: 0;
+}
+
+.postTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.postTitle {
+  color: var(--color-xcord-text-primary);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pinnedIcon {
+  color: #facc15;
+  font-size: 0.75rem;
+}
+
+.lockedIcon {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+}
+
+.postAuthorRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.125rem;
+}
+
+.postAuthorName {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.postDot {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.postTimestamp {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.postTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.postTag {
+  background-color: color-mix(in srgb, var(--color-xcord-brand) 15%, transparent);
+  color: var(--color-xcord-brand);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.replyCount {
+  text-align: right;
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+}
+
+.replyCountNumber {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-xcord-text-primary);
+}
+
+.replyCountLabel {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+}

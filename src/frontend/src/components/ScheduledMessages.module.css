@@ -1,0 +1,213 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerTitle {
+  color: white;
+  font-weight: 600;
+}
+
+.refreshBtn {
+  color: var(--color-xcord-text-muted);
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.refreshBtn:hover {
+  color: white;
+}
+
+.refreshBtn:disabled {
+  opacity: 0.5;
+}
+
+.scrollArea {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.loadingCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 8rem;
+}
+
+.loadingText {
+  color: var(--color-xcord-text-muted);
+}
+
+.errorAlert {
+  margin: 0.75rem 1rem 0;
+  padding: 0.5rem 0.75rem;
+  background-color: color-mix(in srgb, #ef4444 20%, transparent);
+  border: 1px solid color-mix(in srgb, #ef4444 30%, transparent);
+  border-radius: 0.25rem;
+  color: #f87171;
+  font-size: 0.75rem;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 8rem;
+  padding: 0 1rem;
+}
+
+.emptyText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.emptyHint {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.messageItem {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+  transition: color 150ms, background-color 150ms;
+}
+
+.messageItem:hover {
+  background-color: color-mix(in srgb, var(--color-xcord-bg-primary) 30%, transparent);
+}
+
+.messageInner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.messageBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.messageStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.pendingDot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: #facc15;
+  flex-shrink: 0;
+}
+
+.scheduledTime {
+  font-size: 0.75rem;
+  color: #facc15;
+  font-weight: 500;
+}
+
+.messageContent {
+  font-size: 0.875rem;
+  color: var(--color-xcord-text-primary);
+  word-break: break-words;
+  -webkit-line-clamp: 3;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.messageTimestamp {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  margin-top: 0.25rem;
+}
+
+.cancelBtn {
+  flex-shrink: 0;
+  color: var(--color-xcord-text-muted);
+  background: none;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--color-xcord-border);
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms, border-color 150ms;
+}
+
+.cancelBtn:hover {
+  color: #f87171;
+  border-color: color-mix(in srgb, #f87171 40%, transparent);
+}
+
+.cancelBtn:disabled {
+  opacity: 0.5;
+}
+
+/* Modal content */
+.modalBody {
+  padding: 1.5rem;
+}
+
+.modalText {
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.modalButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.modalKeepBtn {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: var(--color-xcord-text-primary);
+  background-color: var(--color-xcord-bg-primary);
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.modalKeepBtn:hover {
+  background-color: var(--color-xcord-bg-tertiary);
+}
+
+.modalCancelBtn {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: white;
+  background-color: #dc2626;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.modalCancelBtn:hover {
+  background-color: #b91c1c;
+}
+
+.modalCancelBtn:disabled {
+  opacity: 0.5;
+}

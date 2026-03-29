@@ -1,0 +1,385 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--color-xcord-bg-secondary);
+}
+
+.loadingCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+.spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid var(--color-xcord-text-muted);
+  border-top-color: transparent;
+  border-radius: 9999px;
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.progressHeader {
+  padding: 1.5rem 1.5rem 1rem;
+  flex-shrink: 0;
+}
+
+.progressHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.progressTitle {
+  color: var(--color-xcord-text-primary);
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.stepCounter {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.progressTrack {
+  background-color: var(--color-xcord-bg-tertiary);
+  border-radius: 9999px;
+  height: 0.375rem;
+  overflow: hidden;
+}
+
+.progressFill {
+  background-color: var(--color-xcord-brand);
+  height: 0.375rem;
+  border-radius: 9999px;
+  transition: width 300ms;
+}
+
+.stepIndicators {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+
+.stepLabel {
+  font-size: 0.75rem;
+  transition: color 150ms;
+  color: var(--color-xcord-text-muted);
+}
+
+.stepLabelActive {
+  color: var(--color-xcord-brand);
+  font-weight: 600;
+}
+
+.stepLabelDone {
+  color: var(--color-xcord-text-primary);
+}
+
+.stepContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 1.5rem 1rem;
+}
+
+.stepSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.stepHeading {
+  color: var(--color-xcord-text-primary);
+  font-weight: 600;
+}
+
+.rulesBox {
+  background-color: var(--color-xcord-bg-primary);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.rulesText {
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+}
+
+.rulesLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.rulesCheckbox {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  accent-color: var(--color-xcord-brand);
+  cursor: pointer;
+}
+
+.rulesCheckboxText {
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+}
+
+.stepDescription {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.groupGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.groupBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-xcord-bg-tertiary);
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-muted);
+  text-align: left;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.groupBtn:hover {
+  border-color: color-mix(in srgb, var(--color-xcord-brand) 50%, transparent);
+  color: var(--color-xcord-text-primary);
+}
+
+.groupBtnSelected {
+  border-color: var(--color-xcord-brand);
+  background-color: color-mix(in srgb, var(--color-xcord-brand) 10%, transparent);
+  color: var(--color-xcord-text-primary);
+}
+
+.groupEmoji {
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+.groupInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.groupName {
+  font-size: 0.875rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.groupDesc {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.emptyText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.channelList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.channelBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-xcord-bg-tertiary);
+  background-color: var(--color-xcord-bg-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.channelBtn:hover {
+  border-color: color-mix(in srgb, var(--color-xcord-brand) 50%, transparent);
+}
+
+.channelBtnSelected {
+  border-color: var(--color-xcord-brand);
+  background-color: color-mix(in srgb, var(--color-xcord-brand) 10%, transparent);
+}
+
+.channelHash {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.channelInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.channelName {
+  font-size: 0.875rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-xcord-text-muted);
+}
+
+.channelNameSelected {
+  color: var(--color-xcord-text-primary);
+}
+
+.channelDesc {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.channelCheck {
+  color: var(--color-xcord-brand);
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.completeStep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 0;
+  gap: 1rem;
+  text-align: center;
+}
+
+.completeIcon {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 9999px;
+  background-color: color-mix(in srgb, #22c55e 20%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.completeIconText {
+  font-size: 1.875rem;
+}
+
+.completeTitle {
+  color: var(--color-xcord-text-primary);
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.completeSubtitle {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+  max-width: 20rem;
+}
+
+.navFooter {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--color-xcord-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.backBtn {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.backBtn:hover {
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+}
+
+.backBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.navRight {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.submitError {
+  color: #f87171;
+  font-size: 0.75rem;
+}
+
+.nextBtn {
+  padding: 0.5rem 1.25rem;
+  background-color: var(--color-xcord-brand);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.nextBtn:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.nextBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.noConfigCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+.noConfigText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}

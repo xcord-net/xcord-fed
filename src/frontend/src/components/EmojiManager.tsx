@@ -2,6 +2,7 @@ import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import type { CustomEmoji } from '../types/emoji';
+import styles from './EmojiManager.module.css';
 
 interface EmojiManagerProps {
   serverId: string;
@@ -178,29 +179,29 @@ export default function EmojiManager(props: EmojiManagerProps) {
   });
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
-      <div class="px-4 py-3 border-b border-xcord-border">
-        <h2 id="emoji-manager-heading" class="text-white font-semibold">Custom Emojis</h2>
+    <div class={styles.container}>
+      <div class={styles.header}>
+        <h2 id="emoji-manager-heading" class={styles.headerTitle}>Custom Emojis</h2>
       </div>
 
       {/* Upload form */}
-      <div class="px-4 py-3 border-b border-xcord-border bg-xcord-bg-primary/30">
-        <h3 class="text-white text-sm font-medium mb-2">Upload New Emoji</h3>
-        <form onSubmit={handleUpload} class="flex flex-col space-y-2">
-          <div class="flex items-center space-x-3">
+      <div class={styles.uploadSection}>
+        <h3 class={styles.uploadTitle}>Upload New Emoji</h3>
+        <form onSubmit={handleUpload} class={styles.uploadForm}>
+          <div class={styles.fileRow}>
             <Show when={previewUrl()}>
               <img
                 src={previewUrl()!}
                 alt="Preview"
-                class="w-10 h-10 rounded object-contain bg-xcord-bg-tertiary"
+                class={styles.previewImg}
               />
             </Show>
-            <label class="flex-1 bg-xcord-bg-tertiary text-xcord-text-muted rounded px-3 py-1.5 text-sm cursor-pointer hover:bg-xcord-bg-primary transition-colors">
+            <label class={styles.fileLabel}>
               {selectedFile() ? selectedFile()!.name : 'Choose image (PNG, GIF, WEBP - max 256 KB)'}
               <input
                 type="file"
                 accept="image/png,image/gif,image/webp"
-                class="hidden"
+                class={styles.hiddenFileInput}
                 onChange={handleFileSelect}
               />
             </label>
@@ -210,21 +211,21 @@ export default function EmojiManager(props: EmojiManagerProps) {
             id="emoji-manager-name-input"
             type="text"
             placeholder="Emoji name (e.g. cool_face)"
-            class="bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+            class={styles.nameInput}
             value={emojiName()}
             onInput={(e) => setEmojiName(e.currentTarget.value)}
             maxLength={32}
           />
 
           <Show when={uploadError()}>
-            <p class="text-red-400 text-xs">{uploadError()}</p>
+            <p class={styles.uploadError}>{uploadError()}</p>
           </Show>
 
           <button
             id="emoji-manager-upload-btn"
             type="submit"
             disabled={isUploading()}
-            class="bg-xcord-brand text-white px-4 py-1.5 rounded text-sm hover:bg-xcord-brand-hover disabled:opacity-50 self-start"
+            class={styles.uploadButton}
           >
             {isUploading() ? 'Uploading...' : 'Upload Emoji'}
           </button>
@@ -232,36 +233,36 @@ export default function EmojiManager(props: EmojiManagerProps) {
       </div>
 
       <Show when={error()}>
-        <div class="px-4 py-2 bg-red-500/20 text-red-400 text-sm">{error()}</div>
+        <div class={styles.errorBanner}>{error()}</div>
       </Show>
 
-      <div class="flex-1 overflow-y-auto p-4">
+      <div class={styles.emojiListArea}>
         <Show when={isLoading()}>
-          <div class="flex items-center justify-center h-32">
-            <p class="text-xcord-text-muted">Loading emojis...</p>
+          <div class={styles.loadingContainer}>
+            <p class={styles.mutedText}>Loading emojis...</p>
           </div>
         </Show>
 
         <Show when={!isLoading() && emojis().length === 0}>
-          <div id="emoji-manager-empty" class="flex flex-col items-center justify-center h-32 text-xcord-text-muted">
-            <p class="text-lg font-semibold">No custom emojis</p>
-            <p class="text-sm mt-1">Upload an emoji above to get started.</p>
+          <div id="emoji-manager-empty" class={styles.emptyContainer}>
+            <p class={styles.emptyTitle}>No custom emojis</p>
+            <p class={styles.emptySubtitle}>Upload an emoji above to get started.</p>
           </div>
         </Show>
 
-        <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
+        <div class={styles.emojiGrid}>
           <For each={emojis()}>
             {(emoji) => (
-              <div class="flex flex-col items-center space-y-1 group relative">
-                <div class="w-14 h-14 rounded bg-xcord-bg-tertiary flex items-center justify-center overflow-hidden">
+              <div class={styles.emojiItem}>
+                <div class={styles.emojiImageBox}>
                   <img
                     src={emoji.imageUrl}
                     alt={`:${emoji.name}:`}
                     title={`:${emoji.name}:`}
-                    class="w-12 h-12 object-contain"
+                    class={styles.emojiImage}
                   />
                 </div>
-                <span class="text-xcord-text-muted text-xs truncate w-full text-center">
+                <span class={styles.emojiName}>
                   {emoji.name}
                 </span>
 
@@ -269,7 +270,7 @@ export default function EmojiManager(props: EmojiManagerProps) {
                   when={confirmingDelete() === emoji.id}
                   fallback={
                     <button
-                      class="opacity-0 group-hover:opacity-100 absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-opacity"
+                      class={styles.deleteEmojiButton}
                       onClick={() => setConfirmingDelete(emoji.id)}
                       title={`Delete :${emoji.name}:`}
                       aria-label={`Delete emoji ${emoji.name}`}
@@ -278,17 +279,17 @@ export default function EmojiManager(props: EmojiManagerProps) {
                     </button>
                   }
                 >
-                  <div class="absolute inset-0 bg-xcord-bg-primary/90 rounded flex flex-col items-center justify-center space-y-1 p-1">
-                    <p class="text-white text-xs font-medium text-center">Delete?</p>
-                    <div class="flex space-x-1">
+                  <div class={styles.deleteConfirmOverlay}>
+                    <p class={styles.deleteConfirmText}>Delete?</p>
+                    <div class={styles.deleteConfirmButtons}>
                       <button
-                        class="bg-xcord-bg-tertiary text-xcord-text-muted px-2 py-0.5 rounded text-xs hover:text-white"
+                        class={styles.deleteNoBtn}
                         onClick={() => setConfirmingDelete(null)}
                       >
                         No
                       </button>
                       <button
-                        class="bg-red-500 text-white px-2 py-0.5 rounded text-xs hover:bg-red-600"
+                        class={styles.deleteYesBtn}
                         onClick={() => deleteEmoji(emoji.id)}
                       >
                         Yes

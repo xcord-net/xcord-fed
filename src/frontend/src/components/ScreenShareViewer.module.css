@@ -1,0 +1,54 @@
+.container {
+  background-color: #000000;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.videoWrapper {
+  position: relative;
+}
+
+.video {
+  width: 100%;
+  max-height: 40vh;
+  object-fit: contain;
+  background-color: #000000;
+}
+
+.badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.badgeIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.stopButton {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background-color: #dc2626;
+  color: #ffffff;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.stopButton:hover {
+  background-color: #b91c1c;
+}

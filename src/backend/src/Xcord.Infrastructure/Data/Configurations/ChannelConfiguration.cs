@@ -57,10 +57,23 @@ public sealed class ChannelConfiguration : IEntityTypeConfiguration<Channel>
         builder.Property(c => c.Topic)
             .HasMaxLength(1024);
 
-        // Type (required, enum)
+        // Type (required, enum - kept for backward compat)
         builder.Property(c => c.Type)
             .IsRequired()
             .HasConversion<int>();
+
+        // Capabilities (required, bitfield)
+        builder.Property(c => c.Capabilities)
+            .IsRequired()
+            .HasConversion<long>();
+
+        // AccessGroupId (optional, FK to Group with SetNull)
+        builder.Property(c => c.AccessGroupId);
+
+        builder.HasOne(c => c.AccessGroup)
+            .WithMany()
+            .HasForeignKey(c => c.AccessGroupId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         // Position (required)
         builder.Property(c => c.Position)

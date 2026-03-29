@@ -2,6 +2,7 @@ import { createSignal, createEffect, For, Show } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import Modal from './ui/Modal';
+import styles from './FollowChannel.module.css';
 
 export interface Channel {
   id: string;
@@ -178,13 +179,13 @@ export default function FollowChannel(props: FollowChannelProps) {
 
   return (
     <Show when={isAnnouncementChannel()}>
-      <div class="p-4 bg-xcord-bg-secondary rounded-lg">
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="text-white font-semibold text-sm">
+      <div class={styles.container}>
+        <div class={styles.header}>
+          <h3 class={styles.headerTitle}>
             Channel Followers
           </h3>
           <button
-            class="bg-xcord-brand text-white px-3 py-1 rounded text-sm hover:bg-xcord-brand-hover transition"
+            class={styles.followButton}
             onClick={handleOpenFollowDialog}
           >
             Follow in another channel
@@ -192,29 +193,29 @@ export default function FollowChannel(props: FollowChannelProps) {
         </div>
 
         <Show when={error()}>
-          <div class="mb-3 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">{error()}</div>
+          <div class={styles.errorBanner}>{error()}</div>
         </Show>
 
         <Show when={follows().length === 0}>
-          <div class="flex flex-col items-center justify-center py-8 text-center">
-            <p class="text-xcord-text-muted text-sm">No channels are following {props.channelName} yet.</p>
+          <div class={styles.emptyState}>
+            <p class={styles.emptyStateText}>No channels are following {props.channelName} yet.</p>
           </div>
         </Show>
 
-        <div class="space-y-2">
+        <div class={styles.followList}>
           <For each={follows()}>
             {(follow) => (
-              <div class="flex items-center justify-between p-3 bg-xcord-bg-primary rounded">
+              <div class={styles.followEntry}>
                 <div>
-                  <p class="text-white text-sm font-medium">
+                  <p class={styles.followChannelName}>
                     #{follow.targetChannelName}
                   </p>
-                  <p class="text-xcord-text-muted text-xs">
+                  <p class={styles.followSince}>
                     Following since {new Date(follow.createdAt).toLocaleDateString()}
                   </p>
                 </div>
                 <button
-                  class="text-red-400 hover:text-red-300 text-sm disabled:opacity-50"
+                  class={styles.unfollowButton}
                   onClick={() => handleUnfollow(follow.id)}
                   disabled={isUnfollowing() === follow.id}
                 >
@@ -232,21 +233,21 @@ export default function FollowChannel(props: FollowChannelProps) {
           title={"Follow #" + props.channelName}
           size="md"
         >
-          <div class="p-6">
-            <p class="text-xcord-text-muted text-sm mb-4">
+          <div class={styles.modalBody}>
+            <p class={styles.modalDescription}>
               Select a channel in this server to receive crossposted messages.
             </p>
 
             <Show when={error()}>
-              <div class="mb-3 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">{error()}</div>
+              <div class={styles.errorBanner}>{error()}</div>
             </Show>
 
-            <div class="mb-4">
-              <label class="text-xs text-xcord-text-muted block mb-1">
+            <div class={styles.fieldGroup}>
+              <label class={styles.fieldLabel}>
                 Target Channel
               </label>
               <select
-                class="w-full bg-xcord-bg-primary text-xcord-text-primary px-3 py-2 rounded text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+                class={styles.channelSelect}
                 value={selectedChannelId()}
                 onChange={(e) => setSelectedChannelId(e.currentTarget.value)}
               >
@@ -259,16 +260,16 @@ export default function FollowChannel(props: FollowChannelProps) {
               </select>
             </div>
 
-            <div class="flex gap-3">
+            <div class={styles.actionRow}>
               <button
-                class="flex-1 bg-xcord-brand text-white py-2 rounded hover:bg-xcord-brand-hover transition disabled:opacity-50"
+                class={styles.confirmButton}
                 onClick={handleFollow}
                 disabled={isLoading() || !selectedChannelId()}
               >
                 {isLoading() ? 'Following...' : 'Follow Channel'}
               </button>
               <button
-                class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+                class={styles.cancelButton}
                 onClick={() => {
                   setShowFollowDialog(false);
                   setError('');

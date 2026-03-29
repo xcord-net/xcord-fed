@@ -1,7 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300..900&family=Sora:wght@400;600;700&display=swap');
-@import "tailwindcss";
 
-@theme {
+:root {
   /* === Backgrounds (cool undertone, deep slate) === */
   --color-xcord-bg-primary: #1a1d25;
   --color-xcord-bg-secondary: #151821;
@@ -35,21 +34,27 @@
 
   /* === Font === */
   --font-sans: "Figtree", "Segoe UI", sans-serif;
+
+  /* === Z-index scale === */
+  --z-toolbar: 10;
+  --z-dropdown: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-popover: 60;
+  --z-toast: 70;
 }
 
-/*
- * Z-index scale (use Tailwind utilities: z-10, z-30, z-40, z-50, z-60, z-70)
- *
- *   z-10  — toolbar / sticky headers
- *   z-30  — dropdowns
- *   z-40  — click-outside overlays (behind menus / modals)
- *   z-50  — modals / dialogs
- *   z-60  — popovers / menus rendered above modals
- *   z-70  — toasts / notifications (always on top)
- */
-
-* {
+/* === Reset (replaces Tailwind preflight) === */
+*, *::before, *::after {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
 }
 
 body {
@@ -57,6 +62,96 @@ body {
   font-family: var(--font-sans);
   background-color: var(--color-xcord-bg-primary);
   color: var(--color-xcord-text-primary);
+  line-height: inherit;
+}
+
+hr {
+  height: 0;
+  color: inherit;
+  border-top-width: 1px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+b, strong {
+  font-weight: bolder;
+}
+
+code, kbd, samp, pre {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 1em;
+}
+
+small {
+  font-size: 80%;
+}
+
+button, input, optgroup, select, textarea {
+  font-family: inherit;
+  font-size: 100%;
+  font-weight: inherit;
+  line-height: inherit;
+  color: inherit;
+  background-color: transparent;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+button, select {
+  text-transform: none;
+}
+
+button, [type='button'], [type='reset'], [type='submit'] {
+  -webkit-appearance: button;
+  background-color: transparent;
+  background-image: none;
+  border: none;
+  cursor: pointer;
+}
+
+:-moz-focusring {
+  outline: auto;
+}
+
+textarea {
+  resize: vertical;
+}
+
+input::placeholder, textarea::placeholder {
+  opacity: 1;
+  color: var(--color-xcord-text-muted);
+}
+
+option {
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+}
+
+[role="button"] {
+  cursor: pointer;
+}
+
+img, svg, video, canvas, audio, iframe, embed, object {
+  display: block;
+  vertical-align: middle;
+}
+
+img, video {
+  max-width: 100%;
+  height: auto;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 ::-webkit-scrollbar {
@@ -76,4 +171,45 @@ body {
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-xcord-bg-tertiary) transparent;
+}
+
+/* Sidebar auto-collapse transition */
+.sidebar {
+  max-width: 40px;
+  min-width: 40px;
+  transition: max-width 150ms ease, min-width 150ms ease;
+}
+
+.sidebar:hover,
+.sidebar.sidebar-locked {
+  max-width: 200px;
+  min-width: 200px;
+  transition-delay: 500ms;
+}
+
+.sidebar .expanded-only {
+  display: none;
+}
+
+.sidebar:hover .expanded-only,
+.sidebar.sidebar-locked .expanded-only {
+  display: flex;
+}
+
+.sidebar .collapsed-only {
+  display: flex;
+}
+
+.sidebar:hover .collapsed-only,
+.sidebar.sidebar-locked .collapsed-only {
+  display: none;
+}
+
+.sidebar .channel-icon-wrap {
+  justify-content: center;
+}
+
+.sidebar:hover .channel-icon-wrap,
+.sidebar.sidebar-locked .channel-icon-wrap {
+  justify-content: flex-start;
 }

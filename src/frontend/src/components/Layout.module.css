@@ -1,0 +1,236 @@
+/* ===== Root layout ===== */
+.root {
+  height: 100vh;
+  display: flex;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+}
+
+/* ===== Loading / empty state ===== */
+.emptyState {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emptyStateText {
+  color: var(--color-xcord-text-muted);
+}
+
+/* ===== Channel view wrapper ===== */
+.channelView {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* ===== Channel header ===== */
+.channelHeader {
+  height: 3rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--color-xcord-border);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  background-color: var(--color-xcord-bg-primary);
+  flex-shrink: 0;
+}
+
+.channelName {
+  font-weight: 600;
+  color: white;
+}
+
+.channelTopic {
+  margin-left: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--color-xcord-text-muted);
+  border-left: 1px solid var(--color-xcord-border);
+  padding-left: 1rem;
+}
+
+/* ===== Header action buttons ===== */
+.headerActions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.headerBtn {
+  padding: 0.375rem;
+  border-radius: 0.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-xcord-text-muted);
+  transition: color 150ms, background-color 150ms;
+}
+
+.headerBtn:hover {
+  color: white;
+  background-color: var(--color-xcord-bg-secondary);
+}
+
+.headerBtnActive {
+  color: white;
+  background-color: var(--color-xcord-bg-secondary);
+}
+
+.headerBtn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.headerIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* ===== Messages + right panels row ===== */
+.contentRow {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* ===== Messages area ===== */
+.messagesArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* ===== Forum thread view ===== */
+.forumThreadView {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.forumThreadHeader {
+  height: 3rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--color-xcord-border);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  background-color: var(--color-xcord-bg-primary);
+  flex-shrink: 0;
+}
+
+.forumBackButton {
+  color: var(--color-xcord-brand);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  margin-right: 0.75rem;
+  padding: 0;
+}
+
+.forumBackButton:hover {
+  text-decoration: underline;
+}
+
+.forumPostTitle {
+  font-weight: 600;
+  color: white;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===== Edit bar ===== */
+.editBarWrapper {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-bottom: 1.5rem;
+}
+
+.editBarInner {
+  background-color: var(--color-xcord-bg-primary);
+  border-radius: 0.5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.editBarLabel {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--color-xcord-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.editTextarea {
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+  border: 1px solid var(--color-xcord-border);
+  resize: none;
+  outline: none;
+}
+
+.editBarHint {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--color-xcord-text-muted);
+}
+
+/* ===== Right-side panels ===== */
+.rightPanel {
+  width: 20rem;
+  border-left: 1px solid var(--color-xcord-border);
+  background-color: var(--color-xcord-bg-secondary);
+  overflow-y: auto;
+}
+
+/* ===== Settings modal ===== */
+.settingsTabs {
+  display: flex;
+  border-bottom: 1px solid var(--color-xcord-border);
+}
+
+.settingsTab {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-xcord-text-muted);
+  transition: color 150ms;
+}
+
+.settingsTab:hover {
+  color: white;
+}
+
+.settingsTabActive {
+  color: white;
+  border-bottom: 2px solid var(--color-xcord-brand);
+}
+
+/* ===== Group manager modal ===== */
+.groupManagerContent {
+  height: min(600px, 70vh);
+}

@@ -2,6 +2,7 @@ import { For, Show, createSignal, onMount } from 'solid-js';
 import { api } from '../api/client';
 import Modal from './ui/Modal';
 import { getErrorMessage } from '../utils/errors';
+import styles from './GroupManager.module.css';
 
 interface Group {
   id: string;
@@ -181,38 +182,38 @@ export default function GroupManager(props: GroupManagerProps) {
   });
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
+    <div class={styles.container}>
       {/* Header */}
-      <div class="px-4 py-3 border-b border-xcord-border flex items-center justify-between">
-        <h2 data-testid="group-manager-heading" class="text-xcord-text-primary font-bold text-xl">Groups</h2>
+      <div class={styles.header}>
+        <h2 data-testid="group-manager-heading" class={styles.heading}>Groups</h2>
         <button
           data-testid="create-group-button"
           type="button"
           onClick={() => { setShowCreateForm(true); setSaveSuccess(''); setSaveError(''); }}
-          class="px-3 py-1.5 bg-xcord-brand hover:bg-xcord-brand-hover text-white text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+          class={styles.createButton}
         >
           Create Group
         </button>
       </div>
 
       <Show when={error()}>
-        <div role="alert" class="px-4 py-2 bg-red-500/20 text-red-400 text-sm border-b border-xcord-border">
+        <div role="alert" class={styles.errorBanner}>
           {error()}
         </div>
       </Show>
 
-      <div class="flex flex-1 min-h-0">
+      <div class={styles.body}>
         {/* Group list */}
-        <div data-testid="group-list-sidebar" class="w-56 border-r border-xcord-border overflow-y-auto flex-shrink-0">
+        <div data-testid="group-list-sidebar" class={styles.sidebar}>
           <Show when={isLoading()}>
-            <div class="flex items-center justify-center h-24">
-              <p class="text-xcord-text-muted text-sm">Loading groups...</p>
+            <div class={styles.sidebarLoading}>
+              <p class={styles.mutedText}>Loading groups...</p>
             </div>
           </Show>
 
           <Show when={!isLoading() && groups().length === 0}>
-            <div class="flex flex-col items-center justify-center py-8 text-center">
-              <p class="text-xcord-text-muted text-sm">No groups yet.</p>
+            <div class={styles.sidebarEmpty}>
+              <p class={styles.mutedText}>No groups yet.</p>
             </div>
           </Show>
 
@@ -222,34 +223,30 @@ export default function GroupManager(props: GroupManagerProps) {
                 data-testid={group.name === '@everyone' ? 'group-item-everyone' : `group-item-${group.id}`}
                 type="button"
                 onClick={() => { selectGroup(group); setShowCreateForm(false); }}
-                class={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none ${
-                  selectedGroupId() === group.id
-                    ? 'bg-xcord-bg-primary text-white'
-                    : 'text-xcord-text-secondary hover:bg-xcord-bg-primary/50 hover:text-white'
-                }`}
+                class={`${styles.groupItem} ${selectedGroupId() === group.id ? styles.groupItemActive : ''}`}
                 aria-pressed={selectedGroupId() === group.id}
               >
                 {/* Color dot */}
                 <span
-                  class="w-3 h-3 rounded-full flex-shrink-0"
+                  class={styles.groupColorDot}
                   style={{ 'background-color': group.color || '#d4943a' }}
                   aria-hidden="true"
                 />
-                <span class="truncate text-sm">{group.name}</span>
+                <span class={styles.groupName}>{group.name}</span>
               </button>
             )}
           </For>
         </div>
 
         {/* Editor pane */}
-        <div class="flex-1 overflow-y-auto">
+        <div class={styles.editorPane}>
           {/* Create group form */}
           <Show when={showCreateForm()}>
-            <form onSubmit={handleCreateGroup} class="px-5 py-4 border-b border-xcord-border">
-              <h3 class="text-white font-semibold mb-3">Create New Group</h3>
-              <div class="mb-3">
-                <label for="new-group-name" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
-                  Group Name <span class="text-red-400">*</span>
+            <form onSubmit={handleCreateGroup} class={styles.createForm}>
+              <h3 class={styles.formHeading}>Create New Group</h3>
+              <div class={styles.fieldGroup}>
+                <label for="new-group-name" class={styles.fieldLabel}>
+                  Group Name <span class={styles.required}>*</span>
                 </label>
                 <input
                   id="new-group-name"
@@ -258,23 +255,23 @@ export default function GroupManager(props: GroupManagerProps) {
                   maxlength="100"
                   value={newGroupName()}
                   onInput={(e) => setNewGroupName(e.currentTarget.value)}
-                  class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+                  class={styles.textInput}
                   placeholder="New Group"
                 />
               </div>
-              <div class="flex gap-2">
+              <div class={styles.formActions}>
                 <button
                   type="submit"
                   data-testid="create-group-submit-button"
                   disabled={isCreating()}
-                  class="px-4 py-1.5 bg-xcord-brand hover:bg-xcord-brand-hover text-white text-sm font-medium rounded disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+                  class={styles.submitButton}
                 >
                   {isCreating() ? 'Creating...' : 'Create'}
                 </button>
                 <button
                   type="button"
                   onClick={() => { setShowCreateForm(false); setNewGroupName(''); }}
-                  class="px-4 py-1.5 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+                  class={styles.cancelFormButton}
                 >
                   Cancel
                 </button>
@@ -285,24 +282,24 @@ export default function GroupManager(props: GroupManagerProps) {
           {/* Group edit form */}
           <Show when={selectedGroup() && !showCreateForm()}>
             {(group) => (
-              <form onSubmit={handleSaveGroup} class="px-5 py-4">
-                <div class="flex items-center justify-between mb-5">
-                  <h3 class="text-white font-semibold">Edit Group</h3>
+              <form onSubmit={handleSaveGroup} class={styles.editForm}>
+                <div class={styles.editFormHeader}>
+                  <h3 class={styles.editFormTitle}>Edit Group</h3>
 
                   {/* Delete button */}
                   <button
                     type="button"
                     data-testid="delete-group-button"
                     onClick={() => setShowDeleteConfirm(true)}
-                    class="text-red-400 hover:text-red-300 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none rounded"
+                    class={styles.deleteGroupButton}
                   >
                     Delete Group
                   </button>
                 </div>
 
                 {/* Group name */}
-                <div class="mb-5">
-                  <label for="edit-group-name" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
+                <div class={styles.fieldGroup}>
+                  <label for="edit-group-name" class={styles.fieldLabel}>
                     Group Name
                   </label>
                   <input
@@ -312,18 +309,18 @@ export default function GroupManager(props: GroupManagerProps) {
                     maxlength="100"
                     value={editName()}
                     onInput={(e) => setEditName(e.currentTarget.value)}
-                    class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+                    class={styles.textInput}
                   />
                 </div>
 
                 {/* Color picker */}
-                <div class="mb-5">
-                  <label class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-2">
+                <div class={styles.fieldGroup}>
+                  <label class={styles.fieldLabel}>
                     Group Color
                   </label>
 
                   {/* Preset color swatches */}
-                  <div class="flex flex-wrap gap-2 mb-2" role="group" aria-label="Preset colors">
+                  <div class={styles.colorSwatches} role="group" aria-label="Preset colors">
                     <For each={PRESET_COLORS}>
                       {(color) => (
                         <button
@@ -331,9 +328,7 @@ export default function GroupManager(props: GroupManagerProps) {
                           aria-label={`Color ${color}`}
                           aria-pressed={editColor() === color}
                           onClick={() => setEditColor(color)}
-                          class={`w-7 h-7 rounded-full transition-transform hover:scale-110 focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none ${
-                            editColor() === color ? 'ring-2 ring-white ring-offset-1 ring-offset-xcord-bg-secondary' : ''
-                          }`}
+                          class={`${styles.colorSwatch} ${editColor() === color ? styles.colorSwatchSelected : ''}`}
                           style={{ 'background-color': color }}
                         />
                       )}
@@ -341,13 +336,13 @@ export default function GroupManager(props: GroupManagerProps) {
                   </div>
 
                   {/* Hex input */}
-                  <div class="flex items-center gap-2 mt-2">
+                  <div class={styles.hexRow}>
                     <span
-                      class="w-8 h-8 rounded border border-xcord-border flex-shrink-0"
+                      class={styles.colorPreview}
                       style={{ 'background-color': editColor() }}
                       aria-hidden="true"
                     />
-                    <label for="color-hex" class="text-xcord-text-muted text-xs sr-only">Hex color</label>
+                    <label for="color-hex" class="sr-only">Hex color</label>
                     <input
                       id="color-hex"
                       type="text"
@@ -358,27 +353,27 @@ export default function GroupManager(props: GroupManagerProps) {
                         if (/^#[0-9a-fA-F]{0,6}$/.test(val)) setEditColor(val);
                       }}
                       aria-label="Hex color value"
-                      class="w-28 bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-1.5 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand font-mono"
+                      class={styles.hexInput}
                     />
                   </div>
                 </div>
 
                 {/* Roles (permission flags) */}
-                <div class="mb-5">
-                  <label class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-2">
+                <div class={styles.fieldGroup}>
+                  <label class={styles.fieldLabel}>
                     Roles
                   </label>
-                  <div class="space-y-2">
+                  <div class={styles.rolesList}>
                     <For each={ROLE_FLAGS}>
                       {(flag) => (
-                        <label data-testid={`permission-${flag.label.toLowerCase().replace(/\s+/g, '-')}`} class="flex items-center gap-3 cursor-pointer group">
+                        <label data-testid={`permission-${flag.label.toLowerCase().replace(/\s+/g, '-')}`} class={styles.roleItem}>
                           <input
                             type="checkbox"
                             checked={hasRole(editRoles(), flag.bit)}
                             onChange={() => setEditRoles(toggleRole(editRoles(), flag.bit))}
-                            class="w-4 h-4 rounded border-xcord-border bg-xcord-bg-tertiary text-xcord-brand focus-visible:ring-2 focus-visible:ring-xcord-brand cursor-pointer"
+                            class={styles.roleCheckbox}
                           />
-                          <span class="text-sm text-xcord-text-secondary group-hover:text-xcord-text-primary transition-colors">
+                          <span class={styles.roleLabel}>
                             {flag.label}
                           </span>
                         </label>
@@ -389,23 +384,23 @@ export default function GroupManager(props: GroupManagerProps) {
 
                 {/* Status messages */}
                 <Show when={saveSuccess()}>
-                  <div role="status" class="mb-4 px-4 py-2 bg-green-500/20 border border-green-500/30 rounded text-green-400 text-sm">
+                  <div role="status" class={styles.successMsg}>
                     {saveSuccess()}
                   </div>
                 </Show>
                 <Show when={saveError()}>
-                  <div role="alert" class="mb-4 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">
+                  <div role="alert" class={styles.errorMsgInline}>
                     {saveError()}
                   </div>
                 </Show>
 
                 {/* Save button */}
-                <div class="flex justify-end">
+                <div class={styles.saveRow}>
                   <button
                     data-testid="group-save-changes-button"
                     type="submit"
                     disabled={isSaving()}
-                    class="px-5 py-2 bg-xcord-brand hover:bg-xcord-brand-hover text-white text-sm font-medium rounded transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+                    class={styles.saveButton}
                   >
                     {isSaving() ? 'Saving...' : 'Save Changes'}
                   </button>
@@ -416,8 +411,8 @@ export default function GroupManager(props: GroupManagerProps) {
 
           {/* Empty state */}
           <Show when={!selectedGroup() && !showCreateForm()}>
-            <div class="flex flex-col items-center justify-center py-8 text-center">
-              <p class="text-xcord-text-muted text-sm">Select a group to edit, or create a new one.</p>
+            <div class={styles.editorEmpty}>
+              <p class={styles.mutedText}>Select a group to edit, or create a new one.</p>
             </div>
           </Show>
         </div>
@@ -430,19 +425,19 @@ export default function GroupManager(props: GroupManagerProps) {
         size="sm"
         role="alertdialog"
       >
-        <div class="p-6">
-          <p class="text-xcord-text-secondary text-sm mb-4">
+        <div class={styles.dialogBody}>
+          <p class={styles.dialogText}>
             Are you sure you want to delete the group "{selectedGroup()?.name}"? Members with this group will lose its roles.
           </p>
-          <div class="flex justify-end gap-3">
+          <div class={styles.dialogActions}>
             <button
-              class="px-4 py-2 text-sm text-xcord-text-primary bg-xcord-bg-primary hover:bg-xcord-bg-tertiary rounded transition-colors"
+              class={styles.dialogCancelButton}
               onClick={() => setShowDeleteConfirm(false)}
             >
               Cancel
             </button>
             <button
-              class="px-4 py-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded transition-colors disabled:opacity-50"
+              class={styles.dialogDeleteButton}
               disabled={isDeleting()}
               onClick={() => {
                 handleDeleteGroup(selectedGroupId()!);

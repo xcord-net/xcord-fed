@@ -1,5 +1,10 @@
 import { For, Show, createMemo, createSignal, onMount } from 'solid-js';
 import { useEmojis } from '../stores/emoji.store';
+import { tooltip } from '../directives/tooltip';
+import styles from './EmojiPicker.module.css';
+
+// Ensure the directive is not tree-shaken
+void tooltip;
 
 interface EmojiPickerProps {
   onSelect: (emoji: string) => void;
@@ -90,26 +95,23 @@ export default function EmojiPicker(props: EmojiPickerProps) {
       data-testid="emoji-picker"
       role="dialog"
       aria-label="Emoji picker"
-      class="w-80 h-96 bg-xcord-bg-secondary rounded-lg shadow-xl border border-xcord-border flex flex-col"
+      class={styles.picker}
     >
-      <div class="px-4 py-2 border-b border-xcord-border">
-        <h3 class="text-white font-semibold text-sm">Emoji Picker</h3>
+      <div class={styles.header}>
+        <h3 class={styles.headerTitle}>Emoji Picker</h3>
       </div>
 
       {/* Category bar */}
-      <div class="flex border-b border-xcord-border overflow-x-auto">
+      <div class={styles.categoryBar}>
         <Show when={emojiStore.customEmojis.length > 0}>
           <button
             data-testid="emoji-category-custom"
             aria-label="Custom emoji"
-            class={`px-3 py-2 text-sm flex-shrink-0 ${
-              selectedCategory() === -1
-                ? 'text-white border-b-2 border-xcord-brand'
-                : 'text-xcord-text-muted hover:text-white'
-            }`}
+            use:tooltip="Custom"
+            class={`${styles.categoryBtn} ${selectedCategory() === -1 ? styles.categoryBtnActive : ''}`}
             onClick={() => changeCategory(-1)}
           >
-            Custom
+            ⭐
           </button>
         </Show>
 
@@ -118,14 +120,11 @@ export default function EmojiPicker(props: EmojiPickerProps) {
             <button
               data-testid={`emoji-category-${index()}`}
               aria-label={`${category.name} emoji`}
-              class={`px-3 py-2 text-sm flex-shrink-0 ${
-                selectedCategory() === index()
-                  ? 'text-white border-b-2 border-xcord-brand'
-                  : 'text-xcord-text-muted hover:text-white'
-              }`}
+              use:tooltip={category.name}
+              class={`${styles.categoryBtn} ${selectedCategory() === index() ? styles.categoryBtnActive : ''}`}
               onClick={() => changeCategory(index())}
             >
-              {category.name}
+              {category.icon}
             </button>
           )}
         </For>
@@ -133,21 +132,21 @@ export default function EmojiPicker(props: EmojiPickerProps) {
 
       {/* Emoji grid */}
       <div
-        class="flex-1 overflow-y-auto p-3"
+        class={styles.gridArea}
         onKeyDown={handleGridKeyDown}
       >
         <Show when={selectedCategory() === -1}>
-          <div class="grid grid-cols-8 gap-2">
+          <div class={styles.emojiGrid}>
             <For each={emojiStore.customEmojis}>
               {(emoji, index) => (
                 <button
-                  class="w-8 h-8 hover:bg-xcord-bg-primary focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none rounded flex items-center justify-center"
+                  class={styles.emojiBtn}
                   onClick={() => props.onSelect(`:${emoji.name}:`)}
                   title={emoji.name}
                   aria-label={emoji.name}
                   tabIndex={focusedIndex() === index() ? 0 : -1}
                 >
-                  <img src={emoji.imageUrl} alt={emoji.name} class="w-6 h-6" />
+                  <img src={emoji.imageUrl} alt={emoji.name} class={styles.emojiImage} />
                 </button>
               )}
             </For>
@@ -155,12 +154,12 @@ export default function EmojiPicker(props: EmojiPickerProps) {
         </Show>
 
         <Show when={selectedCategory() >= 0}>
-          <div data-testid="emoji-grid" class="grid grid-cols-8 gap-2">
+          <div data-testid="emoji-grid" class={styles.emojiGrid}>
             <For each={emojiStore.unicodeCategories[selectedCategory()]?.emojis || []}>
               {(emoji, index) => (
                 <button
                   data-testid={`emoji-btn-${index()}`}
-                  class="w-8 h-8 hover:bg-xcord-bg-primary focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none rounded flex items-center justify-center text-xl"
+                  class={styles.emojiBtn}
                   onClick={() => props.onSelect(emoji)}
                   aria-label={emoji}
                   tabIndex={focusedIndex() === index() ? 0 : -1}

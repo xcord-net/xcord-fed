@@ -1,0 +1,266 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--color-xcord-bg-secondary);
+  border-left: 1px solid var(--color-xcord-border);
+  width: 20rem;
+}
+
+.panelHeader {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+}
+
+.panelTitle {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Thread list (fallback view) */
+.threadList {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.centeredStatus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 8rem;
+}
+
+.mutedText {
+  color: var(--color-xcord-text-muted);
+}
+
+.threadItem {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--color-xcord-border);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s;
+}
+
+.threadItem:hover {
+  background-color: color-mix(in srgb, var(--color-xcord-bg-primary) 50%, transparent);
+}
+
+.threadItemInner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.threadItemBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.threadName {
+  color: #ffffff;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.threadMeta {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  margin-top: 0.25rem;
+}
+
+.memberCount {
+  margin-left: 0.5rem;
+}
+
+.archivedBadge {
+  font-size: 0.75rem;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-muted);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+/* Active thread view */
+.activeThreadContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.threadHeader {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.threadNameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.activeThreadName {
+  color: #ffffff;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.editNameButton {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.editNameButton:hover {
+  color: #ffffff;
+}
+
+.editNameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.editNameInput {
+  flex: 1;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--color-xcord-border);
+  outline: none;
+  min-width: 0;
+}
+
+.editNameInput:focus {
+  border-color: var(--color-xcord-brand);
+}
+
+.saveNameButton {
+  color: var(--color-xcord-brand);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--color-xcord-brand);
+  background: none;
+  cursor: pointer;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.saveNameButton:hover {
+  color: #ffffff;
+  background-color: var(--color-xcord-brand);
+}
+
+.closeButton {
+  color: var(--color-xcord-text-muted);
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.closeButton:hover {
+  color: #ffffff;
+}
+
+.memberBar {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.memberBarCount {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.joinButton {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background-color: var(--color-xcord-brand);
+  color: #ffffff;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.joinButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.leaveButton {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-muted);
+  border-radius: 0.25rem;
+  border: 1px solid var(--color-xcord-border);
+  cursor: pointer;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.leaveButton:hover {
+  color: #ffffff;
+  background-color: var(--color-xcord-bg-tertiary);
+}
+
+.messageListWrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.composeArea {
+  padding: 0.25rem 0.75rem 0.75rem;
+  border-top: 1px solid var(--color-xcord-border);
+}
+
+.composeBox {
+  background-color: var(--color-xcord-bg-primary);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.composeInput {
+  flex: 1;
+  background: transparent;
+  color: var(--color-xcord-text-primary);
+  resize: none;
+  outline: none;
+  font-size: 0.875rem;
+}
+
+.composeInput::placeholder {
+  color: var(--color-xcord-text-muted);
+}

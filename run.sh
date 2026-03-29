@@ -28,7 +28,7 @@ $COMPOSE down -v 2>/dev/null || true
 
 # Build
 echo "Building..."
-$COMPOSE build app --quiet
+$COMPOSE build app --no-cache --quiet
 
 # Start
 echo "Starting..."

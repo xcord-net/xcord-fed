@@ -1,5 +1,6 @@
 import { For, Show, createSignal } from 'solid-js';
 import { api } from '../api/client';
+import styles from './MessageComponents.module.css';
 
 // ---- Types ----
 
@@ -62,6 +63,27 @@ interface MessageComponentsProps {
 
 // ---- Helpers ----
 
+export function buttonStyleClass(style: ButtonStyle): string {
+  switch (style) {
+    case 'Primary':
+      return styles.buttonPrimary;
+    case 'Secondary':
+      return styles.buttonSecondary;
+    case 'Success':
+      return styles.buttonSuccess;
+    case 'Danger':
+      return styles.buttonDanger;
+    case 'Link':
+      return styles.buttonLink;
+    default:
+      return styles.buttonSecondary;
+  }
+}
+
+/**
+ * @deprecated Use buttonStyleClass instead (returns a CSS module class name).
+ * Kept for any callers that relied on Tailwind strings.
+ */
 export function buttonStyleClasses(style: ButtonStyle): string {
   switch (style) {
     case 'Primary':
@@ -120,13 +142,13 @@ function ComponentButton(props: {
 
   return (
     <button
-      class={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${buttonStyleClasses(props.button.style)}`}
+      class={`${styles.componentButton} ${buttonStyleClass(props.button.style)}`}
       disabled={props.button.disabled || loading()}
       onClick={handleClick}
       aria-label={props.button.label}
     >
       <Show when={loading()}>
-        <span class="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+        <span class={styles.spinner} />
       </Show>
       <Show when={props.button.emoji}>
         <span aria-hidden="true">{props.button.emoji}</span>
@@ -183,9 +205,9 @@ function ComponentSelectMenu(props: {
   };
 
   return (
-    <div class="flex items-center gap-2">
+    <div class={styles.selectMenuRow}>
       <select
-        class="bg-xcord-bg-primary text-xcord-text-primary text-sm rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-xcord-brand disabled:opacity-50 disabled:cursor-not-allowed min-w-[180px]"
+        class={styles.selectMenu}
         multiple={isMulti()}
         disabled={props.menu.disabled || loading()}
         onChange={handleChange}
@@ -211,7 +233,7 @@ function ComponentSelectMenu(props: {
 
       <Show when={isMulti() && selected().length >= minValues()}>
         <button
-          class="px-3 py-1.5 bg-xcord-brand text-white text-sm rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50"
+          class={styles.confirmButton}
           disabled={loading()}
           onClick={() => submitInteraction(selected())}
         >
@@ -220,7 +242,7 @@ function ComponentSelectMenu(props: {
       </Show>
 
       <Show when={loading()}>
-        <span class="w-3 h-3 border border-xcord-text-muted border-t-transparent rounded-full animate-spin" />
+        <span class={styles.spinnerMuted} />
       </Show>
     </div>
   );
@@ -230,10 +252,10 @@ function ComponentSelectMenu(props: {
 
 export default function MessageComponents(props: MessageComponentsProps) {
   return (
-    <div class="mt-2 space-y-2" aria-label="Message components">
+    <div class={styles.componentArea} aria-label="Message components">
       <For each={props.actionRows}>
         {(row) => (
-          <div class="flex flex-wrap items-center gap-2">
+          <div class={styles.actionRow}>
             <For each={row.components}>
               {(component) => (
                 <Show when={component.type === 'button'}>

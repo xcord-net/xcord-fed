@@ -28,7 +28,7 @@ services:
           "snowflake": { "workerId": 0 },
           "email": { "smtpHost": "mailpit", "smtpPort": 1025, "fromAddress": "noreply@xcord.local", "fromName": "Xcord", "useSsl": false, "devMode": true },
           "rateLimiting": { "maxRequests": 10000, "windowSeconds": 60, "authPermitLimit": 100 },
-          "auth": { "bcryptWorkFactor": 10, "registrationEnabled": true },
+          "auth": { "bcryptWorkFactor": 10, "registrationEnabled": false },
           "admin": { "email": "admin@xcord.local", "password": "Admin123!", "username": "admin" },
           "gif": { "provider": "none" },
           "testSeed": { "key": "dev-test-seed-key" }

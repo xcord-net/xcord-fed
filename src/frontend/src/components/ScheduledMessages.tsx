@@ -2,6 +2,7 @@ import { For, Show, createSignal, createEffect, onCleanup } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import Modal from './ui/Modal';
+import styles from './ScheduledMessages.module.css';
 
 interface ScheduledMessage {
   id: string;
@@ -92,11 +93,11 @@ export default function ScheduledMessages(props: ScheduledMessagesProps) {
   };
 
   return (
-    <div class="flex flex-col h-full">
-      <div class="px-4 py-3 border-b border-xcord-border flex items-center justify-between">
-        <h2 class="text-white font-semibold">Scheduled Messages</h2>
+    <div class={styles.container}>
+      <div class={styles.header}>
+        <h2 class={styles.headerTitle}>Scheduled Messages</h2>
         <button
-          class="text-xcord-text-muted hover:text-white text-xs transition-colors"
+          class={styles.refreshBtn}
           onClick={loadMessages}
           disabled={isLoading()}
           aria-label="Refresh scheduled messages"
@@ -106,23 +107,23 @@ export default function ScheduledMessages(props: ScheduledMessagesProps) {
         </button>
       </div>
 
-      <div class="flex-1 overflow-y-auto">
+      <div class={styles.scrollArea}>
         <Show when={isLoading() && messages().length === 0}>
-          <div class="flex items-center justify-center h-32">
-            <p class="text-xcord-text-muted">Loading...</p>
+          <div class={styles.loadingCenter}>
+            <p class={styles.loadingText}>Loading...</p>
           </div>
         </Show>
 
         <Show when={error()}>
-          <div role="alert" class="mx-4 mt-3 px-3 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-xs">
+          <div role="alert" class={styles.errorAlert}>
             {error()}
           </div>
         </Show>
 
         <Show when={!isLoading() && messages().length === 0 && !error()}>
-          <div class="flex flex-col items-center justify-center h-32 px-4">
-            <p class="text-xcord-text-muted text-sm">No scheduled messages</p>
-            <p class="text-xcord-text-muted text-xs mt-1">
+          <div class={styles.emptyState}>
+            <p class={styles.emptyText}>No scheduled messages</p>
+            <p class={styles.emptyHint}>
               Use the clock button in the compose area to schedule a message.
             </p>
           </div>
@@ -130,23 +131,23 @@ export default function ScheduledMessages(props: ScheduledMessagesProps) {
 
         <For each={messages()}>
           {(message) => (
-            <div class="px-4 py-3 border-b border-xcord-border hover:bg-xcord-bg-primary/30">
-              <div class="flex items-start justify-between gap-2">
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2 mb-1">
+            <div class={styles.messageItem}>
+              <div class={styles.messageInner}>
+                <div class={styles.messageBody}>
+                  <div class={styles.messageStatus}>
                     <span
-                      class="inline-block w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0"
+                      class={styles.pendingDot}
                       aria-label="Pending"
                       title="Pending"
                     />
-                    <span class="text-xs text-yellow-400 font-medium">
+                    <span class={styles.scheduledTime}>
                       {formatScheduledTime(message.scheduledAt)}
                     </span>
                   </div>
-                  <p class="text-sm text-xcord-text-primary break-words line-clamp-3">
+                  <p class={styles.messageContent}>
                     {message.content}
                   </p>
-                  <p class="text-xs text-xcord-text-muted mt-1">
+                  <p class={styles.messageTimestamp}>
                     {new Date(message.scheduledAt).toLocaleString(undefined, {
                       weekday: 'short',
                       month: 'short',
@@ -158,7 +159,7 @@ export default function ScheduledMessages(props: ScheduledMessagesProps) {
                   </p>
                 </div>
                 <button
-                  class="flex-shrink-0 text-xcord-text-muted hover:text-red-400 text-xs px-2 py-1 rounded border border-xcord-border hover:border-red-400/40 transition-colors disabled:opacity-50"
+                  class={styles.cancelBtn}
                   onClick={() => setConfirmCancelId(message.id)}
                   disabled={cancellingId() === message.id}
                   aria-label="Cancel scheduled message"
@@ -179,19 +180,19 @@ export default function ScheduledMessages(props: ScheduledMessagesProps) {
         size="sm"
         role="alertdialog"
       >
-        <div class="p-6">
-          <p class="text-xcord-text-secondary text-sm mb-4">
+        <div class={styles.modalBody}>
+          <p class={styles.modalText}>
             Are you sure you want to cancel this scheduled message? It will not be sent.
           </p>
-          <div class="flex justify-end gap-3">
+          <div class={styles.modalButtons}>
             <button
-              class="px-4 py-2 text-sm text-xcord-text-primary bg-xcord-bg-primary hover:bg-xcord-bg-tertiary rounded transition-colors"
+              class={styles.modalKeepBtn}
               onClick={() => setConfirmCancelId(null)}
             >
               Keep
             </button>
             <button
-              class="px-4 py-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded transition-colors disabled:opacity-50"
+              class={styles.modalCancelBtn}
               disabled={cancellingId() !== null}
               onClick={() => {
                 const id = confirmCancelId();

@@ -1,6 +1,7 @@
 import { createSignal, Show } from 'solid-js';
 import { api } from '../api/client';
 import type { UserProfile } from '../types/profile';
+import styles from './AvatarUpload.module.css';
 
 const MAX_FILE_SIZE = 8 * 1024 * 1024; // 8 MB
 
@@ -148,35 +149,35 @@ export default function AvatarUpload(props: AvatarUploadProps) {
   const currentAvatarUrl = () => preview() ?? props.profile.avatarUrl ?? null;
 
   return (
-    <div class="space-y-4">
+    <div class={styles.container}>
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        class="hidden"
+        class={styles.hidden}
         data-testid="avatar-file-input"
         onChange={handleFileSelect}
       />
 
       {/* Error / success messages */}
       <Show when={error()}>
-        <p class="text-red-400 text-sm" role="alert" data-testid="avatar-upload-error">{error()}</p>
+        <p class={styles.errorText} role="alert" data-testid="avatar-upload-error">{error()}</p>
       </Show>
       <Show when={success()}>
-        <p class="text-green-400 text-sm" role="status" data-testid="avatar-upload-success">{success()}</p>
+        <p class={styles.successText} role="status" data-testid="avatar-upload-success">{success()}</p>
       </Show>
 
       {/* Upload progress */}
       <Show when={uploading()}>
-        <div class="space-y-1" aria-live="polite" data-testid="avatar-upload-progress">
-          <div class="flex items-center justify-between text-xs text-xcord-text-muted">
+        <div class={styles.progressWrapper} aria-live="polite" data-testid="avatar-upload-progress">
+          <div class={styles.progressHeader}>
             <span>Uploading avatar...</span>
             <span>{uploadProgress()}%</span>
           </div>
-          <div class="w-full h-1.5 bg-xcord-bg-primary rounded-full overflow-hidden">
+          <div class={styles.progressTrack}>
             <div
-              class="h-full bg-xcord-brand transition-all duration-200"
+              class={styles.progressFill}
               style={{ width: `${uploadProgress()}%` }}
             />
           </div>
@@ -184,10 +185,10 @@ export default function AvatarUpload(props: AvatarUploadProps) {
       </Show>
 
       {/* Avatar button - circular, clickable */}
-      <div class="flex flex-col items-center gap-3">
+      <div class={styles.avatarSection}>
         <button
           type="button"
-          class="relative w-24 h-24 rounded-full overflow-hidden bg-xcord-brand border-4 border-xcord-bg-secondary hover:opacity-80 transition-opacity focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none group disabled:cursor-not-allowed disabled:opacity-60"
+          class={styles.avatarButton}
           onClick={handleAvatarClick}
           disabled={uploading()}
           aria-label="Change avatar"
@@ -196,7 +197,7 @@ export default function AvatarUpload(props: AvatarUploadProps) {
           <Show
             when={currentAvatarUrl()}
             fallback={
-              <span class="flex items-center justify-center w-full h-full text-white text-3xl font-bold">
+              <span class={styles.avatarInitial}>
                 {props.profile.username.charAt(0).toUpperCase()}
               </span>
             }
@@ -204,20 +205,20 @@ export default function AvatarUpload(props: AvatarUploadProps) {
             <img
               src={currentAvatarUrl()!}
               alt={`${props.profile.username}'s avatar`}
-              class="w-full h-full object-cover rounded-full"
+              class={styles.avatarImage}
               data-testid="avatar-preview"
             />
           </Show>
           {/* Hover overlay */}
-          <span class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-medium pointer-events-none">
+          <span class={styles.hoverOverlay}>
             Change
           </span>
         </button>
 
-        <div class="text-center">
-          <p class="text-sm font-medium text-white">{props.profile.displayName}</p>
-          <p class="text-xs text-xcord-text-muted">@{props.profile.username}</p>
-          <p class="text-xs text-xcord-text-muted mt-1">Images only, max 8 MB</p>
+        <div class={styles.userInfo}>
+          <p class={styles.displayName}>{props.profile.displayName}</p>
+          <p class={styles.username}>@{props.profile.username}</p>
+          <p class={styles.hint}>Images only, max 8 MB</p>
         </div>
       </div>
     </div>

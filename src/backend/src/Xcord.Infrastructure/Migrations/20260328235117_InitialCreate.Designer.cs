@@ -12,7 +12,7 @@ using Xcord.Infrastructure.Data;
 namespace Xcord.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260323210114_InitialCreate")]
+    [Migration("20260328235117_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -320,6 +320,13 @@ namespace Xcord.Infrastructure.Migrations
                     b.Property<long>("Id")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("AgentConfigJson")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AgentId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -436,6 +443,12 @@ namespace Xcord.Infrastructure.Migrations
                     b.Property<long>("Id")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("AccessGroupId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("Capabilities")
+                        .HasColumnType("bigint");
+
                     b.Property<long?>("CategoryId")
                         .HasColumnType("bigint");
 
@@ -486,6 +499,8 @@ namespace Xcord.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AccessGroupId");
 
                     b.HasIndex("CategoryId");
 
@@ -622,6 +637,119 @@ namespace Xcord.Infrastructure.Migrations
                         .HasFilter("\"DeletedAt\" IS NULL");
 
                     b.ToTable("custom_emojis", (string)null);
+                });
+
+            modelBuilder.Entity("Xcord.Entities.DiscordIdMapping", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("DiscordId")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<long>("MigrationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("XcordId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MigrationId", "EntityType");
+
+                    b.HasIndex("MigrationId", "DiscordId", "EntityType");
+
+                    b.ToTable("discord_id_mappings", (string)null);
+                });
+
+            modelBuilder.Entity("Xcord.Entities.DiscordMigration", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CheckpointJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CurrentPhase")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DiscordGuildId")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<int>("MigratedChannels")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("MigratedMembers")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<long>("MigratedMessages")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L);
+
+                    b.Property<string>("OptionsJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'{}'");
+
+                    b.Property<long>("ServerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Pending");
+
+                    b.Property<int>("TotalChannels")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("TotalMembers")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<long>("TotalMessages")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServerId");
+
+                    b.ToTable("discord_migrations", (string)null);
                 });
 
             modelBuilder.Entity("Xcord.Entities.DmChannel", b =>
@@ -2081,6 +2209,10 @@ namespace Xcord.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.PrimitiveCollection<long[]>("FavoriteChannelIds")
+                        .IsRequired()
+                        .HasColumnType("bigint[]");
+
                     b.Property<DateTimeOffset>("JoinedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -2987,6 +3119,11 @@ namespace Xcord.Infrastructure.Migrations
 
             modelBuilder.Entity("Xcord.Entities.Channel", b =>
                 {
+                    b.HasOne("Xcord.Entities.Group", "AccessGroup")
+                        .WithMany()
+                        .HasForeignKey("AccessGroupId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Xcord.Entities.Category", "Category")
                         .WithMany("Channels")
                         .HasForeignKey("CategoryId")
@@ -3003,6 +3140,8 @@ namespace Xcord.Infrastructure.Migrations
                         .HasForeignKey("ServerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("AccessGroup");
 
                     b.Navigation("Category");
 
@@ -3056,6 +3195,28 @@ namespace Xcord.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Creator");
+
+                    b.Navigation("Server");
+                });
+
+            modelBuilder.Entity("Xcord.Entities.DiscordIdMapping", b =>
+                {
+                    b.HasOne("Xcord.Entities.DiscordMigration", "Migration")
+                        .WithMany()
+                        .HasForeignKey("MigrationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Migration");
+                });
+
+            modelBuilder.Entity("Xcord.Entities.DiscordMigration", b =>
+                {
+                    b.HasOne("Xcord.Entities.Server", "Server")
+                        .WithMany()
+                        .HasForeignKey("ServerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Server");
                 });

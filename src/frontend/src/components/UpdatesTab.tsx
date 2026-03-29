@@ -1,6 +1,7 @@
 import { Show, For, createSignal, onMount, createMemo } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
+import styles from './UpdatesTab.module.css';
 
 interface AvailableVersion {
   id: string;
@@ -68,12 +69,12 @@ function formatDateTime(dateStr: string | null): string {
   });
 }
 
-function statusColor(status: string): string {
+function statusClass(status: string): string {
   const s = status.toLowerCase();
-  if (s === 'completed' || s === 'success') return 'text-green-400';
-  if (s === 'failed' || s === 'error') return 'text-red-400';
-  if (s === 'inprogress' || s === 'running') return 'text-yellow-400';
-  return 'text-xcord-text-muted';
+  if (s === 'completed' || s === 'success') return styles.historyStatusCompleted;
+  if (s === 'failed' || s === 'error') return styles.historyStatusFailed;
+  if (s === 'inprogress' || s === 'running') return styles.historyStatusInProgress;
+  return styles.historyStatusDefault;
 }
 
 export default function UpdatesTab() {
@@ -163,10 +164,10 @@ export default function UpdatesTab() {
   });
 
   return (
-    <div data-testid="updates-tab" class="flex flex-col gap-6">
+    <div data-testid="updates-tab" class={styles.container}>
       <Show when={isLoading()}>
-        <div class="flex items-center justify-center py-12">
-          <p class="text-xcord-text-muted">Loading version information...</p>
+        <div class={styles.loadingCenter}>
+          <p class={styles.loadingText}>Loading version information...</p>
         </div>
       </Show>
 
@@ -174,7 +175,7 @@ export default function UpdatesTab() {
         <div
           data-testid="updates-load-error"
           role="alert"
-          class="px-4 py-3 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm"
+          class={styles.errorBanner}
         >
           {loadError()}
         </div>
@@ -185,7 +186,7 @@ export default function UpdatesTab() {
         <Show when={!versionData()!.hubConnected}>
           <div
             data-testid="updates-hub-disconnected"
-            class="px-4 py-3 bg-yellow-500/10 border border-yellow-500/30 rounded text-yellow-400 text-sm"
+            class={styles.hubDisconnectedBanner}
           >
             Updates are unavailable - this instance is not connected to a hub. Connect to a hub to
             receive version updates.
@@ -195,11 +196,11 @@ export default function UpdatesTab() {
         {/* Automatic updates toggle */}
         <div
           data-testid="updates-auto-toggle-section"
-          class="flex items-center justify-between bg-xcord-bg-secondary rounded-lg px-4 py-3 border border-xcord-border"
+          class={styles.autoToggleSection}
         >
           <div>
-            <p class="text-xcord-text-primary text-sm font-medium">Automatic Updates</p>
-            <p class="text-xcord-text-muted text-xs mt-0.5">
+            <p class={styles.autoToggleLabel}>Automatic Updates</p>
+            <p class={styles.autoToggleDescription}>
               Automatically apply updates when new versions are published by the hub.
             </p>
           </div>
@@ -208,17 +209,13 @@ export default function UpdatesTab() {
             type="button"
             disabled={isTogglingAuto() || !versionData()!.hubConnected}
             onClick={handleToggleAutoUpdates}
-            class={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand disabled:opacity-50 ${
-              versionData()!.batchUpgradesEnabled ? 'bg-xcord-brand' : 'bg-xcord-bg-tertiary'
-            }`}
+            class={`${styles.toggleButton} ${versionData()!.batchUpgradesEnabled ? styles.toggleButtonOn : styles.toggleButtonOff}`}
             role="switch"
             aria-checked={versionData()!.batchUpgradesEnabled}
             aria-label="Toggle automatic updates"
           >
             <span
-              class={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                versionData()!.batchUpgradesEnabled ? 'translate-x-6' : 'translate-x-1'
-              }`}
+              class={`${styles.toggleThumb} ${versionData()!.batchUpgradesEnabled ? styles.toggleThumbOn : styles.toggleThumbOff}`}
             />
           </button>
         </div>
@@ -227,18 +224,18 @@ export default function UpdatesTab() {
           <div
             data-testid="updates-toggle-error"
             role="alert"
-            class="px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm"
+            class={styles.toggleError}
           >
             {toggleError()}
           </div>
         </Show>
 
         {/* Current version display */}
-        <div class="flex items-center gap-3">
-          <span class="text-xcord-text-muted text-sm">Current version:</span>
+        <div class={styles.currentVersionRow}>
+          <span class={styles.currentVersionLabel}>Current version:</span>
           <span
             data-testid="updates-current-version"
-            class="text-white font-mono text-sm font-semibold"
+            class={styles.currentVersionValue}
           >
             v{versionData()!.currentVersion}
           </span>
@@ -249,19 +246,19 @@ export default function UpdatesTab() {
           <Show
             when={versionData()!.availableVersions && versionData()!.availableVersions!.length > 0}
             fallback={
-              <p data-testid="updates-no-versions" class="text-xcord-text-muted text-sm">
+              <p data-testid="updates-no-versions" class={styles.noVersionsText}>
                 No version updates available.
               </p>
             }
           >
-            <div class="flex gap-4" style="min-height: 320px;">
+            <div class={styles.versionsPanel} style="min-height: 320px;">
               {/* Left panel - version list */}
               <div
                 data-testid="updates-version-list"
-                class="w-48 flex-shrink-0 bg-xcord-bg-secondary rounded-lg border border-xcord-border overflow-y-auto"
+                class={styles.versionList}
               >
-                <div class="px-3 py-2 border-b border-xcord-border">
-                  <p class="text-xs font-semibold text-xcord-text-muted uppercase tracking-wide">
+                <div class={styles.versionListHeader}>
+                  <p class={styles.versionListHeaderText}>
                     Available Versions
                   </p>
                 </div>
@@ -270,19 +267,15 @@ export default function UpdatesTab() {
                     <button
                       data-testid={`updates-version-item-${v.version}`}
                       type="button"
-                      class={`w-full text-left px-3 py-2.5 text-sm transition-colors border-b border-xcord-border/50 last:border-0 ${
-                        selectedVersionId() === v.id
-                          ? 'bg-xcord-brand/20 text-white'
-                          : 'text-xcord-text-secondary hover:bg-xcord-bg-tertiary hover:text-white'
-                      }`}
+                      class={`${styles.versionItem} ${selectedVersionId() === v.id ? styles.versionItemSelected : styles.versionItemDefault}`}
                       onClick={() => setSelectedVersionId(v.id)}
                     >
-                      <div class="flex items-center gap-2">
-                        <span class="font-mono font-medium">v{v.version}</span>
+                      <div class={styles.versionItemRow}>
+                        <span class={styles.versionMono}>v{v.version}</span>
                         <Show when={v.version === versionData()!.currentVersion}>
                           <span
                             data-testid={`updates-current-badge-${v.version}`}
-                            class="text-[10px] bg-xcord-brand text-white px-1.5 py-0.5 rounded-full font-semibold"
+                            class={styles.badgeCurrent}
                           >
                             current
                           </span>
@@ -290,13 +283,13 @@ export default function UpdatesTab() {
                         <Show when={v.isMinimumVersion}>
                           <span
                             data-testid={`updates-minimum-badge-${v.version}`}
-                            class="text-[10px] bg-red-600 text-white px-1.5 py-0.5 rounded-full font-semibold"
+                            class={styles.badgeMinimum}
                           >
                             min
                           </span>
                         </Show>
                       </div>
-                      <p class="text-xcord-text-muted text-xs mt-0.5">{formatDate(v.publishedAt)}</p>
+                      <p class={styles.versionItemDate}>{formatDate(v.publishedAt)}</p>
                     </button>
                   )}
                 </For>
@@ -305,11 +298,11 @@ export default function UpdatesTab() {
               {/* Right panel - release notes */}
               <div
                 data-testid="updates-release-notes-panel"
-                class="flex-1 bg-xcord-bg-secondary rounded-lg border border-xcord-border overflow-y-auto p-4"
+                class={styles.releaseNotesPanel}
               >
-                <Show when={selectedVersion()} fallback={<p class="text-xcord-text-muted text-sm">Select a version to view release notes.</p>}>
-                  <div class="flex items-center justify-between mb-3">
-                    <h3 class="text-white font-semibold text-base">
+                <Show when={selectedVersion()} fallback={<p class={styles.releaseNotesPlaceholder}>Select a version to view release notes.</p>}>
+                  <div class={styles.releaseNotesHeader}>
+                    <h3 class={styles.releaseNotesTitle}>
                       v{selectedVersion()!.version}
                     </h3>
                     <Show when={!isCurrent()}>
@@ -318,18 +311,18 @@ export default function UpdatesTab() {
                         type="button"
                         disabled={isUpgrading()}
                         onClick={handleUpgrade}
-                        class="px-4 py-1.5 bg-xcord-brand hover:bg-xcord-brand-hover text-white text-sm font-medium rounded transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+                        class={styles.upgradeButton}
                       >
                         {isUpgrading() ? 'Upgrading...' : 'Update to this version'}
                       </button>
                     </Show>
                     <Show when={isCurrent()}>
-                      <span class="text-xcord-text-muted text-sm italic">Currently installed</span>
+                      <span class={styles.currentlyInstalled}>Currently installed</span>
                     </Show>
                   </div>
 
                   <Show when={selectedVersion()!.isMinimumVersion && selectedVersion()!.minimumEnforcementDate}>
-                    <div class="mb-3 px-3 py-2 bg-red-500/10 border border-red-500/30 rounded text-red-400 text-xs">
+                    <div class={styles.minimumVersionBanner}>
                       This is a minimum required version. Enforcement date: {formatDate(selectedVersion()!.minimumEnforcementDate)}
                     </div>
                   </Show>
@@ -338,7 +331,7 @@ export default function UpdatesTab() {
                     <div
                       data-testid="updates-upgrade-error"
                       role="alert"
-                      class="mb-3 px-3 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm"
+                      class={styles.upgradeError}
                     >
                       {upgradeError()}
                     </div>
@@ -348,7 +341,7 @@ export default function UpdatesTab() {
                     <div
                       data-testid="updates-upgrade-success"
                       role="status"
-                      class="mb-3 px-3 py-2 bg-green-500/20 border border-green-500/30 rounded text-green-400 text-sm"
+                      class={styles.upgradeSuccess}
                     >
                       {upgradeSuccess()}
                     </div>
@@ -358,23 +351,23 @@ export default function UpdatesTab() {
                     when={parsedNotes()}
                     fallback={
                       <Show when={selectedVersion()!.releaseNotes}>
-                        <p class="text-xcord-text-secondary text-sm whitespace-pre-wrap">
+                        <p class={styles.rawReleaseNotes}>
                           {selectedVersion()!.releaseNotes}
                         </p>
                       </Show>
                     }
                   >
-                    <div class="space-y-4 text-sm">
+                    <div class={styles.releaseNotesContent}>
                       <Show when={parsedNotes()!.breakingChanges?.length > 0}>
-                        <div data-testid="updates-breaking-changes">
-                          <h4 class="text-red-400 font-semibold uppercase text-xs tracking-wide mb-1.5">
+                        <div data-testid="updates-breaking-changes" class={styles.releaseNotesSection}>
+                          <h4 class={`${styles.releaseNotesSectionTitle} ${styles.sectionTitleBreaking}`}>
                             Breaking Changes
                           </h4>
-                          <ul class="space-y-1">
+                          <ul class={styles.releaseNotesList}>
                             <For each={parsedNotes()!.breakingChanges}>
                               {(item) => (
-                                <li class="text-xcord-text-secondary flex gap-2">
-                                  <span class="text-red-400 flex-shrink-0">!</span>
+                                <li class={styles.releaseNotesListItem}>
+                                  <span class={styles.listIconBreaking}>!</span>
                                   {item}
                                 </li>
                               )}
@@ -384,15 +377,15 @@ export default function UpdatesTab() {
                       </Show>
 
                       <Show when={parsedNotes()!.features?.length > 0}>
-                        <div data-testid="updates-features">
-                          <h4 class="text-green-400 font-semibold uppercase text-xs tracking-wide mb-1.5">
+                        <div data-testid="updates-features" class={styles.releaseNotesSection}>
+                          <h4 class={`${styles.releaseNotesSectionTitle} ${styles.sectionTitleFeatures}`}>
                             New Features
                           </h4>
-                          <ul class="space-y-1">
+                          <ul class={styles.releaseNotesList}>
                             <For each={parsedNotes()!.features}>
                               {(item) => (
-                                <li class="text-xcord-text-secondary flex gap-2">
-                                  <span class="text-green-400 flex-shrink-0">+</span>
+                                <li class={styles.releaseNotesListItem}>
+                                  <span class={styles.listIconFeature}>+</span>
                                   {item.summary}
                                 </li>
                               )}
@@ -402,15 +395,15 @@ export default function UpdatesTab() {
                       </Show>
 
                       <Show when={parsedNotes()!.fixes?.length > 0}>
-                        <div data-testid="updates-fixes">
-                          <h4 class="text-yellow-400 font-semibold uppercase text-xs tracking-wide mb-1.5">
+                        <div data-testid="updates-fixes" class={styles.releaseNotesSection}>
+                          <h4 class={`${styles.releaseNotesSectionTitle} ${styles.sectionTitleFixes}`}>
                             Bug Fixes
                           </h4>
-                          <ul class="space-y-1">
+                          <ul class={styles.releaseNotesList}>
                             <For each={parsedNotes()!.fixes}>
                               {(item) => (
-                                <li class="text-xcord-text-secondary flex gap-2">
-                                  <span class="text-yellow-400 flex-shrink-0">*</span>
+                                <li class={styles.releaseNotesListItem}>
+                                  <span class={styles.listIconFix}>*</span>
                                   {item.summary}
                                 </li>
                               )}
@@ -420,15 +413,15 @@ export default function UpdatesTab() {
                       </Show>
 
                       <Show when={parsedNotes()!.other?.length > 0}>
-                        <div data-testid="updates-other">
-                          <h4 class="text-xcord-text-muted font-semibold uppercase text-xs tracking-wide mb-1.5">
+                        <div data-testid="updates-other" class={styles.releaseNotesSection}>
+                          <h4 class={`${styles.releaseNotesSectionTitle} ${styles.sectionTitleOther}`}>
                             Other Changes
                           </h4>
-                          <ul class="space-y-1">
+                          <ul class={styles.releaseNotesList}>
                             <For each={parsedNotes()!.other}>
                               {(item) => (
-                                <li class="text-xcord-text-secondary flex gap-2">
-                                  <span class="text-xcord-text-muted flex-shrink-0 capitalize">
+                                <li class={styles.releaseNotesListItem}>
+                                  <span class={styles.listIconOther}>
                                     [{item.type}]
                                   </span>
                                   {item.summary}
@@ -440,22 +433,22 @@ export default function UpdatesTab() {
                       </Show>
 
                       <Show when={parsedNotes()!.migrationNotes}>
-                        <div data-testid="updates-migration-notes">
-                          <h4 class="text-xcord-brand font-semibold uppercase text-xs tracking-wide mb-1.5">
+                        <div data-testid="updates-migration-notes" class={styles.releaseNotesSection}>
+                          <h4 class={`${styles.releaseNotesSectionTitle} ${styles.sectionTitleMigration}`}>
                             Migration Notes
                           </h4>
-                          <p class="text-xcord-text-secondary whitespace-pre-wrap">
+                          <p class={styles.releaseNotesPreWrap}>
                             {parsedNotes()!.migrationNotes}
                           </p>
                         </div>
                       </Show>
 
                       <Show when={parsedNotes()!.knownIssues}>
-                        <div data-testid="updates-known-issues">
-                          <h4 class="text-orange-400 font-semibold uppercase text-xs tracking-wide mb-1.5">
+                        <div data-testid="updates-known-issues" class={styles.releaseNotesSection}>
+                          <h4 class={`${styles.releaseNotesSectionTitle} ${styles.sectionTitleKnownIssues}`}>
                             Known Issues
                           </h4>
-                          <p class="text-xcord-text-secondary whitespace-pre-wrap">
+                          <p class={styles.releaseNotesPreWrap}>
                             {parsedNotes()!.knownIssues}
                           </p>
                         </div>
@@ -471,7 +464,7 @@ export default function UpdatesTab() {
                           !parsedNotes()!.knownIssues
                         }
                       >
-                        <p class="text-xcord-text-muted text-sm">No release notes available for this version.</p>
+                        <p class={styles.noReleaseNotes}>No release notes available for this version.</p>
                       </Show>
                     </div>
                   </Show>
@@ -482,17 +475,17 @@ export default function UpdatesTab() {
         </Show>
 
         {/* Upgrade history */}
-        <div data-testid="updates-history-section" class="border border-xcord-border rounded-lg overflow-hidden">
+        <div data-testid="updates-history-section" class={styles.historySection}>
           <button
             data-testid="updates-history-toggle"
             type="button"
-            class="w-full flex items-center justify-between px-4 py-3 bg-xcord-bg-secondary hover:bg-xcord-bg-tertiary transition-colors text-left"
+            class={styles.historyToggleButton}
             onClick={() => setHistoryExpanded((v) => !v)}
             aria-expanded={historyExpanded()}
           >
-            <span class="text-sm font-medium text-xcord-text-primary">Upgrade History</span>
+            <span class={styles.historyToggleLabel}>Upgrade History</span>
             <span
-              class={`text-xcord-text-muted text-xs transition-transform ${historyExpanded() ? 'rotate-180' : ''}`}
+              class={`${styles.historyToggleChevron} ${historyExpanded() ? styles.historyToggleChevronExpanded : ''}`}
               aria-hidden="true"
             >
               ▼
@@ -500,41 +493,41 @@ export default function UpdatesTab() {
           </button>
 
           <Show when={historyExpanded()}>
-            <div data-testid="updates-history-list" class="divide-y divide-xcord-border/50">
+            <div data-testid="updates-history-list" class={styles.historyList}>
               <Show
                 when={versionData()!.upgradeHistory && versionData()!.upgradeHistory!.length > 0}
                 fallback={
-                  <p class="px-4 py-3 text-xcord-text-muted text-sm">No upgrade history available.</p>
+                  <p class={styles.historyEmpty}>No upgrade history available.</p>
                 }
               >
                 <For each={versionData()!.upgradeHistory!}>
                   {(entry) => (
                     <div
                       data-testid={`updates-history-entry-${entry.id}`}
-                      class="px-4 py-3 bg-xcord-bg-primary text-sm"
+                      class={styles.historyEntry}
                     >
-                      <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                          <span class={`font-semibold ${statusColor(entry.status)}`}>
+                      <div class={styles.historyEntryRow}>
+                        <div class={styles.historyEntryLeft}>
+                          <span class={statusClass(entry.status)}>
                             {entry.status}
                           </span>
                           <Show when={entry.previousVersion && entry.newVersion}>
-                            <span class="text-xcord-text-muted">
-                              v{entry.previousVersion} <span class="text-xcord-text-secondary">→</span> v{entry.newVersion}
+                            <span class={styles.historyVersions}>
+                              v{entry.previousVersion} <span class={styles.historyVersionArrow}>→</span> v{entry.newVersion}
                             </span>
                           </Show>
                           <Show when={!entry.previousVersion && entry.newVersion}>
-                            <span class="text-xcord-text-muted">v{entry.newVersion}</span>
+                            <span class={styles.historyVersions}>v{entry.newVersion}</span>
                           </Show>
                         </div>
-                        <div class="text-xcord-text-muted text-xs">
+                        <div class={styles.historyTimestamp}>
                           <Show when={entry.completedAt} fallback={<span>{formatDateTime(entry.startedAt)}</span>}>
                             <span>{formatDateTime(entry.completedAt)}</span>
                           </Show>
                         </div>
                       </div>
                       <Show when={entry.errorMessage}>
-                        <p class="mt-1 text-red-400 text-xs">{entry.errorMessage}</p>
+                        <p class={styles.historyErrorMessage}>{entry.errorMessage}</p>
                       </Show>
                     </div>
                   )}

@@ -41,6 +41,9 @@ public sealed class ServerMemberConfiguration : IEntityTypeConfiguration<ServerM
         builder.Property(sm => sm.JoinedAt)
             .IsRequired();
 
+        // FavoriteChannelIds (native bigint[] array)
+        builder.Property(sm => sm.FavoriteChannelIds);
+
         // Soft delete (DeletedAt, implements ISoftDeletable)
         builder.Property(sm => sm.DeletedAt);
 

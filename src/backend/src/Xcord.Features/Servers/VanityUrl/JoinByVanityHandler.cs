@@ -47,7 +47,7 @@ public sealed class JoinByVanityHandler(
             // Skip any that already exist (e.g. user rejoining after a ban).
             var channelConversationIds = await dbContext.Channels
                 .AsNoTracking()
-                .Where(c => c.ServerId == server.Id && c.Type != ChannelType.Voice)
+                .Where(c => c.ServerId == server.Id && c.Capabilities.HasFlag(ChannelCapability.Chat))
                 .Select(c => c.ConversationId)
                 .ToListAsync(ct);
 

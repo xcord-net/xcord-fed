@@ -1,4 +1,5 @@
 import { For, createSignal } from 'solid-js';
+import styles from './MarkdownRenderer.module.css';
 
 interface MarkdownRendererProps {
   content: string;
@@ -214,11 +215,10 @@ function SpoilerSpan(props: { value: string }) {
   const [revealed, setRevealed] = createSignal(false);
   return (
     <span
-      class={`rounded px-1 cursor-pointer ${
-        revealed()
-          ? 'bg-xcord-bg-tertiary text-xcord-text-primary'
-          : 'bg-xcord-bg-tertiary text-transparent hover:text-xcord-text-primary'
-      }`}
+      classList={{
+        [styles.spoilerRevealed]: revealed(),
+        [styles.spoiler]: !revealed(),
+      }}
       onClick={() => setRevealed(true)}
     >
       {props.value}
@@ -236,21 +236,21 @@ function renderToken(token: RenderedToken) {
       return <s>{token.value}</s>;
     case 'code_inline':
       return (
-        <code class="bg-xcord-bg-tertiary px-1 py-0.5 rounded text-sm font-mono">
+        <code class={styles.codeInline}>
           {token.value}
         </code>
       );
     case 'code_block':
       return (
         <pre>
-          <code class="bg-xcord-bg-tertiary p-3 rounded text-sm font-mono block my-1 overflow-x-auto">
+          <code class={styles.codeBlock}>
             {token.value}
           </code>
         </pre>
       );
     case 'blockquote':
       return (
-        <blockquote class="border-l-4 border-xcord-text-muted pl-3 text-xcord-text-secondary">
+        <blockquote class={styles.blockquote}>
           {token.value}
         </blockquote>
       );
@@ -262,32 +262,32 @@ function renderToken(token: RenderedToken) {
           href={token.value}
           target="_blank"
           rel="noopener noreferrer"
-          class="text-blue-400 hover:underline"
+          class={styles.link}
         >
           {token.value}
         </a>
       );
     case 'mention_user':
       return (
-        <span class="bg-blue-500/20 text-blue-400 rounded px-0.5">
+        <span class={styles.mentionUser}>
           @{token.value}
         </span>
       );
     case 'mention_group':
       return (
-        <span class="bg-blue-500/20 text-blue-400 rounded px-0.5">
+        <span class={styles.mentionGroup}>
           @{token.value}
         </span>
       );
     case 'mention_everyone':
       return (
-        <span class="bg-yellow-500/20 text-yellow-400 rounded px-0.5">
+        <span class={styles.mentionEveryone}>
           @everyone
         </span>
       );
     case 'mention_here':
       return (
-        <span class="bg-yellow-500/20 text-yellow-400 rounded px-0.5">
+        <span class={styles.mentionHere}>
           @here
         </span>
       );
@@ -303,7 +303,7 @@ export default function MarkdownRenderer(props: MarkdownRendererProps) {
   const tokens = () => parseMarkdown(props.content ?? '');
 
   return (
-    <span class="break-words">
+    <span class={styles.content}>
       <For each={tokens()}>
         {(token) => renderToken(token)}
       </For>

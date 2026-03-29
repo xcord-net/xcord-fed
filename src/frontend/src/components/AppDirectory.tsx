@@ -1,5 +1,6 @@
 import { For, Show, createSignal, createEffect } from 'solid-js';
 import { api } from '../api/client';
+import styles from './AppDirectory.module.css';
 
 // ---- Types ----
 
@@ -170,57 +171,57 @@ export default function AppDirectory(props: AppDirectoryProps) {
   };
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
+    <div class={styles.container}>
       {/* Header */}
-      <div class="px-4 py-3 border-b border-xcord-bg-primary flex-shrink-0">
-        <h2 class="text-xcord-text-primary font-semibold text-lg mb-1">App Directory</h2>
-        <p class="text-xcord-text-muted text-xs">Discover bots to add to your server</p>
+      <div class={styles.header}>
+        <h2 class={styles.headerTitle}>App Directory</h2>
+        <p class={styles.headerSubtitle}>Discover bots to add to your server</p>
       </div>
 
       {/* Bot detail view */}
       <Show when={selectedBot()}>
         {(bot) => (
-          <div class="flex-1 overflow-y-auto p-4 space-y-4">
+          <div class={styles.detailArea}>
             {/* Back */}
             <button
-              class="text-xcord-brand hover:underline text-sm flex items-center gap-1"
+              class={styles.backBtn}
               onClick={handleBackToList}
             >
               &larr; Back to directory
             </button>
 
             {/* Bot header */}
-            <div class="flex items-start gap-4">
+            <div class={styles.botHeader}>
               <Show when={bot().avatarUrl}>
                 <img
                   src={bot().avatarUrl}
                   alt={`${bot().name} avatar`}
-                  class="w-16 h-16 rounded-full bg-xcord-bg-primary flex-shrink-0"
+                  class={styles.botAvatarImg}
                 />
               </Show>
               <Show when={!bot().avatarUrl}>
-                <div class="w-16 h-16 rounded-full bg-xcord-bg-primary flex-shrink-0 flex items-center justify-center text-2xl text-xcord-text-muted">
+                <div class={styles.botAvatarPlaceholder}>
                   {bot().name.charAt(0).toUpperCase()}
                 </div>
               </Show>
 
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <h3 class="text-xcord-text-primary font-bold text-xl">{bot().name}</h3>
+              <div class={styles.botHeaderInfo}>
+                <div class={styles.botNameRow}>
+                  <h3 class={styles.botDetailName}>{bot().name}</h3>
                   <Show when={bot().isVerified}>
                     <span
-                      class="bg-xcord-brand/20 text-xcord-brand text-xs px-2 py-0.5 rounded-full"
+                      class={styles.verifiedBadge}
                       title="Verified bot"
                     >
                       Verified
                     </span>
                   </Show>
-                  <span class="bg-xcord-bg-primary text-xcord-text-muted text-xs px-2 py-0.5 rounded-full">
+                  <span class={styles.categoryBadge}>
                     {bot().category}
                   </span>
                 </div>
-                <p class="text-xcord-text-muted text-sm mt-0.5">by {bot().developerName}</p>
-                <p class="text-xcord-text-muted text-xs mt-0.5">
+                <p class={styles.botDeveloper}>by {bot().developerName}</p>
+                <p class={styles.botInstallCount}>
                   {formatInstallCount(bot().installCount)} installs
                 </p>
               </div>
@@ -228,16 +229,16 @@ export default function AppDirectory(props: AppDirectoryProps) {
 
             {/* Description */}
             <div>
-              <h4 class="text-xcord-text-primary font-semibold text-sm mb-1">About</h4>
-              <p class="text-xcord-text-secondary text-sm leading-relaxed">{bot().description}</p>
+              <h4 class={styles.sectionHeading}>About</h4>
+              <p class={styles.botDescription}>{bot().description}</p>
             </div>
 
             {/* Tags */}
             <Show when={bot().tags.length > 0}>
-              <div class="flex flex-wrap gap-1.5">
+              <div class={styles.tagList}>
                 <For each={bot().tags}>
                   {(tag) => (
-                    <span class="bg-xcord-bg-primary text-xcord-text-muted text-xs px-2 py-0.5 rounded">
+                    <span class={styles.tag}>
                       {tag}
                     </span>
                   )}
@@ -248,14 +249,14 @@ export default function AppDirectory(props: AppDirectoryProps) {
             {/* Permissions */}
             <Show when={bot().permissions.length > 0}>
               <div>
-                <h4 class="text-xcord-text-primary font-semibold text-sm mb-1">
+                <h4 class={styles.sectionHeading}>
                   Required Permissions
                 </h4>
-                <ul class="space-y-1">
+                <ul class={styles.permissionList}>
                   <For each={bot().permissions}>
                     {(perm) => (
-                      <li class="text-xcord-text-muted text-xs flex items-center gap-1.5">
-                        <span class="w-1 h-1 rounded-full bg-xcord-brand flex-shrink-0" />
+                      <li class={styles.permissionItem}>
+                        <span class={styles.permissionDot} />
                         {perm}
                       </li>
                     )}
@@ -265,22 +266,22 @@ export default function AppDirectory(props: AppDirectoryProps) {
             </Show>
 
             {/* Add to server */}
-            <div class="bg-xcord-bg-primary rounded-lg p-4 space-y-3">
-              <h4 class="text-xcord-text-primary font-semibold text-sm">Add to Server</h4>
+            <div class={styles.addToServerBox}>
+              <h4 class={styles.sectionHeading}>Add to Server</h4>
 
               <Show when={props.availableServerIds.length === 0}>
-                <p class="text-xcord-text-muted text-sm">
+                <p class={styles.noAdminText}>
                   You need to be an admin of at least one server to add bots.
                 </p>
               </Show>
 
               <Show when={props.availableServerIds.length > 0}>
                 <div>
-                  <label class="block text-xcord-text-muted text-xs font-medium mb-1">
+                  <label class={styles.selectLabel}>
                     Select Server
                   </label>
                   <select
-                    class="w-full bg-xcord-bg-secondary text-xcord-text-primary text-sm rounded px-3 py-2 outline-none focus:ring-1 focus:ring-xcord-brand"
+                    class={styles.serverSelect}
                     value={installTargetServerId()}
                     onChange={(e) => {
                       setInstallTargetServerId(e.currentTarget.value);
@@ -297,15 +298,15 @@ export default function AppDirectory(props: AppDirectoryProps) {
                 </div>
 
                 <Show when={installError()}>
-                  <p class="text-red-400 text-xs">{installError()}</p>
+                  <p class={styles.installError}>{installError()}</p>
                 </Show>
 
                 <Show when={installSuccess()}>
-                  <p class="text-green-400 text-xs">{installSuccess()}</p>
+                  <p class={styles.installSuccess}>{installSuccess()}</p>
                 </Show>
 
                 <button
-                  class="w-full px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  class={styles.installBtn}
                   disabled={installing() || !installTargetServerId()}
                   onClick={handleInstall}
                   aria-label={`Add ${bot().name} to server`}
@@ -321,11 +322,11 @@ export default function AppDirectory(props: AppDirectoryProps) {
       {/* Bot list view */}
       <Show when={!selectedBot()}>
         {/* Search + filter bar */}
-        <div class="px-4 py-3 border-b border-xcord-bg-primary space-y-2 flex-shrink-0">
+        <div class={styles.filterBar}>
           <input
             id="app-directory-search"
             type="search"
-            class="w-full bg-xcord-bg-primary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
+            class={styles.searchInput}
             placeholder="Search bots..."
             value={searchQuery()}
             onInput={(e) => setSearchQuery(e.currentTarget.value)}
@@ -333,13 +334,9 @@ export default function AppDirectory(props: AppDirectoryProps) {
           />
 
           {/* Category filter */}
-          <div class="flex gap-1.5 overflow-x-auto pb-0.5">
+          <div class={styles.categoryBar}>
             <button
-              class={`flex-shrink-0 px-3 py-1 rounded-full text-xs transition-colors ${
-                selectedCategory() === ''
-                  ? 'bg-xcord-brand text-white'
-                  : 'bg-xcord-bg-primary text-xcord-text-muted hover:text-xcord-text-primary'
-              }`}
+              class={selectedCategory() === '' ? `${styles.categoryBtn} ${styles.categoryBtnActive}` : styles.categoryBtn}
               onClick={() => setSelectedCategory('')}
             >
               All
@@ -347,11 +344,7 @@ export default function AppDirectory(props: AppDirectoryProps) {
             <For each={ALL_CATEGORIES}>
               {(cat) => (
                 <button
-                  class={`flex-shrink-0 px-3 py-1 rounded-full text-xs transition-colors ${
-                    selectedCategory() === cat
-                      ? 'bg-xcord-brand text-white'
-                      : 'bg-xcord-bg-primary text-xcord-text-muted hover:text-xcord-text-primary'
-                  }`}
+                  class={selectedCategory() === cat ? `${styles.categoryBtn} ${styles.categoryBtnActive}` : styles.categoryBtn}
                   onClick={() => setSelectedCategory(cat)}
                 >
                   {cat}
@@ -363,19 +356,19 @@ export default function AppDirectory(props: AppDirectoryProps) {
 
         {/* Loading */}
         <Show when={isLoading()}>
-          <div class="flex items-center justify-center flex-1">
-            <div class="w-5 h-5 border-2 border-xcord-text-muted border-t-transparent rounded-full animate-spin" />
+          <div class={styles.loadingCenter}>
+            <div class={styles.spinner} />
           </div>
         </Show>
 
         {/* Empty state */}
         <Show when={!isLoading() && displayedBots().length === 0}>
-          <div id="app-directory-empty" class="flex flex-col items-center justify-center flex-1 space-y-3">
-            <div class="text-4xl text-xcord-text-muted">🤖</div>
-            <p class="text-xcord-text-muted text-sm">No bots found</p>
+          <div id="app-directory-empty" class={styles.emptyState}>
+            <div class={styles.emptyIcon}>🤖</div>
+            <p class={styles.emptyText}>No bots found</p>
             <Show when={searchQuery() || selectedCategory()}>
               <button
-                class="text-xcord-brand hover:underline text-sm"
+                class={styles.clearFiltersBtn}
                 onClick={() => {
                   setSearchQuery('');
                   setSelectedCategory('');
@@ -389,12 +382,12 @@ export default function AppDirectory(props: AppDirectoryProps) {
 
         {/* Bot grid */}
         <Show when={!isLoading() && displayedBots().length > 0}>
-          <div class="flex-1 overflow-y-auto p-4">
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div class={styles.gridArea}>
+            <div class={styles.botGrid}>
               <For each={displayedBots()}>
                 {(bot) => (
                   <div
-                    class="bg-xcord-bg-primary rounded-lg p-4 flex gap-3 cursor-pointer hover:bg-xcord-bg-tertiary transition-colors"
+                    class={styles.botCard}
                     onClick={() => handleSelectBot(bot)}
                     role="button"
                     tabIndex={0}
@@ -406,34 +399,34 @@ export default function AppDirectory(props: AppDirectoryProps) {
                       <img
                         src={bot.avatarUrl}
                         alt={`${bot.name} avatar`}
-                        class="w-12 h-12 rounded-full flex-shrink-0"
+                        class={styles.botCardAvatarImg}
                       />
                     </Show>
                     <Show when={!bot.avatarUrl}>
-                      <div class="w-12 h-12 rounded-full bg-xcord-bg-secondary flex-shrink-0 flex items-center justify-center text-lg text-xcord-text-muted">
+                      <div class={styles.botCardAvatarPlaceholder}>
                         {bot.name.charAt(0).toUpperCase()}
                       </div>
                     </Show>
 
                     {/* Info */}
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="text-xcord-text-primary font-semibold text-sm truncate">
+                    <div class={styles.botCardInfo}>
+                      <div class={styles.botCardNameRow}>
+                        <span class={styles.botCardName}>
                           {bot.name}
                         </span>
                         <Show when={bot.isVerified}>
-                          <span class="text-xcord-brand text-xs">&#10003;</span>
+                          <span class={styles.verifiedCheck}>&#10003;</span>
                         </Show>
                       </div>
-                      <p class="text-xcord-text-muted text-xs mt-0.5 line-clamp-2">
+                      <p class={styles.botCardDesc}>
                         {bot.shortDescription}
                       </p>
-                      <div class="flex items-center gap-2 mt-1.5">
-                        <span class="text-xcord-text-muted text-xs">
+                      <div class={styles.botCardMeta}>
+                        <span class={styles.botCardMetaText}>
                           {formatInstallCount(bot.installCount)} installs
                         </span>
-                        <span class="text-xcord-text-muted text-xs">·</span>
-                        <span class="text-xcord-text-muted text-xs">{bot.category}</span>
+                        <span class={styles.botCardMetaText}>·</span>
+                        <span class={styles.botCardMetaText}>{bot.category}</span>
                       </div>
                     </div>
                   </div>

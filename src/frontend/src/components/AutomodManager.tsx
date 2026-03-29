@@ -1,6 +1,7 @@
 import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
+import styles from './AutomodManager.module.css';
 
 // -- Types ------------------------------------------------------------------
 
@@ -135,26 +136,23 @@ function TriggerConfigEditor(props: TriggerConfigEditorProps) {
     setField(field, arr);
   }
 
-  const inputClass =
-    'w-full bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-1.5 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand';
-
   return (
-    <div class="space-y-2">
+    <div class={styles.configEditorSpace}>
       <Show when={props.triggerType === 'Keyword'}>
         <div>
-          <label class="block text-xs text-xcord-text-muted mb-1">
+          <label class={styles.fieldLabel}>
             Keywords (comma-separated)
           </label>
           <input
             type="text"
             aria-label="Keywords"
-            class={inputClass}
+            class={styles.input}
             value={getField('keywords')}
             onInput={(e) => setArrayField('keywords', e.currentTarget.value)}
             placeholder="badword, spam, etc."
           />
         </div>
-        <label class="flex items-center gap-2 text-sm text-xcord-text-primary cursor-pointer">
+        <label class={styles.checkboxLabel}>
           <input
             type="checkbox"
             aria-label="Match whole word only"
@@ -167,17 +165,17 @@ function TriggerConfigEditor(props: TriggerConfigEditorProps) {
 
       <Show when={props.triggerType === 'Regex'}>
         <div>
-          <label class="block text-xs text-xcord-text-muted mb-1">Pattern</label>
+          <label class={styles.fieldLabel}>Pattern</label>
           <input
             type="text"
             aria-label="Regex pattern"
-            class={inputClass}
+            class={styles.input}
             value={getField('pattern')}
             onInput={(e) => setField('pattern', e.currentTarget.value)}
             placeholder="e.g. (buy|sell)\s+crypto"
           />
         </div>
-        <label class="flex items-center gap-2 text-sm text-xcord-text-primary cursor-pointer">
+        <label class={styles.checkboxLabel}>
           <input
             type="checkbox"
             aria-label="Case sensitive"
@@ -190,13 +188,13 @@ function TriggerConfigEditor(props: TriggerConfigEditorProps) {
 
       <Show when={props.triggerType === 'MentionSpam'}>
         <div>
-          <label class="block text-xs text-xcord-text-muted mb-1">
+          <label class={styles.fieldLabel}>
             Max mentions per message
           </label>
           <input
             type="number"
             aria-label="Max mentions"
-            class={inputClass}
+            class={styles.input}
             value={getField('maxMentions')}
             min="1"
             onInput={(e) => setField('maxMentions', parseInt(e.currentTarget.value, 10) || 5)}
@@ -206,26 +204,26 @@ function TriggerConfigEditor(props: TriggerConfigEditorProps) {
 
       <Show when={props.triggerType === 'MessageSpam'}>
         <div>
-          <label class="block text-xs text-xcord-text-muted mb-1">
+          <label class={styles.fieldLabel}>
             Max messages
           </label>
           <input
             type="number"
             aria-label="Max messages"
-            class={inputClass}
+            class={styles.input}
             value={getField('maxMessages')}
             min="1"
             onInput={(e) => setField('maxMessages', parseInt(e.currentTarget.value, 10) || 5)}
           />
         </div>
         <div>
-          <label class="block text-xs text-xcord-text-muted mb-1">
+          <label class={styles.fieldLabel}>
             Interval (seconds)
           </label>
           <input
             type="number"
             aria-label="Interval seconds"
-            class={inputClass}
+            class={styles.input}
             value={getField('intervalSeconds')}
             min="1"
             onInput={(e) => setField('intervalSeconds', parseInt(e.currentTarget.value, 10) || 10)}
@@ -235,26 +233,26 @@ function TriggerConfigEditor(props: TriggerConfigEditorProps) {
 
       <Show when={props.triggerType === 'LinkFilter'}>
         <div>
-          <label class="block text-xs text-xcord-text-muted mb-1">
+          <label class={styles.fieldLabel}>
             Blocked domains (comma-separated)
           </label>
           <input
             type="text"
             aria-label="Blocked domains"
-            class={inputClass}
+            class={styles.input}
             value={getField('blockedDomains')}
             onInput={(e) => setArrayField('blockedDomains', e.currentTarget.value)}
             placeholder="spam.com, phishing.net"
           />
         </div>
         <div>
-          <label class="block text-xs text-xcord-text-muted mb-1">
+          <label class={styles.fieldLabel}>
             Allowed domains only (comma-separated, leave empty for blocklist mode)
           </label>
           <input
             type="text"
             aria-label="Allowed domains"
-            class={inputClass}
+            class={styles.input}
             value={getField('allowedDomains')}
             onInput={(e) => setArrayField('allowedDomains', e.currentTarget.value)}
             placeholder="example.com, trusted.org"
@@ -408,21 +406,15 @@ export default function AutomodManager(props: AutomodManagerProps) {
     loadRules();
   });
 
-  const selectClass =
-    'bg-xcord-bg-primary text-xcord-text-primary rounded px-2 py-1.5 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand';
-
-  const inputClass =
-    'w-full bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-1.5 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand';
-
   return (
-    <div class="flex flex-col h-full">
+    <div class={styles.container}>
       {/* Header */}
-      <div class="px-4 py-3 border-b border-xcord-border flex items-center justify-between">
-        <h2 class="text-white font-semibold">Automod Rules</h2>
+      <div class={styles.header}>
+        <h2 class={styles.headerTitle}>Automod Rules</h2>
         <button
           type="button"
           aria-label="Create automod rule"
-          class="px-3 py-1.5 bg-xcord-brand hover:bg-xcord-brand-hover text-white text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+          class={styles.addButton}
           onClick={() => {
             setShowCreate(true);
             setError(null);
@@ -434,12 +426,12 @@ export default function AutomodManager(props: AutomodManagerProps) {
 
       {/* Status messages */}
       <Show when={error()}>
-        <div role="alert" class="mx-4 mt-3 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">
+        <div role="alert" class={styles.errorBanner}>
           {error()}
         </div>
       </Show>
       <Show when={successMsg()}>
-        <div role="status" class="mx-4 mt-3 px-4 py-2 bg-green-500/20 border border-green-500/30 rounded text-green-400 text-sm">
+        <div role="status" class={styles.successBanner}>
           {successMsg()}
         </div>
       </Show>
@@ -449,34 +441,34 @@ export default function AutomodManager(props: AutomodManagerProps) {
         <form
           onSubmit={handleCreate}
           aria-label="Create automod rule"
-          class="mx-4 mt-3 mb-1 p-4 bg-xcord-bg-tertiary rounded border border-xcord-border space-y-3"
+          class={styles.createForm}
         >
-          <h3 class="text-white font-medium text-sm">New Automod Rule</h3>
+          <h3 class={styles.formTitle}>New Automod Rule</h3>
 
           <div>
-            <label for="automod-rule-name" class="block text-xs text-xcord-text-muted mb-1">
-              Rule Name <span class="text-red-400">*</span>
+            <label for="automod-rule-name" class={styles.fieldLabel}>
+              Rule Name <span class={styles.requiredMark}>*</span>
             </label>
             <input
               id="automod-rule-name"
               type="text"
               required
               maxlength="100"
-              class={inputClass}
+              class={styles.input}
               value={createName()}
               onInput={(e) => setCreateName(e.currentTarget.value)}
               placeholder="e.g. Block Profanity"
             />
           </div>
 
-          <div class="grid grid-cols-2 gap-3">
+          <div class={styles.twoColGrid}>
             <div>
-              <label for="automod-trigger-type" class="block text-xs text-xcord-text-muted mb-1">
+              <label for="automod-trigger-type" class={styles.fieldLabel}>
                 Trigger Type
               </label>
               <select
                 id="automod-trigger-type"
-                class={selectClass + ' w-full'}
+                class={`${styles.select} ${styles.selectFull}`}
                 value={createTriggerType()}
                 onChange={(e) => {
                   const t = e.currentTarget.value as TriggerType;
@@ -491,12 +483,12 @@ export default function AutomodManager(props: AutomodManagerProps) {
             </div>
 
             <div>
-              <label for="automod-action-type" class="block text-xs text-xcord-text-muted mb-1">
+              <label for="automod-action-type" class={styles.fieldLabel}>
                 Action
               </label>
               <select
                 id="automod-action-type"
-                class={selectClass + ' w-full'}
+                class={`${styles.select} ${styles.selectFull}`}
                 value={createActionType()}
                 onChange={(e) => setCreateActionType(e.currentTarget.value as ActionType)}
               >
@@ -514,7 +506,7 @@ export default function AutomodManager(props: AutomodManagerProps) {
             onUpdate={setCreateTriggerConfig}
           />
 
-          <label class="flex items-center gap-2 text-sm text-xcord-text-primary cursor-pointer">
+          <label class={styles.checkboxLabel}>
             <input
               type="checkbox"
               aria-label="Rule enabled"
@@ -524,10 +516,10 @@ export default function AutomodManager(props: AutomodManagerProps) {
             Enable rule immediately
           </label>
 
-          <div class="flex gap-2 justify-end">
+          <div class={styles.formActions}>
             <button
               type="button"
-              class="px-3 py-1.5 text-sm text-xcord-text-muted hover:text-white rounded transition-colors"
+              class={styles.cancelButton}
               onClick={() => {
                 setShowCreate(false);
                 setError(null);
@@ -538,7 +530,7 @@ export default function AutomodManager(props: AutomodManagerProps) {
             <button
               type="submit"
               disabled={isCreating()}
-              class="px-4 py-1.5 bg-xcord-brand hover:bg-xcord-brand-hover text-white text-sm font-medium rounded transition-colors disabled:opacity-50"
+              class={styles.submitButton}
             >
               {isCreating() ? 'Creating...' : 'Create Rule'}
             </button>
@@ -547,55 +539,51 @@ export default function AutomodManager(props: AutomodManagerProps) {
       </Show>
 
       {/* Rules list */}
-      <div class="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+      <div class={styles.ruleList}>
         <Show when={isLoading()}>
-          <p class="text-xcord-text-muted text-sm">Loading automod rules...</p>
+          <p class={styles.loadingText}>Loading automod rules...</p>
         </Show>
 
         <Show when={!isLoading() && rules().length === 0}>
-          <div class="text-center py-8 text-xcord-text-muted">
-            <p class="font-semibold">No automod rules</p>
-            <p class="text-sm mt-1">Click &ldquo;+ Add Rule&rdquo; to create your first rule.</p>
+          <div class={styles.emptyState}>
+            <p class={styles.emptyTitle}>No automod rules</p>
+            <p class={styles.emptySubtitle}>Click &ldquo;+ Add Rule&rdquo; to create your first rule.</p>
           </div>
         </Show>
 
         <For each={rules()}>
           {(rule) => (
             <div
-              class="bg-xcord-bg-tertiary rounded border border-xcord-border p-3"
+              class={styles.ruleCard}
               aria-label={`Automod rule: ${rule.name}`}
             >
               <Show
                 when={editingRuleId() === rule.id}
                 fallback={
                   /* Rule display row */
-                  <div class="flex items-start justify-between gap-2">
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2">
-                        <span class="text-white font-medium text-sm">{rule.name}</span>
+                  <div class={styles.ruleRow}>
+                    <div class={styles.ruleInfo}>
+                      <div class={styles.ruleNameRow}>
+                        <span class={styles.ruleName}>{rule.name}</span>
                         <span
-                          class={`text-xs px-1.5 py-0.5 rounded ${
-                            rule.enabled
-                              ? 'bg-green-500/20 text-green-400'
-                              : 'bg-xcord-bg-primary text-xcord-text-muted'
-                          }`}
+                          class={rule.enabled ? styles.statusBadgeEnabled : styles.statusBadgeDisabled}
                         >
                           {rule.enabled ? 'Enabled' : 'Disabled'}
                         </span>
                       </div>
-                      <p class="text-xs text-xcord-text-muted mt-0.5">
+                      <p class={styles.ruleMeta}>
                         {TRIGGER_LABELS[rule.triggerType]} &rarr; {ACTION_LABELS[rule.actionType]}
                       </p>
-                      <p class="text-xs text-xcord-text-muted truncate">
+                      <p class={styles.ruleConfig}>
                         {triggerConfigSummary(rule.triggerType, rule.triggerConfig)}
                       </p>
                     </div>
 
-                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                    <div class={styles.ruleActions}>
                       <button
                         type="button"
                         aria-label={`Edit rule ${rule.name}`}
-                        class="px-2.5 py-1 text-xs bg-xcord-bg-primary hover:bg-xcord-bg-secondary text-xcord-text-muted hover:text-white rounded transition-colors"
+                        class={styles.editButton}
                         onClick={() => startEdit(rule)}
                       >
                         Edit
@@ -607,18 +595,18 @@ export default function AutomodManager(props: AutomodManagerProps) {
                           <button
                             type="button"
                             aria-label={`Delete rule ${rule.name}`}
-                            class="px-2.5 py-1 text-xs bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded transition-colors"
+                            class={styles.deleteButton}
                             onClick={() => setConfirmDeleteId(rule.id)}
                           >
                             Delete
                           </button>
                         }
                       >
-                        <span class="text-xs text-xcord-text-muted">Delete?</span>
+                        <span class={styles.deleteConfirmText}>Delete?</span>
                         <button
                           type="button"
                           aria-label="Cancel delete"
-                          class="px-2 py-1 text-xs bg-xcord-bg-primary text-xcord-text-muted rounded"
+                          class={styles.deleteNoButton}
                           onClick={() => setConfirmDeleteId(null)}
                         >
                           No
@@ -626,7 +614,7 @@ export default function AutomodManager(props: AutomodManagerProps) {
                         <button
                           type="button"
                           aria-label="Confirm delete"
-                          class="px-2 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+                          class={styles.deleteYesButton}
                           onClick={() => handleDelete(rule.id)}
                         >
                           Yes
@@ -637,29 +625,29 @@ export default function AutomodManager(props: AutomodManagerProps) {
                 }
               >
                 {/* Edit form (inline) */}
-                <form onSubmit={handleSaveEdit} class="space-y-3" aria-label={`Edit rule ${rule.name}`}>
-                  <h3 class="text-white font-medium text-sm">Edit Rule</h3>
+                <form onSubmit={handleSaveEdit} class={styles.editForm} aria-label={`Edit rule ${rule.name}`}>
+                  <h3 class={styles.editFormTitle}>Edit Rule</h3>
 
                   <div>
-                    <label class="block text-xs text-xcord-text-muted mb-1">
-                      Rule Name <span class="text-red-400">*</span>
+                    <label class={styles.fieldLabel}>
+                      Rule Name <span class={styles.requiredMark}>*</span>
                     </label>
                     <input
                       type="text"
                       required
                       maxlength="100"
-                      class={inputClass}
+                      class={styles.input}
                       aria-label="Edit rule name"
                       value={editName()}
                       onInput={(e) => setEditName(e.currentTarget.value)}
                     />
                   </div>
 
-                  <div class="grid grid-cols-2 gap-3">
+                  <div class={styles.twoColGrid}>
                     <div>
-                      <label class="block text-xs text-xcord-text-muted mb-1">Trigger Type</label>
+                      <label class={styles.fieldLabel}>Trigger Type</label>
                       <select
-                        class={selectClass + ' w-full'}
+                        class={`${styles.select} ${styles.selectFull}`}
                         aria-label="Edit trigger type"
                         value={editTriggerType()}
                         onChange={(e) => {
@@ -674,9 +662,9 @@ export default function AutomodManager(props: AutomodManagerProps) {
                       </select>
                     </div>
                     <div>
-                      <label class="block text-xs text-xcord-text-muted mb-1">Action</label>
+                      <label class={styles.fieldLabel}>Action</label>
                       <select
-                        class={selectClass + ' w-full'}
+                        class={`${styles.select} ${styles.selectFull}`}
                         aria-label="Edit action type"
                         value={editActionType()}
                         onChange={(e) => setEditActionType(e.currentTarget.value as ActionType)}
@@ -694,7 +682,7 @@ export default function AutomodManager(props: AutomodManagerProps) {
                     onUpdate={setEditTriggerConfig}
                   />
 
-                  <label class="flex items-center gap-2 text-sm text-xcord-text-primary cursor-pointer">
+                  <label class={styles.checkboxLabel}>
                     <input
                       type="checkbox"
                       aria-label="Edit rule enabled"
@@ -704,10 +692,10 @@ export default function AutomodManager(props: AutomodManagerProps) {
                     Enable rule
                   </label>
 
-                  <div class="flex gap-2 justify-end">
+                  <div class={styles.formActions}>
                     <button
                       type="button"
-                      class="px-3 py-1.5 text-sm text-xcord-text-muted hover:text-white rounded transition-colors"
+                      class={styles.cancelButton}
                       onClick={cancelEdit}
                     >
                       Cancel
@@ -715,7 +703,7 @@ export default function AutomodManager(props: AutomodManagerProps) {
                     <button
                       type="submit"
                       disabled={isSavingEdit()}
-                      class="px-4 py-1.5 bg-xcord-brand hover:bg-xcord-brand-hover text-white text-sm font-medium rounded transition-colors disabled:opacity-50"
+                      class={styles.submitButton}
                     >
                       {isSavingEdit() ? 'Saving...' : 'Save Changes'}
                     </button>

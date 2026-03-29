@@ -1,0 +1,38 @@
+.dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  border-radius: 9999px;
+  border: 2px solid var(--color-xcord-bg-secondary);
+}
+
+.sizeSm {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+.sizeMd {
+  width: 0.625rem;
+  height: 0.625rem;
+}
+
+.sizeLg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.statusOnline {
+  background-color: var(--color-xcord-status-online);
+}
+
+.statusIdle {
+  background-color: var(--color-xcord-status-idle);
+}
+
+.statusDnd {
+  background-color: var(--color-xcord-status-dnd);
+}
+
+.statusOffline {
+  background-color: var(--color-xcord-status-offline);
+}

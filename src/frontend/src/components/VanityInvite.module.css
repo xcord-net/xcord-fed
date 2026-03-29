@@ -1,0 +1,232 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-xcord-bg-secondary);
+  border-radius: 0.5rem;
+}
+
+.header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerTitle {
+  color: var(--color-xcord-text-primary);
+  font-weight: 600;
+}
+
+.editLink {
+  color: var(--color-xcord-brand);
+  font-size: 0.875rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.editLink:hover {
+  text-decoration: underline;
+}
+
+.body {
+  padding: 1rem;
+}
+
+.body > * + * {
+  margin-top: 1rem;
+}
+
+.spinnerWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 4rem;
+}
+
+.spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--color-xcord-text-muted);
+  border-top-color: transparent;
+  border-radius: 9999px;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.successBanner {
+  background-color: rgba(22, 163, 74, 0.2);
+  color: #4ade80;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+}
+
+.currentUrlSection > * + * {
+  margin-top: 0.5rem;
+}
+
+.currentUrlLabel {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.currentUrlRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--color-xcord-bg-tertiary);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.currentUrlValue {
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+  flex: 1;
+  font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.copyButton {
+  flex-shrink: 0;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: var(--color-xcord-bg-secondary);
+  color: var(--color-xcord-text-muted);
+  border: none;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.copyButton:hover {
+  color: var(--color-xcord-text-primary);
+}
+
+.noVanityText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.setNowButton {
+  color: var(--color-xcord-brand);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.setNowButton:hover {
+  text-decoration: underline;
+}
+
+.editForm > * + * {
+  margin-top: 0.75rem;
+}
+
+.fieldLabel {
+  display: block;
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.slugInputRow {
+  display: flex;
+  align-items: center;
+  background-color: var(--color-xcord-bg-tertiary);
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.slugPrefix {
+  padding: 0.5rem 0.75rem;
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+  user-select: none;
+}
+
+.slugInput {
+  flex: 1;
+  background: transparent;
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  padding-right: 0.75rem;
+  border: none;
+  outline: none;
+}
+
+.slugHint {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.validationError {
+  color: #f87171;
+  font-size: 0.75rem;
+}
+
+.submitError {
+  color: #f87171;
+  font-size: 0.75rem;
+}
+
+.editActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.saveButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-brand);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.saveButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.saveButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.cancelButton:hover {
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+}

@@ -1,0 +1,158 @@
+/* VoicePanel */
+
+.panel {
+  background-color: var(--color-xcord-bg-tertiary);
+  border-top: 1px solid var(--color-xcord-border);
+  padding: 0.75rem 1rem;
+}
+
+.channelInfo {
+  margin-bottom: 0.5rem;
+}
+
+.voiceLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4ade80;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.channelName {
+  font-size: 0.875rem;
+  color: white;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.connectionStatus {
+  font-size: 0.75rem;
+  margin-top: 0.125rem;
+}
+
+.connectionStatusConnected {
+  color: #4ade80;
+}
+
+.connectionStatusConnecting {
+  color: #facc15;
+}
+
+/* Screen share indicator */
+.screenShareBadge {
+  margin-bottom: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.25rem;
+  background-color: color-mix(in srgb, var(--color-xcord-brand) 20%, transparent);
+  color: var(--color-xcord-brand);
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.screenShareIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+}
+
+.screenShareText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Controls row */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Base voice button */
+.voiceButton {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.voiceButtonMuteActive {
+  flex: 1;
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.voiceButtonMuteActive:hover {
+  background-color: rgba(239, 68, 68, 0.3);
+}
+
+.voiceButtonMuteInactive {
+  flex: 1;
+  background-color: var(--color-xcord-bg-secondary);
+  color: var(--color-xcord-text-primary);
+}
+
+.voiceButtonMuteInactive:hover {
+  background-color: var(--color-xcord-bg-primary);
+}
+
+.voiceButtonShareActive {
+  background-color: color-mix(in srgb, var(--color-xcord-brand) 20%, transparent);
+  color: var(--color-xcord-brand);
+}
+
+.voiceButtonShareActive:hover {
+  background-color: color-mix(in srgb, var(--color-xcord-brand) 30%, transparent);
+}
+
+.voiceButtonShareInactive {
+  background-color: var(--color-xcord-bg-secondary);
+  color: var(--color-xcord-text-primary);
+}
+
+.voiceButtonShareInactive:hover {
+  background-color: var(--color-xcord-bg-primary);
+}
+
+.voiceButtonDeafenActive {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.voiceButtonDeafenActive:hover {
+  background-color: rgba(239, 68, 68, 0.3);
+}
+
+.voiceButtonDeafenInactive {
+  background-color: var(--color-xcord-bg-secondary);
+  color: var(--color-xcord-text-primary);
+}
+
+.voiceButtonDeafenInactive:hover {
+  background-color: var(--color-xcord-bg-primary);
+}
+
+.voiceButtonLeave {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.voiceButtonLeave:hover {
+  background-color: rgba(239, 68, 68, 0.3);
+}
+
+.screenShareButtonIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+  display: inline-block;
+}

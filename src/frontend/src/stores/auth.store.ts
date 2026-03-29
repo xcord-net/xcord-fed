@@ -106,6 +106,7 @@ export function useAuth() {
           username: userInfo.username,
           email: '',
           avatarUrl: userInfo.avatarUrl ?? undefined,
+          isAdmin: userInfo.isAdmin,
         }, 'id'));
 
         // Fetch full profile data
@@ -127,6 +128,7 @@ export function useAuth() {
             username: userInfo.username,
             email: '',
             avatarUrl: userInfo.avatarUrl ?? undefined,
+            isAdmin: userInfo.isAdmin,
           }, 'id'));
           await fetchAndStoreProfile();
           return true;

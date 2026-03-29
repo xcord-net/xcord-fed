@@ -1,0 +1,80 @@
+.reactionList {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.reactionBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 9999px;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.875rem;
+  border-width: 1px;
+  border-style: solid;
+  transition: background-color 150ms, border-color 150ms, color 150ms;
+  cursor: pointer;
+  background: none;
+}
+
+.reactionBadgeDefault {
+  background-color: var(--color-xcord-bg-tertiary);
+  border-color: var(--color-xcord-border);
+  color: var(--color-xcord-text-primary);
+}
+
+.reactionBadgeDefault:hover {
+  background-color: var(--color-xcord-bg-secondary);
+}
+
+.reactionBadgeActive {
+  background-color: color-mix(in srgb, var(--color-xcord-brand) 10%, transparent);
+  border-color: var(--color-xcord-brand);
+  color: var(--color-xcord-text-primary);
+}
+
+.reactionCount {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+}
+
+.addReactionWrapper {
+  position: relative;
+}
+
+.addReactionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background-color: var(--color-xcord-bg-tertiary);
+  border: 1px solid var(--color-xcord-border);
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+  transition: background-color 150ms, color 150ms;
+  cursor: pointer;
+}
+
+.addReactionButton:hover {
+  background-color: var(--color-xcord-bg-secondary);
+  color: var(--color-xcord-text-primary);
+}
+
+.pickerBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.pickerPopover {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 0.25rem;
+  z-index: 50;
+}

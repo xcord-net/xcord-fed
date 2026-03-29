@@ -1,6 +1,7 @@
 import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
+import styles from './ChannelPermissions.module.css';
 
 export type PermissionState = 'Allow' | 'Deny' | 'Inherit';
 
@@ -81,6 +82,15 @@ export function createDefaultPermissions(): Record<PermissionKey, PermissionStat
   return result;
 }
 
+function permOptionClass(state: PermissionState, option: PermissionState): string {
+  if (state === option) {
+    if (option === 'Allow') return `${styles.permOptionButton} ${styles.permOptionAllow}`;
+    if (option === 'Deny') return `${styles.permOptionButton} ${styles.permOptionDeny}`;
+    return `${styles.permOptionButton} ${styles.permOptionInherit}`;
+  }
+  return styles.permOptionButton;
+}
+
 export default function ChannelPermissions(props: ChannelPermissionsProps) {
   const [data, setData] = createSignal<ChannelPermissionsData | null>(null);
   const [isLoading, setIsLoading] = createSignal(false);
@@ -157,40 +167,36 @@ export default function ChannelPermissions(props: ChannelPermissionsProps) {
     data()?.overrides.find((o) => o.subjectId === selectedOverrideId()) ?? null;
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
+    <div class={styles.container}>
       {/* Header */}
-      <div class="px-4 py-3 border-b border-xcord-border">
-        <h2 data-testid="channel-permissions-heading" class="text-white font-semibold">Channel Permissions</h2>
-        <p class="text-xcord-text-muted text-xs mt-0.5">
+      <div class={styles.header}>
+        <h2 data-testid="channel-permissions-heading" class={styles.heading}>Channel Permissions</h2>
+        <p class={styles.subheading}>
           Configure per-group and per-member permission overrides for this channel.
         </p>
       </div>
 
       <Show when={error()}>
-        <div class="px-4 py-2 bg-red-500/20 text-red-400 text-sm">{error()}</div>
+        <div class={styles.errorBanner}>{error()}</div>
       </Show>
 
       <Show when={isLoading()}>
-        <div class="flex items-center justify-center flex-1">
-          <p class="text-xcord-text-muted">Loading permissions...</p>
+        <div class={styles.loadingState}>
+          <p class={styles.loadingText}>Loading permissions...</p>
         </div>
       </Show>
 
       <Show when={!isLoading() && data() !== null}>
-        <div class="flex flex-1 overflow-hidden">
+        <div class={styles.body}>
           {/* Override list (left panel) */}
-          <div class="w-56 border-r border-xcord-border overflow-y-auto flex-shrink-0">
-            <div data-testid="channel-permissions-groups-label" class="px-3 py-2 text-xcord-text-muted text-xs uppercase font-semibold tracking-wide">
+          <div class={styles.overrideList}>
+            <div data-testid="channel-permissions-groups-label" class={styles.panelLabel}>
               Groups
             </div>
             <For each={data()!.overrides.filter((o) => o.subjectType === 'Group')}>
               {(override) => (
                 <button
-                  class={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                    selectedOverrideId() === override.subjectId
-                      ? 'bg-xcord-brand/20 text-white'
-                      : 'text-xcord-text-muted hover:bg-xcord-bg-primary/50 hover:text-white'
-                  }`}
+                  class={`${styles.overrideButton} ${selectedOverrideId() === override.subjectId ? styles.overrideButtonActive : ''}`}
                   onClick={() => selectOverride(override)}
                 >
                   {override.subjectName}
@@ -198,17 +204,13 @@ export default function ChannelPermissions(props: ChannelPermissionsProps) {
               )}
             </For>
 
-            <div class="px-3 py-2 mt-2 text-xcord-text-muted text-xs uppercase font-semibold tracking-wide border-t border-xcord-border">
+            <div class={styles.panelLabelBordered}>
               Members
             </div>
             <For each={data()!.overrides.filter((o) => o.subjectType === 'Member')}>
               {(override) => (
                 <button
-                  class={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                    selectedOverrideId() === override.subjectId
-                      ? 'bg-xcord-brand/20 text-white'
-                      : 'text-xcord-text-muted hover:bg-xcord-bg-primary/50 hover:text-white'
-                  }`}
+                  class={`${styles.overrideButton} ${selectedOverrideId() === override.subjectId ? styles.overrideButtonActive : ''}`}
                   onClick={() => selectOverride(override)}
                 >
                   {override.subjectName}
@@ -221,38 +223,38 @@ export default function ChannelPermissions(props: ChannelPermissionsProps) {
                 data()!.overrides.length === 0
               }
             >
-              <p class="px-3 py-2 text-xcord-text-muted text-xs">No overrides configured.</p>
+              <p class={styles.emptyOverrides}>No overrides configured.</p>
             </Show>
           </div>
 
           {/* Permission grid (right panel) */}
-          <div class="flex-1 overflow-y-auto p-4">
+          <div class={styles.permissionGrid}>
             <Show
               when={selectedOverride() !== null && dirtyPermissions() !== null}
               fallback={
-                <div class="flex flex-col items-center justify-center py-8 text-center">
-                  <p data-testid="channel-permissions-placeholder" class="text-xcord-text-muted text-sm">Select a group or member to edit permissions.</p>
+                <div class={styles.placeholderState}>
+                  <p data-testid="channel-permissions-placeholder" class={styles.placeholderText}>Select a group or member to edit permissions.</p>
                 </div>
               }
             >
-              <div class="space-y-1">
-                <div class="flex items-center justify-between mb-4">
-                  <h3 class="text-white font-semibold text-sm">
+              <div class={styles.permissionList}>
+                <div class={styles.overrideHeader}>
+                  <h3 class={styles.overrideName}>
                     {selectedOverride()?.subjectName}
-                    <span class="ml-2 text-xcord-text-muted font-normal text-xs">
+                    <span class={styles.overrideType}>
                       ({selectedOverride()?.subjectType})
                     </span>
                   </h3>
-                  <div class="flex space-x-2">
+                  <div class={styles.overrideActions}>
                     <button
-                      class="text-xs px-3 py-1.5 rounded bg-xcord-bg-tertiary text-xcord-text-muted hover:text-white transition-colors"
+                      class={styles.discardButton}
                       onClick={handleDiscard}
                     >
                       Discard
                     </button>
                     <button
                       data-testid="channel-permissions-save-button"
-                      class="text-xs px-3 py-1.5 rounded bg-xcord-brand text-white hover:bg-xcord-brand-hover disabled:opacity-50 transition-colors"
+                      class={styles.saveButton}
                       onClick={handleSave}
                       disabled={isSaving()}
                     >
@@ -266,18 +268,14 @@ export default function ChannelPermissions(props: ChannelPermissionsProps) {
                   {(key) => {
                     const state = () => dirtyPermissions()?.[key] ?? 'Inherit';
                     return (
-                      <div data-testid={`channel-perm-row-${key}`} class="flex items-center justify-between py-2 border-b border-xcord-border/50">
-                        <span class="text-xcord-text-primary text-sm">{PERMISSION_LABELS[key]}</span>
-                        <div class="flex items-center space-x-1">
+                      <div data-testid={`channel-perm-row-${key}`} class={styles.permRow}>
+                        <span class={styles.permLabel}>{PERMISSION_LABELS[key]}</span>
+                        <div class={styles.permButtons}>
                           <For each={['Allow', 'Deny', 'Inherit'] as PermissionState[]}>
                             {(option) => (
                               <button
                                 data-testid={`channel-perm-${key}-${option.toLowerCase()}`}
-                                class={`text-xs px-2.5 py-1 rounded transition-colors ${
-                                  state() === option
-                                    ? permissionStateColor(option) + ' font-semibold'
-                                    : 'text-xcord-text-muted bg-xcord-bg-tertiary hover:text-white'
-                                }`}
+                                class={permOptionClass(state(), option)}
                                 onClick={() => {
                                   const curr = dirtyPermissions();
                                   if (curr) {

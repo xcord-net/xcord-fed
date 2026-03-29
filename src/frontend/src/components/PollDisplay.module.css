@@ -1,0 +1,423 @@
+/* ---- PollDisplay ---- */
+
+.pollContainer {
+  margin-top: 0.5rem;
+  background-color: var(--color-xcord-bg-tertiary);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  max-width: 28rem;
+}
+
+.pollQuestion {
+  color: var(--color-xcord-text-primary);
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+  margin-top: 0;
+}
+
+.optionList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.optionWrapper {
+  position: relative;
+}
+
+.optionButton {
+  position: relative;
+  width: 100%;
+  text-align: left;
+  border-radius: 0.25rem;
+  overflow: hidden;
+  transition: border-color 150ms;
+  border-width: 1px;
+  border-style: solid;
+  background: none;
+  padding: 0;
+}
+
+.optionButtonDefault {
+  border-color: var(--color-xcord-bg-primary);
+  cursor: pointer;
+}
+
+.optionButtonDefault:hover {
+  border-color: color-mix(in srgb, var(--color-xcord-brand) 40%, transparent);
+}
+
+.optionButtonVoted {
+  border-color: var(--color-xcord-brand);
+  cursor: pointer;
+}
+
+.optionButtonClosed {
+  cursor: default;
+}
+
+.optionProgress {
+  position: absolute;
+  inset: 0;
+  transition: width 300ms;
+}
+
+.optionProgressDefault {
+  background-color: color-mix(in srgb, var(--color-xcord-bg-primary) 60%, transparent);
+}
+
+.optionProgressVoted {
+  background-color: color-mix(in srgb, var(--color-xcord-brand) 20%, transparent);
+}
+
+.optionContent {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  gap: 0.5rem;
+}
+
+.optionLabelGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.optionVotedCheck {
+  color: var(--color-xcord-brand);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.optionText {
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.optionPercent {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+.pollFooter {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.totalVotes {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+}
+
+.multiSelectNote {
+  margin-left: 0.25rem;
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.closedBadge {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  background-color: var(--color-xcord-bg-primary);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.expiryText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+}
+
+.endPollButton {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--color-xcord-bg-primary);
+  background: none;
+  transition: color 150ms, border-color 150ms;
+  cursor: pointer;
+}
+
+.endPollButton:hover {
+  color: #f87171;
+  border-color: color-mix(in srgb, #f87171 40%, transparent);
+}
+
+.endPollButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---- Modal internals ---- */
+
+.confirmModalBody {
+  padding: 1.5rem;
+}
+
+.confirmModalText {
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  margin-top: 0;
+}
+
+.confirmModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.confirmCancelButton {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: var(--color-xcord-text-primary);
+  background-color: var(--color-xcord-bg-primary);
+  border-radius: 0.25rem;
+  transition: background-color 150ms;
+  border: none;
+  cursor: pointer;
+}
+
+.confirmCancelButton:hover {
+  background-color: var(--color-xcord-bg-tertiary);
+}
+
+.confirmEndButton {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: #ffffff;
+  background-color: #dc2626;
+  border-radius: 0.25rem;
+  transition: background-color 150ms;
+  border: none;
+  cursor: pointer;
+}
+
+.confirmEndButton:hover {
+  background-color: #b91c1c;
+}
+
+.confirmEndButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---- CreatePollForm ---- */
+
+.createPollForm {
+  background-color: var(--color-xcord-bg-primary);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 1px solid var(--color-xcord-bg-tertiary);
+}
+
+.createPollTitle {
+  color: var(--color-xcord-text-primary);
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.fieldLabel {
+  display: block;
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.textInput {
+  width: 100%;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+  border: none;
+  box-sizing: border-box;
+}
+
+.textInput::placeholder {
+  color: var(--color-xcord-text-muted);
+}
+
+.textInput:focus {
+  box-shadow: 0 0 0 1px var(--color-xcord-brand);
+}
+
+.optionInputList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.optionInputRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.optionTextInput {
+  flex: 1;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+  border: none;
+}
+
+.optionTextInput::placeholder {
+  color: var(--color-xcord-text-muted);
+}
+
+.optionTextInput:focus {
+  box-shadow: 0 0 0 1px var(--color-xcord-brand);
+}
+
+.removeOptionButton {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  padding: 0 0.25rem;
+  background: none;
+  border: none;
+  transition: color 150ms;
+  cursor: pointer;
+}
+
+.removeOptionButton:hover {
+  color: #f87171;
+}
+
+.addOptionButton {
+  margin-top: 0.5rem;
+  color: var(--color-xcord-brand);
+  font-size: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.addOptionButton:hover {
+  text-decoration: underline;
+}
+
+.settingsRow {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.checkboxInput {
+  accent-color: var(--color-xcord-brand);
+}
+
+.checkboxText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+}
+
+.durationGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.durationLabel {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+}
+
+.durationSelect {
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  font-size: 0.75rem;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  outline: none;
+  border: none;
+}
+
+.durationSelect:focus {
+  box-shadow: 0 0 0 1px var(--color-xcord-brand);
+}
+
+.validationError {
+  color: #f87171;
+  font-size: 0.75rem;
+  margin: 0;
+}
+
+.formActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.submitButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-brand);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  border: none;
+  transition: background-color 150ms;
+  cursor: pointer;
+}
+
+.submitButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.cancelButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+  border: none;
+  transition: background-color 150ms, color 150ms;
+  cursor: pointer;
+}
+
+.cancelButton:hover {
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+}

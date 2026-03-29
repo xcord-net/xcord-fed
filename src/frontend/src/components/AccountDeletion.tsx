@@ -2,6 +2,7 @@ import { createSignal, Show } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import Modal from './ui/Modal';
+import styles from './AccountDeletion.module.css';
 
 interface AccountDeletionProps {
   scheduledDeletionAt?: string | null;
@@ -73,18 +74,18 @@ export default function AccountDeletion(props: AccountDeletionProps) {
   };
 
   return (
-    <div data-testid="danger-zone-section" class="mt-6 border-t border-red-800 pt-6">
-      <h3 class="text-red-400 font-semibold text-sm uppercase tracking-wide mb-3">
+    <div data-testid="danger-zone-section" class={styles.section}>
+      <h3 class={styles.dangerHeading}>
         Danger Zone
       </h3>
 
       <Show when={error()}>
-        <div class="mb-3 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">{error()}</div>
+        <div class={styles.errorBanner}>{error()}</div>
       </Show>
 
       <Show when={props.scheduledDeletionAt}>
-        <div data-testid="scheduled-deletion-warning" class="bg-red-900/20 border border-red-700 rounded p-4 mb-4">
-          <p class="text-red-300 text-sm">
+        <div data-testid="scheduled-deletion-warning" class={styles.scheduledWarning}>
+          <p class={styles.scheduledWarningText}>
             Your account is scheduled for deletion on{' '}
             <strong>{formatDeletionDate(props.scheduledDeletionAt!)}</strong>.
             You can cancel this request before that date.
@@ -92,7 +93,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
         </div>
         <button
           data-testid="cancel-deletion-button"
-          class="bg-xcord-bg-primary border border-red-600 text-red-400 px-4 py-2 rounded hover:bg-red-900/20 transition text-sm disabled:opacity-50"
+          class={styles.cancelButton}
           onClick={handleCancelDeletion}
           disabled={isLoading()}
         >
@@ -101,13 +102,13 @@ export default function AccountDeletion(props: AccountDeletionProps) {
       </Show>
 
       <Show when={!props.scheduledDeletionAt}>
-        <p class="text-xcord-text-muted text-sm mb-3">
+        <p class={styles.warningText}>
           Deleting your account will remove all your data after a 14-day grace
           period. You can cancel the deletion during this time.
         </p>
         <button
           data-testid="delete-account-button"
-          class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition text-sm disabled:opacity-50"
+          class={styles.deleteButton}
           onClick={() => {
             setError('');
             setShowConfirmDialog(true);
@@ -127,34 +128,34 @@ export default function AccountDeletion(props: AccountDeletionProps) {
         role="alertdialog"
         initialFocusRef={cancelButtonRef}
       >
-        <div class="p-6">
-          <p class="text-xcord-text-muted text-sm mb-4">
+        <div class={styles.modalBody}>
+          <p class={styles.modalDescription}>
             Enter your password to confirm. Your account will be permanently
             deleted after 14 days.
           </p>
 
           <Show when={error()}>
-            <div class="mb-3 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">{error()}</div>
+            <div class={styles.errorBanner}>{error()}</div>
           </Show>
 
-          <div class="mb-4">
-            <label class="text-xs text-xcord-text-muted block mb-1">
+          <div class={styles.fieldGroup}>
+            <label class={styles.fieldLabel}>
               Password
             </label>
             <input
               data-testid="delete-account-password-input"
               type="password"
-              class="w-full bg-xcord-bg-primary text-xcord-text-primary px-3 py-2 rounded text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+              class={styles.passwordInput}
               value={password()}
               onInput={(e) => setPassword(e.currentTarget.value)}
               placeholder="Enter your password"
             />
           </div>
 
-          <div class="flex gap-3">
+          <div class={styles.modalActions}>
             <button
               data-testid="delete-account-confirm-button"
-              class="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-700 transition disabled:opacity-50"
+              class={styles.confirmDeleteButton}
               onClick={handleRequestDeletion}
               disabled={isLoading()}
             >
@@ -163,7 +164,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
             <button
               data-testid="delete-account-cancel-button"
               ref={cancelButtonRef}
-              class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+              class={styles.modalCancelButton}
               onClick={() => {
                 setShowConfirmDialog(false);
                 setPassword('');

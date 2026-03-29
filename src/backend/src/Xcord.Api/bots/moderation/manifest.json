@@ -1,0 +1,12 @@
+{
+  "id": "xcord.moderation",
+  "name": "Moderation Bot",
+  "description": "Auto-moderation with configurable rules. Monitors messages for spam, filters banned words, and enforces server rules.",
+  "category": "Moderation",
+  "parameters": [
+    { "key": "warnThreshold", "label": "Warnings before ban", "type": "number", "default": 3 },
+    { "key": "autoDeleteSpam", "label": "Auto-delete spam", "type": "boolean", "default": true },
+    { "key": "bannedWords", "label": "Banned words (comma-separated)", "type": "string", "default": "" },
+    { "key": "logChannelName", "label": "Log channel name", "type": "string", "default": "mod-log" }
+  ]
+}

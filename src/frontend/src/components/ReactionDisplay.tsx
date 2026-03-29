@@ -4,6 +4,7 @@ import { useMessages } from '../stores/message.store';
 import { useAuth } from '../stores/auth.store';
 import EmojiPicker from './EmojiPicker';
 import type { MessageReaction } from '../types/message';
+import styles from './ReactionDisplay.module.css';
 
 interface ReactionDisplayProps {
   reactions: MessageReaction[];
@@ -64,30 +65,30 @@ export default function ReactionDisplay(props: ReactionDisplayProps) {
   };
 
   return (
-    <div class="flex flex-wrap items-center gap-1 mt-1">
+    <div class={styles.reactionList}>
       <For each={props.reactions}>
         {(reaction) => (
           <button
             data-testid={`reaction-badge-${reaction.emoji}`}
-            class={`flex items-center gap-1 rounded-full px-2 py-0.5 text-sm border transition-colors ${
-              hasUserReacted(reaction)
-                ? 'bg-xcord-brand/10 border-xcord-brand text-xcord-text-primary'
-                : 'bg-xcord-bg-tertiary hover:bg-xcord-bg-secondary border-xcord-border text-xcord-text-primary'
-            }`}
+            classList={{
+              [styles.reactionBadge]: true,
+              [styles.reactionBadgeActive]: hasUserReacted(reaction),
+              [styles.reactionBadgeDefault]: !hasUserReacted(reaction),
+            }}
             onClick={() => toggleReaction(reaction)}
             title={`${reaction.count} reaction${reaction.count !== 1 ? 's' : ''}`}
           >
             <span>{reaction.emoji}</span>
-            <span data-testid={`reaction-count-${reaction.emoji}`} class="text-xcord-text-muted text-xs">{reaction.count}</span>
+            <span data-testid={`reaction-count-${reaction.emoji}`} class={styles.reactionCount}>{reaction.count}</span>
           </button>
         )}
       </For>
 
       {/* Add reaction button */}
-      <div class="relative">
+      <div class={styles.addReactionWrapper}>
         <button
           data-testid="reaction-add-button"
-          class="flex items-center justify-center w-7 h-7 rounded-full bg-xcord-bg-tertiary hover:bg-xcord-bg-secondary border border-xcord-border text-xcord-text-muted hover:text-xcord-text-primary transition-colors text-sm"
+          class={styles.addReactionButton}
           onClick={() => setShowPicker(!showPicker())}
           title="Add reaction"
           aria-label="Add reaction"
@@ -96,8 +97,8 @@ export default function ReactionDisplay(props: ReactionDisplayProps) {
         </button>
 
         <Show when={showPicker()}>
-          <div class="fixed inset-0 z-40" aria-hidden="true" onClick={() => setShowPicker(false)} />
-          <div class="absolute bottom-full left-0 mb-1 z-50">
+          <div class={styles.pickerBackdrop} aria-hidden="true" onClick={() => setShowPicker(false)} />
+          <div class={styles.pickerPopover}>
             <EmojiPicker serverId={props.serverId} onSelect={handlePickerSelect} onClose={() => setShowPicker(false)} />
           </div>
         </Show>

@@ -1,0 +1,207 @@
+.section {
+  margin-top: 1rem;
+}
+
+.sectionTitle {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.sectionDescription {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+.openButton {
+  background-color: var(--color-xcord-bg-primary);
+  border: 1px solid var(--color-xcord-border);
+  color: var(--color-xcord-text-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.openButton:hover {
+  background-color: rgba(21, 24, 33, 0.8);
+}
+
+.modalBody {
+  padding: 1.5rem;
+}
+
+.errorBanner {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 1rem;
+  background-color: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.25rem;
+  color: #f87171;
+  font-size: 0.875rem;
+}
+
+.loadingText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.memberList {
+  max-height: 16rem;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+}
+
+.memberList > * + * {
+  margin-top: 0.5rem;
+}
+
+.memberButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+  background-color: var(--color-xcord-bg-primary);
+  text-align: left;
+  border: none;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.memberButton:hover {
+  background-color: rgba(26, 29, 37, 0.8);
+}
+
+.memberAvatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background-color: var(--color-xcord-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.memberDisplayName {
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.memberUsername {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+}
+
+.emptyMembers {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  text-align: center;
+}
+
+.emptyMembersText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.cancelButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.cancelButton:hover {
+  background-color: var(--color-xcord-bg-tertiary);
+}
+
+.cancelButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.confirmDescription {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.confirmHighlight {
+  color: white;
+}
+
+.fieldLabel {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.fieldGroup {
+  margin-bottom: 1rem;
+}
+
+.textInput {
+  width: 100%;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-xcord-border);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.textInput:focus {
+  border-color: var(--color-xcord-brand);
+}
+
+.textInput:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.actionRow {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.confirmButton {
+  flex: 1;
+  background-color: var(--color-xcord-brand);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.confirmButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.confirmButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

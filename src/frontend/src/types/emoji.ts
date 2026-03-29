@@ -11,5 +11,6 @@ export interface CustomEmoji {
 
 export interface EmojiCategory {
   name: string;
+  icon: string;
   emojis: string[];
 }

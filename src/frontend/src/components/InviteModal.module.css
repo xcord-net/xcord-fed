@@ -1,0 +1,175 @@
+.body {
+  padding: 1.5rem;
+}
+
+.description {
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.optionsRow {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.optionGroup {
+  flex: 1;
+}
+
+.optionLabel {
+  display: block;
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.select {
+  width: 100%;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-xcord-border);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.select:focus {
+  border-color: var(--color-xcord-brand);
+}
+
+.select:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.linkSection {
+  margin-bottom: 1rem;
+}
+
+.linkLabel {
+  display: block;
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.linkRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.linkInput {
+  flex: 1;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-xcord-border);
+  outline: none;
+  cursor: text;
+}
+
+.linkInput:focus {
+  border-color: var(--color-xcord-brand);
+}
+
+.linkInput:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.copyButton {
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-xcord-brand);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 150ms, background-color 150ms;
+}
+
+.copyButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.copyButton:disabled {
+  opacity: 0.5;
+}
+
+.copyButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.errorAlert {
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.25rem;
+  color: #f87171;
+  font-size: 0.875rem;
+}
+
+.actionsRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.generateButton {
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.875rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  transition: color 150ms, background-color 150ms;
+}
+
+.generateButton:hover {
+  color: var(--color-xcord-text-primary);
+}
+
+.generateButton:disabled {
+  opacity: 0.5;
+}
+
+.generateButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.doneButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.doneButton:hover {
+  background-color: var(--color-xcord-bg-tertiary);
+}
+
+.doneButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}

@@ -1,0 +1,449 @@
+/* ChannelSettings.module.css */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+}
+
+.headerText {
+  /* intentionally empty - wraps title + subtitle */
+}
+
+.headerTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-xcord-text-primary);
+}
+
+.headerSubtitle {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+  margin-top: 0.125rem;
+}
+
+.closeButton {
+  color: var(--color-xcord-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  transition: color 150ms;
+  padding: 0.25rem;
+}
+
+.closeButton:hover {
+  color: #ffffff;
+}
+
+.closeButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+/* Tab navigation */
+.tabNav {
+  display: flex;
+  border-bottom: 1px solid var(--color-xcord-border);
+  padding: 0 1.5rem;
+}
+
+.tab {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 150ms;
+  color: var(--color-xcord-text-muted);
+}
+
+.tab:hover {
+  color: #ffffff;
+}
+
+.tab:focus-visible {
+  outline: none;
+}
+
+.tabActive {
+  color: #ffffff;
+  border-bottom: 2px solid var(--color-xcord-brand);
+}
+
+/* Permissions panel height constraint */
+.permissionsPanel {
+  height: min(500px, 60vh);
+}
+
+/* Sections */
+.section {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+}
+
+.sectionHeading {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-xcord-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+
+.dangerHeading {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #f87171;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+
+/* Form fields */
+.fieldGroup {
+  margin-bottom: 1rem;
+}
+
+.fieldGroupLast {
+  /* last field group without bottom margin */
+}
+
+.fieldLabel {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-xcord-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.375rem;
+}
+
+.required {
+  color: #f87171;
+}
+
+/* Channel name input with # prefix */
+.inputWrapper {
+  position: relative;
+}
+
+.inputPrefix {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.textInputWithPrefix {
+  width: 100%;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem 0.5rem 1.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-xcord-border);
+}
+
+.textInputWithPrefix:focus {
+  border-color: var(--color-xcord-brand);
+  outline: none;
+}
+
+.textInputWithPrefix:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.textInput {
+  width: 100%;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-xcord-border);
+}
+
+.textInput:focus {
+  border-color: var(--color-xcord-brand);
+  outline: none;
+}
+
+.textInput:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.textarea {
+  width: 100%;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-xcord-border);
+  resize: none;
+}
+
+.textarea:focus {
+  border-color: var(--color-xcord-brand);
+  outline: none;
+}
+
+.textarea:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.selectInput {
+  width: 100%;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-xcord-border);
+}
+
+.selectInput:focus {
+  border-color: var(--color-xcord-brand);
+  outline: none;
+}
+
+.selectInput:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.fieldHint {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+/* Slowmode section with margin-bottom */
+.slowmodeGroup {
+  margin-bottom: 1.25rem;
+}
+
+/* NSFW toggle row */
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.toggleLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-xcord-text-primary);
+  cursor: pointer;
+}
+
+.toggleHint {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  margin-top: 0.125rem;
+}
+
+.toggleButton {
+  position: relative;
+  display: inline-flex;
+  height: 1.5rem;
+  width: 2.75rem;
+  align-items: center;
+  border-radius: 9999px;
+  transition: background-color 150ms;
+  flex-shrink: 0;
+  border: none;
+  cursor: pointer;
+}
+
+.toggleButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.toggleOn {
+  background-color: var(--color-xcord-brand);
+}
+
+.toggleOff {
+  background-color: var(--color-xcord-bg-primary);
+}
+
+.toggleThumb {
+  display: inline-block;
+  height: 1rem;
+  width: 1rem;
+  border-radius: 9999px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 150ms;
+}
+
+.toggleThumbOn {
+  transform: translateX(1.5rem);
+}
+
+.toggleThumbOff {
+  transform: translateX(0.25rem);
+}
+
+/* Danger zone */
+.deleteChannelButton {
+  padding: 0.5rem 1rem;
+  background-color: #dc2626;
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.deleteChannelButton:hover {
+  background-color: #b91c1c;
+}
+
+.deleteChannelButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #f87171;
+}
+
+/* Status messages */
+.successMsg {
+  margin: 0 1.5rem 1rem;
+  padding: 0.5rem 1rem;
+  background-color: rgb(34 197 94 / 0.2);
+  border: 1px solid rgb(34 197 94 / 0.3);
+  border-radius: 0.25rem;
+  color: #4ade80;
+  font-size: 0.875rem;
+}
+
+.errorMsg {
+  margin: 0 1.5rem 1rem;
+  padding: 0.5rem 1rem;
+  background-color: rgb(239 68 68 / 0.2);
+  border: 1px solid rgb(239 68 68 / 0.3);
+  border-radius: 0.25rem;
+  color: #f87171;
+  font-size: 0.875rem;
+}
+
+/* Footer actions */
+.footerActions {
+  padding: 0 1.5rem 1.25rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.cancelButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.cancelButton:hover {
+  background-color: var(--color-xcord-bg-tertiary);
+}
+
+.cancelButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.saveButton {
+  padding: 0.5rem 1.25rem;
+  background-color: var(--color-xcord-brand);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.saveButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.saveButton:disabled {
+  opacity: 0.5;
+}
+
+.saveButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+/* Delete confirm dialog */
+.dialogBody {
+  padding: 1.5rem;
+}
+
+.dialogText {
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.dialogCancelButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.dialogCancelButton:hover {
+  background-color: var(--color-xcord-bg-tertiary);
+}
+
+.dialogCancelButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.dialogDeleteButton {
+  padding: 0.5rem 1rem;
+  background-color: #dc2626;
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.dialogDeleteButton:hover {
+  background-color: #b91c1c;
+}
+
+.dialogDeleteButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #f87171;
+}

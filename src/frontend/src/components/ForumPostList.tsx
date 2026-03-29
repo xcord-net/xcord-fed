@@ -1,6 +1,7 @@
 import { For, Show, createSignal, createEffect } from 'solid-js';
 import { useForums } from '../stores/forum.store';
 import type { ForumPost } from '../types/forum';
+import styles from './ForumPostList.module.css';
 
 interface ForumPostListProps {
   serverId: string;
@@ -102,13 +103,13 @@ export default function ForumPostList(props: ForumPostListProps) {
   const formatTime = (dateString?: string) => formatRelativeTime(dateString);
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary" data-testid="forum-post-list">
+    <div class={styles.container} data-testid="forum-post-list">
       {/* Header */}
-      <div class="px-4 py-3 border-b border-xcord-bg-tertiary flex items-center justify-between flex-shrink-0">
-        <h2 class="text-xcord-text-primary font-semibold">Forum Posts</h2>
+      <div class={styles.header}>
+        <h2 class={styles.headerTitle}>Forum Posts</h2>
         <button
           data-testid="forum-new-post-button"
-          class="bg-xcord-brand text-white px-3 py-1.5 rounded hover:bg-xcord-brand-hover transition-colors text-sm"
+          class={styles.newPostButton}
           onClick={() => setShowCreateForm(true)}
           aria-label="New Post"
         >
@@ -118,30 +119,30 @@ export default function ForumPostList(props: ForumPostListProps) {
 
       {/* Create Post Form */}
       <Show when={showCreateForm()}>
-        <div data-testid="forum-create-post-form" class="px-4 py-4 bg-xcord-bg-primary border-b border-xcord-bg-tertiary space-y-3 flex-shrink-0">
-          <h3 class="text-xcord-text-primary font-semibold text-sm">Create New Post</h3>
+        <div data-testid="forum-create-post-form" class={styles.createForm}>
+          <h3 class={styles.createFormTitle}>Create New Post</h3>
 
-          <div>
-            <label class="block text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-1">
+          <div class={styles.fieldGroup}>
+            <label class={styles.fieldLabel}>
               Title
             </label>
             <input
               data-testid="forum-post-title-input"
               type="text"
-              class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+              class={styles.textInput}
               placeholder="Post title..."
               value={title()}
               onInput={(e) => setTitle(e.currentTarget.value)}
             />
           </div>
 
-          <div>
-            <label class="block text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-1">
+          <div class={styles.fieldGroup}>
+            <label class={styles.fieldLabel}>
               Content
             </label>
             <textarea
               data-testid="forum-post-content-input"
-              class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand resize-none"
+              class={styles.textarea}
               placeholder="Write your post content..."
               rows={4}
               value={content()}
@@ -149,14 +150,14 @@ export default function ForumPostList(props: ForumPostListProps) {
             />
           </div>
 
-          <div>
-            <label class="block text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-1">
+          <div class={styles.fieldGroup}>
+            <label class={styles.fieldLabel}>
               Tags
             </label>
-            <div class="flex gap-2 mb-2">
+            <div class={styles.tagInputRow}>
               <input
                 type="text"
-                class="flex-1 bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+                class={styles.textInput}
                 placeholder="Add a tag and press Enter..."
                 value={tagInput()}
                 onInput={(e) => setTagInput(e.currentTarget.value)}
@@ -168,7 +169,7 @@ export default function ForumPostList(props: ForumPostListProps) {
                 }}
               />
               <button
-                class="px-3 py-2 bg-xcord-bg-tertiary text-xcord-text-primary text-sm rounded hover:bg-xcord-bg-primary transition-colors"
+                class={styles.addTagButton}
                 aria-label="Add tag"
                 onClick={handleAddTag}
               >
@@ -176,13 +177,13 @@ export default function ForumPostList(props: ForumPostListProps) {
               </button>
             </div>
             <Show when={selectedTags().length > 0}>
-              <div class="flex flex-wrap gap-1.5">
+              <div class={styles.selectedTags}>
                 <For each={selectedTags()}>
                   {(tag) => (
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-xcord-brand/20 text-xcord-brand text-xs rounded-full">
+                    <span class={styles.tagChip}>
                       {tag}
                       <button
-                        class="hover:text-white transition-colors leading-none"
+                        class={styles.removeTagButton}
                         onClick={() => handleRemoveTag(tag)}
                         aria-label={`Remove tag ${tag}`}
                       >
@@ -196,20 +197,20 @@ export default function ForumPostList(props: ForumPostListProps) {
           </div>
 
           <Show when={submitError()}>
-            <p class="text-red-400 text-xs">{submitError()}</p>
+            <p class={styles.submitError}>{submitError()}</p>
           </Show>
 
-          <div class="flex gap-2">
+          <div class={styles.formActions}>
             <button
               data-testid="forum-create-post-submit"
-              class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class={styles.submitButton}
               onClick={handleCreatePost}
               disabled={isSubmitting() || !title().trim() || !content().trim()}
             >
               {isSubmitting() ? 'Creating...' : 'Create Post'}
             </button>
             <button
-              class="px-4 py-2 bg-xcord-bg-tertiary text-xcord-text-muted text-sm rounded hover:bg-xcord-bg-primary hover:text-xcord-text-primary transition-colors"
+              class={styles.cancelButton}
               onClick={handleCancelCreate}
             >
               Cancel
@@ -219,18 +220,18 @@ export default function ForumPostList(props: ForumPostListProps) {
       </Show>
 
       {/* Post list */}
-      <div class="flex-1 overflow-y-auto">
+      <div class={styles.postList}>
         <Show when={forumStore.isLoading}>
-          <div class="flex items-center justify-center h-32">
-            <div class="w-5 h-5 border-2 border-xcord-text-muted border-t-transparent rounded-full animate-spin" />
+          <div class={styles.spinnerWrapper}>
+            <div class={styles.spinner} />
           </div>
         </Show>
 
         <Show when={!forumStore.isLoading && forumStore.posts.length === 0}>
-          <div data-testid="forum-empty-state" class="flex flex-col items-center justify-center h-48 space-y-3">
-            <p class="text-xcord-text-muted text-sm">No posts yet. Be the first to start a discussion!</p>
+          <div data-testid="forum-empty-state" class={styles.emptyState}>
+            <p class={styles.emptyStateText}>No posts yet. Be the first to start a discussion!</p>
             <button
-              class="text-xcord-brand hover:underline text-sm"
+              class={styles.emptyStateLink}
               onClick={() => setShowCreateForm(true)}
             >
               Create the first post
@@ -239,12 +240,12 @@ export default function ForumPostList(props: ForumPostListProps) {
         </Show>
 
         <Show when={!forumStore.isLoading && forumStore.posts.length > 0}>
-          <div class="divide-y divide-xcord-bg-tertiary">
+          <div class={styles.postDividerList}>
             <For each={forumStore.posts}>
               {(post) => (
                 <div
                   data-testid="forum-post-item"
-                  class="px-4 py-4 hover:bg-xcord-bg-primary/30 cursor-pointer transition-colors"
+                  class={styles.postItem}
                   onClick={() => handlePostClick(post)}
                   role="button"
                   tabIndex={0}
@@ -252,9 +253,9 @@ export default function ForumPostList(props: ForumPostListProps) {
                     if (e.key === 'Enter' || e.key === ' ') handlePostClick(post);
                   }}
                 >
-                  <div class="flex items-start space-x-3">
+                  <div class={styles.postItemRow}>
                     {/* Author avatar */}
-                    <div class="w-10 h-10 rounded-full bg-xcord-brand flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                    <div class={styles.authorAvatar}>
                       <Show
                         when={post.authorAvatarUrl}
                         fallback={(post.authorUsername ?? '?').charAt(0).toUpperCase()}
@@ -262,40 +263,40 @@ export default function ForumPostList(props: ForumPostListProps) {
                         <img
                           src={post.authorAvatarUrl}
                           alt={post.authorUsername ?? ''}
-                          class="w-full h-full rounded-full object-cover"
+                          class={styles.authorAvatarImg}
                         />
                       </Show>
                     </div>
 
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-start justify-between gap-2">
-                        <div class="flex-1 min-w-0">
+                    <div class={styles.postBody}>
+                      <div class={styles.postBodyInner}>
+                        <div class={styles.postMeta}>
                           {/* Title + badges */}
-                          <div class="flex items-center gap-2 flex-wrap">
-                            <h3 class="text-xcord-text-primary font-semibold truncate">{post.title}</h3>
+                          <div class={styles.postTitleRow}>
+                            <h3 class={styles.postTitle}>{post.title}</h3>
                             <Show when={post.isPinned}>
-                              <span class="text-yellow-400 text-xs" title="Pinned">📌</span>
+                              <span class={styles.pinnedIcon} title="Pinned">📌</span>
                             </Show>
                             <Show when={post.isLocked}>
-                              <span class="text-xcord-text-muted text-xs" title="Locked">🔒</span>
+                              <span class={styles.lockedIcon} title="Locked">🔒</span>
                             </Show>
                           </div>
 
                           {/* Author + timestamp */}
-                          <div class="flex items-center space-x-2 mt-0.5">
-                            <span class="text-xs text-xcord-text-muted">{post.authorUsername}</span>
-                            <span class="text-xs text-xcord-text-muted">•</span>
-                            <span class="text-xs text-xcord-text-muted">
+                          <div class={styles.postAuthorRow}>
+                            <span class={styles.postAuthorName}>{post.authorUsername}</span>
+                            <span class={styles.postDot}>•</span>
+                            <span class={styles.postTimestamp}>
                               {formatTime(post.lastMessageAt ?? post.createdAt)}
                             </span>
                           </div>
 
                           {/* Tags */}
                           <Show when={(post.tags?.length ?? 0) > 0}>
-                            <div class="flex flex-wrap gap-1 mt-2">
+                            <div class={styles.postTags}>
                               <For each={post.tags ?? []}>
                                 {(tag) => (
-                                  <span class="bg-xcord-brand/15 text-xcord-brand px-2 py-0.5 rounded text-xs">
+                                  <span class={styles.postTag}>
                                     {tag}
                                   </span>
                                 )}
@@ -305,9 +306,9 @@ export default function ForumPostList(props: ForumPostListProps) {
                         </div>
 
                         {/* Reply count */}
-                        <div class="text-right flex-shrink-0 ml-2">
-                          <p class="text-sm font-semibold text-xcord-text-primary">{post.messageCount}</p>
-                          <p class="text-xs text-xcord-text-muted">
+                        <div class={styles.replyCount}>
+                          <p class={styles.replyCountNumber}>{post.messageCount}</p>
+                          <p class={styles.replyCountLabel}>
                             {post.messageCount === 1 ? 'reply' : 'replies'}
                           </p>
                         </div>

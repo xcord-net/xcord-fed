@@ -42,8 +42,21 @@ public sealed class Channel : ISoftDeletable
 
     /// <summary>
     /// Channel type (Text, Voice, Announcement, Forum).
+    /// Preserved for backward compatibility in serialization.
+    /// Derived from Capabilities when possible.
     /// </summary>
     public ChannelType Type { get; set; }
+
+    /// <summary>
+    /// Bitfield of channel capabilities (Chat, Voice, Video, Forum, Announcement).
+    /// A channel can support multiple capabilities simultaneously.
+    /// </summary>
+    public ChannelCapability Capabilities { get; set; } = ChannelCapability.Chat;
+
+    /// <summary>
+    /// Optional group required for access. Null = everyone can access.
+    /// </summary>
+    public long? AccessGroupId { get; set; }
 
     /// <summary>
     /// Position for ordering within category (lower = higher up).
@@ -89,5 +102,6 @@ public sealed class Channel : ISoftDeletable
     public Conversation Conversation { get; set; } = null!;
     public Server Server { get; set; } = null!;
     public Category? Category { get; set; }
+    public Group? AccessGroup { get; set; }
     public ICollection<ChannelPermissionOverride> PermissionOverrides { get; set; } = new List<ChannelPermissionOverride>();
 }

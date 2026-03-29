@@ -1,6 +1,7 @@
 import { For, Show, onMount, createSignal } from 'solid-js';
 import { useBlocks } from '../stores/block.store';
 import { getErrorMessage } from '../utils/errors';
+import styles from './BlockList.module.css';
 
 export default function BlockList() {
   const blockStore = useBlocks();
@@ -25,21 +26,21 @@ export default function BlockList() {
   };
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
-      <div class="px-4 py-3 border-b border-xcord-border">
-        <h2 class="text-white font-semibold">Blocked Users</h2>
-        <div class="mt-3 flex space-x-2">
+    <div class={styles.container}>
+      <div class={styles.header}>
+        <h2 class={styles.heading}>Blocked Users</h2>
+        <div class={styles.inputRow}>
           <input
             id="block-user-input"
             type="text"
             placeholder="Enter a username to block"
             value={blockUsername()}
             onInput={(e) => setBlockUsername(e.currentTarget.value)}
-            class="flex-1 bg-xcord-bg-primary text-white px-3 py-1.5 rounded text-sm border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+            class={styles.usernameInput}
           />
           <button
             id="block-user-submit"
-            class="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700 disabled:opacity-50"
+            class={styles.blockButton}
             disabled={!blockUsername().trim()}
             onClick={handleBlockUser}
           >
@@ -47,47 +48,47 @@ export default function BlockList() {
           </button>
         </div>
         <Show when={blockMessage()}>
-          <p id="block-user-status" class={`text-sm mt-2 ${blockError() ? 'text-red-400' : 'text-green-400'}`}>
+          <p id="block-user-status" class={blockError() ? styles.statusError : styles.statusSuccess}>
             {blockMessage()}
           </p>
         </Show>
       </div>
 
-      <div class="flex-1 overflow-y-auto">
+      <div class={styles.listArea}>
         <Show when={blockStore.isLoading}>
-          <div class="flex items-center justify-center h-32">
-            <p class="text-xcord-text-muted">Loading...</p>
+          <div class={styles.loadingState}>
+            <p class={styles.mutedText}>Loading...</p>
           </div>
         </Show>
 
         <Show when={!blockStore.isLoading && blockStore.blockedUsers.length === 0}>
-          <div id="blocked-users-empty" class="flex items-center justify-center h-32">
-            <p class="text-xcord-text-muted">No blocked users</p>
+          <div id="blocked-users-empty" class={styles.emptyState}>
+            <p class={styles.mutedText}>No blocked users</p>
           </div>
         </Show>
 
         <For each={blockStore.blockedUsers}>
           {(user) => (
-            <div class="px-4 py-3 flex items-center space-x-3 hover:bg-xcord-bg-primary/50 border-b border-xcord-border" data-blocked-username={user.blockedUsername}>
-              <div class="w-10 h-10 rounded-full bg-xcord-brand flex items-center justify-center text-white font-semibold">
+            <div class={styles.userRow} data-blocked-username={user.blockedUsername}>
+              <div class={styles.avatar}>
                 <Show when={user.blockedAvatarUrl} fallback={user.blockedUsername.charAt(0).toUpperCase()}>
                   <img
                     src={user.blockedAvatarUrl}
                     alt={user.blockedUsername}
-                    class="w-full h-full rounded-full object-cover"
+                    class={styles.avatarImage}
                   />
                 </Show>
               </div>
 
-              <div class="flex-1 min-w-0">
-                <h3 class="text-white font-medium truncate">{user.blockedUsername}</h3>
-                <p class="text-xs text-xcord-text-muted">
+              <div class={styles.userInfo}>
+                <h3 class={styles.username}>{user.blockedUsername}</h3>
+                <p class={styles.blockedDate}>
                   Blocked {new Date(user.createdAt).toLocaleDateString()}
                 </p>
               </div>
 
               <button
-                class="bg-xcord-brand text-white px-3 py-1 rounded hover:bg-xcord-brand-hover"
+                class={styles.unblockButton}
                 onClick={() => blockStore.unblockUser(user.blockedId)}
               >
                 Unblock

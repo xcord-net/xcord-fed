@@ -1,5 +1,6 @@
 import { Show, createSignal, onMount } from 'solid-js';
 import { api } from '../api/client';
+import styles from './UserNotes.module.css';
 
 // ---- Types ----
 
@@ -101,31 +102,31 @@ export default function UserNotes() {
   };
 
   return (
-    <div class="flex flex-col bg-xcord-bg-secondary">
+    <div class={styles.container}>
       {/* Header */}
-      <div class="px-4 py-3 border-b border-xcord-bg-tertiary">
-        <h2 class="text-xcord-text-primary font-semibold">User Notes</h2>
-        <p class="text-xcord-text-muted text-xs mt-0.5">
+      <div class={styles.header}>
+        <h2 class={styles.heading}>User Notes</h2>
+        <p class={styles.headerSubtext}>
           Add private notes about other users. Only you can see them.
         </p>
       </div>
 
       {/* User lookup */}
-      <div class="px-4 py-3 border-b border-xcord-bg-tertiary">
-        <label class="text-xs text-xcord-text-muted block mb-1.5">Look up user by username</label>
-        <div class="flex gap-2">
+      <div class={styles.lookupSection}>
+        <label class={styles.lookupLabel}>Look up user by username</label>
+        <div class={styles.lookupRow}>
           <input
             id="note-username-input"
             type="text"
             placeholder="Enter username..."
-            class="flex-1 bg-xcord-bg-primary text-xcord-text-primary px-3 py-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+            class={styles.searchInput}
             value={searchUsername()}
             onInput={(e) => setSearchUsername(e.currentTarget.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') lookupUser(); }}
           />
           <button
             id="user-notes-find-btn"
-            class="bg-xcord-brand text-white px-3 py-2 rounded text-sm font-medium hover:bg-xcord-brand-hover transition-colors disabled:opacity-50"
+            class={styles.findButton}
             onClick={lookupUser}
             disabled={isLooking() || !searchUsername().trim()}
           >
@@ -133,31 +134,31 @@ export default function UserNotes() {
           </button>
         </div>
         <Show when={lookupError()}>
-          <p class="text-red-400 text-xs mt-1">{lookupError()}</p>
+          <p class={styles.lookupError}>{lookupError()}</p>
         </Show>
       </div>
 
       {/* Note editor - shown once a user is found */}
       <Show when={lookedUpUser()}>
         {(user) => (
-          <div class="px-4 py-3">
-            <div class="mb-3">
-              <p class="text-xcord-text-primary font-medium text-sm">{user().displayName ?? user().username}</p>
-              <p class="text-xcord-text-muted text-xs">@{user().username}</p>
+          <div class={styles.editorSection}>
+            <div class={styles.userInfo}>
+              <p class={styles.displayName}>{user().displayName ?? user().username}</p>
+              <p class={styles.usernameHandle}>@{user().username}</p>
               <Show when={existingNote()}>
-                <p class="text-xcord-text-muted text-xs mt-0.5">
+                <p class={styles.noteUpdatedAt}>
                   Note last updated{' '}
                   {new Date(existingNote()!.updatedAt ?? existingNote()!.createdAt).toLocaleDateString()}
                 </p>
               </Show>
             </div>
 
-            <label class="text-xs text-xcord-text-muted block mb-1.5">
+            <label class={styles.noteLabel}>
               {existingNote() ? 'Edit note' : 'Add a note'}
             </label>
             <textarea
               id="note-content-input"
-              class="w-full bg-xcord-bg-primary text-xcord-text-primary px-3 py-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand resize-none"
+              class={styles.noteTextarea}
               rows={4}
               placeholder="Write a private note about this user..."
               value={noteContent()}
@@ -166,13 +167,13 @@ export default function UserNotes() {
             />
 
             <Show when={saveError()}>
-              <p class="text-red-400 text-xs mt-1">{saveError()}</p>
+              <p class={styles.saveError}>{saveError()}</p>
             </Show>
 
-            <div class="flex items-center gap-2 mt-2">
+            <div class={styles.actionRow}>
               <button
                 id="user-notes-save-btn"
-                class="bg-xcord-brand text-white px-4 py-1.5 rounded text-sm font-medium hover:bg-xcord-brand-hover transition-colors disabled:opacity-50"
+                class={styles.saveButton}
                 onClick={saveNote}
                 disabled={isSaving() || !noteContent().trim()}
               >
@@ -182,7 +183,7 @@ export default function UserNotes() {
               <Show when={existingNote()}>
                 <button
                   id="user-notes-delete-btn"
-                  class="bg-xcord-bg-tertiary text-red-400 px-4 py-1.5 rounded text-sm font-medium hover:bg-red-600 hover:text-white transition-colors disabled:opacity-50"
+                  class={styles.deleteButton}
                   onClick={deleteNote}
                   disabled={isDeleting()}
                 >
@@ -191,10 +192,10 @@ export default function UserNotes() {
               </Show>
 
               <Show when={saveSuccess()}>
-                <span id="user-notes-save-status" class="text-green-400 text-sm">Saved!</span>
+                <span id="user-notes-save-status" class={styles.saveSuccessText}>Saved!</span>
               </Show>
               <Show when={deleteSuccess()}>
-                <span id="user-notes-delete-status" class="text-green-400 text-sm">Note deleted.</span>
+                <span id="user-notes-delete-status" class={styles.deleteSuccessText}>Note deleted.</span>
               </Show>
             </div>
           </div>

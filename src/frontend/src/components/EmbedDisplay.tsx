@@ -1,5 +1,6 @@
 import { Show } from 'solid-js';
 import type { MessageEmbed } from '../types/message';
+import styles from './EmbedDisplay.module.css';
 
 interface EmbedDisplayProps {
   embed: MessageEmbed;
@@ -10,11 +11,11 @@ export default function EmbedDisplay(props: EmbedDisplayProps) {
 
   return (
     <div
-      class="mt-1 max-w-lg rounded-r bg-xcord-bg-tertiary border-l-4 pl-3 pr-3 py-2"
+      class={styles.embed}
       style={{ 'border-left-color': borderColor() }}
     >
       <Show when={props.embed.siteName}>
-        <div class="text-xcord-text-muted text-xs mb-0.5">{props.embed.siteName}</div>
+        <div class={styles.siteName}>{props.embed.siteName}</div>
       </Show>
 
       <Show when={props.embed.title}>
@@ -22,14 +23,14 @@ export default function EmbedDisplay(props: EmbedDisplayProps) {
           href={props.embed.url}
           target="_blank"
           rel="noopener noreferrer"
-          class="text-blue-400 font-semibold text-sm hover:underline block"
+          class={styles.titleLink}
         >
           {props.embed.title}
         </a>
       </Show>
 
       <Show when={props.embed.description}>
-        <p class="text-xcord-text-secondary text-sm line-clamp-3 mt-0.5">
+        <p class={styles.description}>
           {props.embed.description}
         </p>
       </Show>
@@ -38,7 +39,7 @@ export default function EmbedDisplay(props: EmbedDisplayProps) {
         <img
           src={props.embed.imageUrl}
           alt={props.embed.title ?? 'Embed image'}
-          class="rounded max-w-md max-h-64 object-cover mt-2"
+          class={styles.image}
         />
       </Show>
     </div>

@@ -3,6 +3,7 @@ import { useNotifications } from '../stores/notification.store';
 import { useServers } from '../stores/server.store';
 import { requestPermission } from '../services/notification.service';
 import type { NotificationLevel } from '../types/notification';
+import styles from './NotificationSettings.module.css';
 
 export default function NotificationSettings() {
   const notifStore = useNotifications();
@@ -46,36 +47,36 @@ export default function NotificationSettings() {
   }
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
-      <div class="px-4 py-3 border-b border-xcord-border">
-        <h2 data-testid="notification-settings-heading" class="text-white font-semibold">Notification Settings</h2>
+    <div class={styles.container}>
+      <div class={styles.header}>
+        <h2 data-testid="notification-settings-heading" class={styles.heading}>Notification Settings</h2>
       </div>
 
-      <div class="flex-1 overflow-y-auto p-4 space-y-6">
+      <div class={styles.scrollBody}>
         <Show when={notifStore.isLoading}>
-          <div class="flex items-center justify-center h-32">
-            <p class="text-xcord-text-muted">Loading...</p>
+          <div class={styles.loadingState}>
+            <p class={styles.loadingText}>Loading...</p>
           </div>
         </Show>
 
         <Show when={notifStore.settings}>
-          <div class="space-y-4">
+          <div class={styles.settingsBlock}>
             <div>
-              <h3 class="text-white font-semibold mb-2">Desktop Notifications</h3>
+              <h3 class={styles.sectionTitle}>Desktop Notifications</h3>
 
               <Show when={permissionState() === 'granted'}>
-                <p class="text-sm text-green-400 py-2">Desktop notifications are enabled.</p>
+                <p class={styles.permGranted}>Desktop notifications are enabled.</p>
               </Show>
 
               <Show when={permissionState() === 'denied'}>
-                <p class="text-sm text-red-400 py-2">
+                <p class={styles.permDenied}>
                   Desktop notifications are blocked. Allow them in your browser settings.
                 </p>
               </Show>
 
               <Show when={permissionState() === 'default'}>
                 <button
-                  class="px-3 py-2 bg-xcord-brand text-white rounded text-sm hover:opacity-90 transition"
+                  class={styles.enableButton}
                   onClick={handleRequestPermission}
                 >
                   Enable desktop notifications
@@ -84,65 +85,65 @@ export default function NotificationSettings() {
             </div>
 
             <div>
-              <h3 class="text-white font-semibold mb-2">General</h3>
+              <h3 class={styles.sectionTitle}>General</h3>
 
-              <label class="flex items-center justify-between py-2">
-                <span class="text-xcord-text-primary">Mute all notifications</span>
+              <label class={styles.toggleRow}>
+                <span class={styles.toggleRowLabel}>Mute all notifications</span>
                 <input
                   data-testid="notification-mute-all-checkbox"
                   type="checkbox"
                   checked={notifStore.settings!.muteAll}
                   onChange={(e) => notifStore.updateSettings({ muteAll: e.currentTarget.checked })}
-                  class="w-5 h-5"
+                  class={styles.checkbox}
                 />
               </label>
 
-              <label class="flex items-center justify-between py-2">
-                <span class="text-xcord-text-primary">Show online status</span>
+              <label class={styles.toggleRow}>
+                <span class={styles.toggleRowLabel}>Show online status</span>
                 <input
                   type="checkbox"
                   checked={notifStore.settings!.showOnlineStatus}
                   onChange={(e) => notifStore.updateSettings({ showOnlineStatus: e.currentTarget.checked })}
-                  class="w-5 h-5"
+                  class={styles.checkbox}
                 />
               </label>
             </div>
 
             <div>
-              <h3 class="text-white font-semibold mb-2">Privacy</h3>
+              <h3 class={styles.sectionTitle}>Privacy</h3>
 
-              <label class="flex items-center justify-between py-2">
-                <span class="text-xcord-text-primary">Allow direct messages</span>
+              <label class={styles.toggleRow}>
+                <span class={styles.toggleRowLabel}>Allow direct messages</span>
                 <input
                   type="checkbox"
                   checked={notifStore.settings!.allowDirectMessages}
                   onChange={(e) => notifStore.updateSettings({ allowDirectMessages: e.currentTarget.checked })}
-                  class="w-5 h-5"
+                  class={styles.checkbox}
                 />
               </label>
 
-              <label class="flex items-center justify-between py-2">
-                <span class="text-xcord-text-primary">Allow friend requests</span>
+              <label class={styles.toggleRow}>
+                <span class={styles.toggleRowLabel}>Allow friend requests</span>
                 <input
                   type="checkbox"
                   checked={notifStore.settings!.allowFriendRequests}
                   onChange={(e) => notifStore.updateSettings({ allowFriendRequests: e.currentTarget.checked })}
-                  class="w-5 h-5"
+                  class={styles.checkbox}
                 />
               </label>
             </div>
 
             <div>
-              <h3 class="text-white font-semibold mb-2">Mention Keywords</h3>
-              <p class="text-xs text-xcord-text-muted mb-2">
+              <h3 class={styles.sectionTitle}>Mention Keywords</h3>
+              <p class={styles.keywordHint}>
                 Get notified when someone mentions these keywords
               </p>
 
-              <div class="space-y-2">
+              <div class={styles.keywordsSection}>
                 <Show when={(notifStore.settings!.mentionKeywords ?? []).length > 0}>
-                  <div class="flex flex-wrap gap-2">
+                  <div class={styles.keywordChips}>
                     {(notifStore.settings!.mentionKeywords ?? []).map((keyword) => (
-                      <span class="bg-xcord-bg-primary text-xcord-text-primary px-2 py-1 rounded text-sm">
+                      <span class={styles.keywordChip}>
                         {keyword}
                       </span>
                     ))}
@@ -152,7 +153,7 @@ export default function NotificationSettings() {
                 <input
                   type="text"
                   placeholder="Add keyword..."
-                  class="w-full bg-xcord-bg-primary text-white px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+                  class={styles.keywordInput}
                   onKeyPress={(e) => {
                     if (e.key === 'Enter' && e.currentTarget.value.trim()) {
                       const keywords = [...(notifStore.settings!.mentionKeywords ?? []), e.currentTarget.value.trim()];
@@ -169,12 +170,12 @@ export default function NotificationSettings() {
         {/* Per-server notification levels */}
         <Show when={serverStore.servers.length > 0}>
           <div>
-            <h3 class="text-white font-semibold mb-2">Server Notification Overrides</h3>
-            <p class="text-xs text-xcord-text-muted mb-3">
+            <h3 class={styles.sectionTitle}>Server Notification Overrides</h3>
+            <p class={styles.serverOverrideHint}>
               Customise notification levels per server. Defaults to All Messages when no override is set.
             </p>
 
-            <div class="space-y-2" aria-label="Server notification overrides">
+            <div class={styles.serverOverrideList} aria-label="Server notification overrides">
               <For each={serverStore.servers}>
                 {(server) => {
                   const currentLevel = () => getServerOverride(server.id);
@@ -182,15 +183,15 @@ export default function NotificationSettings() {
 
                   return (
                     <div
-                      class="flex items-center justify-between py-2 px-3 rounded bg-xcord-bg-primary"
+                      class={styles.serverOverrideRow}
                       aria-label={`Notification settings for ${server.name}`}
                     >
-                      <span class="text-xcord-text-primary text-sm font-medium">{server.name}</span>
+                      <span class={styles.serverName}>{server.name}</span>
 
-                      <div class="flex items-center gap-2">
+                      <div class={styles.serverOverrideControls}>
                         <select
                           aria-label={`Notification level for ${server.name}`}
-                          class="bg-xcord-bg-secondary text-xcord-text-primary text-sm rounded px-2 py-1 border border-xcord-border focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+                          class={styles.levelSelect}
                           value={currentLevel() ?? 'All'}
                           onChange={(e) => handleServerLevelChange(server.id, e.currentTarget.value as NotificationLevel)}
                         >
@@ -202,7 +203,7 @@ export default function NotificationSettings() {
                         <Show when={hasOverride()}>
                           <button
                             aria-label={`Reset notifications for ${server.name}`}
-                            class="text-xs text-xcord-text-muted hover:text-red-400 transition px-2 py-1 rounded hover:bg-xcord-bg-secondary"
+                            class={styles.resetButton}
                             onClick={() => handleDeleteServerOverride(server.id)}
                           >
                             Reset

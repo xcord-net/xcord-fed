@@ -21,7 +21,9 @@ public sealed record UpdateChannelCommand(
     bool? IsNsfw = null,
     ForumSort? DefaultSortOrder = null,
     bool? RequireTag = null,
-    int? DefaultAutoArchiveDuration = null
+    int? DefaultAutoArchiveDuration = null,
+    ChannelCapability? Capabilities = null,
+    long? AccessGroupId = null
 );
 
 public sealed record UpdateChannelResponse(
@@ -32,6 +34,8 @@ public sealed record UpdateChannelResponse(
     string Name,
     string? Topic,
     ChannelType Type,
+    ChannelCapability Capabilities,
+    long? AccessGroupId,
     int Position,
     int? SlowModeSeconds,
     bool IsNsfw,
@@ -50,7 +54,9 @@ public sealed record UpdateChannelRequest(
     bool? IsNsfw = null,
     ForumSort? DefaultSortOrder = null,
     bool? RequireTag = null,
-    int? DefaultAutoArchiveDuration = null
+    int? DefaultAutoArchiveDuration = null,
+    ChannelCapability? Capabilities = null,
+    long? AccessGroupId = null
 );
 
 public sealed class UpdateChannelHandler(
@@ -159,6 +165,8 @@ public sealed class UpdateChannelHandler(
         if (request.DefaultSortOrder.HasValue) channel.DefaultSortOrder = request.DefaultSortOrder.Value;
         if (request.RequireTag.HasValue) channel.RequireTag = request.RequireTag.Value;
         if (request.DefaultAutoArchiveDuration.HasValue) channel.DefaultAutoArchiveDuration = request.DefaultAutoArchiveDuration.Value;
+        if (request.Capabilities.HasValue) channel.Capabilities = request.Capabilities.Value;
+        if (request.AccessGroupId.HasValue) channel.AccessGroupId = request.AccessGroupId.Value;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -174,6 +182,8 @@ public sealed class UpdateChannelHandler(
             Name: channel.Name,
             Topic: channel.Topic,
             Type: channel.Type,
+            Capabilities: channel.Capabilities,
+            AccessGroupId: channel.AccessGroupId,
             Position: channel.Position,
             SlowModeSeconds: channel.SlowModeSeconds,
             IsNsfw: channel.IsNsfw,
@@ -202,7 +212,9 @@ public sealed class UpdateChannelHandler(
                 IsNsfw: request.IsNsfw,
                 DefaultSortOrder: request.DefaultSortOrder,
                 RequireTag: request.RequireTag,
-                DefaultAutoArchiveDuration: request.DefaultAutoArchiveDuration
+                DefaultAutoArchiveDuration: request.DefaultAutoArchiveDuration,
+                Capabilities: request.Capabilities,
+                AccessGroupId: request.AccessGroupId
             );
 
             return await handler.ExecuteAsync(command, ct);

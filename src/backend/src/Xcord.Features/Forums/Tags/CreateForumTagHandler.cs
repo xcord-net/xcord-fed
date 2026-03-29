@@ -67,7 +67,7 @@ public sealed class CreateForumTagHandler(
             return Error.NotFound("CHANNEL_NOT_FOUND", "Channel not found");
         }
 
-        if (channel.Type != ChannelType.Forum)
+        if (!channel.Capabilities.HasFlag(ChannelCapability.Forum))
         {
             return Error.Validation("NOT_FORUM_CHANNEL", "Channel is not a forum channel");
         }

@@ -1,0 +1,93 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--color-xcord-bg-secondary);
+}
+
+.header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+}
+
+.headerTitle {
+  color: white;
+  font-weight: 600;
+}
+
+.errorBanner {
+  padding: 0.5rem 1rem;
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  font-size: 0.875rem;
+}
+
+.listArea {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 8rem;
+}
+
+.mutedText {
+  color: var(--color-xcord-text-muted);
+}
+
+.emptyContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 8rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.emptyTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.emptySubtitle {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.inviteItem {
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-xcord-border);
+  transition: color 150ms, background-color 150ms;
+}
+
+.inviteItem:hover {
+  background-color: color-mix(in srgb, var(--color-xcord-bg-primary) 50%, transparent);
+}
+
+.inviteInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.inviteCode {
+  color: white;
+  font-family: monospace;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.inviteMeta {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  margin-top: 0.125rem;
+}
+
+.inviteActions {
+  margin-left: 0.75rem;
+}

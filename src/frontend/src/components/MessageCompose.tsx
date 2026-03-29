@@ -1,14 +1,16 @@
-import { createSignal, createEffect, onCleanup, Show } from 'solid-js';
+import { createSignal, createEffect, onCleanup, onMount, Show } from 'solid-js';
 import { useMessages } from '../stores/message.store';
 import { useChannels } from '../stores/channel.store';
 import { useSignalR } from '../stores/signalr.store';
-import { useModals } from '../stores/modal.store';
+import { useMembers } from '../stores/member.store';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import { CreatePollForm } from './PollDisplay';
 import GifPicker from './GifPicker';
 import EmojiPicker from './EmojiPicker';
-import Modal from './ui/Modal';
+import MemberList from './MemberList';
+import Dropdown from './ui/Dropdown';
+import styles from './MessageCompose.module.css';
 
 interface MessageComposeProps {
   conversationId: string;
@@ -26,6 +28,57 @@ interface UploadedAttachment {
   fileSize: number;
 }
 
+// --- SVG Icons ---
+
+function PaperclipIcon(props: { class?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class={props.class ?? 'w-4 h-4'}>
+      <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+    </svg>
+  );
+}
+
+function BarChartIcon(props: { class?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class={props.class ?? 'w-4 h-4'}>
+      <line x1="12" y1="20" x2="12" y2="10" />
+      <line x1="18" y1="20" x2="18" y2="4" />
+      <line x1="6" y1="20" x2="6" y2="16" />
+    </svg>
+  );
+}
+
+function SmileIcon(props: { class?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class={props.class ?? 'w-4 h-4'}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+      <line x1="9" y1="9" x2="9.01" y2="9" />
+      <line x1="15" y1="9" x2="15.01" y2="9" />
+    </svg>
+  );
+}
+
+function ClockIcon(props: { class?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class={props.class ?? 'w-4 h-4'}>
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  );
+}
+
+function UsersIcon(props: { class?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class={props.class ?? 'w-4 h-4'}>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
 export function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -36,7 +89,7 @@ export default function MessageCompose(props: MessageComposeProps) {
   const messageStore = useMessages();
   const channelStore = useChannels();
   const signalR = useSignalR();
-  const modals = useModals();
+  const memberStore = useMembers();
   const [content, setContent] = createSignal('');
   const [replyToId, setReplyToId] = createSignal<string | null>(null);
   const [isSending, setIsSending] = createSignal(false);
@@ -51,12 +104,19 @@ export default function MessageCompose(props: MessageComposeProps) {
   // Emoji picker visibility
   const [showEmojiPicker, setShowEmojiPicker] = createSignal(false);
 
-  // Schedule message modal
-  const [showScheduleModal, setShowScheduleModal] = createSignal(false);
-  const [scheduleDate, setScheduleDate] = createSignal('');
-  const [scheduleTime, setScheduleTime] = createSignal('');
-  const [scheduleError, setScheduleError] = createSignal('');
-  const [isScheduling, setIsScheduling] = createSignal(false);
+  // Member list popover
+  const [showMemberList, setShowMemberList] = createSignal(false);
+
+  // GIF availability - probe once on mount
+  const [gifAvailable, setGifAvailable] = createSignal(false);
+  onMount(async () => {
+    try {
+      const result = await api.get<{ gifs: unknown[] }>('/api/v1/gifs/trending?limit=1');
+      setGifAvailable(result.gifs.length > 0);
+    } catch {
+      setGifAvailable(false);
+    }
+  });
 
   // Slow mode state
   const [slowModeCountdown, setSlowModeCountdown] = createSignal(0);
@@ -68,13 +128,21 @@ export default function MessageCompose(props: MessageComposeProps) {
 
   let textareaRef: HTMLTextAreaElement | undefined;
   let fileInputRef: HTMLInputElement | undefined;
+  let gifButtonRef: HTMLButtonElement | undefined;
+  let emojiButtonRef: HTMLButtonElement | undefined;
+  let membersButtonRef: HTMLButtonElement | undefined;
   let slowModeTimer: ReturnType<typeof setInterval> | undefined;
-  // Throttle typing events - send at most once every 3 seconds.
   let lastTypingSentAt = 0;
+
+  // Auto-focus textarea when channel changes
+  createEffect(() => {
+    const _convId = props.conversationId;
+    void _convId;
+    requestAnimationFrame(() => textareaRef?.focus());
+  });
 
   // Reset slow mode countdown when channel changes
   createEffect(() => {
-    // Track the channelId - when it changes, reset the countdown
     const _channelId = props.channelId;
     void _channelId;
     setSlowModeCountdown(0);
@@ -89,6 +157,9 @@ export default function MessageCompose(props: MessageComposeProps) {
       clearInterval(slowModeTimer);
     }
   });
+
+  const currentChannel = () =>
+    props.channelId ? channelStore.channels.find((c) => c.id === props.channelId) : undefined;
 
   const slowModeInterval = () => {
     if (!props.channelId) return 0;
@@ -146,11 +217,9 @@ export default function MessageCompose(props: MessageComposeProps) {
       if (textareaRef) {
         textareaRef.style.height = 'auto';
       }
-      // Start slow mode countdown after successful send
       startSlowModeCountdown();
     } catch (err: unknown) {
       setSendError(getErrorMessage(err, 'Failed to send message'));
-      // Auto-clear error after 5 seconds
       setTimeout(() => setSendError(null), 5_000);
       console.error('Failed to send message:', err);
     } finally {
@@ -166,8 +235,6 @@ export default function MessageCompose(props: MessageComposeProps) {
     target.style.height = 'auto';
     target.style.height = `${Math.min(target.scrollHeight, 200)}px`;
 
-    // Notify other users that this user is typing. Throttled to once per 3s
-    // so we don't flood the server with typing events on every keystroke.
     if (target.value.length > 0) {
       const now = Date.now();
       if (now - lastTypingSentAt > 3_000) {
@@ -190,21 +257,18 @@ export default function MessageCompose(props: MessageComposeProps) {
     const file = input.files?.[0];
     if (!file) return;
 
-    // Reset file input so the same file can be re-selected if needed
     input.value = '';
 
     setUploading(true);
     setUploadProgress(0);
 
     try {
-      // Step 1: Request presigned upload URL
       const { attachmentId, uploadUrl } = await api.post<UploadInitResponse>('/api/v1/uploads', {
         fileName: file.name,
         contentType: file.type || 'application/octet-stream',
         fileSize: file.size,
       });
 
-      // Step 2: Upload directly to S3/MinIO with XHR for progress tracking
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.upload.addEventListener('progress', (ev) => {
@@ -222,12 +286,10 @@ export default function MessageCompose(props: MessageComposeProps) {
         xhr.addEventListener('error', () => reject(new Error('Upload network error')));
         xhr.open('PUT', uploadUrl);
         xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-        // Auth cookie sent automatically via withCredentials
         xhr.withCredentials = true;
         xhr.send(file);
       });
 
-      // Step 3: Confirm upload complete
       await api.post(`/api/v1/attachments/${attachmentId}/confirm`, {});
 
       setUploadedAttachment({ attachmentId, fileName: file.name, fileSize: file.size });
@@ -264,7 +326,6 @@ export default function MessageCompose(props: MessageComposeProps) {
         expiresAt,
       });
 
-      // Reload messages to show the new poll message
       messageStore.clearMessages();
       await messageStore.loadMessages(props.conversationId);
     } catch (error) {
@@ -296,259 +357,77 @@ export default function MessageCompose(props: MessageComposeProps) {
     }
   };
 
-  const openScheduleModal = () => {
-    const text = content().trim();
-    if (!text) {
-      setSendError('Type a message before scheduling');
-      setTimeout(() => setSendError(null), 3_000);
-      return;
-    }
-    // Default to 1 hour from now
-    const defaultTime = new Date(Date.now() + 60 * 60 * 1000);
-    const year = defaultTime.getFullYear();
-    const month = String(defaultTime.getMonth() + 1).padStart(2, '0');
-    const day = String(defaultTime.getDate()).padStart(2, '0');
-    const hours = String(defaultTime.getHours()).padStart(2, '0');
-    const minutes = String(defaultTime.getMinutes()).padStart(2, '0');
-    setScheduleDate(`${year}-${month}-${day}`);
-    setScheduleTime(`${hours}:${minutes}`);
-    setScheduleError('');
-    setShowScheduleModal(true);
-  };
-
-  const handleScheduleSend = async () => {
-    if (!props.channelId) {
-      setScheduleError('Scheduled messages require a channel');
-      return;
-    }
-
-    const text = content().trim();
-    if (!text) {
-      setScheduleError('Message content is required');
-      return;
-    }
-
-    const dateVal = scheduleDate();
-    const timeVal = scheduleTime();
-    if (!dateVal || !timeVal) {
-      setScheduleError('Please select a date and time');
-      return;
-    }
-
-    // Build a DateTimeOffset from local date/time
-    const localDate = new Date(`${dateVal}T${timeVal}`);
-    if (isNaN(localDate.getTime())) {
-      setScheduleError('Invalid date or time');
-      return;
-    }
-
-    const now = new Date();
-    if (localDate.getTime() - now.getTime() < 60_000) {
-      setScheduleError('Scheduled time must be at least 1 minute in the future');
-      return;
-    }
-
-    if (localDate.getTime() - now.getTime() > 30 * 24 * 60 * 60 * 1000) {
-      setScheduleError('Scheduled time must be within 30 days');
-      return;
-    }
-
-    setIsScheduling(true);
-    setScheduleError('');
-    try {
-      await api.post(`/api/v1/channels/${props.channelId}/scheduled-messages`, {
-        content: text,
-        scheduledAt: localDate.toISOString(),
-      });
-      setShowScheduleModal(false);
-      setContent('');
-      if (textareaRef) {
-        textareaRef.style.height = 'auto';
-      }
-    } catch (err: unknown) {
-      setScheduleError(getErrorMessage(err, 'Failed to schedule message'));
-    } finally {
-      setIsScheduling(false);
-    }
-  };
-
   const hasTopSection = () => !!(replyToId() || uploading() || uploadedAttachment());
 
   return (
-    <div class="px-4 pb-6">
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        class="hidden"
-        onChange={handleFileSelect}
-      />
+    <div class={styles.wrapper}>
+      <input ref={fileInputRef} type="file" style={{ display: 'none' }} onChange={handleFileSelect} />
 
-      {/* Poll creation form */}
       <Show when={showPollForm()}>
-        <div class="mb-2">
-          <CreatePollForm
-            onSubmit={handlePollSubmit}
-            onCancel={() => setShowPollForm(false)}
-          />
+        <div class={styles.pollWrap}>
+          <CreatePollForm onSubmit={handlePollSubmit} onCancel={() => setShowPollForm(false)} />
         </div>
       </Show>
 
-      {/* Reply preview */}
       <Show when={replyToId()}>
-        <div class="flex items-center justify-between px-3 py-2 bg-xcord-bg-primary rounded-t-lg border-b border-xcord-bg-secondary">
-          <span class="text-sm text-xcord-text-secondary">Replying to a message</span>
-          <button
-            class="text-xcord-text-muted hover:text-xcord-text-primary transition-colors"
-            onClick={cancelReply}
-          >
-            ✕
-          </button>
+        <div class={styles.replyPreview}>
+          <span class={styles.replyText}>Replying to a message</span>
+          <button class={styles.closeBtn} onClick={cancelReply}>x</button>
         </div>
       </Show>
 
-      {/* Upload progress bar */}
       <Show when={uploading()}>
-        <div class="px-3 py-2 bg-xcord-bg-primary border-b border-xcord-bg-secondary rounded-t-lg">
-          <div class="flex items-center gap-2 mb-1">
-            <span class="text-xs text-xcord-text-secondary">Uploading...</span>
-            <span class="text-xs text-xcord-text-muted ml-auto">{uploadProgress()}%</span>
+        <div class={styles.uploadProgress}>
+          <div class={styles.uploadHeader}>
+            <span class={styles.uploadLabel}>Uploading...</span>
+            <span class={styles.uploadPercent}>{uploadProgress()}%</span>
           </div>
-          <div class="w-full h-1 bg-xcord-bg-secondary rounded-full overflow-hidden">
-            <div
-              class="h-full bg-xcord-accent transition-all duration-200"
-              style={{ width: `${uploadProgress()}%` }}
-            />
+          <div class={styles.uploadTrack}>
+            <div class={styles.uploadFill} style={{ width: `${uploadProgress()}%` }} />
           </div>
         </div>
       </Show>
 
-      {/* File preview */}
       <Show when={uploadedAttachment()}>
         {(attachment) => (
-          <div data-testid="compose-attachment-preview" class="flex items-center gap-2 px-3 py-2 bg-xcord-bg-primary border-b border-xcord-bg-secondary rounded-t-lg">
-            <span class="text-lg" aria-hidden="true">📎</span>
-            <div class="flex-1 min-w-0">
-              <p data-testid="compose-attachment-filename" class="text-sm text-xcord-text-primary truncate">{attachment().fileName}</p>
-              <p class="text-xs text-xcord-text-muted">{formatFileSize(attachment().fileSize)}</p>
+          <div data-testid="compose-attachment-preview" class={styles.filePreview}>
+            <PaperclipIcon class={styles.fileIcon} />
+            <div class={styles.fileInfo}>
+              <p data-testid="compose-attachment-filename" class={styles.fileName}>{attachment().fileName}</p>
+              <p class={styles.fileSize}>{formatFileSize(attachment().fileSize)}</p>
             </div>
-            <button
-              data-testid="compose-attachment-remove"
-              class="text-xcord-text-muted hover:text-xcord-text-primary transition-colors flex-shrink-0"
-              onClick={removeAttachment}
-              aria-label="Remove attachment"
-            >
-              ✕
-            </button>
+            <button data-testid="compose-attachment-remove" class={styles.removeBtn} onClick={removeAttachment} aria-label="Remove attachment">x</button>
           </div>
         )}
       </Show>
 
-      {/* Send error (e.g. automod blocked) */}
       <Show when={sendError()}>
-        <div
-          role="alert"
-          aria-label="Message blocked"
-          class="px-3 py-2 mb-1 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-xs"
-        >
-          {sendError()}
-        </div>
+        <div role="alert" aria-label="Message blocked" class={styles.errorAlert}>{sendError()}</div>
       </Show>
 
-      {/* Input area */}
-      <div class={`bg-xcord-bg-primary ${hasTopSection() ? 'rounded-b-lg' : 'rounded-lg'} px-4 py-3 flex items-end gap-2`}>
-        {/* Attachment button */}
-        <button
-          data-testid="compose-attach-button"
-          class="flex-shrink-0 text-xcord-text-muted hover:text-xcord-text-primary transition-colors pb-0.5 disabled:opacity-40 disabled:cursor-not-allowed"
-          onClick={handleAttachmentClick}
-          disabled={uploading() || isSending()}
-          aria-label="Attach file"
-          title="Attach file"
-        >
-          📎
+      <div class={`${styles.bar} ${hasTopSection() ? styles.barContinued : ''}`}>
+        <button data-testid="compose-attach-button" class={styles.btn} onClick={handleAttachmentClick} disabled={uploading() || isSending()} aria-label="Attach file" title="Attach file">
+          <PaperclipIcon />
         </button>
 
-        {/* Poll button */}
-        <button
-          data-testid="compose-poll-button"
-          class="flex-shrink-0 text-xcord-text-muted hover:text-xcord-text-primary transition-colors pb-0.5 disabled:opacity-40 disabled:cursor-not-allowed"
-          onClick={() => setShowPollForm(!showPollForm())}
-          disabled={isSending()}
-          aria-label="Create poll"
-          title="Create poll"
-        >
-          📊
+        <button data-testid="compose-poll-button" class={styles.btn} onClick={() => setShowPollForm(!showPollForm())} disabled={isSending()} aria-label="Create poll" title="Create poll">
+          <BarChartIcon />
         </button>
 
-        {/* GIF button */}
-        <div class="relative flex-shrink-0">
-          <button
-            data-testid="compose-gif-button"
-            class="text-xcord-text-muted hover:text-xcord-text-primary transition-colors pb-0.5 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold"
-            onClick={() => setShowGifPicker(!showGifPicker())}
-            disabled={isSending() || isSlowModeActive()}
-            aria-label="Send GIF"
-            title="Send GIF"
-          >
-            GIF
-          </button>
-
-          <Show when={showGifPicker()}>
-            <div class="fixed inset-0 z-40" aria-hidden="true" onClick={() => setShowGifPicker(false)} />
-            <div class="absolute bottom-full left-0 mb-2 z-50">
-              <GifPicker
-                onSelect={handleGifSelect}
-                onClose={() => setShowGifPicker(false)}
-              />
-            </div>
-          </Show>
-        </div>
-
-        {/* Emoji picker button */}
-        <div class="relative flex-shrink-0">
-          <button
-            data-testid="compose-emoji-button"
-            class="text-xcord-text-muted hover:text-xcord-text-primary transition-colors pb-0.5 disabled:opacity-40 disabled:cursor-not-allowed"
-            onClick={() => setShowEmojiPicker(!showEmojiPicker())}
-            disabled={isSending()}
-            aria-label="Insert emoji"
-            title="Insert emoji"
-          >
-            😊
-          </button>
-
-          <Show when={showEmojiPicker()}>
-            <div class="fixed inset-0 z-40" aria-hidden="true" onClick={() => setShowEmojiPicker(false)} />
-            <div class="absolute bottom-full left-0 mb-2 z-50">
-              <EmojiPicker
-                onSelect={handleEmojiSelect}
-                onClose={() => setShowEmojiPicker(false)}
-              />
-            </div>
-          </Show>
-        </div>
-
-        {/* Schedule message button */}
-        <Show when={props.channelId}>
-          <button
-            data-testid="compose-schedule-button"
-            class="flex-shrink-0 text-xcord-text-muted hover:text-xcord-text-primary transition-colors pb-0.5 disabled:opacity-40 disabled:cursor-not-allowed"
-            onClick={openScheduleModal}
-            disabled={isSending() || isSlowModeActive()}
-            aria-label="Schedule message"
-            title="Schedule message"
-          >
-            &#128336;
-          </button>
+        <Show when={gifAvailable()}>
+          <button data-testid="compose-gif-button" class={styles.btnText} ref={(el) => { gifButtonRef = el; }} onClick={() => setShowGifPicker(!showGifPicker())} disabled={isSending() || isSlowModeActive()} aria-label="Send GIF" title="Send GIF">GIF</button>
         </Show>
+
+        <button data-testid="compose-emoji-button" class={styles.btn} ref={(el) => { emojiButtonRef = el; }} onClick={() => setShowEmojiPicker(!showEmojiPicker())} disabled={isSending()} aria-label="Insert emoji" title="Insert emoji">
+          <SmileIcon />
+        </button>
 
         <textarea
           id="message-compose-textarea"
           data-testid="compose-textarea"
           ref={textareaRef}
-          class="flex-1 bg-transparent text-xcord-text-primary placeholder-xcord-text-muted resize-none outline-none"
-          placeholder="Message #channel-name"
+          class={styles.input}
+          placeholder={`Message ${currentChannel()?.name ?? 'channel'}`}
           value={content()}
           onInput={handleInput}
           onKeyDown={handleKeyDown}
@@ -556,110 +435,30 @@ export default function MessageCompose(props: MessageComposeProps) {
           disabled={isSending() || isSlowModeActive()}
         />
 
-        {/* Slow mode countdown indicator */}
         <Show when={isSlowModeActive()}>
-          <span
-            id="message-compose-slowmode"
-            class="flex-shrink-0 text-xs text-xcord-text-muted font-medium whitespace-nowrap"
-            aria-live="polite"
-            aria-label={`Slow mode active. Wait ${slowModeCountdown()} seconds before sending again.`}
-          >
+          <span id="message-compose-slowmode" class={styles.slowMode} aria-live="polite" aria-label={`Slow mode active. Wait ${slowModeCountdown()} seconds before sending again.`}>
             Slowmode: {slowModeCountdown()}s
           </span>
         </Show>
+
+        <button data-testid="compose-members-button" class={styles.memberTrigger} classList={{ [styles.btnActive]: showMemberList() }} ref={(el) => { membersButtonRef = el; }} onClick={() => setShowMemberList(!showMemberList())} aria-label="Members" title="Members">
+          <UsersIcon />
+          <span>{memberStore.members.length}</span>
+        </button>
       </div>
 
-      {/* View scheduled messages link */}
-      <Show when={props.channelId}>
-        <button
-          data-testid="compose-view-scheduled-button"
-          class="mt-1 text-xs text-xcord-text-muted hover:text-xcord-brand transition-colors"
-          onClick={() => modals.toggleScheduledMessages()}
-          aria-label="View scheduled messages"
-        >
-          {modals.showScheduledMessages ? 'Hide' : 'View'} scheduled messages
-        </button>
-      </Show>
+      <Dropdown open={showGifPicker()} onClose={() => setShowGifPicker(false)} trigger={gifButtonRef}>
+        <GifPicker onSelect={handleGifSelect} onClose={() => setShowGifPicker(false)} />
+      </Dropdown>
 
-      {/* Schedule message modal */}
-      <Modal
-        open={showScheduleModal()}
-        onClose={() => setShowScheduleModal(false)}
-        title="Schedule Message"
-        size="sm"
-      >
-        <div class="p-6 space-y-4">
-          {/* Message preview */}
-          <div>
-            <label class="block text-xcord-text-secondary text-xs font-semibold uppercase tracking-wide mb-1">
-              Message
-            </label>
-            <div class="bg-xcord-bg-primary rounded px-3 py-2 text-sm text-xcord-text-primary max-h-24 overflow-y-auto break-words">
-              {content()}
-            </div>
-          </div>
+      <Dropdown open={showEmojiPicker()} onClose={() => setShowEmojiPicker(false)} trigger={emojiButtonRef}>
+        <EmojiPicker onSelect={handleEmojiSelect} onClose={() => setShowEmojiPicker(false)} />
+      </Dropdown>
 
-          {/* Date picker */}
-          <div>
-            <label for="schedule-date" class="block text-xcord-text-secondary text-xs font-semibold uppercase tracking-wide mb-1">
-              Date
-            </label>
-            <input
-              id="schedule-date"
-              type="date"
-              class="w-full bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus-visible:ring-2 focus-visible:ring-xcord-brand focus:outline-none"
-              value={scheduleDate()}
-              onInput={(e) => setScheduleDate(e.currentTarget.value)}
-              min={new Date().toISOString().split('T')[0]}
-            />
-          </div>
+      <Dropdown open={showMemberList()} onClose={() => setShowMemberList(false)} trigger={membersButtonRef} anchor="top-end">
+        <MemberList open={showMemberList()} onClose={() => setShowMemberList(false)} />
+      </Dropdown>
 
-          {/* Time picker */}
-          <div>
-            <label for="schedule-time" class="block text-xcord-text-secondary text-xs font-semibold uppercase tracking-wide mb-1">
-              Time
-            </label>
-            <input
-              id="schedule-time"
-              type="time"
-              class="w-full bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus-visible:ring-2 focus-visible:ring-xcord-brand focus:outline-none"
-              value={scheduleTime()}
-              onInput={(e) => setScheduleTime(e.currentTarget.value)}
-            />
-          </div>
-
-          {/* Timezone note */}
-          <p class="text-xcord-text-muted text-xs">
-            Times are in your local timezone ({Intl.DateTimeFormat().resolvedOptions().timeZone}).
-          </p>
-
-          {/* Error */}
-          <Show when={scheduleError()}>
-            <div role="alert" class="px-3 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-xs">
-              {scheduleError()}
-            </div>
-          </Show>
-
-          {/* Actions */}
-          <div class="flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => setShowScheduleModal(false)}
-              class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleScheduleSend}
-              disabled={isScheduling()}
-              class="px-4 py-2 bg-xcord-brand hover:bg-xcord-brand-hover text-white text-sm font-medium rounded transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
-            >
-              {isScheduling() ? 'Scheduling...' : 'Schedule'}
-            </button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 }

@@ -1,0 +1,69 @@
+.wrapper {
+  position: relative;
+}
+
+.triggerButton {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  border: 2px solid var(--color-xcord-bg-tertiary);
+  position: absolute;
+  bottom: -0.125rem;
+  right: -0.125rem;
+  cursor: pointer;
+}
+
+.menuItem {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-size: 0.875rem;
+  color: var(--color-xcord-text-secondary);
+  background-color: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  transition: background-color 0.15s, color 0.15s;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.menuItem:hover {
+  background-color: var(--color-xcord-bg-primary);
+  color: #ffffff;
+}
+
+.menuItem:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.statusDot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.checkmark {
+  margin-left: auto;
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+}
+
+.statusOnline {
+  background-color: var(--color-xcord-status-online);
+}
+
+.statusIdle {
+  background-color: var(--color-xcord-status-idle);
+}
+
+.statusDnd {
+  background-color: var(--color-xcord-status-dnd);
+}
+
+.statusOffline {
+  background-color: var(--color-xcord-status-offline);
+}

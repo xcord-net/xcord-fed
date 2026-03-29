@@ -2,6 +2,7 @@ import { Show, createEffect, onMount, splitProps } from 'solid-js';
 import type { JSX } from 'solid-js';
 import { createFocusTrap } from '../../hooks/createFocusTrap';
 import { createScrollLock } from '../../hooks/createScrollLock';
+import styles from './Modal.module.css';
 
 // Whether the user has requested reduced motion at the OS level.
 const prefersReducedMotion = () =>
@@ -11,10 +12,10 @@ const prefersReducedMotion = () =>
 type ModalSize = 'sm' | 'md' | 'lg' | 'xl';
 
 const SIZE_CLASS: Record<ModalSize, string> = {
-  sm: 'max-w-sm',
-  md: 'max-w-md',
-  lg: 'max-w-xl',
-  xl: 'max-w-2xl',
+  sm: styles.panelSm,
+  md: styles.panelMd,
+  lg: styles.panelLg,
+  xl: styles.panelXl,
 };
 
 interface ModalProps {
@@ -102,7 +103,7 @@ export default function Modal(props: ModalProps) {
       {/* Backdrop */}
       <div
         ref={backdropEl}
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 transition-opacity duration-200"
+        class={styles.backdrop}
         onClick={(e) => {
           if (e.target === e.currentTarget) local.onClose();
         }}
@@ -117,23 +118,23 @@ export default function Modal(props: ModalProps) {
           role={dialogRole()}
           aria-modal="true"
           aria-label={ariaLabel()}
-          class={`relative w-full ${sizeClass()} mx-4 max-h-[90vh] bg-xcord-bg-secondary rounded-lg shadow-xl flex flex-col overflow-hidden transition-all duration-200`}
+          class={`${styles.panel} ${sizeClass()}`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Optional header */}
           <Show when={local.title}>
-            <div class="flex items-center justify-between px-6 py-4 border-b border-xcord-border flex-shrink-0">
-              <h2 class="text-xl font-bold text-xcord-text-primary">{local.title}</h2>
+            <div class={styles.header}>
+              <h2 class={styles.title}>{local.title}</h2>
               <button
                 type="button"
                 aria-label="Close dialog"
                 onClick={() => local.onClose()}
-                class="text-xcord-text-muted hover:text-xcord-text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand rounded p-0.5"
+                class={styles.closeButton}
               >
                 {/* X icon */}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="w-5 h-5"
+                  class={styles.closeIcon}
                   viewBox="0 0 20 20"
                   fill="currentColor"
                   aria-hidden="true"
@@ -149,7 +150,7 @@ export default function Modal(props: ModalProps) {
           </Show>
 
           {/* Scrollable body */}
-          <div class="flex-1 overflow-y-auto">
+          <div class={styles.body}>
             {local.children}
           </div>
         </div>

@@ -1,0 +1,517 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.loadingCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+.loadingText {
+  color: var(--color-xcord-text-muted);
+}
+
+.errorBanner {
+  padding: 0.75rem 1rem;
+  background-color: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.25rem;
+  color: #f87171;
+  font-size: 0.875rem;
+}
+
+.hubDisconnectedBanner {
+  padding: 0.75rem 1rem;
+  background-color: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  border-radius: 0.25rem;
+  color: #facc15;
+  font-size: 0.875rem;
+}
+
+.autoToggleSection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--color-xcord-bg-secondary);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-xcord-border);
+}
+
+.autoToggleLabel {
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.autoToggleDescription {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  margin-top: 0.125rem;
+}
+
+.toggleButton {
+  position: relative;
+  display: inline-flex;
+  height: 1.5rem;
+  width: 2.75rem;
+  align-items: center;
+  border-radius: 9999px;
+  transition: color 150ms, background-color 150ms;
+  border: none;
+  cursor: pointer;
+}
+
+.toggleButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.toggleButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggleButtonOn {
+  background-color: var(--color-xcord-brand);
+}
+
+.toggleButtonOff {
+  background-color: var(--color-xcord-bg-tertiary);
+}
+
+.toggleThumb {
+  display: inline-block;
+  height: 1rem;
+  width: 1rem;
+  border-radius: 9999px;
+  background-color: white;
+  transition: transform 150ms;
+}
+
+.toggleThumbOn {
+  transform: translateX(1.5rem);
+}
+
+.toggleThumbOff {
+  transform: translateX(0.25rem);
+}
+
+.toggleError {
+  padding: 0.5rem 1rem;
+  background-color: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.25rem;
+  color: #f87171;
+  font-size: 0.875rem;
+}
+
+.currentVersionRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.currentVersionLabel {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.currentVersionValue {
+  color: white;
+  font-family: monospace;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.noVersionsText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.versionsPanel {
+  display: flex;
+  gap: 1rem;
+}
+
+.versionList {
+  width: 12rem;
+  flex-shrink: 0;
+  background-color: var(--color-xcord-bg-secondary);
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-xcord-border);
+  overflow-y: auto;
+}
+
+.versionListHeader {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+}
+
+.versionListHeaderText {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-xcord-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.versionItem {
+  width: 100%;
+  text-align: left;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  transition: color 150ms, background-color 150ms;
+  border-bottom: 1px solid rgba(30, 33, 48, 0.5);
+  background: none;
+  cursor: pointer;
+}
+
+.versionItem:last-child {
+  border-bottom: none;
+}
+
+.versionItemSelected {
+  background-color: rgba(212, 148, 58, 0.2);
+  color: white;
+}
+
+.versionItemDefault {
+  color: var(--color-xcord-text-secondary);
+}
+
+.versionItemDefault:hover {
+  background-color: var(--color-xcord-bg-tertiary);
+  color: white;
+}
+
+.versionItemRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.versionMono {
+  font-family: monospace;
+  font-weight: 500;
+}
+
+.badgeCurrent {
+  font-size: 0.625rem;
+  background-color: var(--color-xcord-brand);
+  color: white;
+  padding: 0.125rem 0.375rem;
+  border-radius: 9999px;
+  font-weight: 600;
+}
+
+.badgeMinimum {
+  font-size: 0.625rem;
+  background-color: #dc2626;
+  color: white;
+  padding: 0.125rem 0.375rem;
+  border-radius: 9999px;
+  font-weight: 600;
+}
+
+.versionItemDate {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  margin-top: 0.125rem;
+}
+
+.releaseNotesPanel {
+  flex: 1;
+  background-color: var(--color-xcord-bg-secondary);
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-xcord-border);
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.releaseNotesPlaceholder {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.releaseNotesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.releaseNotesTitle {
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.upgradeButton {
+  padding: 0.375rem 1rem;
+  background-color: var(--color-xcord-brand);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  transition: color 150ms, background-color 150ms;
+  border: none;
+  cursor: pointer;
+}
+
+.upgradeButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.upgradeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.upgradeButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.currentlyInstalled {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.minimumVersionBanner {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.25rem;
+  color: #f87171;
+  font-size: 0.75rem;
+}
+
+.upgradeError {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background-color: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.25rem;
+  color: #f87171;
+  font-size: 0.875rem;
+}
+
+.upgradeSuccess {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background-color: rgba(34, 197, 94, 0.2);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 0.25rem;
+  color: #4ade80;
+  font-size: 0.875rem;
+}
+
+.releaseNotesContent {
+  font-size: 0.875rem;
+}
+
+.releaseNotesSection {
+  margin-bottom: 1rem;
+}
+
+.releaseNotesSectionTitle {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.375rem;
+}
+
+.sectionTitleBreaking {
+  color: #f87171;
+}
+
+.sectionTitleFeatures {
+  color: #4ade80;
+}
+
+.sectionTitleFixes {
+  color: #facc15;
+}
+
+.sectionTitleOther {
+  color: var(--color-xcord-text-muted);
+}
+
+.sectionTitleMigration {
+  color: var(--color-xcord-brand);
+}
+
+.sectionTitleKnownIssues {
+  color: #fb923c;
+}
+
+.releaseNotesList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.releaseNotesListItem {
+  color: var(--color-xcord-text-secondary);
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.listIconBreaking {
+  color: #f87171;
+  flex-shrink: 0;
+}
+
+.listIconFeature {
+  color: #4ade80;
+  flex-shrink: 0;
+}
+
+.listIconFix {
+  color: #facc15;
+  flex-shrink: 0;
+}
+
+.listIconOther {
+  color: var(--color-xcord-text-muted);
+  flex-shrink: 0;
+  text-transform: capitalize;
+}
+
+.releaseNotesPreWrap {
+  color: var(--color-xcord-text-secondary);
+  white-space: pre-wrap;
+}
+
+.rawReleaseNotes {
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+}
+
+.noReleaseNotes {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.historySection {
+  border: 1px solid var(--color-xcord-border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.historyToggleButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-xcord-bg-secondary);
+  transition: color 150ms, background-color 150ms;
+  text-align: left;
+  border: none;
+  cursor: pointer;
+}
+
+.historyToggleButton:hover {
+  background-color: var(--color-xcord-bg-tertiary);
+}
+
+.historyToggleLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-xcord-text-primary);
+}
+
+.historyToggleChevron {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  transition: transform 150ms;
+}
+
+.historyToggleChevronExpanded {
+  transform: rotate(180deg);
+}
+
+.historyList {
+  border-top: none;
+}
+
+.historyEmpty {
+  padding: 0.75rem 1rem;
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.historyEntry {
+  padding: 0.75rem 1rem;
+  background-color: var(--color-xcord-bg-primary);
+  font-size: 0.875rem;
+  border-bottom: 1px solid rgba(30, 33, 48, 0.5);
+}
+
+.historyEntry:last-child {
+  border-bottom: none;
+}
+
+.historyEntryRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.historyEntryLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.historyStatusCompleted {
+  font-weight: 600;
+  color: #4ade80;
+}
+
+.historyStatusFailed {
+  font-weight: 600;
+  color: #f87171;
+}
+
+.historyStatusInProgress {
+  font-weight: 600;
+  color: #facc15;
+}
+
+.historyStatusDefault {
+  font-weight: 600;
+  color: var(--color-xcord-text-muted);
+}
+
+.historyVersions {
+  color: var(--color-xcord-text-muted);
+}
+
+.historyVersionArrow {
+  color: var(--color-xcord-text-secondary);
+}
+
+.historyTimestamp {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+}
+
+.historyErrorMessage {
+  margin-top: 0.25rem;
+  color: #f87171;
+  font-size: 0.75rem;
+}

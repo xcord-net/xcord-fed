@@ -16,11 +16,13 @@ import ServerBoost from './ServerBoost';
 import ServerInsights from './ServerInsights';
 import InviteManager from './InviteManager';
 import AppDirectory from './AppDirectory';
+import BotsTab from './BotsTab';
 import OwnershipTransfer from './OwnershipTransfer';
 import WelcomeScreen from './WelcomeScreen';
 import UpdatesTab from './UpdatesTab';
 import Modal from './ui/Modal';
 import { getErrorMessage } from '../utils/errors';
+import styles from './ServerSettings.module.css';
 
 interface ServerSettingsProps {
   serverId: string;
@@ -28,7 +30,7 @@ interface ServerSettingsProps {
 }
 
 type NotificationLevel = 'AllMessages' | 'OnlyMentions' | 'Nothing';
-type SettingsTab = 'overview' | 'automod' | 'bans' | 'audit-log' | 'emoji' | 'stickers' | 'vanity-url' | 'templates' | 'boost' | 'insights' | 'invites' | 'app-directory' | 'welcome-screen' | 'updates';
+type SettingsTab = 'overview' | 'automod' | 'bans' | 'audit-log' | 'emoji' | 'stickers' | 'vanity-url' | 'templates' | 'boost' | 'insights' | 'invites' | 'app-directory' | 'bots' | 'welcome-screen' | 'updates';
 
 const NOTIFICATION_OPTIONS: { label: string; value: NotificationLevel }[] = [
   { label: 'All Messages', value: 'AllMessages' },
@@ -49,6 +51,7 @@ const TABS: { id: SettingsTab; label: string; ownerOnly?: boolean }[] = [
   { id: 'insights', label: 'Insights', ownerOnly: true },
   { id: 'invites', label: 'Invites', ownerOnly: true },
   { id: 'app-directory', label: 'App Directory' },
+  { id: 'bots', label: 'Bots', ownerOnly: true },
   { id: 'welcome-screen', label: 'Welcome Screen' },
   { id: 'updates', label: 'Updates', ownerOnly: true },
 ];
@@ -120,31 +123,27 @@ export default function ServerSettings(props: ServerSettingsProps) {
     <>
       <Modal data-testid="server-settings-dialog" open={true} onClose={props.onClose} aria-label="Server Settings" size="xl">
         {/* Header */}
-        <div class="flex items-center justify-between px-6 py-4 border-b border-xcord-border">
-          <h2 class="text-xl font-bold text-xcord-text-primary">Server Settings</h2>
+        <div class={styles.header}>
+          <h2 class={styles.headerTitle}>Server Settings</h2>
           <button
             data-testid="server-settings-close-button"
             type="button"
             aria-label="Close settings"
             onClick={props.onClose}
-            class="text-xcord-text-muted hover:text-white transition-colors rounded focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+            class={styles.closeButton}
           >
             &#10005;
           </button>
         </div>
 
         {/* Tab navigation */}
-        <div class="flex flex-wrap border-b border-xcord-border px-6">
+        <div class={styles.tabNav}>
           <For each={visibleTabs()}>
             {(tab) => (
               <button
                 data-testid={`server-settings-tab-${tab.id}`}
                 type="button"
-                class={`px-4 py-2 text-sm font-medium transition-colors ${
-                  activeTab() === tab.id
-                    ? 'text-white border-b-2 border-xcord-brand'
-                    : 'text-xcord-text-muted hover:text-white'
-                }`}
+                class={`${styles.tab} ${activeTab() === tab.id ? styles.tabActive : ''}`}
                 onClick={() => setActiveTab(tab.id)}
               >
                 {tab.label}
@@ -158,27 +157,27 @@ export default function ServerSettings(props: ServerSettingsProps) {
         <Show when={activeTab() === 'overview'}>
           <form onSubmit={handleSave}>
             {/* Overview section */}
-            <section class="px-6 py-5 border-b border-xcord-border">
-              <h3 class="text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-4">Overview</h3>
+            <section class={styles.section}>
+              <h3 class={styles.sectionHeading}>Overview</h3>
 
               {/* Server icon placeholder */}
-              <div class="flex items-center gap-4 mb-5">
+              <div class={styles.iconRow}>
                 <div
-                  class="w-20 h-20 rounded-full bg-xcord-brand flex items-center justify-center text-white text-2xl font-bold select-none flex-shrink-0"
+                  class={styles.serverIcon}
                   aria-label="Server icon"
                 >
                   {name() ? name().charAt(0).toUpperCase() : '?'}
                 </div>
                 <div>
-                  <p class="text-white font-medium">{name() || currentServer()?.name}</p>
-                  <p class="text-xcord-text-muted text-sm mt-0.5">Icon upload coming soon</p>
+                  <p class={styles.iconName}>{name() || currentServer()?.name}</p>
+                  <p class={styles.iconHint}>Icon upload coming soon</p>
                 </div>
               </div>
 
               {/* Server name */}
-              <div class="mb-4">
-                <label for="server-name" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
-                  Server Name <span class="text-red-400">*</span>
+              <div class={styles.fieldGroup}>
+                <label for="server-name" class={styles.fieldLabel}>
+                  Server Name <span class={styles.required}>*</span>
                 </label>
                 <input
                   id="server-name"
@@ -188,14 +187,14 @@ export default function ServerSettings(props: ServerSettingsProps) {
                   maxlength="100"
                   value={name()}
                   onInput={(e) => setName(e.currentTarget.value)}
-                  class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+                  class={styles.textInput}
                   placeholder="My Awesome Server"
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label for="server-description" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
+                <label for="server-description" class={styles.fieldLabel}>
                   Description
                 </label>
                 <textarea
@@ -204,25 +203,25 @@ export default function ServerSettings(props: ServerSettingsProps) {
                   maxlength="1000"
                   value={description()}
                   onInput={(e) => setDescription(e.currentTarget.value)}
-                  class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand resize-none"
+                  class={styles.textarea}
                   placeholder="Tell people what your server is about..."
                 />
               </div>
             </section>
 
             {/* System Messages section */}
-            <section class="px-6 py-5 border-b border-xcord-border">
-              <h3 class="text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-4">System Messages</h3>
+            <section class={styles.section}>
+              <h3 class={styles.sectionHeading}>System Messages</h3>
 
               <div>
-                <label for="system-channel" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
+                <label for="system-channel" class={styles.fieldLabel}>
                   System Messages Channel
                 </label>
                 <select
                   id="system-channel"
                   value={systemChannelId()}
                   onChange={(e) => setSystemChannelId(e.currentTarget.value)}
-                  class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+                  class={styles.selectInput}
                 >
                   <option value="">None</option>
                   <For each={textChannels()}>
@@ -231,25 +230,25 @@ export default function ServerSettings(props: ServerSettingsProps) {
                     )}
                   </For>
                 </select>
-                <p class="text-xcord-text-muted text-xs mt-1">
+                <p class={styles.fieldHint}>
                   Channel where join/leave and server boost messages are sent.
                 </p>
               </div>
             </section>
 
             {/* Default Notifications section */}
-            <section class="px-6 py-5 border-b border-xcord-border">
-              <h3 class="text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-4">Default Notification Settings</h3>
+            <section class={styles.section}>
+              <h3 class={styles.sectionHeading}>Default Notification Settings</h3>
 
               <div>
-                <label for="default-notifications" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
+                <label for="default-notifications" class={styles.fieldLabel}>
                   Default Notification Level
                 </label>
                 <select
                   id="default-notifications"
                   value={defaultNotifications()}
                   onChange={(e) => setDefaultNotifications(e.currentTarget.value as NotificationLevel)}
-                  class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+                  class={styles.selectInput}
                 >
                   <For each={NOTIFICATION_OPTIONS}>
                     {(opt) => (
@@ -257,7 +256,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
                     )}
                   </For>
                 </select>
-                <p class="text-xcord-text-muted text-xs mt-1">
+                <p class={styles.fieldHint}>
                   Controls what notifications members receive by default.
                 </p>
               </div>
@@ -265,22 +264,22 @@ export default function ServerSettings(props: ServerSettingsProps) {
 
             {/* Status messages */}
             <Show when={successMsg()}>
-              <div role="status" class="mx-6 mb-4 mt-4 px-4 py-2 bg-green-500/20 border border-green-500/30 rounded text-green-400 text-sm">
+              <div role="status" class={styles.successMsg}>
                 {successMsg()}
               </div>
             </Show>
             <Show when={errorMsg()}>
-              <div role="alert" class="mx-6 mb-4 mt-4 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">
+              <div role="alert" class={styles.errorMsg}>
                 {errorMsg()}
               </div>
             </Show>
 
             {/* Footer actions */}
-            <div class="px-6 py-5 flex justify-end gap-3">
+            <div class={styles.footerActions}>
               <button
                 type="button"
                 onClick={props.onClose}
-                class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+                class={styles.cancelButton}
               >
                 Cancel
               </button>
@@ -288,7 +287,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
                 data-testid="server-settings-save-button"
                 type="submit"
                 disabled={isSaving()}
-                class="px-5 py-2 bg-xcord-brand hover:bg-xcord-brand-hover text-white text-sm font-medium rounded transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+                class={styles.saveButton}
               >
                 {isSaving() ? 'Saving...' : 'Save Changes'}
               </button>
@@ -297,8 +296,8 @@ export default function ServerSettings(props: ServerSettingsProps) {
 
           {/* Danger Zone */}
           <Show when={isOwner()}>
-            <section class="px-6 py-5 border-t border-xcord-border">
-              <h3 class="text-xs font-semibold text-red-400 uppercase tracking-wide mb-4">Danger Zone</h3>
+            <section class={styles.dangerSection}>
+              <h3 class={styles.dangerHeading}>Danger Zone</h3>
               <Show when={auth.user?.id && currentServer()?.ownerId}>
                 <OwnershipTransfer
                   serverId={props.serverId}
@@ -312,7 +311,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
               </Show>
               <button
                 type="button"
-                class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
+                class={styles.deleteButton}
                 onClick={() => setShowDeleteConfirm(true)}
               >
                 Delete Server
@@ -348,7 +347,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
 
         {/* Vanity URL tab */}
         <Show when={activeTab() === 'vanity-url'}>
-          <div class="px-6 py-5">
+          <div class={styles.tabPadding}>
             <VanityInvite serverId={props.serverId} isOwner={true} />
           </div>
         </Show>
@@ -376,6 +375,11 @@ export default function ServerSettings(props: ServerSettingsProps) {
           />
         </Show>
 
+        {/* Bots tab */}
+        <Show when={activeTab() === 'bots'}>
+          <BotsTab />
+        </Show>
+
         {/* Invites tab */}
         <Show when={activeTab() === 'invites'}>
           <InviteManager serverId={props.serverId} />
@@ -388,7 +392,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
 
         {/* Updates tab */}
         <Show when={activeTab() === 'updates'}>
-          <div class="px-6 py-5">
+          <div class={styles.tabPadding}>
             <UpdatesTab />
           </div>
         </Show>
@@ -396,13 +400,13 @@ export default function ServerSettings(props: ServerSettingsProps) {
 
       {/* Delete server confirmation */}
       <Modal open={showDeleteConfirm()} onClose={() => setShowDeleteConfirm(false)} title="Delete Server" size="sm" role="alertdialog">
-        <div class="p-6">
-          <p class="text-xcord-text-secondary text-sm mb-6">Are you sure you want to delete this server? This cannot be undone.</p>
-          <div class="flex justify-end gap-3">
+        <div class={styles.dialogBody}>
+          <p class={styles.dialogText}>Are you sure you want to delete this server? This cannot be undone.</p>
+          <div class={styles.dialogActions}>
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(false)}
-              class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+              class={styles.cancelButton}
             >
               Cancel
             </button>
@@ -414,7 +418,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
                   navigate('/channels/me');
                 });
               }}
-              class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
+              class={styles.dialogDeleteButton}
             >
               Delete Server
             </button>

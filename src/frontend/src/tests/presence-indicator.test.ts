@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { usePresence } from '../stores/presence.store';
-import { getStatusColor } from '../components/PresenceDot';
+import { getStatusClass } from '../components/PresenceDot';
 import type { PresenceStatus } from '../types/presence';
 
 describe('presence-indicator', () => {
@@ -41,19 +41,19 @@ describe('presence-indicator', () => {
 
   describe('status colors mapping', () => {
     it('should map online status to green', () => {
-      expect(getStatusColor('online')).toBe('bg-green-500');
+      expect(getStatusClass('online')).toContain('statusOnline');
     });
 
     it('should map idle status to yellow', () => {
-      expect(getStatusColor('idle')).toBe('bg-yellow-500');
+      expect(getStatusClass('idle')).toContain('statusIdle');
     });
 
     it('should map dnd status to red', () => {
-      expect(getStatusColor('dnd')).toBe('bg-red-500');
+      expect(getStatusClass('dnd')).toContain('statusDnd');
     });
 
     it('should map offline status to gray', () => {
-      expect(getStatusColor('offline')).toBe('bg-gray-500');
+      expect(getStatusClass('offline')).toContain('statusOffline');
     });
   });
 
@@ -76,7 +76,7 @@ describe('presence-indicator', () => {
       const presence = usePresence();
       const status = presence.getPresence('never-seen-user') as PresenceStatus;
 
-      expect(getStatusColor(status)).toBe('bg-gray-500');
+      expect(getStatusClass(status)).toContain('statusOffline');
     });
   });
 });

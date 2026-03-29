@@ -1,0 +1,111 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--color-xcord-bg-secondary);
+  border-left: 1px solid var(--color-xcord-border);
+  width: 20rem;
+}
+
+.header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+}
+
+.headerTitle {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.centeredStatus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 8rem;
+}
+
+.mutedText {
+  color: var(--color-xcord-text-muted);
+}
+
+.item {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+}
+
+.item:hover {
+  background-color: color-mix(in srgb, var(--color-xcord-bg-primary) 30%, transparent);
+}
+
+.itemRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: var(--color-xcord-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.itemContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemMeta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.itemAuthorRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.authorName {
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 0.875rem;
+}
+
+.timestamp {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.unpinButton {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.unpinButton:hover {
+  color: #ffffff;
+}
+
+.messageContent {
+  font-size: 0.875rem;
+  color: var(--color-xcord-text-primary);
+  margin-top: 0.25rem;
+  overflow-wrap: break-word;
+}

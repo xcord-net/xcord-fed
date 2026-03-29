@@ -2,6 +2,7 @@ import { createSignal, onMount } from 'solid-js';
 import { api } from '../api/client';
 import Modal from './ui/Modal';
 import { getErrorMessage } from '../utils/errors';
+import styles from './InviteModal.module.css';
 
 interface InviteModalProps {
   serverId: string;
@@ -104,18 +105,18 @@ export default function InviteModal(props: InviteModalProps) {
 
   return (
     <Modal data-testid="invite-dialog" open={true} onClose={props.onClose} title="Invite People" size="md">
-      <div class="p-6">
-        <p class="text-xcord-text-secondary text-sm mb-4">Share this link to invite people to your server.</p>
+      <div class={styles.body}>
+        <p class={styles.description}>Share this link to invite people to your server.</p>
 
         {/* Expiry and max uses options */}
-        <div class="flex gap-3 mb-4">
-          <div class="flex-1">
-            <label for="invite-expiry" class="block text-xcord-text-secondary text-xs font-semibold uppercase tracking-wide mb-1">
+        <div class={styles.optionsRow}>
+          <div class={styles.optionGroup}>
+            <label for="invite-expiry" class={styles.optionLabel}>
               Expire after
             </label>
             <select
               id="invite-expiry"
-              class="w-full bg-xcord-bg-primary text-xcord-text-primary rounded px-2 py-1.5 text-sm border border-xcord-border focus:border-xcord-brand focus-visible:ring-2 focus-visible:ring-xcord-brand focus:outline-none"
+              class={styles.select}
               value={expiryValue() ?? ''}
               onChange={(e) => {
                 const v = e.currentTarget.value;
@@ -128,13 +129,13 @@ export default function InviteModal(props: InviteModalProps) {
             </select>
           </div>
 
-          <div class="flex-1">
-            <label for="invite-max-uses" class="block text-xcord-text-secondary text-xs font-semibold uppercase tracking-wide mb-1">
+          <div class={styles.optionGroup}>
+            <label for="invite-max-uses" class={styles.optionLabel}>
               Max uses
             </label>
             <select
               id="invite-max-uses"
-              class="w-full bg-xcord-bg-primary text-xcord-text-primary rounded px-2 py-1.5 text-sm border border-xcord-border focus:border-xcord-brand focus-visible:ring-2 focus-visible:ring-xcord-brand focus:outline-none"
+              class={styles.select}
               value={maxUsesValue() !== undefined ? String(maxUsesValue()) : ''}
               onChange={(e) => {
                 const v = e.currentTarget.value;
@@ -149,18 +150,18 @@ export default function InviteModal(props: InviteModalProps) {
         </div>
 
         {/* Invite link display */}
-        <div class="mb-4">
-          <label class="block text-xcord-text-secondary text-xs font-semibold uppercase tracking-wide mb-1">
+        <div class={styles.linkSection}>
+          <label class={styles.linkLabel}>
             Invite Link
           </label>
-          <div class="flex items-center gap-2">
+          <div class={styles.linkRow}>
             <input
               type="text"
               readonly
               data-testid="invite-link-input"
               value={loading() ? 'Generating...' : (inviteLink() || (error() ? 'Failed to generate' : ''))}
               aria-label="Invite link"
-              class="flex-1 bg-xcord-bg-primary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand select-all cursor-text"
+              class={styles.linkInput}
               onClick={(e) => e.currentTarget.select()}
             />
             <button
@@ -168,7 +169,7 @@ export default function InviteModal(props: InviteModalProps) {
               onClick={handleCopy}
               disabled={!invite() || loading()}
               aria-label={copied() ? 'Copied!' : 'Copy invite link'}
-              class="px-3 py-2 bg-xcord-brand hover:bg-xcord-brand-hover text-white text-sm font-medium rounded disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none whitespace-nowrap"
+              class={styles.copyButton}
             >
               {copied() ? 'Copied!' : 'Copy'}
             </button>
@@ -177,17 +178,17 @@ export default function InviteModal(props: InviteModalProps) {
 
         {/* Error */}
         {error() && (
-          <div role="alert" class="mb-4 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">{error()}</div>
+          <div role="alert" class={styles.errorAlert}>{error()}</div>
         )}
 
         {/* Actions */}
-        <div class="flex justify-between items-center">
+        <div class={styles.actionsRow}>
           <button
             data-testid="invite-generate-button"
             type="button"
             onClick={handleGenerateNew}
             disabled={loading()}
-            class="text-xcord-text-secondary hover:text-xcord-text-primary text-sm transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none rounded disabled:opacity-50"
+            class={styles.generateButton}
           >
             Generate New Link
           </button>
@@ -195,7 +196,7 @@ export default function InviteModal(props: InviteModalProps) {
             data-testid="invite-close-button"
             type="button"
             onClick={() => props.onClose()}
-            class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+            class={styles.doneButton}
           >
             Done
           </button>

@@ -5,6 +5,7 @@ import { useChannels } from '../stores/channel.store';
 import { useServers } from '../stores/server.store';
 import type { SearchFilters } from '../types/search';
 import type { Message } from '../types/message';
+import styles from './SearchPanel.module.css';
 
 export default function SearchPanel() {
   const searchStore = useSearch();
@@ -40,23 +41,23 @@ export default function SearchPanel() {
   };
 
   return (
-    <div data-testid="search-panel" class="flex flex-col h-full bg-xcord-bg-secondary border-l border-xcord-border w-96">
-      <div class="px-4 py-3 border-b border-xcord-border">
-        <h2 class="text-white font-semibold mb-3">Search</h2>
+    <div data-testid="search-panel" class={styles.panel}>
+      <div class={styles.header}>
+        <h2 class={styles.headerTitle}>Search</h2>
 
-        <div class="flex space-x-2">
+        <div class={styles.searchRow}>
           <input
             data-testid="search-input"
             type="text"
             placeholder="Search messages..."
-            class="flex-1 bg-xcord-bg-primary text-white px-3 py-2 rounded border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+            class={styles.searchInput}
             value={query()}
             onInput={(e) => setQuery(e.currentTarget.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
           />
           <button
             data-testid="search-submit-button"
-            class="bg-xcord-brand text-white px-4 py-2 rounded hover:bg-xcord-brand-hover transition"
+            class={styles.searchButton}
             onClick={handleSearch}
           >
             Search
@@ -64,7 +65,7 @@ export default function SearchPanel() {
         </div>
 
         <button
-          class="text-xcord-text-muted text-sm mt-2 hover:text-white"
+          class={styles.filtersToggle}
           onClick={() => setShowFilters(!showFilters())}
         >
           {showFilters() ? 'Hide' : 'Show'} Filters
@@ -72,22 +73,22 @@ export default function SearchPanel() {
       </div>
 
       <Show when={showFilters()}>
-        <div class="px-4 py-3 border-b border-xcord-border space-y-2">
-          <label class="block">
-            <span class="text-xs text-xcord-text-muted">Has Link</span>
-            <input type="checkbox" class="ml-2" />
+        <div class={styles.filtersPanel}>
+          <label class={styles.filterLabel}>
+            <span class={styles.filterLabelText}>Has Link</span>
+            <input type="checkbox" class={styles.filterCheckbox} />
           </label>
-          <label class="block">
-            <span class="text-xs text-xcord-text-muted">Has Attachment</span>
-            <input type="checkbox" class="ml-2" />
+          <label class={styles.filterLabel}>
+            <span class={styles.filterLabelText}>Has Attachment</span>
+            <input type="checkbox" class={styles.filterCheckbox} />
           </label>
         </div>
       </Show>
 
-      <div data-testid="search-results" class="flex-1 overflow-y-auto">
+      <div data-testid="search-results" class={styles.results}>
         <Show when={searchStore.isSearching}>
-          <div class="flex items-center justify-center h-32">
-            <p class="text-xcord-text-muted">Searching...</p>
+          <div class={styles.centeredStatus}>
+            <p class={styles.mutedText}>Searching...</p>
           </div>
         </Show>
 
@@ -95,8 +96,8 @@ export default function SearchPanel() {
           <Show
             when={searchStore.results!.messages.length > 0}
             fallback={
-              <div class="flex items-center justify-center h-32">
-                <p data-testid="search-no-results" class="text-xcord-text-muted">No results found</p>
+              <div class={styles.centeredStatus}>
+                <p data-testid="search-no-results" class={styles.mutedText}>No results found</p>
               </div>
             }
           >
@@ -104,23 +105,23 @@ export default function SearchPanel() {
               {(message) => (
                 <div
                   data-testid="search-result-item"
-                  class="px-4 py-3 border-b border-xcord-border hover:bg-xcord-bg-primary/30 cursor-pointer"
+                  class={styles.resultItem}
                   onClick={() => handleJumpToMessage(message)}
                 >
-                  <div class="flex items-start space-x-3">
-                    <div class="w-8 h-8 rounded-full bg-xcord-brand flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+                  <div class={styles.resultItemRow}>
+                    <div class={styles.avatar}>
                       {message.authorUsername?.charAt(0).toUpperCase() || 'U'}
                     </div>
 
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-baseline space-x-2">
-                        <span class="font-semibold text-white text-sm">
+                    <div class={styles.resultContent}>
+                      <div class={styles.resultMeta}>
+                        <span class={styles.authorName}>
                           {message.authorUsername || 'Unknown User'}
                         </span>
-                        <span class="text-xs text-xcord-text-muted">{formatTime(message.createdAt)}</span>
+                        <span class={styles.timestamp}>{formatTime(message.createdAt)}</span>
                       </div>
 
-                      <p class="text-sm text-xcord-text-primary mt-1 break-words">{message.content}</p>
+                      <p class={styles.resultMessage}>{message.content}</p>
                     </div>
                   </div>
                 </div>
@@ -128,8 +129,8 @@ export default function SearchPanel() {
             </For>
 
             <Show when={searchStore.results!.hasMore}>
-              <div class="px-4 py-3 text-center">
-                <button class="text-xcord-brand hover:underline">Load more</button>
+              <div class={styles.loadMoreRow}>
+                <button class={styles.loadMoreButton}>Load more</button>
               </div>
             </Show>
           </Show>

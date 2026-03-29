@@ -290,6 +290,7 @@ public sealed class CreateServerHandler(
             Name = "general",
             Topic = null,
             Type = ChannelType.Text,
+            Capabilities = ChannelCapability.Chat,
             Position = 0,
             SlowModeSeconds = null,
             IsNsfw = false,

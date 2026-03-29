@@ -1,5 +1,6 @@
 import { For, Show, createSignal, onMount } from 'solid-js';
 import { api } from '../api/client';
+import styles from './ProfileDecorations.module.css';
 
 // ---- Types ----
 
@@ -107,22 +108,18 @@ export default function ProfileDecorations() {
   ];
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
-      <div class="px-4 py-3 border-b border-xcord-border">
-        <h2 class="text-white font-semibold">Profile Decorations</h2>
+    <div class={styles.container}>
+      <div class={styles.header}>
+        <h2 class={styles.heading}>Profile Decorations</h2>
       </div>
 
-      <div class="flex-1 overflow-y-auto p-4 space-y-4">
+      <div class={styles.content}>
         {/* Category tabs */}
-        <div class="flex gap-2">
+        <div class={styles.tabRow}>
           <For each={TABS}>
             {(tab) => (
               <button
-                class={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                  activeTab() === tab.id
-                    ? 'bg-xcord-brand text-white'
-                    : 'bg-xcord-bg-primary text-xcord-text-muted hover:text-white'
-                }`}
+                class={`${styles.tabButton}${activeTab() === tab.id ? ` ${styles.tabButtonActive}` : ''}`}
                 onClick={() => setActiveTab(tab.id)}
               >
                 {tab.label}
@@ -132,34 +129,30 @@ export default function ProfileDecorations() {
         </div>
 
         <Show when={isLoading()}>
-          <div class="flex items-center justify-center h-32">
-            <p class="text-xcord-text-muted">Loading decorations...</p>
+          <div class={styles.loadingState}>
+            <p class={styles.loadingText}>Loading decorations...</p>
           </div>
         </Show>
 
         <Show when={!isLoading()}>
           {/* Decoration grid */}
           <Show when={filteredDecorations().length > 0}>
-            <div class="grid grid-cols-4 gap-3">
+            <div class={styles.decorationGrid}>
               <For each={filteredDecorations()}>
                 {(deco) => (
                   <button
-                    class={`aspect-square rounded-lg border-2 transition-colors flex items-center justify-center text-sm ${
-                      isSelected(deco.id)
-                        ? 'border-xcord-brand bg-xcord-brand/10'
-                        : 'border-xcord-border bg-xcord-bg-primary hover:border-xcord-brand/40'
-                    }`}
+                    class={`${styles.decorationItem}${isSelected(deco.id) ? ` ${styles.decorationItemSelected}` : ''}`}
                     aria-label={`Select ${deco.name}`}
                     aria-pressed={isSelected(deco.id)}
                     onClick={() => handleSelect(deco.id)}
                   >
                     <Show when={deco.previewUrl} fallback={
-                      <span class="text-xcord-text-muted text-xs">{deco.name}</span>
+                      <span class={styles.decorationItemLabel}>{deco.name}</span>
                     }>
                       <img
                         src={deco.previewUrl}
                         alt={deco.name}
-                        class="w-full h-full object-cover rounded-lg"
+                        class={styles.decorationPreviewImage}
                       />
                     </Show>
                   </button>
@@ -169,19 +162,19 @@ export default function ProfileDecorations() {
           </Show>
 
           <Show when={filteredDecorations().length === 0}>
-            <p class="text-xcord-text-muted text-sm text-center py-8">
+            <p class={styles.emptyText}>
               No decorations available in this category.
             </p>
           </Show>
 
           {/* Success message */}
           <Show when={successMessage()}>
-            <p class="text-green-400 text-sm">{successMessage()}</p>
+            <p class={styles.successText}>{successMessage()}</p>
           </Show>
 
           {/* Save button */}
           <button
-            class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50"
+            class={styles.saveButton}
             onClick={handleSave}
             disabled={isSaving()}
             aria-label="Save decorations"

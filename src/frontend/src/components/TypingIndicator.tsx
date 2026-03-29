@@ -1,5 +1,6 @@
 import { Show, createMemo } from 'solid-js';
 import { useTyping } from '../stores/typing.store';
+import styles from './TypingIndicator.module.css';
 
 interface TypingIndicatorProps {
   conversationId: string;
@@ -21,14 +22,14 @@ export default function TypingIndicator(props: TypingIndicatorProps) {
 
   return (
     <Show when={typingUsers().length > 0}>
-      <div id="typing-indicator" class="px-4 py-1 flex items-center space-x-2 bg-xcord-bg-secondary/50">
+      <div id="typing-indicator" class={styles.container}>
         {/* Animated dots */}
-        <span class="flex items-center space-x-0.5">
-          <span class="w-1 h-1 bg-xcord-text-muted rounded-full animate-bounce [animation-delay:-0.3s]" />
-          <span class="w-1 h-1 bg-xcord-text-muted rounded-full animate-bounce [animation-delay:-0.15s]" />
-          <span class="w-1 h-1 bg-xcord-text-muted rounded-full animate-bounce" />
+        <span class={styles.dots}>
+          <span class={styles.dot} />
+          <span class={styles.dot} />
+          <span class={styles.dot} />
         </span>
-        <span class="text-xcord-text-muted text-sm">{typingText()}</span>
+        <span class={styles.text}>{typingText()}</span>
       </div>
     </Show>
   );

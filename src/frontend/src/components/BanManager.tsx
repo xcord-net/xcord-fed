@@ -2,6 +2,7 @@ import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import ConfirmationButton from './ui/ConfirmationButton';
+import styles from './BanManager.module.css';
 
 interface BannedUser {
   id: string;
@@ -89,33 +90,33 @@ export default function BanManager(props: BanManagerProps) {
   });
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
-      <div class="px-4 py-3 border-b border-xcord-border">
-        <h2 class="text-white font-semibold mb-2">Bans</h2>
+    <div class={styles.container}>
+      <div class={styles.header}>
+        <h2 class={styles.headerTitle}>Bans</h2>
         <input
           type="text"
           placeholder="Search banned users..."
-          class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+          class={styles.searchInput}
           value={searchQuery()}
           onInput={(e) => { setSearchQuery(e.currentTarget.value); setPage(1); }}
         />
       </div>
 
       <Show when={error()}>
-        <div class="px-4 py-2 bg-red-500/20 text-red-400 text-sm">{error()}</div>
+        <div class={styles.errorBanner}>{error()}</div>
       </Show>
 
-      <div class="flex-1 overflow-y-auto">
+      <div class={styles.listArea}>
         <Show when={isLoading()}>
-          <div class="flex items-center justify-center h-32">
-            <p class="text-xcord-text-muted">Loading bans...</p>
+          <div class={styles.loadingContainer}>
+            <p class={styles.mutedText}>Loading bans...</p>
           </div>
         </Show>
 
         <Show when={!isLoading() && filteredBans().length === 0}>
-          <div class="flex flex-col items-center justify-center h-32 text-xcord-text-muted">
-            <p class="text-lg font-semibold">No bans found</p>
-            <p class="text-sm mt-1">
+          <div class={styles.emptyContainer}>
+            <p class={styles.emptyTitle}>No bans found</p>
+            <p class={styles.emptySubtitle}>
               {searchQuery() ? 'Try a different search.' : 'No users are currently banned.'}
             </p>
           </div>
@@ -123,23 +124,23 @@ export default function BanManager(props: BanManagerProps) {
 
         <For each={paginatedBans()}>
           {(ban) => (
-            <div data-testid={`ban-list-item-${ban.username}`} class="px-4 py-3 flex items-start space-x-3 hover:bg-xcord-bg-primary/50 border-b border-xcord-border">
-              <div class="w-10 h-10 rounded-full bg-xcord-brand flex-shrink-0 flex items-center justify-center text-white font-semibold overflow-hidden">
+            <div data-testid={`ban-list-item-${ban.username}`} class={styles.banItem}>
+              <div class={styles.avatar}>
                 <Show when={ban.avatarUrl} fallback={<span>{ban.username.charAt(0).toUpperCase()}</span>}>
                   <img
                     src={ban.avatarUrl}
                     alt={ban.username}
-                    class="w-full h-full object-cover"
+                    class={styles.avatarImg}
                   />
                 </Show>
               </div>
 
-              <div class="flex-1 min-w-0">
-                <h3 class="text-white font-medium truncate">{ban.username}</h3>
+              <div class={styles.banInfo}>
+                <h3 class={styles.banUsername}>{ban.username}</h3>
                 <Show when={ban.reason}>
-                  <p class="text-sm text-xcord-text-muted truncate">Reason: {ban.reason}</p>
+                  <p class={styles.banReason}>Reason: {ban.reason}</p>
                 </Show>
-                <p class="text-xs text-xcord-text-muted">
+                <p class={styles.banDate}>
                   Banned {new Date(ban.createdAt).toLocaleDateString()}
                 </p>
               </div>
@@ -159,19 +160,19 @@ export default function BanManager(props: BanManagerProps) {
       </div>
 
       <Show when={!isLoading() && filteredBans().length > PAGE_SIZE}>
-        <div class="px-4 py-2 border-t border-xcord-border flex items-center justify-between">
+        <div class={styles.pagination}>
           <button
-            class="text-xcord-text-muted text-sm hover:text-white disabled:opacity-40"
+            class={styles.pageButton}
             disabled={page() <= 1}
             onClick={() => setPage(page() - 1)}
           >
             Previous
           </button>
-          <span class="text-xcord-text-muted text-sm">
+          <span class={styles.pageInfo}>
             Page {page()} of {totalPages()}
           </span>
           <button
-            class="text-xcord-text-muted text-sm hover:text-white disabled:opacity-40"
+            class={styles.pageButton}
             disabled={page() >= totalPages()}
             onClick={() => setPage(page() + 1)}
           >

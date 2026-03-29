@@ -1,6 +1,7 @@
 import { For, Show, createSignal } from 'solid-js';
 import { api } from '../api/client';
 import Modal from './ui/Modal';
+import styles from './PollDisplay.module.css';
 
 // ---- Types ----
 
@@ -178,26 +179,27 @@ export default function PollDisplay(props: PollDisplayProps) {
   };
 
   return (
-    <div class="mt-2 bg-xcord-bg-tertiary rounded-lg p-4 max-w-md">
+    <div class={styles.pollContainer}>
       {/* Question */}
-      <p data-testid="poll-question" class="text-xcord-text-primary font-semibold text-sm mb-3">{poll().question}</p>
+      <p data-testid="poll-question" class={styles.pollQuestion}>{poll().question}</p>
 
       {/* Options */}
-      <div class="space-y-2">
+      <div class={styles.optionList}>
         <For each={poll().options}>
           {(option, index) => {
             const pct = () => votePercentage(option, poll().totalVotes);
             const voted = () => hasVotedForOption(option.id);
 
             return (
-              <div class="relative">
+              <div class={styles.optionWrapper}>
                 <button
                   data-testid={`poll-option-${index()}`}
-                  class={`w-full text-left rounded overflow-hidden transition-colors border ${
-                    voted()
-                      ? 'border-xcord-brand'
-                      : 'border-xcord-bg-primary hover:border-xcord-brand/40'
-                  } ${isClosed() ? 'cursor-default' : 'cursor-pointer'}`}
+                  classList={{
+                    [styles.optionButton]: true,
+                    [styles.optionButtonVoted]: voted(),
+                    [styles.optionButtonDefault]: !voted() && !isClosed(),
+                    [styles.optionButtonClosed]: isClosed(),
+                  }}
                   onClick={() => !isClosed() && handleVote(option.id)}
                   disabled={isClosed() || isVoting()}
                   aria-pressed={voted()}
@@ -205,21 +207,23 @@ export default function PollDisplay(props: PollDisplayProps) {
                 >
                   {/* Progress bar background */}
                   <div
-                    class={`absolute inset-0 transition-all duration-300 ${
-                      voted() ? 'bg-xcord-brand/20' : 'bg-xcord-bg-primary/60'
-                    }`}
+                    classList={{
+                      [styles.optionProgress]: true,
+                      [styles.optionProgressVoted]: voted(),
+                      [styles.optionProgressDefault]: !voted(),
+                    }}
                     style={{ width: `${pct()}%` }}
                   />
 
                   {/* Content row */}
-                  <div class="relative flex items-center justify-between px-3 py-2 gap-2">
-                    <div class="flex items-center gap-2 min-w-0">
+                  <div class={styles.optionContent}>
+                    <div class={styles.optionLabelGroup}>
                       <Show when={voted()}>
-                        <span data-testid={`poll-option-${index()}-voted`} class="text-xcord-brand text-xs flex-shrink-0">✓</span>
+                        <span data-testid={`poll-option-${index()}-voted`} class={styles.optionVotedCheck}>✓</span>
                       </Show>
-                      <span class="text-xcord-text-primary text-sm truncate">{option.text}</span>
+                      <span class={styles.optionText}>{option.text}</span>
                     </div>
-                    <span data-testid={`poll-option-${index()}-count`} class="text-xcord-text-muted text-xs flex-shrink-0 font-medium">
+                    <span data-testid={`poll-option-${index()}-count`} class={styles.optionPercent}>
                       {pct()}%
                     </span>
                   </div>
@@ -231,18 +235,18 @@ export default function PollDisplay(props: PollDisplayProps) {
       </div>
 
       {/* Footer */}
-      <div class="mt-3 flex items-center justify-between gap-2">
-        <span data-testid="poll-total-votes" class="text-xcord-text-muted text-xs">
+      <div class={styles.pollFooter}>
+        <span data-testid="poll-total-votes" class={styles.totalVotes}>
           {poll().totalVotes} {poll().totalVotes === 1 ? 'vote' : 'votes'}
           <Show when={poll().allowMultiSelect}>
-            <span class="ml-1">(multi-select)</span>
+            <span class={styles.multiSelectNote}>(multi-select)</span>
           </Show>
         </span>
 
-        <div class="flex items-center gap-2">
+        <div class={styles.footerActions}>
           <Show when={isClosed()}>
             <span
-              class="text-xcord-text-muted text-xs bg-xcord-bg-primary px-2 py-0.5 rounded"
+              class={styles.closedBadge}
               aria-label="Poll closed"
             >
               Closed
@@ -250,14 +254,14 @@ export default function PollDisplay(props: PollDisplayProps) {
           </Show>
 
           <Show when={!isClosed() && poll().expiresAt}>
-            <span class="text-xcord-text-muted text-xs">
+            <span class={styles.expiryText}>
               Ends {new Date(poll().expiresAt!).toLocaleDateString()}
             </span>
           </Show>
 
           <Show when={!isClosed() && props.canEnd}>
             <button
-              class="text-xcord-text-muted hover:text-red-400 text-xs px-2 py-0.5 rounded border border-xcord-bg-primary hover:border-red-400/40 transition-colors disabled:opacity-50"
+              class={styles.endPollButton}
               onClick={handleEndPoll}
               disabled={isEndingPoll()}
               aria-label="End poll"
@@ -275,17 +279,17 @@ export default function PollDisplay(props: PollDisplayProps) {
         size="sm"
         role="alertdialog"
       >
-        <div class="p-6">
-          <p class="text-xcord-text-secondary text-sm mb-4">End this poll? Voting will be disabled and no further votes can be cast.</p>
-          <div class="flex justify-end gap-3">
+        <div class={styles.confirmModalBody}>
+          <p class={styles.confirmModalText}>End this poll? Voting will be disabled and no further votes can be cast.</p>
+          <div class={styles.confirmModalActions}>
             <button
-              class="px-4 py-2 text-sm text-xcord-text-primary bg-xcord-bg-primary hover:bg-xcord-bg-tertiary rounded transition-colors"
+              class={styles.confirmCancelButton}
               onClick={() => setShowEndConfirm(false)}
             >
               Cancel
             </button>
             <button
-              class="px-4 py-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded transition-colors disabled:opacity-50"
+              class={styles.confirmEndButton}
               disabled={isEndingPoll()}
               onClick={confirmEndPoll}
             >
@@ -362,18 +366,18 @@ export function CreatePollForm(props: CreatePollFormProps) {
   };
 
   return (
-    <div class="bg-xcord-bg-primary rounded-lg p-4 space-y-3 border border-xcord-bg-tertiary">
-      <h4 class="text-xcord-text-primary font-semibold text-sm">Create Poll</h4>
+    <div class={styles.createPollForm}>
+      <h4 class={styles.createPollTitle}>Create Poll</h4>
 
       {/* Question */}
-      <div>
-        <label class="block text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-1">
+      <div class={styles.fieldGroup}>
+        <label class={styles.fieldLabel}>
           Question
         </label>
         <input
           data-testid="poll-question-input"
           type="text"
-          class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
+          class={styles.textInput}
           placeholder="Ask a question..."
           value={question()}
           onInput={(e) => setQuestion(e.currentTarget.value)}
@@ -381,25 +385,25 @@ export function CreatePollForm(props: CreatePollFormProps) {
       </div>
 
       {/* Options */}
-      <div>
-        <label class="block text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-1">
+      <div class={styles.fieldGroup}>
+        <label class={styles.fieldLabel}>
           Options ({options().length}/10)
         </label>
-        <div class="space-y-2">
+        <div class={styles.optionInputList}>
           <For each={options()}>
             {(opt, index) => (
-              <div class="flex items-center gap-2">
+              <div class={styles.optionInputRow}>
                 <input
                   data-testid={`poll-option-input-${index()}`}
                   type="text"
-                  class="flex-1 bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
+                  class={styles.optionTextInput}
                   placeholder={`Option ${index() + 1}`}
                   value={opt.text}
                   onInput={(e) => updateOption(opt.id, e.currentTarget.value)}
                 />
                 <Show when={options().length > 2}>
                   <button
-                    class="text-xcord-text-muted hover:text-red-400 transition-colors text-xs px-1"
+                    class={styles.removeOptionButton}
                     onClick={() => removeOption(opt.id)}
                     aria-label={`Remove option ${index() + 1}`}
                   >
@@ -413,7 +417,7 @@ export function CreatePollForm(props: CreatePollFormProps) {
         <Show when={options().length < 10}>
           <button
             data-testid="poll-add-option-button"
-            class="mt-2 text-xcord-brand hover:underline text-xs"
+            class={styles.addOptionButton}
             onClick={addOption}
           >
             + Add option
@@ -422,23 +426,23 @@ export function CreatePollForm(props: CreatePollFormProps) {
       </div>
 
       {/* Settings row */}
-      <div class="flex items-center gap-6">
+      <div class={styles.settingsRow}>
         {/* Multi-select toggle */}
-        <label class="flex items-center gap-2 cursor-pointer">
+        <label class={styles.checkboxLabel}>
           <input
             type="checkbox"
-            class="accent-xcord-brand"
+            class={styles.checkboxInput}
             checked={allowMultiSelect()}
             onChange={(e) => setAllowMultiSelect(e.currentTarget.checked)}
           />
-          <span class="text-xcord-text-muted text-xs">Allow multiple selections</span>
+          <span class={styles.checkboxText}>Allow multiple selections</span>
         </label>
 
         {/* Duration */}
-        <div class="flex items-center gap-2">
-          <label class="text-xcord-text-muted text-xs">Duration</label>
+        <div class={styles.durationGroup}>
+          <label class={styles.durationLabel}>Duration</label>
           <select
-            class="bg-xcord-bg-tertiary text-xcord-text-primary text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-xcord-brand"
+            class={styles.durationSelect}
             value={durationHours() ?? ''}
             onChange={(e) => {
               const v = e.currentTarget.value;
@@ -457,20 +461,20 @@ export function CreatePollForm(props: CreatePollFormProps) {
       </div>
 
       <Show when={validationError()}>
-        <p class="text-red-400 text-xs">{validationError()}</p>
+        <p class={styles.validationError}>{validationError()}</p>
       </Show>
 
-      <div class="flex gap-2">
+      <div class={styles.formActions}>
         <button
           data-testid="poll-submit-button"
-          class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors"
+          class={styles.submitButton}
           onClick={handleSubmit}
         >
           Add Poll
         </button>
         <button
           data-testid="poll-cancel-button"
-          class="px-4 py-2 bg-xcord-bg-tertiary text-xcord-text-muted text-sm rounded hover:bg-xcord-bg-primary hover:text-xcord-text-primary transition-colors"
+          class={styles.cancelButton}
           onClick={props.onCancel}
         >
           Cancel

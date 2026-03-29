@@ -1,0 +1,345 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerTitle {
+  color: white;
+  font-weight: 600;
+}
+
+.addButton {
+  padding: 0.375rem 0.75rem;
+  background-color: var(--color-xcord-brand);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  transition: color 150ms, background-color 150ms;
+}
+
+.addButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.addButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.errorBanner {
+  margin: 0.75rem 1rem 0;
+  padding: 0.5rem 1rem;
+  background-color: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.25rem;
+  color: #f87171;
+  font-size: 0.875rem;
+}
+
+.successBanner {
+  margin: 0.75rem 1rem 0;
+  padding: 0.5rem 1rem;
+  background-color: rgba(34, 197, 94, 0.2);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 0.25rem;
+  color: #4ade80;
+  font-size: 0.875rem;
+}
+
+.createForm {
+  margin: 0.75rem 1rem 0.25rem;
+  padding: 1rem;
+  background-color: var(--color-xcord-bg-tertiary);
+  border-radius: 0.25rem;
+  border: 1px solid var(--color-xcord-border);
+}
+
+.createForm > * + * {
+  margin-top: 0.75rem;
+}
+
+.formTitle {
+  color: white;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.fieldLabel {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.requiredMark {
+  color: #f87171;
+}
+
+.input {
+  width: 100%;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-xcord-border);
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--color-xcord-brand);
+}
+
+.input:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.select {
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-xcord-border);
+  outline: none;
+}
+
+.select:focus {
+  border-color: var(--color-xcord-brand);
+}
+
+.select:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.selectFull {
+  width: 100%;
+}
+
+.twoColGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-xcord-text-primary);
+  cursor: pointer;
+}
+
+.formActions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.cancelButton {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-xcord-text-muted);
+  border-radius: 0.25rem;
+  background: none;
+  transition: color 150ms, background-color 150ms;
+}
+
+.cancelButton:hover {
+  color: white;
+}
+
+.submitButton {
+  padding: 0.375rem 1rem;
+  background-color: var(--color-xcord-brand);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  transition: color 150ms, background-color 150ms;
+}
+
+.submitButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+}
+
+.ruleList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem 1rem;
+}
+
+.ruleList > * + * {
+  margin-top: 0.5rem;
+}
+
+.loadingText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 2rem 0;
+  color: var(--color-xcord-text-muted);
+}
+
+.emptyTitle {
+  font-weight: 600;
+}
+
+.emptySubtitle {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.ruleCard {
+  background-color: var(--color-xcord-bg-tertiary);
+  border-radius: 0.25rem;
+  border: 1px solid var(--color-xcord-border);
+  padding: 0.75rem;
+}
+
+.ruleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ruleInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.ruleNameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ruleName {
+  color: white;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.statusBadgeEnabled {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  background-color: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.statusBadgeDisabled {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-muted);
+}
+
+.ruleMeta {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  margin-top: 0.125rem;
+}
+
+.ruleConfig {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ruleActions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+}
+
+.editButton {
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-muted);
+  border-radius: 0.25rem;
+  transition: color 150ms, background-color 150ms;
+}
+
+.editButton:hover {
+  background-color: var(--color-xcord-bg-secondary);
+  color: white;
+}
+
+.deleteButton {
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border-radius: 0.25rem;
+  transition: color 150ms, background-color 150ms;
+}
+
+.deleteButton:hover {
+  background-color: rgba(239, 68, 68, 0.4);
+}
+
+.deleteConfirmText {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.deleteNoButton {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-muted);
+  border-radius: 0.25rem;
+}
+
+.deleteYesButton {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  background-color: #dc2626;
+  color: white;
+  border-radius: 0.25rem;
+  transition: color 150ms, background-color 150ms;
+}
+
+.deleteYesButton:hover {
+  background-color: #b91c1c;
+}
+
+.editForm > * + * {
+  margin-top: 0.75rem;
+}
+
+.editFormTitle {
+  color: white;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+/* Trigger config editor */
+.configEditorSpace > * + * {
+  margin-top: 0.5rem;
+}

@@ -302,6 +302,7 @@ public static class BootstrapService
             CategoryId = generalCategoryId,
             Name = "general",
             Type = ChannelType.Text,
+            Capabilities = ChannelCapability.Chat,
             Position = 0,
             IsNsfw = false,
             RequireTag = false,

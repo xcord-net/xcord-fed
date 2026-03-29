@@ -62,6 +62,13 @@ public sealed class BotTokenConfiguration : IEntityTypeConfiguration<BotToken>
         builder.Property(bt => bt.InteractionSigningKey)
             .HasColumnType("bytea");
 
+        // AgentId (optional, references a bundled bot agent, max 100)
+        builder.Property(bt => bt.AgentId)
+            .HasMaxLength(100);
+
+        // AgentConfigJson (optional, JSON parameter values for the bundled agent)
+        builder.Property(bt => bt.AgentConfigJson);
+
         // Soft delete (DeletedAt, implements ISoftDeletable)
         builder.Property(bt => bt.DeletedAt);
 

@@ -118,7 +118,7 @@ public sealed class JoinByInviteHandler(
         // are not deleted when a member is banned, so they may still be present).
         var channelConversationIds = await dbContext.Channels
             .AsNoTracking()
-            .Where(c => c.ServerId == invite.ServerId && c.Type != ChannelType.Voice)
+            .Where(c => c.ServerId == invite.ServerId && c.Capabilities.HasFlag(ChannelCapability.Chat))
             .Select(c => c.ConversationId)
             .ToListAsync(cancellationToken);
 

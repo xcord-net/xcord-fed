@@ -1,0 +1,22 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 40;
+}
+
+.menu {
+  position: fixed;
+  z-index: 60;
+  min-width: 10rem;
+  background-color: var(--color-xcord-bg-tertiary);
+  border: 1px solid var(--color-xcord-border);
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  transition: opacity 150ms, transform 150ms;
+  transform-origin: top left;
+}

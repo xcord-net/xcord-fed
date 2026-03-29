@@ -4,6 +4,7 @@ import { useChannels } from '../stores/channel.store';
 import ChannelPermissions from './ChannelPermissions';
 import Modal from './ui/Modal';
 import { getErrorMessage } from '../utils/errors';
+import styles from './ChannelSettings.module.css';
 
 interface ChannelSettingsProps {
   serverId: string;
@@ -84,10 +85,10 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
     <>
       <Modal data-testid="channel-settings-dialog" open={true} onClose={props.onClose} aria-label="Channel Settings" size="lg">
         {/* Header */}
-        <div class="flex items-center justify-between px-6 py-4 border-b border-xcord-border">
-          <div>
-            <h2 class="text-xl font-bold text-xcord-text-primary">Channel Settings</h2>
-            <p class="text-xcord-text-muted text-sm mt-0.5">
+        <div class={styles.header}>
+          <div class={styles.headerText}>
+            <h2 class={styles.headerTitle}>Channel Settings</h2>
+            <p class={styles.headerSubtitle}>
               #{currentChannel()?.name ?? props.channelId}
             </p>
           </div>
@@ -96,22 +97,18 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
             type="button"
             aria-label="Close channel settings"
             onClick={props.onClose}
-            class="text-xcord-text-muted hover:text-white transition-colors rounded focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+            class={styles.closeButton}
           >
             &#10005;
           </button>
         </div>
 
         {/* Tab navigation */}
-        <div class="flex border-b border-xcord-border px-6">
+        <div class={styles.tabNav}>
           <button
             data-testid="channel-settings-tab-overview"
             type="button"
-            class={`px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none ${
-              activeTab() === 'overview'
-                ? 'text-white border-b-2 border-xcord-brand'
-                : 'text-xcord-text-muted hover:text-white'
-            }`}
+            class={`${styles.tab} ${activeTab() === 'overview' ? styles.tabActive : ''}`}
             onClick={() => setActiveTab('overview')}
           >
             Overview
@@ -120,11 +117,7 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
             data-testid="channel-settings-tab-permissions"
             type="button"
             aria-label="Channel Permissions tab"
-            class={`px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none ${
-              activeTab() === 'permissions'
-                ? 'text-white border-b-2 border-xcord-brand'
-                : 'text-xcord-text-muted hover:text-white'
-            }`}
+            class={`${styles.tab} ${activeTab() === 'permissions' ? styles.tabActive : ''}`}
             onClick={() => setActiveTab('permissions')}
           >
             Permissions
@@ -133,23 +126,23 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
 
         {/* Body */}
         <Show when={activeTab() === 'permissions'}>
-          <div class="h-[min(500px,60vh)]">
+          <div class={styles.permissionsPanel}>
             <ChannelPermissions serverId={props.serverId} channelId={props.channelId} />
           </div>
         </Show>
         <Show when={activeTab() === 'overview'}>
           <form onSubmit={handleSave}>
             {/* Overview section */}
-            <section class="px-6 py-5 border-b border-xcord-border">
-              <h3 class="text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-4">Overview</h3>
+            <section class={styles.section}>
+              <h3 class={styles.sectionHeading}>Overview</h3>
 
               {/* Channel name */}
-              <div class="mb-4">
-                <label for="channel-name" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
-                  Channel Name <span class="text-red-400">*</span>
+              <div class={styles.fieldGroup}>
+                <label for="channel-name" class={styles.fieldLabel}>
+                  Channel Name <span class={styles.required}>*</span>
                 </label>
-                <div class="relative">
-                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xcord-text-muted text-sm" aria-hidden="true">#</span>
+                <div class={styles.inputWrapper}>
+                  <span class={styles.inputPrefix} aria-hidden="true">#</span>
                   <input
                     id="channel-name"
                     type="text"
@@ -157,7 +150,7 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
                     maxlength="100"
                     value={channelName()}
                     onInput={(e) => setChannelName(e.currentTarget.value)}
-                    class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded pl-7 pr-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+                    class={styles.textInputWithPrefix}
                     placeholder="channel-name"
                   />
                 </div>
@@ -165,7 +158,7 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
 
               {/* Topic */}
               <div>
-                <label for="channel-topic" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
+                <label for="channel-topic" class={styles.fieldLabel}>
                   Channel Topic
                 </label>
                 <textarea
@@ -174,26 +167,26 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
                   maxlength="1024"
                   value={topic()}
                   onInput={(e) => setTopic(e.currentTarget.value)}
-                  class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand resize-none"
+                  class={styles.textarea}
                   placeholder="Let everyone know the purpose of this channel..."
                 />
               </div>
             </section>
 
             {/* Permissions section */}
-            <section class="px-6 py-5 border-b border-xcord-border">
-              <h3 class="text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-4">Permissions</h3>
+            <section class={styles.section}>
+              <h3 class={styles.sectionHeading}>Permissions</h3>
 
               {/* Slowmode */}
-              <div class="mb-5">
-                <label for="slowmode" class="block text-xs font-semibold text-xcord-text-muted uppercase tracking-wide mb-1.5">
+              <div class={styles.slowmodeGroup}>
+                <label for="slowmode" class={styles.fieldLabel}>
                   Slowmode
                 </label>
                 <select
                   id="slowmode"
                   value={String(slowMode())}
                   onChange={(e) => setSlowMode(parseInt(e.currentTarget.value, 10))}
-                  class="w-full bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-2 text-sm border border-xcord-border focus:border-xcord-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+                  class={styles.selectInput}
                 >
                   <For each={SLOWMODE_OPTIONS}>
                     {(opt) => (
@@ -201,18 +194,18 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
                     )}
                   </For>
                 </select>
-                <p class="text-xcord-text-muted text-xs mt-1">
+                <p class={styles.fieldHint}>
                   Users must wait between sending messages.
                 </p>
               </div>
 
               {/* NSFW toggle */}
-              <div class="flex items-center justify-between">
+              <div class={styles.toggleRow}>
                 <div>
-                  <label for="nsfw-toggle" class="text-sm font-medium text-xcord-text-primary cursor-pointer">
+                  <label for="nsfw-toggle" class={styles.toggleLabel}>
                     Age-Restricted Channel (NSFW)
                   </label>
-                  <p class="text-xcord-text-muted text-xs mt-0.5">
+                  <p class={styles.toggleHint}>
                     Users must confirm they are 18+ to view this channel.
                   </p>
                 </div>
@@ -222,26 +215,22 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
                   role="switch"
                   aria-checked={isNsfw()}
                   onClick={() => setIsNsfw(!isNsfw())}
-                  class={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none flex-shrink-0 ${
-                    isNsfw() ? 'bg-xcord-brand' : 'bg-xcord-bg-primary'
-                  }`}
+                  class={`${styles.toggleButton} ${isNsfw() ? styles.toggleOn : styles.toggleOff}`}
                 >
                   <span
-                    class={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                      isNsfw() ? 'translate-x-6' : 'translate-x-1'
-                    }`}
+                    class={`${styles.toggleThumb} ${isNsfw() ? styles.toggleThumbOn : styles.toggleThumbOff}`}
                   />
                 </button>
               </div>
             </section>
 
             {/* Danger Zone */}
-            <section class="px-6 py-5 border-b border-xcord-border">
-              <h3 class="text-xs font-semibold text-red-400 uppercase tracking-wide mb-4">Danger Zone</h3>
+            <section class={styles.section}>
+              <h3 class={styles.dangerHeading}>Danger Zone</h3>
               <button
                 data-testid="delete-channel-button"
                 type="button"
-                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
+                class={styles.deleteChannelButton}
                 onClick={() => setShowDeleteConfirm(true)}
               >
                 Delete Channel
@@ -250,29 +239,29 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
 
             {/* Status messages */}
             <Show when={successMsg()}>
-              <div role="status" class="mx-6 mb-4 px-4 py-2 bg-green-500/20 border border-green-500/30 rounded text-green-400 text-sm">
+              <div role="status" class={styles.successMsg}>
                 {successMsg()}
               </div>
             </Show>
             <Show when={errorMsg()}>
-              <div role="alert" class="mx-6 mb-4 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded text-red-400 text-sm">
+              <div role="alert" class={styles.errorMsg}>
                 {errorMsg()}
               </div>
             </Show>
 
             {/* Footer actions */}
-            <div class="px-6 pb-5 flex justify-end gap-3">
+            <div class={styles.footerActions}>
               <button
                 type="button"
                 onClick={props.onClose}
-                class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+                class={styles.cancelButton}
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSaving()}
-                class="px-5 py-2 bg-xcord-brand hover:bg-xcord-brand-hover text-white text-sm font-medium rounded transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+                class={styles.saveButton}
               >
                 {isSaving() ? 'Saving...' : 'Save Changes'}
               </button>
@@ -283,14 +272,14 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
 
       {/* Delete channel confirmation */}
       <Modal data-testid="delete-channel-dialog" open={showDeleteConfirm()} onClose={() => setShowDeleteConfirm(false)} title="Delete Channel" size="sm" role="alertdialog">
-        <div class="p-6">
-          <p class="text-xcord-text-secondary text-sm mb-6">Are you sure you want to delete this channel? This cannot be undone.</p>
-          <div class="flex justify-end gap-3">
+        <div class={styles.dialogBody}>
+          <p class={styles.dialogText}>Are you sure you want to delete this channel? This cannot be undone.</p>
+          <div class={styles.dialogActions}>
             <button
               data-testid="delete-channel-cancel-button"
               type="button"
               onClick={() => setShowDeleteConfirm(false)}
-              class="px-4 py-2 bg-xcord-bg-primary hover:bg-xcord-bg-tertiary text-xcord-text-primary text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-xcord-brand focus-visible:outline-none"
+              class={styles.dialogCancelButton}
             >
               Cancel
             </button>
@@ -298,7 +287,7 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
               data-testid="delete-channel-confirm-button"
               type="button"
               onClick={() => { channelStore.deleteChannel(props.channelId).then(() => props.onClose()); }}
-              class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
+              class={styles.dialogDeleteButton}
             >
               Delete Channel
             </button>

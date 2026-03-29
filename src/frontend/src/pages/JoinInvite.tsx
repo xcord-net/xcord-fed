@@ -5,6 +5,7 @@ import { useAuth } from '../stores/auth.store';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import { sanitizeRedirect } from '../utils/redirect';
+import styles from './JoinInvite.module.css';
 
 export default function JoinInvite() {
   const params = useParams<{ code: string }>();
@@ -72,19 +73,19 @@ export default function JoinInvite() {
   };
 
   return (
-    <div class="min-h-screen bg-xcord-bg-tertiary flex items-center justify-center">
-      <div class="bg-xcord-bg-secondary p-8 rounded-lg shadow-xl w-full max-w-md text-center">
+    <div class={styles.pageWrapper}>
+      <div class={styles.card}>
         <Show when={joining()}>
-          <p data-testid="invite-join-loading" class="text-xcord-text-primary">Joining server...</p>
+          <p data-testid="invite-join-loading" class={styles.loadingText}>Joining server...</p>
         </Show>
         <Show when={joined()}>
-          <p data-testid="invite-join-success" class="text-green-400 font-semibold">Successfully joined! Redirecting...</p>
+          <p data-testid="invite-join-success" class={styles.successText}>Successfully joined! Redirecting...</p>
         </Show>
         <Show when={error()}>
           <div>
-            <p data-testid="invite-join-error" class="text-red-400 mb-4">{error()}</p>
+            <p data-testid="invite-join-error" class={styles.errorText}>{error()}</p>
             <button
-              class="bg-xcord-brand text-white px-4 py-2 rounded hover:bg-xcord-brand-hover"
+              class={styles.goHomeButton}
               onClick={() => navigate('/channels/me')}
             >
               Go Home

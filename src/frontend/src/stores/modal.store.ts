@@ -13,6 +13,7 @@ const store = createRoot(() => {
   const [showEvents, setShowEvents] = createSignal(false);
   const [showScheduledMessages, setShowScheduledMessages] = createSignal(false);
   const [selectedForumPost, setSelectedForumPost] = createSignal<ForumPost | null>(null);
+  const [showServerSettings, setShowServerSettings] = createSignal(false);
 
   return {
     showSearch, setShowSearch,
@@ -24,6 +25,7 @@ const store = createRoot(() => {
     showEvents, setShowEvents,
     showScheduledMessages, setShowScheduledMessages,
     selectedForumPost, setSelectedForumPost,
+    showServerSettings, setShowServerSettings,
   };
 });
 
@@ -38,6 +40,7 @@ export function useModals() {
     get showEvents() { return store.showEvents(); },
     get showScheduledMessages() { return store.showScheduledMessages(); },
     get selectedForumPost() { return store.selectedForumPost(); },
+    get showServerSettings() { return store.showServerSettings(); },
 
     toggleSearch() { store.setShowSearch(!store.showSearch()); },
     togglePins() { store.setShowPins(!store.showPins()); },
@@ -54,5 +57,9 @@ export function useModals() {
     closeGroupManager() { store.setShowGroupManager(false); },
 
     selectForumPost(post: ForumPost | null) { store.setSelectedForumPost(post); },
+
+    toggleServerSettings() { store.setShowServerSettings(!store.showServerSettings()); },
+    openServerSettings() { store.setShowServerSettings(true); },
+    closeServerSettings() { store.setShowServerSettings(false); },
   };
 }

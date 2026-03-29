@@ -1,0 +1,235 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--color-xcord-bg-secondary);
+}
+
+.header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerTitle {
+  color: white;
+  font-weight: 600;
+}
+
+.rangeButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.rangeButton {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.rangeButtonActive {
+  background-color: var(--color-xcord-brand);
+  color: white;
+}
+
+.rangeButtonInactive {
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-muted);
+}
+
+.rangeButtonInactive:hover {
+  color: white;
+}
+
+.errorBanner {
+  padding: 0.5rem 1rem;
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  font-size: 0.875rem;
+}
+
+.loadingCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+.loadingText {
+  color: var(--color-xcord-text-muted);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.content > * + * {
+  margin-top: 1.5rem;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.statCard {
+  background-color: var(--color-xcord-bg-primary);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+.statValueBrand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-xcord-brand);
+}
+
+.statLabel {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.chartCard {
+  background-color: var(--color-xcord-bg-primary);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.chartTitle {
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.barChart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.25rem;
+  height: 6rem;
+}
+
+.barColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.barBrand {
+  width: 100%;
+  background-color: rgba(212, 148, 58, 0.7);
+  border-radius: 0.125rem;
+  transition: color 150ms, background-color 150ms;
+}
+
+.barBrand:hover {
+  background-color: var(--color-xcord-brand);
+}
+
+.barGreen {
+  width: 100%;
+  background-color: rgba(34, 197, 94, 0.7);
+  border-radius: 0.125rem;
+  transition: color 150ms, background-color 150ms;
+}
+
+.barGreen:hover {
+  background-color: #22c55e;
+}
+
+.chartAxisRow {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+}
+
+.chartAxisLabel {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+}
+
+.channelsCard {
+  background-color: var(--color-xcord-bg-primary);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.channelsTitle {
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.channelsEmpty {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.channelList > * + * {
+  margin-top: 0.5rem;
+}
+
+.channelRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.channelName {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+  width: 8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.channelBarTrack {
+  flex: 1;
+  background-color: var(--color-xcord-bg-tertiary);
+  border-radius: 9999px;
+  height: 0.5rem;
+}
+
+.channelBarFill {
+  background-color: var(--color-xcord-brand);
+  height: 0.5rem;
+  border-radius: 9999px;
+  transition: width 150ms;
+}
+
+.channelCount {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  width: 2.5rem;
+  text-align: right;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  color: var(--color-xcord-text-muted);
+}

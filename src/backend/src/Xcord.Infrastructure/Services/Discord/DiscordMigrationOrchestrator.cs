@@ -232,6 +232,15 @@ public sealed class DiscordMigrationOrchestrator(
                 _ => ChannelType.Text
             };
 
+            var channelCapabilities = chType switch
+            {
+                0 => ChannelCapability.Chat,
+                2 => ChannelCapability.Voice | ChannelCapability.Video,
+                5 => ChannelCapability.Announcement | ChannelCapability.Chat,
+                15 => ChannelCapability.Forum | ChannelCapability.Chat,
+                _ => ChannelCapability.Chat
+            };
+
             var convId = snowflakeGenerator.NextId();
             var conversation = new Conversation
             {
@@ -250,6 +259,7 @@ public sealed class DiscordMigrationOrchestrator(
                 Name = chName,
                 Topic = chTopic,
                 Type = channelType,
+                Capabilities = channelCapabilities,
                 Position = chPosition,
                 SlowModeSeconds = slowMode,
                 IsNsfw = isNsfw,

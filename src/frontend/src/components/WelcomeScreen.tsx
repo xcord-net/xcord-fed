@@ -1,5 +1,6 @@
 import { For, Show, createSignal, createEffect } from 'solid-js';
 import { api } from '../api/client';
+import styles from './WelcomeScreen.module.css';
 
 // ---- Types ----
 
@@ -179,13 +180,13 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
   };
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
+    <div class={styles.container}>
       {/* Header */}
-      <div class="px-4 py-3 border-b border-xcord-bg-tertiary flex items-center justify-between flex-shrink-0">
-        <h2 class="text-xcord-text-primary font-semibold">Welcome Screen</h2>
+      <div class={styles.header}>
+        <h2 class={styles.headerTitle}>Welcome Screen</h2>
         <Show when={props.isOwner && !isEditing()}>
           <button
-            class="text-xcord-brand hover:underline text-sm"
+            class={styles.editLink}
             onClick={startEditing}
             aria-label="Edit Welcome Screen"
           >
@@ -194,17 +195,17 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
         </Show>
       </div>
 
-      <div class="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div class={styles.scrollArea}>
         <Show when={isLoading()}>
-          <div class="flex items-center justify-center h-32">
-            <div class="w-5 h-5 border-2 border-xcord-text-muted border-t-transparent rounded-full animate-spin" />
+          <div class={styles.loadingCenter}>
+            <div class={styles.spinner} />
           </div>
         </Show>
 
         <Show when={!isLoading()}>
           {/* Success banner */}
           <Show when={successMessage()}>
-            <div class="bg-green-600/20 text-green-400 text-sm px-3 py-2 rounded" role="status">
+            <div class={styles.successBanner} role="status">
               {successMessage()}
             </div>
           </Show>
@@ -212,47 +213,45 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
           {/* View mode */}
           <Show when={!isEditing()}>
             <Show when={config()}>
-              <div class="space-y-4">
-                <div class="flex items-center gap-2">
+              <div class={styles.editSection}>
+                <div class={styles.statusRow}>
                   <span
-                    class={`text-xs font-semibold px-2 py-0.5 rounded ${
-                      config()!.isEnabled
-                        ? 'bg-green-500/20 text-green-400'
-                        : 'bg-xcord-bg-tertiary text-xcord-text-muted'
-                    }`}
+                    class={config()!.isEnabled
+                      ? `${styles.statusBadge} ${styles.statusEnabled}`
+                      : `${styles.statusBadge} ${styles.statusDisabled}`}
                   >
                     {config()!.isEnabled ? 'Enabled' : 'Disabled'}
                   </span>
                 </div>
 
-                <div>
-                  <p class="text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-1">
+                <div class={styles.fieldGroup}>
+                  <p class={styles.fieldLabel}>
                     Description
                   </p>
-                  <p class="text-xcord-text-primary text-sm whitespace-pre-wrap">
+                  <p class={styles.fieldValue}>
                     {config()!.description || (
-                      <span class="text-xcord-text-muted italic">No description set</span>
+                      <span class={styles.fieldValueMuted}>No description set</span>
                     )}
                   </p>
                 </div>
 
                 <Show when={config()!.channels.length > 0}>
                   <div>
-                    <p class="text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-2">
+                    <p class={styles.channelsLabel}>
                       Recommended Channels ({welcomeChannelCount(config()!)})
                     </p>
-                    <div class="space-y-2">
+                    <div class={styles.channelsList}>
                       <For each={config()!.channels}>
                         {(ch) => (
-                          <div class="flex items-start gap-2 bg-xcord-bg-primary rounded px-3 py-2">
+                          <div class={styles.channelCard}>
                             <Show when={ch.emojiName}>
-                              <span class="text-lg flex-shrink-0">{ch.emojiName}</span>
+                              <span class={styles.channelEmoji}>{ch.emojiName}</span>
                             </Show>
-                            <div class="flex-1 min-w-0">
-                              <p class="text-xcord-text-primary text-sm font-medium">
+                            <div class={styles.channelInfo}>
+                              <p class={styles.channelName}>
                                 #{ch.channelName || ch.channelId}
                               </p>
-                              <p class="text-xcord-text-muted text-xs mt-0.5">{ch.description}</p>
+                              <p class={styles.channelDesc}>{ch.description}</p>
                             </div>
                           </div>
                         )}
@@ -262,17 +261,17 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
                 </Show>
 
                 <Show when={config()!.channels.length === 0}>
-                  <p class="text-xcord-text-muted text-sm">No recommended channels configured.</p>
+                  <p class={styles.noChannelsText}>No recommended channels configured.</p>
                 </Show>
               </div>
             </Show>
 
             <Show when={!config()}>
-              <p class="text-xcord-text-muted text-sm">
+              <p class={styles.noConfigText}>
                 No welcome screen configured.{' '}
                 <Show when={props.isOwner}>
                   <button
-                    class="text-xcord-brand hover:underline"
+                    class={styles.inlineLink}
                     onClick={startEditing}
                   >
                     Set one up
@@ -284,36 +283,36 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
 
           {/* Edit mode */}
           <Show when={isEditing() && props.isOwner}>
-            <div class="space-y-4">
+            <div class={styles.editSection}>
               {/* Enabled toggle */}
-              <div class="flex items-center gap-3">
-                <label class="text-xcord-text-primary text-sm font-medium">
+              <div class={styles.toggleRow}>
+                <label class={styles.toggleLabel}>
                   Enable Welcome Screen
                 </label>
                 <button
-                  class={`w-10 h-6 rounded-full transition-colors flex-shrink-0 ${
-                    editEnabled() ? 'bg-xcord-brand' : 'bg-xcord-bg-tertiary'
-                  }`}
+                  class={editEnabled()
+                    ? `${styles.toggleSwitch} ${styles.toggleSwitchOn}`
+                    : `${styles.toggleSwitch} ${styles.toggleSwitchOff}`}
                   onClick={() => setEditEnabled((prev) => !prev)}
                   role="switch"
                   aria-checked={editEnabled()}
                   aria-label="Toggle welcome screen"
                 >
                   <span
-                    class={`block w-4 h-4 rounded-full bg-white shadow transition-transform mx-1 ${
-                      editEnabled() ? 'translate-x-4' : 'translate-x-0'
-                    }`}
+                    class={editEnabled()
+                      ? `${styles.toggleThumb} ${styles.toggleThumbOn}`
+                      : `${styles.toggleThumb} ${styles.toggleThumbOff}`}
                   />
                 </button>
               </div>
 
               {/* Description */}
               <div>
-                <label class="block text-xcord-text-muted text-xs font-medium uppercase tracking-wide mb-1">
+                <label class={styles.editFieldLabel}>
                   Description *
                 </label>
                 <textarea
-                  class="w-full bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xcord-brand resize-none"
+                  class={styles.editTextarea}
                   placeholder="Welcome to our server! Here's what we're about..."
                   rows={4}
                   value={editDescription()}
@@ -321,20 +320,20 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
                   aria-label="Welcome screen description"
                 />
                 <Show when={descError()}>
-                  <p class="text-red-400 text-xs mt-1" role="alert">
+                  <p class={styles.fieldError} role="alert">
                     {descError()}
                   </p>
                 </Show>
               </div>
 
               {/* Recommended channels */}
-              <div class="space-y-3">
-                <div class="flex items-center justify-between">
-                  <p class="text-xcord-text-muted text-xs font-medium uppercase tracking-wide">
+              <div class={styles.channelEditSection}>
+                <div class={styles.channelEditHeader}>
+                  <p class={styles.channelEditLabel}>
                     Recommended Channels
                   </p>
                   <button
-                    class="text-xcord-brand hover:underline text-xs"
+                    class={styles.addChannelBtn}
                     onClick={handleAddChannel}
                     aria-label="Add channel"
                   >
@@ -344,23 +343,23 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
 
                 <For each={editChannels()}>
                   {(ch, index) => (
-                    <div class="bg-xcord-bg-primary rounded p-3 space-y-2">
-                      <div class="flex items-center justify-between">
-                        <span class="text-xcord-text-muted text-xs">
+                    <div class={styles.channelEditCard}>
+                      <div class={styles.channelEditCardHeader}>
+                        <span class={styles.channelIndexLabel}>
                           Channel {index() + 1}
                         </span>
                         <button
-                          class="text-red-400 hover:text-red-300 text-xs"
+                          class={styles.removeChannelBtn}
                           onClick={() => handleRemoveChannel(index())}
                           aria-label={`Remove channel ${index() + 1}`}
                         >
                           Remove
                         </button>
                       </div>
-                      <div class="grid grid-cols-2 gap-2">
+                      <div class={styles.channelFieldGrid}>
                         <input
                           type="text"
-                          class="bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
+                          class={styles.channelFieldInput}
                           placeholder="Channel ID"
                           value={ch.channelId}
                           onInput={(e) => handleChannelField(index(), 'channelId', e.currentTarget.value)}
@@ -368,17 +367,17 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
                         />
                         <input
                           type="text"
-                          class="bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
+                          class={styles.channelFieldInput}
                           placeholder="Channel name"
                           value={ch.channelName ?? ''}
                           onInput={(e) => handleChannelField(index(), 'channelName', e.currentTarget.value)}
                           aria-label={`Channel ${index() + 1} name`}
                         />
                       </div>
-                      <div class="grid grid-cols-2 gap-2">
+                      <div class={styles.channelFieldGrid}>
                         <input
                           type="text"
-                          class="bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
+                          class={styles.channelFieldInput}
                           placeholder="Description"
                           value={ch.description}
                           onInput={(e) => handleChannelField(index(), 'description', e.currentTarget.value)}
@@ -386,7 +385,7 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
                         />
                         <input
                           type="text"
-                          class="bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-xcord-brand"
+                          class={styles.channelFieldInput}
                           placeholder="Emoji (optional)"
                           value={ch.emojiName ?? ''}
                           onInput={(e) => handleChannelField(index(), 'emojiName', e.currentTarget.value)}
@@ -399,14 +398,14 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
               </div>
 
               <Show when={submitError()}>
-                <p class="text-red-400 text-xs" role="alert">
+                <p class={styles.submitError} role="alert">
                   {submitError()}
                 </p>
               </Show>
 
-              <div class="flex gap-2 pt-1">
+              <div class={styles.editButtons}>
                 <button
-                  class="px-4 py-2 bg-xcord-brand text-white text-sm font-medium rounded hover:bg-xcord-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  class={styles.primaryBtn}
                   onClick={handleSave}
                   disabled={isSaving()}
                   aria-label="Save Welcome Screen"
@@ -414,7 +413,7 @@ export default function WelcomeScreen(props: WelcomeScreenProps) {
                   {isSaving() ? 'Saving...' : 'Save Welcome Screen'}
                 </button>
                 <button
-                  class="px-4 py-2 bg-xcord-bg-tertiary text-xcord-text-muted text-sm rounded hover:bg-xcord-bg-primary hover:text-xcord-text-primary transition-colors"
+                  class={styles.secondaryBtn}
                   onClick={handleCancel}
                 >
                   Cancel

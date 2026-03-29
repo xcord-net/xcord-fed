@@ -65,6 +65,18 @@ public sealed class BotToken : ISoftDeletable
     public byte[]? InteractionSigningKey { get; set; }
 
     /// <summary>
+    /// References a bundled bot agent ID from the BotAgentRegistry.
+    /// Null means this is a custom/external bot (not a bundled agent).
+    /// </summary>
+    public string? AgentId { get; set; }
+
+    /// <summary>
+    /// JSON parameter values configured by the admin for the bundled agent.
+    /// Null when AgentId is null.
+    /// </summary>
+    public string? AgentConfigJson { get; set; }
+
+    /// <summary>
     /// Soft delete timestamp (implements ISoftDeletable).
     /// </summary>
     public DateTimeOffset? DeletedAt { get; set; }

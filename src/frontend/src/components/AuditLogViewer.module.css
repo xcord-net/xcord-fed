@@ -1,0 +1,210 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--color-xcord-bg-secondary);
+}
+
+.filterHeader {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+}
+
+.filterTitle {
+  color: white;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.filterControls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filterSelect {
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border: none;
+  outline: none;
+}
+
+.filterSelect:focus {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.filterInput {
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-xcord-border);
+  outline: none;
+}
+
+.filterInput::placeholder {
+  color: var(--color-xcord-text-muted);
+}
+
+.filterInput:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.applyButton {
+  background-color: var(--color-xcord-brand);
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  align-self: flex-end;
+  transition: color 150ms, background-color 150ms;
+}
+
+.applyButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.errorBanner {
+  padding: 0.5rem 1rem;
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  font-size: 0.875rem;
+}
+
+.scrollArea {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 8rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.emptyStateTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.emptyStateSubtitle {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.entryRow {
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+  transition: color 150ms, background-color 150ms;
+}
+
+.entryRow:hover {
+  background-color: rgba(26, 29, 37, 0.5);
+}
+
+.entryIcon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.entryBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.entryHeadline {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.entryActor {
+  color: white;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.entryAction {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+}
+
+.entryTarget {
+  font-size: 0.875rem;
+  color: var(--color-xcord-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entryReason {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entryTime {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.loadingCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
+.loadingText {
+  color: var(--color-xcord-text-muted);
+}
+
+.loadMoreRow {
+  padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.loadMoreButton {
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-muted);
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.loadMoreButton:hover {
+  background-color: var(--color-xcord-bg-tertiary);
+  color: white;
+}
+
+.endOfLog {
+  padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.endOfLogText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}

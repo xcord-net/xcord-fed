@@ -1,6 +1,7 @@
 import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
+import styles from './AuditLogViewer.module.css';
 
 export interface AuditLogEntry {
   id: string;
@@ -114,12 +115,12 @@ export default function AuditLogViewer(props: AuditLogViewerProps) {
   });
 
   return (
-    <div class="flex flex-col h-full bg-xcord-bg-secondary">
-      <div class="px-4 py-3 border-b border-xcord-border">
-        <h2 class="text-white font-semibold mb-2">Audit Log</h2>
-        <div class="flex flex-col space-y-2">
+    <div class={styles.container}>
+      <div class={styles.filterHeader}>
+        <h2 class={styles.filterTitle}>Audit Log</h2>
+        <div class={styles.filterControls}>
           <select
-            class="bg-xcord-bg-tertiary text-xcord-text-primary rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-xcord-brand"
+            class={styles.filterSelect}
             value={actionFilter()}
             onChange={(e) => { setActionFilter(e.currentTarget.value); applyFilters(); }}
           >
@@ -131,13 +132,13 @@ export default function AuditLogViewer(props: AuditLogViewerProps) {
           <input
             type="text"
             placeholder="Filter by user (username or ID)..."
-            class="bg-xcord-bg-tertiary text-xcord-text-primary placeholder-xcord-text-muted rounded px-3 py-1.5 text-sm border border-xcord-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xcord-brand"
+            class={styles.filterInput}
             value={userFilter()}
             onInput={(e) => setUserFilter(e.currentTarget.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') applyFilters(); }}
           />
           <button
-            class="bg-xcord-brand text-white px-3 py-1.5 rounded text-sm hover:bg-xcord-brand-hover self-end"
+            class={styles.applyButton}
             onClick={() => applyFilters()}
           >
             Apply Filters
@@ -146,42 +147,42 @@ export default function AuditLogViewer(props: AuditLogViewerProps) {
       </div>
 
       <Show when={error()}>
-        <div class="px-4 py-2 bg-red-500/20 text-red-400 text-sm">{error()}</div>
+        <div class={styles.errorBanner}>{error()}</div>
       </Show>
 
-      <div class="flex-1 overflow-y-auto">
+      <div class={styles.scrollArea}>
         <Show when={!isLoading() && entries().length === 0}>
-          <div class="flex flex-col items-center justify-center h-32 text-xcord-text-muted">
-            <p class="text-lg font-semibold">No audit log entries</p>
-            <p class="text-sm mt-1">No actions recorded yet{actionFilter() ? ' for this filter.' : '.'}</p>
+          <div class={styles.emptyState}>
+            <p class={styles.emptyStateTitle}>No audit log entries</p>
+            <p class={styles.emptyStateSubtitle}>No actions recorded yet{actionFilter() ? ' for this filter.' : '.'}</p>
           </div>
         </Show>
 
         <For each={entries()}>
           {(entry) => (
-            <div class="px-4 py-3 flex items-start space-x-3 hover:bg-xcord-bg-primary/50 border-b border-xcord-border">
-              <span class="text-2xl flex-shrink-0 mt-0.5" aria-hidden="true">
+            <div class={styles.entryRow}>
+              <span class={styles.entryIcon} aria-hidden="true">
                 {getActionIcon(entry.actionType)}
               </span>
 
-              <div class="flex-1 min-w-0">
-                <div class="flex items-baseline space-x-2">
-                  <span class="text-white font-medium text-sm">{entry.actorUsername}</span>
-                  <span class="text-xcord-text-muted text-xs">{entry.actionType}</span>
+              <div class={styles.entryBody}>
+                <div class={styles.entryHeadline}>
+                  <span class={styles.entryActor}>{entry.actorUsername}</span>
+                  <span class={styles.entryAction}>{entry.actionType}</span>
                 </div>
 
                 <Show when={entry.targetName || entry.targetId}>
-                  <p class="text-sm text-xcord-text-muted truncate">
+                  <p class={styles.entryTarget}>
                     Target: {entry.targetName ?? entry.targetId}
                   </p>
                 </Show>
 
                 <Show when={entry.reason}>
-                  <p class="text-xs text-xcord-text-muted truncate">Reason: {entry.reason}</p>
+                  <p class={styles.entryReason}>Reason: {entry.reason}</p>
                 </Show>
 
                 <time
-                  class="text-xs text-xcord-text-muted"
+                  class={styles.entryTime}
                   dateTime={entry.createdAt}
                   title={new Date(entry.createdAt).toISOString()}
                 >
@@ -193,15 +194,15 @@ export default function AuditLogViewer(props: AuditLogViewerProps) {
         </For>
 
         <Show when={isLoading()}>
-          <div class="flex items-center justify-center py-6">
-            <p class="text-xcord-text-muted">Loading...</p>
+          <div class={styles.loadingCenter}>
+            <p class={styles.loadingText}>Loading...</p>
           </div>
         </Show>
 
         <Show when={!isLoading() && hasMore() && entries().length > 0}>
-          <div class="px-4 py-3 flex justify-center">
+          <div class={styles.loadMoreRow}>
             <button
-              class="bg-xcord-bg-primary text-xcord-text-muted px-4 py-2 rounded text-sm hover:bg-xcord-bg-tertiary hover:text-white"
+              class={styles.loadMoreButton}
               onClick={() => loadEntries(false)}
             >
               Load More
@@ -210,8 +211,8 @@ export default function AuditLogViewer(props: AuditLogViewerProps) {
         </Show>
 
         <Show when={!isLoading() && !hasMore() && entries().length > 0}>
-          <div class="px-4 py-3 flex justify-center">
-            <p class="text-xcord-text-muted text-sm">End of audit log</p>
+          <div class={styles.endOfLog}>
+            <p class={styles.endOfLogText}>End of audit log</p>
           </div>
         </Show>
       </div>
