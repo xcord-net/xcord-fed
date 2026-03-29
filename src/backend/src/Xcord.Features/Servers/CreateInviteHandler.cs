@@ -183,7 +183,7 @@ public sealed class CreateInviteHandler(
                 ChannelId: request.ChannelId
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{success.ServerId}/invites/{success.Code}", success));
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateInvite")

@@ -68,7 +68,7 @@ public sealed class CreateFromTemplateHandler(
             CreateFromTemplateRequest request,
             IRequestHandler<CreateFromTemplateCommand, Result<CreateFromTemplateResponse>> handler,
             CancellationToken ct) =>
-            await handler.ExecuteAsync(new CreateFromTemplateCommand(request.TemplateId, request.ServerName), ct))
+            await handler.ExecuteAsync(new CreateFromTemplateCommand(request.TemplateId, request.ServerName), ct, success => Results.Created($"/api/v1/servers/{success.Id}", success)))
         .RequireAuthorization(Policies.User)
         .WithName("CreateFromTemplate").WithTags("ServerTemplates");
 }

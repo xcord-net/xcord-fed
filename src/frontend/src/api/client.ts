@@ -2,6 +2,7 @@ class ApiClient {
   private baseUrl = '';
   private authenticated = false;
   private refreshPromise: Promise<boolean> | null = null;
+  private onSessionExpired: () => void = () => { window.location.href = '/login'; };
 
   setBaseUrl(url: string) {
     this.baseUrl = url;
@@ -17,6 +18,10 @@ class ApiClient {
 
   isAuthenticated(): boolean {
     return this.authenticated;
+  }
+
+  setOnSessionExpired(handler: () => void) {
+    this.onSessionExpired = handler;
   }
 
   private async request<T>(method: string, path: string, body?: unknown): Promise<T> {
@@ -47,7 +52,7 @@ class ApiClient {
         if (retryResponse.status === 401) {
           // Double 401 - redirect to login
           this.authenticated = false;
-          window.location.href = '/login';
+          this.onSessionExpired();
           throw new Error('Session expired');
         }
 

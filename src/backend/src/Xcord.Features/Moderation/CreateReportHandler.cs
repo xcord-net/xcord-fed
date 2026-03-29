@@ -164,7 +164,7 @@ public sealed class CreateReportHandler(
                 Reason: requestBody.Reason
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{success.ServerId}/reports/{success.Id}", success));
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateReport")

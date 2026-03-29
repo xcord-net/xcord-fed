@@ -179,7 +179,7 @@ export default function EmojiManager(props: EmojiManagerProps) {
   });
 
   return (
-    <div class={styles.container}>
+    <div class={styles.container} data-testid="emoji-manager-container">
       <div class={styles.header}>
         <h2 id="emoji-manager-heading" class={styles.headerTitle}>Custom Emojis</h2>
       </div>
@@ -187,7 +187,7 @@ export default function EmojiManager(props: EmojiManagerProps) {
       {/* Upload form */}
       <div class={styles.uploadSection}>
         <h3 class={styles.uploadTitle}>Upload New Emoji</h3>
-        <form onSubmit={handleUpload} class={styles.uploadForm}>
+        <form onSubmit={handleUpload} class={styles.uploadForm} data-testid="emoji-upload-form">
           <div class={styles.fileRow}>
             <Show when={previewUrl()}>
               <img
@@ -202,6 +202,7 @@ export default function EmojiManager(props: EmojiManagerProps) {
                 type="file"
                 accept="image/png,image/gif,image/webp"
                 class={styles.hiddenFileInput}
+                data-testid="emoji-file-input"
                 onChange={handleFileSelect}
               />
             </label>
@@ -209,6 +210,7 @@ export default function EmojiManager(props: EmojiManagerProps) {
 
           <input
             id="emoji-manager-name-input"
+            data-testid="emoji-name-input"
             type="text"
             placeholder="Emoji name (e.g. cool_face)"
             class={styles.nameInput}
@@ -223,6 +225,7 @@ export default function EmojiManager(props: EmojiManagerProps) {
 
           <button
             id="emoji-manager-upload-btn"
+            data-testid="emoji-upload-submit-button"
             type="submit"
             disabled={isUploading()}
             class={styles.uploadButton}
@@ -244,16 +247,16 @@ export default function EmojiManager(props: EmojiManagerProps) {
         </Show>
 
         <Show when={!isLoading() && emojis().length === 0}>
-          <div id="emoji-manager-empty" class={styles.emptyContainer}>
+          <div id="emoji-manager-empty" data-testid="emoji-list-empty-state" class={styles.emptyContainer}>
             <p class={styles.emptyTitle}>No custom emojis</p>
             <p class={styles.emptySubtitle}>Upload an emoji above to get started.</p>
           </div>
         </Show>
 
-        <div class={styles.emojiGrid}>
+        <div class={styles.emojiGrid} data-testid="emoji-list">
           <For each={emojis()}>
             {(emoji) => (
-              <div class={styles.emojiItem}>
+              <div class={styles.emojiItem} data-testid={`emoji-item-${emoji.name}`}>
                 <div class={styles.emojiImageBox}>
                   <img
                     src={emoji.imageUrl}
@@ -271,6 +274,7 @@ export default function EmojiManager(props: EmojiManagerProps) {
                   fallback={
                     <button
                       class={styles.deleteEmojiButton}
+                      data-testid={`delete-emoji-button-${emoji.name}`}
                       onClick={() => setConfirmingDelete(emoji.id)}
                       title={`Delete :${emoji.name}:`}
                       aria-label={`Delete emoji ${emoji.name}`}
@@ -279,7 +283,7 @@ export default function EmojiManager(props: EmojiManagerProps) {
                     </button>
                   }
                 >
-                  <div class={styles.deleteConfirmOverlay}>
+                  <div class={styles.deleteConfirmOverlay} data-testid={`emoji-delete-confirm-${emoji.name}`}>
                     <p class={styles.deleteConfirmText}>Delete?</p>
                     <div class={styles.deleteConfirmButtons}>
                       <button
@@ -290,6 +294,7 @@ export default function EmojiManager(props: EmojiManagerProps) {
                       </button>
                       <button
                         class={styles.deleteYesBtn}
+                        data-testid={`emoji-delete-confirm-yes-${emoji.name}`}
                         onClick={() => deleteEmoji(emoji.id)}
                       >
                         Yes

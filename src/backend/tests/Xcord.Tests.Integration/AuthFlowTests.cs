@@ -343,7 +343,7 @@ public class AuthFlowTests
         request.Content = JsonContent.Create(new { name = "TestServer" });
         var response = await _fixture.Client.SendAsync(request);
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
     }
 
     // ──────────── Change Password ────────────

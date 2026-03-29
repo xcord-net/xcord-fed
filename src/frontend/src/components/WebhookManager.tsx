@@ -166,12 +166,13 @@ export default function WebhookManager(props: WebhookManagerProps) {
   });
 
   return (
-    <div class={styles.container}>
+    <div class={styles.container} data-testid="webhook-manager-container">
       {/* Header */}
       <div class={styles.header}>
         <h2 class={styles.headerTitle}>Outgoing Webhooks</h2>
         <button
           class={styles.addButton}
+          data-testid="create-webhook-button"
           onClick={() => setShowForm(!showForm())}
         >
           {showForm() ? 'Cancel' : 'Add Webhook'}
@@ -180,11 +181,12 @@ export default function WebhookManager(props: WebhookManagerProps) {
 
       {/* Create form */}
       <Show when={showForm()}>
-        <div class={styles.createFormSection}>
+        <div class={styles.createFormSection} data-testid="webhook-create-form">
           <h3 class={styles.createFormTitle}>New Webhook</h3>
           <form onSubmit={handleCreate} class={styles.createFormFields}>
             <input
               type="text"
+              data-testid="webhook-name-input"
               placeholder="Webhook name"
               value={formName()}
               onInput={(e) => setFormName(e.currentTarget.value)}
@@ -193,6 +195,7 @@ export default function WebhookManager(props: WebhookManagerProps) {
             />
             <input
               type="url"
+              data-testid="webhook-url-input"
               placeholder="Target URL (https://...)"
               value={formUrl()}
               onInput={(e) => setFormUrl(e.currentTarget.value)}
@@ -223,6 +226,7 @@ export default function WebhookManager(props: WebhookManagerProps) {
               type="submit"
               disabled={isSaving()}
               class={styles.createSubmitButton}
+              data-testid="webhook-submit-button"
             >
               {isSaving() ? 'Creating...' : 'Create Webhook'}
             </button>
@@ -235,7 +239,7 @@ export default function WebhookManager(props: WebhookManagerProps) {
       </Show>
 
       {/* Webhook list */}
-      <div class={styles.webhookList}>
+      <div class={styles.webhookList} data-testid="webhook-list">
         <Show when={isLoading()}>
           <div class={styles.loadingContainer}>
             <p class={styles.mutedText}>Loading webhooks...</p>
@@ -243,7 +247,7 @@ export default function WebhookManager(props: WebhookManagerProps) {
         </Show>
 
         <Show when={!isLoading() && webhooks().length === 0}>
-          <div class={styles.emptyContainer}>
+          <div class={styles.emptyContainer} data-testid="webhook-list-empty-state">
             <p class={styles.emptyTitle}>No outgoing webhooks</p>
             <p class={styles.emptySubtitle}>Create a webhook to receive server events at an external URL.</p>
           </div>
@@ -251,18 +255,18 @@ export default function WebhookManager(props: WebhookManagerProps) {
 
         <For each={webhooks()}>
           {(webhook) => (
-            <div class={styles.webhookCard}>
+            <div class={styles.webhookCard} data-testid={`webhook-item-${webhook.id}`}>
               <div class={styles.webhookHeader}>
                 <div class={styles.webhookInfo}>
                   <div class={styles.webhookNameRow}>
-                    <p class={styles.webhookName}>{webhook.name}</p>
+                    <p class={styles.webhookName} data-testid={`webhook-name-${webhook.id}`}>{webhook.name}</p>
                     <span
                       class={webhook.enabled ? styles.statusBadgeActive : styles.statusBadgeDisabled}
                     >
                       {webhook.enabled ? 'Active' : 'Disabled'}
                     </span>
                   </div>
-                  <p class={styles.webhookUrl}>{webhook.targetUrl}</p>
+                  <p class={styles.webhookUrl} data-testid={`webhook-url-${webhook.id}`}>{webhook.targetUrl}</p>
                   <div class={styles.webhookEvents}>
                     <For each={webhook.events}>
                       {(evt) => (
@@ -276,6 +280,7 @@ export default function WebhookManager(props: WebhookManagerProps) {
                 <div class={styles.webhookButtons}>
                   <button
                     class={webhook.enabled ? styles.toggleButtonEnabled : styles.toggleButtonDisabled}
+                    data-testid={`webhook-toggle-button-${webhook.id}`}
                     onClick={() => handleToggleEnabled(webhook)}
                     title={webhook.enabled ? 'Disable webhook' : 'Enable webhook'}
                   >
@@ -287,18 +292,20 @@ export default function WebhookManager(props: WebhookManagerProps) {
                     onConfirm={() => { handleDelete(webhook.id); setConfirmingDelete(null); }}
                     onCancel={() => setConfirmingDelete(null)}
                     label="Delete"
+                    testId={`delete-webhook-button-${webhook.id}`}
                   />
                 </div>
               </div>
 
               {/* Secret key */}
-              <div class={styles.secretRow}>
+              <div class={styles.secretRow} data-testid={`webhook-secret-row-${webhook.id}`}>
                 <span class={styles.secretLabel}>Secret:</span>
                 <Show
                   when={revealedSecret() === webhook.id}
                   fallback={
                     <button
                       class={styles.revealButton}
+                      data-testid={`webhook-reveal-secret-button-${webhook.id}`}
                       onClick={() => setRevealedSecret(webhook.id)}
                     >
                       Click to reveal

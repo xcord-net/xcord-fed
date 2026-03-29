@@ -187,7 +187,7 @@ public sealed class CreateDmHandler(
             [FromBody] CreateDmRequest request,
             [FromServices] CreateDmHandler handler,
             CancellationToken ct) =>
-            await handler.ExecuteAsync(request, ct))
+            await handler.ExecuteAsync(request, ct, success => Results.Created($"/api/v1/users/@me/dms/{success.Id}", success)))
             .RequireAnyAuthorization(Policies.User, Policies.Bot)
             .WithName("CreateDm")
             .WithTags("DMs");

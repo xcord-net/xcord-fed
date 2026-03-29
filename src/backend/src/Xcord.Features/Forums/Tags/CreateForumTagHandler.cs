@@ -137,7 +137,7 @@ public sealed class CreateForumTagHandler(
                 Position: request.Position
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/channels/{success.ChannelId}/tags/{success.Id}", success));
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateForumTag")

@@ -15,7 +15,7 @@ services:
       mailpit:
         condition: service_healthy
     environment:
-      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_ENVIRONMENT: Development
       XCORD_CONFIG_INLINE: |
         {
           "database": { "connectionString": "Host=postgres;Database=xcord_dev;Username=xcord;Password=xcord_dev" },

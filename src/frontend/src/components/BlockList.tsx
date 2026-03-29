@@ -26,12 +26,13 @@ export default function BlockList() {
   };
 
   return (
-    <div class={styles.container}>
+    <div class={styles.container} data-testid="block-list-container">
       <div class={styles.header}>
         <h2 class={styles.heading}>Blocked Users</h2>
         <div class={styles.inputRow}>
           <input
             id="block-user-input"
+            data-testid="block-user-input"
             type="text"
             placeholder="Enter a username to block"
             value={blockUsername()}
@@ -40,6 +41,7 @@ export default function BlockList() {
           />
           <button
             id="block-user-submit"
+            data-testid="block-user-submit-button"
             class={styles.blockButton}
             disabled={!blockUsername().trim()}
             onClick={handleBlockUser}
@@ -48,7 +50,7 @@ export default function BlockList() {
           </button>
         </div>
         <Show when={blockMessage()}>
-          <p id="block-user-status" class={blockError() ? styles.statusError : styles.statusSuccess}>
+          <p id="block-user-status" data-testid="block-user-status" class={blockError() ? styles.statusError : styles.statusSuccess}>
             {blockMessage()}
           </p>
         </Show>
@@ -62,14 +64,14 @@ export default function BlockList() {
         </Show>
 
         <Show when={!blockStore.isLoading && blockStore.blockedUsers.length === 0}>
-          <div id="blocked-users-empty" class={styles.emptyState}>
+          <div id="blocked-users-empty" data-testid="block-list-empty-state" class={styles.emptyState}>
             <p class={styles.mutedText}>No blocked users</p>
           </div>
         </Show>
 
         <For each={blockStore.blockedUsers}>
           {(user) => (
-            <div class={styles.userRow} data-blocked-username={user.blockedUsername}>
+            <div class={styles.userRow} data-blocked-username={user.blockedUsername} data-testid={`blocked-user-item-${user.blockedUsername}`}>
               <div class={styles.avatar}>
                 <Show when={user.blockedAvatarUrl} fallback={user.blockedUsername.charAt(0).toUpperCase()}>
                   <img
@@ -89,6 +91,7 @@ export default function BlockList() {
 
               <button
                 class={styles.unblockButton}
+                data-testid={`unblock-user-button-${user.blockedUsername}`}
                 onClick={() => blockStore.unblockUser(user.blockedId)}
               >
                 Unblock

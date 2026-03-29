@@ -384,7 +384,7 @@ public class SecurityAuditTests
         var dmResponse = await _helper.AuthPostAsync(
             "/api/v1/users/@me/dms", user1.AccessToken,
             new { recipientIds = new[] { user2.UserId } });
-        dmResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        dmResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var dm = await dmResponse.ReadAsJsonAsync<JsonElement>();
         var conversationId = dm.GetProperty("conversationId").ReadLong();
 
@@ -1025,7 +1025,7 @@ public class SecurityAuditTests
         var dmResponse = await _helper.AuthPostAsync(
             "/api/v1/users/@me/dms", user1.AccessToken,
             new { recipientIds = new[] { user2.UserId } });
-        dmResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        dmResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var dm = await dmResponse.ReadAsJsonAsync<JsonElement>();
         var conversationId = dm.GetProperty("conversationId").ReadLong();
 

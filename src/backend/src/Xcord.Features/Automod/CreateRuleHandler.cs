@@ -154,7 +154,7 @@ public sealed class CreateRuleHandler(
                 ChannelId: request.ChannelId
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{serverId}/automod-rules/{success.Id}", success));
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateAutomodRule")

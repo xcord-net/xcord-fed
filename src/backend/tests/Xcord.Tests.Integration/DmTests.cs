@@ -32,7 +32,7 @@ public class DmTests
             user1.AccessToken,
             new { recipientIds = new[] { user2.UserId } });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var dm = await response.ReadAsJsonAsync<JsonElement>();
         dm.GetProperty("id").ReadLong().Should().BeGreaterThan(0);
@@ -59,7 +59,7 @@ public class DmTests
             user1.AccessToken,
             new { recipientIds = new[] { user2.UserId, user3.UserId } });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var dm = await response.ReadAsJsonAsync<JsonElement>();
         dm.GetProperty("id").ReadLong().Should().BeGreaterThan(0);
@@ -88,7 +88,7 @@ public class DmTests
             user1.AccessToken,
             new { recipientIds = new[] { user2.UserId } });
 
-        response1.StatusCode.Should().Be(HttpStatusCode.OK);
+        response1.StatusCode.Should().Be(HttpStatusCode.Created);
         var dm1 = await response1.ReadAsJsonAsync<JsonElement>();
         var dmId1 = dm1.GetProperty("id").ReadLong();
 
@@ -98,7 +98,7 @@ public class DmTests
             user1.AccessToken,
             new { recipientIds = new[] { user2.UserId } });
 
-        response2.StatusCode.Should().Be(HttpStatusCode.OK);
+        response2.StatusCode.Should().Be(HttpStatusCode.Created);
         var dm2 = await response2.ReadAsJsonAsync<JsonElement>();
         var dmId2 = dm2.GetProperty("id").ReadLong();
 
@@ -120,7 +120,7 @@ public class DmTests
             user1.AccessToken,
             new { recipientIds = new[] { user2.UserId } });
 
-        createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var createdDm = await createResponse.ReadAsJsonAsync<JsonElement>();
         var createdDmId = createdDm.GetProperty("id").ReadLong();
 
@@ -150,7 +150,7 @@ public class DmTests
             user1.AccessToken,
             new { recipientIds = new[] { user2.UserId } });
 
-        createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var createdDm = await createResponse.ReadAsJsonAsync<JsonElement>();
         var dmId = createdDm.GetProperty("id").ReadLong();
 
@@ -179,7 +179,7 @@ public class DmTests
             user1.AccessToken,
             new { recipientIds = new[] { user2.UserId } });
 
-        createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var dm = await createResponse.ReadAsJsonAsync<JsonElement>();
         var conversationId = dm.GetProperty("conversationId").ReadLong();
 
@@ -208,7 +208,7 @@ public class DmTests
             owner.AccessToken,
             new { recipientIds = new[] { user2.UserId, user3.UserId } });
 
-        createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var dm = await createResponse.ReadAsJsonAsync<JsonElement>();
         var dmId = dm.GetProperty("id").ReadLong();
         dm.GetProperty("isGroup").GetBoolean().Should().BeTrue("DM with 2+ recipients should be a group DM");
@@ -247,7 +247,7 @@ public class DmTests
             owner.AccessToken,
             new { recipientIds = new[] { user2.UserId, user3.UserId } });
 
-        createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var dm = await createResponse.ReadAsJsonAsync<JsonElement>();
         var dmId = dm.GetProperty("id").ReadLong();
 
@@ -284,7 +284,7 @@ public class DmTests
             user1.AccessToken,
             new { recipientIds = new[] { user2.UserId } });
 
-        createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var dm = await createResponse.ReadAsJsonAsync<JsonElement>();
         var dmId = dm.GetProperty("id").ReadLong();
 

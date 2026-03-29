@@ -79,7 +79,7 @@ public class EmojiTests
                 isAnimated
             });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK,
+        response.StatusCode.Should().Be(HttpStatusCode.Created,
             $"emoji creation should succeed: {await response.Content.ReadAsStringAsync()}");
 
         return await response.ReadAsJsonAsync<JsonElement>();
@@ -103,7 +103,7 @@ public class EmojiTests
                 isAnimated = false
             });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("id").ReadLong().Should().BeGreaterThan(0);
@@ -131,7 +131,7 @@ public class EmojiTests
                 isAnimated = true
             });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("isAnimated").GetBoolean().Should().BeTrue();

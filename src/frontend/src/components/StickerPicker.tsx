@@ -273,13 +273,14 @@ export default function StickerPicker(props: StickerPickerProps) {
   });
 
   return (
-    <div class={styles.picker}>
+    <div class={styles.picker} data-testid="sticker-picker-container">
       {/* Header */}
       <div class={styles.header}>
         <h2 class={styles.headerTitle}>Stickers</h2>
         <Show when={props.canManage}>
           <button
             class={styles.uploadToggleBtn}
+            data-testid="sticker-upload-toggle-button"
             onClick={() => setShowUpload(!showUpload())}
           >
             {showUpload() ? 'Cancel' : 'Upload Sticker'}
@@ -289,11 +290,12 @@ export default function StickerPicker(props: StickerPickerProps) {
 
       {/* Upload form */}
       <Show when={showUpload() && props.canManage}>
-        <div class={styles.uploadPanel}>
+        <div class={styles.uploadPanel} data-testid="sticker-upload-panel">
           <h3 class={styles.uploadPanelTitle}>Upload New Sticker</h3>
           <form onSubmit={handleUpload} class={styles.uploadForm}>
             <input
               type="text"
+              data-testid="sticker-name-input"
               placeholder="Sticker name (2-32 characters)"
               value={uploadName()}
               onInput={(e) => setUploadName(e.currentTarget.value)}
@@ -302,6 +304,7 @@ export default function StickerPicker(props: StickerPickerProps) {
             />
             <input
               type="text"
+              data-testid="sticker-description-input"
               placeholder="Description (optional)"
               value={uploadDescription()}
               onInput={(e) => setUploadDescription(e.currentTarget.value)}
@@ -309,6 +312,7 @@ export default function StickerPicker(props: StickerPickerProps) {
             />
             <input
               type="text"
+              data-testid="sticker-tags-input"
               placeholder="Tags (comma-separated, e.g. happy,funny,cute)"
               value={uploadTags()}
               onInput={(e) => setUploadTags(e.currentTarget.value)}
@@ -320,6 +324,7 @@ export default function StickerPicker(props: StickerPickerProps) {
                 type="file"
                 accept="image/png,image/gif,image/webp"
                 class={styles.hiddenInput}
+                data-testid="sticker-file-input"
                 onChange={handleFileSelect}
               />
             </label>
@@ -330,6 +335,7 @@ export default function StickerPicker(props: StickerPickerProps) {
               type="submit"
               disabled={isUploading()}
               class={styles.uploadSubmitBtn}
+              data-testid="sticker-upload-submit-button"
             >
               {isUploading() ? 'Uploading...' : 'Upload Sticker'}
             </button>
@@ -342,6 +348,7 @@ export default function StickerPicker(props: StickerPickerProps) {
         <input
           type="text"
           placeholder="Search stickers..."
+          data-testid="sticker-search-input"
           value={searchQuery()}
           onInput={(e) => setSearchQuery(e.currentTarget.value)}
           class={styles.textInput}
@@ -353,7 +360,7 @@ export default function StickerPicker(props: StickerPickerProps) {
       </Show>
 
       {/* Sticker grid */}
-      <div class={styles.stickerArea}>
+      <div class={styles.stickerArea} data-testid="sticker-grid-area">
         <Show when={isLoading()}>
           <div class={styles.loadingState}>
             <p class={styles.loadingText}>Loading stickers...</p>
@@ -361,7 +368,7 @@ export default function StickerPicker(props: StickerPickerProps) {
         </Show>
 
         <Show when={!isLoading() && filteredStickers().length === 0}>
-          <div class={styles.emptyState}>
+          <div class={styles.emptyState} data-testid="sticker-picker-empty-state">
             <p class={styles.emptyTitle}>No stickers found</p>
             <Show when={searchQuery()}>
               <p class={styles.emptySubtitle}>Try a different search term.</p>
@@ -371,16 +378,17 @@ export default function StickerPicker(props: StickerPickerProps) {
 
         <For each={stickerPacks()}>
           {(pack) => (
-            <div class={styles.packSection}>
+            <div class={styles.packSection} data-testid={`sticker-pack-${pack.serverId}`}>
               <p class={styles.packName}>
                 {pack.serverName}
               </p>
               <div class={styles.stickerGrid}>
                 <For each={pack.stickers}>
                   {(sticker) => (
-                    <div class={styles.stickerItem}>
+                    <div class={styles.stickerItem} data-testid={`sticker-item-${sticker.id}`}>
                       <button
                         class={styles.stickerBtn}
+                        data-testid={`sticker-select-button-${sticker.id}`}
                         onClick={() => props.onSelect?.(sticker)}
                         title={sticker.name}
                       >
@@ -401,6 +409,7 @@ export default function StickerPicker(props: StickerPickerProps) {
                           fallback={
                             <button
                               class={styles.deleteBtn}
+                              data-testid={`delete-sticker-button-${sticker.id}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setConfirmDeleteId(sticker.id);

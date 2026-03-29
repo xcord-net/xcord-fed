@@ -140,7 +140,7 @@ public sealed class CreateBotTokenHandler(
                 Roles: requestBody.Roles
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/admin/bots/{command.BotId}/tokens/{success.TokenId}", success));
         })
         .RequireAuthorization(Policies.Admin)
         .WithName("CreateBotToken")

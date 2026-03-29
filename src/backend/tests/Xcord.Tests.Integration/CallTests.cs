@@ -31,7 +31,7 @@ public class CallTests
             user1.AccessToken,
             new { recipientIds = new[] { user2.UserId } });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var dm = await response.ReadAsJsonAsync<JsonElement>();
         dm.GetProperty("isGroup").GetBoolean().Should().BeFalse();
@@ -118,7 +118,7 @@ public class CallTests
             user1.AccessToken,
             new { recipientIds = new[] { user2.UserId, user3.UserId } });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
         var dm = await response.ReadAsJsonAsync<JsonElement>();
         var dmChannelId = dm.GetProperty("id").ReadLong();
         dm.GetProperty("isGroup").GetBoolean().Should().BeTrue();

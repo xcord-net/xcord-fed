@@ -77,7 +77,7 @@ public class StickerTests
                 description
             });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK,
+        response.StatusCode.Should().Be(HttpStatusCode.Created,
             $"sticker pack creation should succeed: {await response.Content.ReadAsStringAsync()}");
 
         return await response.ReadAsJsonAsync<JsonElement>();
@@ -103,7 +103,7 @@ public class StickerTests
                 attachmentId
             });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK,
+        response.StatusCode.Should().Be(HttpStatusCode.Created,
             $"sticker creation should succeed: {await response.Content.ReadAsStringAsync()}");
 
         return await response.ReadAsJsonAsync<JsonElement>();
@@ -125,7 +125,7 @@ public class StickerTests
                 description = "A pack of fun stickers"
             });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("id").ReadLong().Should().BeGreaterThan(0);
@@ -145,7 +145,7 @@ public class StickerTests
             ctx.Owner.AccessToken,
             new { name = "No Desc Pack" });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("name").GetString().Should().Be("No Desc Pack");
@@ -216,7 +216,7 @@ public class StickerTests
                 attachmentId
             });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("id").ReadLong().Should().BeGreaterThan(0);
@@ -244,7 +244,7 @@ public class StickerTests
                 attachmentId
             });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("name").GetString().Should().Be("no_tags_sticker");

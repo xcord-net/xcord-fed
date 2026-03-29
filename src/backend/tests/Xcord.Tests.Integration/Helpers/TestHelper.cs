@@ -156,7 +156,7 @@ public sealed class TestHelper
         request.Content = JsonContent.Create(new { name }, options: JsonOptions);
         var response = await _fixture.Client.SendAsync(request);
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK,
+        response.StatusCode.Should().Be(HttpStatusCode.Created,
             $"server creation should succeed: {await response.Content.ReadAsStringAsync()}");
 
         return await response.ReadAsJsonAsync<JsonElement>();
@@ -206,7 +206,7 @@ public sealed class TestHelper
         request.Content = JsonContent.Create(new { }, options: JsonOptions);
         var response = await _fixture.Client.SendAsync(request);
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK,
+        response.StatusCode.Should().Be(HttpStatusCode.Created,
             $"invite creation should succeed: {await response.Content.ReadAsStringAsync()}");
 
         var body = await response.ReadAsJsonAsync<JsonElement>();

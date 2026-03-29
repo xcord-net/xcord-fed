@@ -239,7 +239,7 @@ public sealed class CreateForumPostHandler(
                 Tags: request.Tags ?? []
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/channels/{success.ChannelId}/posts/{success.ThreadId}", success));
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateForumPost")

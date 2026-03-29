@@ -216,7 +216,7 @@ public class ServerEndpointTests
             expiresAt = DateTimeOffset.UtcNow.AddDays(7)
         });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("code").GetString().Should().NotBeNullOrEmpty();

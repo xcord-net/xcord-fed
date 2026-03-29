@@ -253,7 +253,7 @@ public class DefaultGroupsAndTiersTests
             owner.AccessToken,
             new { groupId = memberGroupId });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var invite = await response.ReadAsJsonAsync<JsonElement>();
         invite.GetProperty("groupId").ReadLong().Should().Be(memberGroupId);
@@ -327,7 +327,7 @@ public class DefaultGroupsAndTiersTests
             $"/api/v1/servers/{serverId}/invites",
             owner.AccessToken,
             new { groupId = memberGroupId });
-        inviteResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        inviteResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var invite = await inviteResponse.ReadAsJsonAsync<JsonElement>();
         var code = invite.GetProperty("code").GetString()!;
 

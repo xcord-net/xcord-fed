@@ -345,7 +345,7 @@ public sealed class CreateServerHandler(
             IRequestHandler<CreateServerCommand, Result<CreateServerResponse>> handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(request, ct);
+            return await handler.ExecuteAsync(request, ct, success => Results.Created($"/api/v1/servers/{success.Id}", success));
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateServer")

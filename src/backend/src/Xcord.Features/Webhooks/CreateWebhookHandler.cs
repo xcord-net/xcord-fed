@@ -176,7 +176,7 @@ public sealed class CreateWebhookHandler(
                 AvatarUrl: request.AvatarUrl
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{serverId}/webhooks/{success.Id}", success));
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateWebhook")

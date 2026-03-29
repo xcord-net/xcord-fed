@@ -106,7 +106,7 @@ export default function OwnershipTransfer(props: OwnershipTransferProps) {
 
   return (
     <Show when={isOwner()}>
-      <div class={styles.section}>
+      <div class={styles.section} data-testid="ownership-transfer-section">
         <h3 class={styles.sectionTitle}>
           Server Ownership
         </h3>
@@ -116,6 +116,7 @@ export default function OwnershipTransfer(props: OwnershipTransferProps) {
         </p>
         <button
           class={styles.openButton}
+          data-testid="transfer-ownership-open-button"
           onClick={handleOpenDialog}
         >
           Transfer Ownership
@@ -123,7 +124,7 @@ export default function OwnershipTransfer(props: OwnershipTransferProps) {
 
         {/* Step 1: Select Member */}
         <Modal open={step() === 'select-member'} onClose={handleClose} title="Select New Owner" size="md">
-          <div class={styles.modalBody}>
+          <div class={styles.modalBody} data-testid="transfer-select-member-dialog">
             <Show when={error()}>
               <div class={styles.errorBanner}>{error()}</div>
             </Show>
@@ -133,11 +134,12 @@ export default function OwnershipTransfer(props: OwnershipTransferProps) {
             </Show>
 
             <Show when={!isLoading()}>
-              <div class={styles.memberList}>
+              <div class={styles.memberList} data-testid="transfer-member-list">
                 <For each={members()}>
                   {(member) => (
                     <button
                       class={styles.memberButton}
+                      data-testid={`transfer-member-option-${member.userId}`}
                       onClick={() => handleSelectMember(member)}
                     >
                       <div class={styles.memberAvatar}>
@@ -164,6 +166,7 @@ export default function OwnershipTransfer(props: OwnershipTransferProps) {
 
             <button
               class={styles.cancelButton}
+              data-testid="transfer-cancel-button"
               onClick={handleClose}
             >
               Cancel
@@ -173,7 +176,7 @@ export default function OwnershipTransfer(props: OwnershipTransferProps) {
 
         {/* Step 2: Confirm with server name */}
         <Modal open={step() === 'confirm-name'} onClose={handleClose} title="Confirm Ownership Transfer" size="md">
-          <div class={styles.modalBody}>
+          <div class={styles.modalBody} data-testid="transfer-confirm-dialog">
             <p class={styles.confirmDescription}>
               You are about to transfer ownership of this server to{' '}
               <strong class={styles.confirmHighlight}>
@@ -195,6 +198,7 @@ export default function OwnershipTransfer(props: OwnershipTransferProps) {
               <input
                 type="text"
                 class={styles.textInput}
+                data-testid="transfer-server-name-input"
                 value={serverNameInput()}
                 onInput={(e) => setServerNameInput(e.currentTarget.value)}
                 placeholder={props.serverName}
@@ -204,6 +208,7 @@ export default function OwnershipTransfer(props: OwnershipTransferProps) {
             <div class={styles.actionRow}>
               <button
                 class={styles.confirmButton}
+                data-testid="transfer-confirm-button"
                 onClick={handleConfirmTransfer}
                 disabled={isLoading() || serverNameInput().trim() !== props.serverName}
               >
@@ -211,6 +216,7 @@ export default function OwnershipTransfer(props: OwnershipTransferProps) {
               </button>
               <button
                 class={styles.cancelButton}
+                data-testid="transfer-confirm-cancel-button"
                 onClick={handleClose}
               >
                 Cancel

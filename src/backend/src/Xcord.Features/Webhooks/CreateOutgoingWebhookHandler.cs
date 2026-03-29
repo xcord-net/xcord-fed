@@ -156,7 +156,7 @@ public sealed class CreateOutgoingWebhookHandler(
                 TargetUrl: request.TargetUrl,
                 EventTypes: request.EventTypes
             );
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{serverId}/outgoing-webhooks/{success.Id}", success));
         })
         .RequireAuthorization(Policies.User)
         .WithName("CreateOutgoingWebhook")

@@ -242,7 +242,7 @@ public class ModerationTests
     // ──────────── Reports ────────────
 
     [Fact]
-    public async Task CreateReport_AsMember_Returns200()
+    public async Task CreateReport_AsMember_Returns201()
     {
         var (serverId, owner, member) = await SetupServerWithMember();
 
@@ -251,7 +251,7 @@ public class ModerationTests
             member.AccessToken,
             new { reportedUserId = owner.UserId, reason = "Abusive behavior" });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var report = await response.ReadAsJsonAsync<JsonElement>();
         report.GetProperty("reportedUserId").ReadLong().Should().Be(owner.UserId);

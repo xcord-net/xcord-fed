@@ -306,7 +306,7 @@ public class AdminBotTests
                 roles = 42L
             });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("tokenId").ReadLong().Should().BeGreaterThan(0);

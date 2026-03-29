@@ -54,7 +54,7 @@ public class WebhookTests
             ctx.Owner.AccessToken,
             new { channelId = ctx.ChannelId, name = "Test Webhook" });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("id").ReadLong().Should().BeGreaterThan(0);
@@ -84,7 +84,7 @@ public class WebhookTests
             ctx.Owner.AccessToken,
             new { channelId = ctx.ChannelId, name = "Avatar Webhook", avatarUrl = "https://example.com/avatar.png" });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("name").GetString().Should().Be("Avatar Webhook");
@@ -424,7 +424,7 @@ public class WebhookTests
                 eventTypes = new[] { "MessageCreated", "MemberJoined" }
             });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("id").ReadLong().Should().BeGreaterThan(0);
@@ -517,7 +517,7 @@ public class WebhookTests
                 eventTypes = new[] { "MessageCreated", "MessageCreated", "MemberJoined" }
             });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         var eventTypes = body.GetProperty("eventTypes").EnumerateArray()
@@ -548,7 +548,7 @@ public class WebhookTests
             });
 
         // Creation succeeds - SSRF is blocked at delivery time
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("targetUrl").GetString().Should().Be("http://127.0.0.1:8080/webhook");

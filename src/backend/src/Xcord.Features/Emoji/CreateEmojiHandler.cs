@@ -162,7 +162,7 @@ public sealed class CreateEmojiHandler(
                 IsAnimated: request.IsAnimated
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{serverId}/emojis/{success.Id}", success));
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateEmoji")

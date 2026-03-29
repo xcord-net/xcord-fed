@@ -45,7 +45,7 @@ export default function StatusPicker() {
   }
 
   return (
-    <div class={styles.wrapper}>
+    <div class={styles.wrapper} data-testid="status-picker-container">
       <button
         data-testid="nav-set-status-button"
         ref={triggerRef}
@@ -71,6 +71,7 @@ export default function StatusPicker() {
             <button
               type="button"
               role="menuitem"
+              data-testid={`status-option-${option.status}`}
               aria-label={`Set status to ${option.status}`}
               disabled={isSaving()}
               onClick={() => selectStatus(option.status)}

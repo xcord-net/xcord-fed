@@ -54,7 +54,7 @@ public class ScheduledEventTests
                 scheduledEndTime
             });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK,
+        response.StatusCode.Should().Be(HttpStatusCode.Created,
             $"event creation should succeed: {await response.Content.ReadAsStringAsync()}");
 
         return await response.ReadAsJsonAsync<JsonElement>();
@@ -80,7 +80,7 @@ public class ScheduledEventTests
                 scheduledEndTime = startTime.AddHours(2)
             });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("id").ReadLong().Should().BeGreaterThan(0);
@@ -108,7 +108,7 @@ public class ScheduledEventTests
                 scheduledStartTime = DateTimeOffset.UtcNow.AddDays(1)
             });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("name").GetString().Should().Be("Minimal Event");

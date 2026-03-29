@@ -52,7 +52,7 @@ public class ForumTests
             accessToken,
             new { title, content, tags = tags ?? new List<string>() });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK,
+        response.StatusCode.Should().Be(HttpStatusCode.Created,
             $"forum post creation should succeed: {await response.Content.ReadAsStringAsync()}");
 
         return await response.ReadAsJsonAsync<JsonElement>();
@@ -69,7 +69,7 @@ public class ForumTests
             accessToken,
             new { name });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK,
+        response.StatusCode.Should().Be(HttpStatusCode.Created,
             $"forum tag creation should succeed: {await response.Content.ReadAsStringAsync()}");
 
         return await response.ReadAsJsonAsync<JsonElement>();
@@ -122,7 +122,7 @@ public class ForumTests
     // ──────────── Create Forum Post ────────────
 
     [Fact]
-    public async Task CreateForumPost_InForumChannel_Returns200WithPostDetails()
+    public async Task CreateForumPost_InForumChannel_Returns201WithPostDetails()
     {
         var (serverId, channelId, token) = await SetupServerWithForumChannel();
 
@@ -131,7 +131,7 @@ public class ForumTests
             token,
             new { title = "My First Post", content = "Hello, forum!", tags = new List<string>() });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("threadId").ReadLong().Should().BeGreaterThan(0);
@@ -152,7 +152,7 @@ public class ForumTests
             token,
             new { title = "Tagged Post", content = "Post with tags", tags = new[] { "help", "bug" } });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("title").GetString().Should().Be("Tagged Post");
@@ -465,7 +465,7 @@ public class ForumTests
             token,
             new { name = "discussion" });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("id").ReadLong().Should().BeGreaterThan(0);
@@ -485,7 +485,7 @@ public class ForumTests
             token,
             new { name = "bug-report", emojiUnicode = "\U0001F41B" });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("name").GetString().Should().Be("bug-report");
@@ -876,7 +876,7 @@ public class ForumTests
     // ──────────── Member Can Create Forum Post ────────────
 
     [Fact]
-    public async Task CreateForumPost_AsMember_Returns200()
+    public async Task CreateForumPost_AsMember_Returns201()
     {
         var (serverId, channelId, owner, member) = await SetupServerWithForumAndMember();
 
@@ -885,7 +885,7 @@ public class ForumTests
             member.AccessToken,
             new { title = "Member Post", content = "Posted by member", tags = new List<string>() });
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("threadId").ReadLong().Should().BeGreaterThan(0);

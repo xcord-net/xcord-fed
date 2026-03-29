@@ -183,7 +183,7 @@ public sealed class CreateStickerHandler(
                 AttachmentId: request.AttachmentId
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{serverId}/sticker-packs/{packId}/stickers/{success.Id}", success));
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateSticker")
