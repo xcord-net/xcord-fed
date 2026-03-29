@@ -2,9 +2,13 @@ import { createSignal, createRoot } from 'solid-js';
 import { api } from '../api/client';
 import { normalizeIds } from '../utils/snowflake';
 import type { Channel, Category } from '../types/channel';
+import { parseCapabilities } from '../types/channel';
 
 function normalizeChannel(c: Channel): Channel {
-  return normalizeIds(c as unknown as Record<string, unknown>, 'id', 'serverId', 'conversationId', 'categoryId') as unknown as Channel;
+  const normalized = normalizeIds(c as unknown as Record<string, unknown>, 'id', 'serverId', 'conversationId', 'categoryId') as unknown as Channel;
+  // API returns capabilities as string enum names ("Chat", "Chat, Forum"); convert to bitfield
+  normalized.capabilities = parseCapabilities(normalized.capabilities as unknown as string | number);
+  return normalized;
 }
 
 function normalizeCategory(cat: Category): Category {
@@ -85,7 +89,8 @@ export function useChannels() {
     addChannel(channel: Channel): void {
       // Avoid duplicates - ignore if a channel with the same id already exists.
       if (store.channels().some((c) => c.id === channel.id)) return;
-      store.setChannels([...store.channels(), channel]);
+      const normalized = normalizeChannel(channel);
+      store.setChannels([...store.channels(), normalized]);
     },
 
     updateChannel(channelId: string, updates: Partial<Channel>): void {

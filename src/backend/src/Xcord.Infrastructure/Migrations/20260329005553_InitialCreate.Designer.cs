@@ -913,13 +913,17 @@ namespace Xcord.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("FollowedByUserId")
+                    b.Property<long?>("FollowedByUserId")
                         .HasColumnType("bigint");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
+
+                    b.Property<byte[]>("SharedSecret")
+                        .IsRequired()
+                        .HasColumnType("bytea");
 
                     b.Property<long>("LocalChannelId")
                         .HasColumnType("bigint");
@@ -3321,8 +3325,7 @@ namespace Xcord.Infrastructure.Migrations
                     b.HasOne("Xcord.Entities.User", "FollowedByUser")
                         .WithMany()
                         .HasForeignKey("FollowedByUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Xcord.Entities.Channel", "LocalChannel")
                         .WithMany()

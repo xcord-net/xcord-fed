@@ -1,7 +1,10 @@
-import { Show, createEffect, onMount } from 'solid-js';
+import { Show, createEffect, createMemo, onMount } from 'solid-js';
 import { useParams, useNavigate } from '@solidjs/router';
 import Sidebar from './Sidebar';
 import ChannelDirectory from './ChannelDirectory';
+import DmList from './DmList';
+import FriendList from './FriendList';
+import { useDms } from '../stores/dm.store';
 import { Capability, hasCapability } from '../types/channel';
 import MessageList from './MessageList';
 import MessageCompose from './MessageCompose';
@@ -46,6 +49,24 @@ function SearchIcon(props: { class?: string }) {
   );
 }
 
+function PinIcon(props: { class?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class={props.class ?? 'w-4 h-4'} aria-hidden="true">
+      <line x1="12" y1="17" x2="12" y2="22" />
+      <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z" />
+    </svg>
+  );
+}
+
+function ThreadsIcon(props: { class?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class={props.class ?? 'w-4 h-4'} aria-hidden="true">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      <line x1="9" y1="10" x2="15" y2="10" />
+    </svg>
+  );
+}
+
 function GearIcon(props: { class?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class={props.class ?? 'w-4 h-4'}>
@@ -67,6 +88,9 @@ export default function Layout() {
 
   const unreadStore = useUnread();
   const modals = useModals();
+  const dmStore = useDms();
+
+  const isDmView = createMemo(() => params.serverId === 'me');
 
   createEffect(() => {
     const server = serverStore.servers.find(s => s.id === params.serverId);
@@ -109,10 +133,15 @@ export default function Layout() {
     });
   });
 
-  // Update selected server when route changes
+  // Update selected server when route changes (skip for DM view)
   let prevServerId: string | undefined;
   createEffect(() => {
     const serverId = params.serverId;
+    if (serverId === 'me') {
+      prevServerId = serverId;
+      dmStore.loadDms();
+      return;
+    }
     if (serverId && serverId !== prevServerId) {
       prevServerId = serverId;
       serverStore.selectServer(serverId);
@@ -205,24 +234,50 @@ export default function Layout() {
     return signalR.currentConversations.has(convId);
   };
 
+  /** Get conversation ID for the selected DM channel (when in DM view). */
+  const dmConversationId = createMemo(() => {
+    if (!isDmView() || !params.channelId) return undefined;
+    const dm = dmStore.dmChannels.find((d) => d.id === params.channelId);
+    return dm?.conversationId;
+  });
+
   return (
     <div class={styles.root} data-signalr-connected={String(signalR.isConnected)} data-signalr-conversation-joined={String(conversationJoined())}>
       {/* Unified sidebar - always present */}
       <Sidebar />
 
-      {/* Channel directory (no channelId) or channel view (with channelId) */}
-      <Show
-        when={params.channelId}
-        fallback={
-          <Show when={params.serverId} fallback={
-            <div class={styles.emptyState}>
-              <p class={styles.emptyStateText}>Loading...</p>
+      {/* DM view, channel directory, or channel view */}
+      <Show when={isDmView()}>
+        {/* DM/Friends area */}
+        <Show when={params.channelId && dmConversationId()} fallback={
+          <div class={styles.channelView}>
+            <FriendList />
+            <DmList />
+          </div>
+        }>
+          {/* DM conversation view */}
+          <div class={styles.channelView}>
+            <div class={styles.messagesArea}>
+              <MessageList conversationId={dmConversationId()!} />
+              <TypingIndicator conversationId={dmConversationId()!} />
+              <MessageCompose conversationId={dmConversationId()!} channelId={params.channelId} />
             </div>
-          }>
-            <ChannelDirectory serverId={params.serverId!} />
-          </Show>
-        }
-      >
+          </div>
+        </Show>
+      </Show>
+      <Show when={!isDmView()}>
+        <Show
+          when={params.channelId}
+          fallback={
+            <Show when={params.serverId} fallback={
+              <div class={styles.emptyState}>
+                <p class={styles.emptyStateText}>Loading...</p>
+              </div>
+            }>
+              <ChannelDirectory serverId={params.serverId!} />
+            </Show>
+          }
+        >
         {/* Channel selected: show messages */}
         <div class={styles.channelView}>
           <Show
@@ -246,6 +301,26 @@ export default function Layout() {
 
                   {/* Header action buttons */}
                   <div class={styles.headerActions}>
+                    <button
+                      data-testid="pins-button"
+                      title="Pinned Messages"
+                      aria-label="Pinned Messages"
+                      use:tooltip="Pinned Messages"
+                      class={`${styles.headerBtn}${modals.showPins ? ` ${styles.headerBtnActive}` : ''}`}
+                      onClick={() => modals.togglePins()}
+                    >
+                      <PinIcon />
+                    </button>
+                    <button
+                      data-testid="threads-button"
+                      title="Threads"
+                      aria-label="Threads"
+                      use:tooltip="Threads"
+                      class={`${styles.headerBtn}${modals.showThreads ? ` ${styles.headerBtnActive}` : ''}`}
+                      onClick={() => modals.toggleThreads()}
+                    >
+                      <ThreadsIcon />
+                    </button>
                     <button
                       data-testid="search-button"
                       title="Search"
@@ -380,10 +455,11 @@ export default function Layout() {
             )}
           </Show>
         </div>
+        </Show>
       </Show>
 
       {/* Settings modal */}
-      <Modal open={modals.showSettings !== null} onClose={() => modals.closeSettings()} aria-label="User Settings" size="lg">
+      <Modal data-testid="user-settings-modal" open={modals.showSettings !== null} onClose={() => modals.closeSettings()} aria-label="User Settings" size="lg">
         <div id="settings-modal-panel">
         <div class={styles.settingsTabs}>
           <button
@@ -436,13 +512,7 @@ export default function Layout() {
         </div>
       </Modal>
 
-      {/* Server Settings modal */}
-      <Show when={modals.showServerSettings && serverStore.selectedServerId}>
-        <ServerSettings
-          serverId={serverStore.selectedServerId!}
-          onClose={() => modals.closeServerSettings()}
-        />
-      </Show>
+      {/* Server Settings modal is rendered by Sidebar */}
     </div>
   );
 }

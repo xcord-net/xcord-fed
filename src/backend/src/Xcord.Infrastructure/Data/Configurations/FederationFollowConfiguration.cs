@@ -31,12 +31,15 @@ public sealed class FederationFollowConfiguration : IEntityTypeConfiguration<Fed
         builder.Property(f => f.RemoteChannelName)
             .HasMaxLength(100);
 
-        builder.Property(f => f.FollowedByUserId)
-            .IsRequired();
+        builder.Property(f => f.FollowedByUserId);
 
         builder.Property(f => f.IsActive)
             .IsRequired()
             .HasDefaultValue(true);
+
+        builder.Property(f => f.SharedSecret)
+            .IsRequired()
+            .HasColumnType("bytea");
 
         builder.Property(f => f.CreatedAt)
             .IsRequired();
@@ -58,6 +61,6 @@ public sealed class FederationFollowConfiguration : IEntityTypeConfiguration<Fed
         builder.HasOne(f => f.FollowedByUser)
             .WithMany()
             .HasForeignKey(f => f.FollowedByUserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

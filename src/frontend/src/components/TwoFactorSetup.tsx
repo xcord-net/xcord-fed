@@ -156,8 +156,8 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
         Add an extra layer of security to your account using email-based verification codes.
       </p>
 
-      {error() && <p class={styles.errorText}>{error()}</p>}
-      {success() && <p class={styles.successText}>{success()}</p>}
+      {error() && <p data-testid="2fa-error" class={styles.errorText}>{error()}</p>}
+      {success() && <p data-testid="2fa-success" class={styles.successText}>{success()}</p>}
 
       <Show when={phase() === 'idle'}>
         <div class={styles.statusRow}>

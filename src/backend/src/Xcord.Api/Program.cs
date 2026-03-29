@@ -83,8 +83,8 @@ app.MapHandlerEndpoints(typeof(Xcord.Features.FeaturesAssemblyMarker).Assembly);
 Xcord.Features.Billing.MemberBillingWebhookHandler.Map(app);
 app.MapHub<MainHub>("/hubs/main");
 
-// Dev-only test seed endpoint for E2E tests
-if (app.Environment.IsDevelopment())
+// Test seed endpoint for E2E tests - enabled when TestSeed:Key is configured
+if (!string.IsNullOrEmpty(app.Configuration["TestSeed:Key"]))
 {
     TestSeedEndpoint.Map(app);
 }

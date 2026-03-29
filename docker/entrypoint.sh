@@ -18,7 +18,9 @@ if [ -n "${XCORD_CONFIG_INLINE:-}" ]; then
         },
         Redis: {
             ConnectionString: .redis.connectionString,
-            ChannelPrefix: .redis.channelPrefix
+            ChannelPrefix: .redis.channelPrefix,
+            Username: (.redis.username // null),
+            Password: (.redis.password // null)
         },
         Jwt: {
             Issuer: .jwt.issuer,
@@ -138,7 +140,9 @@ elif [ -f "$CONFIG_PATH" ]; then
         },
         Redis: {
             ConnectionString: .redis.connectionString,
-            ChannelPrefix: .redis.channelPrefix
+            ChannelPrefix: .redis.channelPrefix,
+            Username: (.redis.username // null),
+            Password: (.redis.password // null)
         },
         Jwt: {
             Issuer: .jwt.issuer,

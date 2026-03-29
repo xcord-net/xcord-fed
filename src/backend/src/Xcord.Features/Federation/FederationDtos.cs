@@ -6,7 +6,7 @@ public sealed record FederationFollowDto(
     long LocalChannelId,
     string RemoteChannelId,
     string? RemoteChannelName,
-    long FollowedByUserId,
+    long? FollowedByUserId,
     bool IsActive,
     DateTimeOffset CreatedAt
 );

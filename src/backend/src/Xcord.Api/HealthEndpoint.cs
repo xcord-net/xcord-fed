@@ -12,7 +12,21 @@ public static class HealthEndpoint
 
     public static void MapHealthEndpoint(this IEndpointRouteBuilder app)
     {
+        // Anonymous health check - minimal status only
         app.MapHealthChecks("/health", new HealthCheckOptions
+        {
+            ResponseWriter = async (context, report) =>
+            {
+                context.Response.ContentType = "application/json";
+                var response = new { status = report.Status == HealthStatus.Healthy ? "healthy" : "unhealthy" };
+                await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+            }
+        })
+        .WithTags("Health")
+        .AllowAnonymous();
+
+        // Detailed health check - authenticated admin only
+        app.MapHealthChecks("/health/detail", new HealthCheckOptions
         {
             ResponseWriter = async (context, report) =>
             {
@@ -36,6 +50,6 @@ public static class HealthEndpoint
             }
         })
         .WithTags("Health")
-        .AllowAnonymous();
+        .RequireAuthorization("Admin");
     }
 }

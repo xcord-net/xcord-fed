@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -23,6 +24,7 @@ public sealed class FollowRemoteChannelHandler(
     SnowflakeIdGenerator snowflakeGenerator,
     IRoleService roleService,
     ICurrentUserService currentUserService,
+    IEncryptionService encryptionService,
     ILogger<FollowRemoteChannelHandler> logger)
     : IRequestHandler<FollowRemoteChannelRequest, Result<FederationFollowDto>>, IValidatable<FollowRemoteChannelRequest>
 {
@@ -81,6 +83,7 @@ public sealed class FollowRemoteChannelHandler(
         }
 
         var now = DateTimeOffset.UtcNow;
+        var sharedSecret = FederationSignatureService.GenerateSharedSecret();
         var follow = new FederationFollow
         {
             Id = snowflakeGenerator.NextId(),
@@ -90,6 +93,7 @@ public sealed class FollowRemoteChannelHandler(
             RemoteChannelName = request.RemoteChannelName,
             FollowedByUserId = userId,
             IsActive = true,
+            SharedSecret = encryptionService.Encrypt(Convert.ToBase64String(sharedSecret)),
             CreatedAt = now
         };
 

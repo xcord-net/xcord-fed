@@ -1,4 +1,5 @@
 import { For, Show, onMount, createSignal } from 'solid-js';
+import { useNavigate } from '@solidjs/router';
 import { useDms } from '../stores/dm.store';
 import { useAuth } from '../stores/auth.store';
 import PresenceDot from './PresenceDot';
@@ -8,6 +9,7 @@ import styles from './DmList.module.css';
 export default function DmList() {
   const dmStore = useDms();
   const auth = useAuth();
+  const navigate = useNavigate();
   const [showNewDm, setShowNewDm] = createSignal(false);
   const [dmMode, setDmMode] = createSignal<'single' | 'group'>('single');
   const [dmUsername, setDmUsername] = createSignal('');
@@ -35,6 +37,7 @@ export default function DmList() {
       dmStore.selectDm(dm.id);
       setDmUsername('');
       setShowNewDm(false);
+      navigate(`/channels/me/${dm.id}`);
     } catch (err: unknown) {
       setDmError(getErrorMessage(err, 'Failed to open DM'));
     }
@@ -322,7 +325,7 @@ export default function DmList() {
               class={dmStore.selectedDmId === dm.id
                 ? `${styles.dmChannelBtn} ${styles.dmChannelBtnActive}`
                 : styles.dmChannelBtn}
-              onClick={() => dmStore.selectDm(dm.id)}
+              onClick={() => { dmStore.selectDm(dm.id); navigate(`/channels/me/${dm.id}`); }}
             >
               <div class={styles.avatarWrapper}>
                 <div class={styles.avatar}>

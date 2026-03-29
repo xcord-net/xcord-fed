@@ -419,7 +419,7 @@ export default function Sidebar() {
 
         {/* Favorite channels */}
         <Show when={favoriteChannels().length > 0}>
-          <div class={`expanded-only ${styles.favoritesLabel}`}>Favorites</div>
+          <div data-testid="favorites-section-label" class={`expanded-only ${styles.favoritesLabel}`}>Favorites</div>
           <For each={favoriteChannels()}>
             {(channel) => renderChannelItem(channel)}
           </For>
@@ -440,6 +440,7 @@ export default function Sidebar() {
         position={contextMenuPos()}
       >
         <button
+          data-testid={contextMenuChannelId() && isFavorite(contextMenuChannelId()!) ? 'channel-context-remove-favorite' : 'channel-context-add-favorite'}
           type="button"
           role="menuitem"
           class={styles.menuItem}
@@ -599,29 +600,30 @@ export default function Sidebar() {
             <span class={styles.createModalLabel}>Capabilities</span>
             <div class={styles.createModalCheckboxes}>
               <label class={styles.createModalCheckbox}>
-                <input type="checkbox" checked={hasCapability(newCapabilities(), Capability.Chat)} onChange={() => setNewCapabilities(p => p ^ Capability.Chat)} />
+                <input data-testid="capability-checkbox-chat" type="checkbox" checked={hasCapability(newCapabilities(), Capability.Chat)} onChange={() => setNewCapabilities(p => p ^ Capability.Chat)} />
                 Chat
               </label>
               <label class={styles.createModalCheckbox}>
-                <input type="checkbox" checked={hasCapability(newCapabilities(), Capability.Voice)} onChange={() => setNewCapabilities(p => p ^ Capability.Voice)} />
+                <input data-testid="capability-checkbox-voice" type="checkbox" checked={hasCapability(newCapabilities(), Capability.Voice)} onChange={() => setNewCapabilities(p => p ^ Capability.Voice)} />
                 Voice
               </label>
               <label class={styles.createModalCheckbox}>
-                <input type="checkbox" checked={hasCapability(newCapabilities(), Capability.Video)} onChange={() => setNewCapabilities(p => p ^ Capability.Video)} />
+                <input data-testid="capability-checkbox-video" type="checkbox" checked={hasCapability(newCapabilities(), Capability.Video)} onChange={() => setNewCapabilities(p => p ^ Capability.Video)} />
                 Video
               </label>
               <label class={styles.createModalCheckbox}>
-                <input type="checkbox" checked={hasCapability(newCapabilities(), Capability.Forum)} onChange={() => setNewCapabilities(p => p ^ Capability.Forum)} />
+                <input data-testid="capability-checkbox-forum" type="checkbox" checked={hasCapability(newCapabilities(), Capability.Forum)} onChange={() => setNewCapabilities(p => p ^ Capability.Forum)} />
                 Forum
               </label>
               <label class={styles.createModalCheckbox}>
-                <input type="checkbox" checked={hasCapability(newCapabilities(), Capability.Announcement)} onChange={() => setNewCapabilities(p => p ^ Capability.Announcement)} />
+                <input data-testid="capability-checkbox-announcement" type="checkbox" checked={hasCapability(newCapabilities(), Capability.Announcement)} onChange={() => setNewCapabilities(p => p ^ Capability.Announcement)} />
                 Announcement
               </label>
             </div>
           </div>
           <div class={styles.createModalActions}>
             <button
+              data-testid="create-channel-cancel-button"
               type="button"
               class={styles.cancelButton}
               onClick={() => { setShowCreateChannel(false); setNewChannelName(''); setNewCapabilities(Capability.Chat); setNewAccessGroupId(undefined); }}

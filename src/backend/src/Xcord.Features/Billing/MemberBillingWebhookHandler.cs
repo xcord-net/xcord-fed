@@ -28,9 +28,9 @@ public sealed class MemberBillingWebhookHandler(
 
         try
         {
-            stripeEvent = !string.IsNullOrWhiteSpace(options.StripeWebhookSecret)
-                ? EventUtility.ConstructEvent(json, httpContext.Request.Headers["Stripe-Signature"], options.StripeWebhookSecret)
-                : EventUtility.ParseEvent(json);
+            if (string.IsNullOrWhiteSpace(options.StripeWebhookSecret))
+                return Results.StatusCode(503); // Webhook secret not configured
+            stripeEvent = EventUtility.ConstructEvent(json, httpContext.Request.Headers["Stripe-Signature"], options.StripeWebhookSecret);
         }
         catch (StripeException ex)
         {

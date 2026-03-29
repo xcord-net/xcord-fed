@@ -99,6 +99,12 @@
   display: flex;
 }
 
+/* Show action bar on row hover or when emoji picker is open */
+.messageRow:hover .actionBar,
+.messageRow:focus-within .actionBar {
+  display: flex;
+}
+
 /* Show on hover/focus-within via CSS group hack - handled with classList in TSX */
 
 .actionButton {
@@ -150,8 +156,10 @@
   position: relative;
 }
 
-/* Thread create form */
+/* Thread create form - z-index above action bar (30) so it isn't occluded */
 .threadCreateForm {
+  position: relative;
+  z-index: 31;
   margin-top: 0.25rem;
   margin-left: 3.5rem;
   display: flex;

@@ -971,8 +971,9 @@ namespace Xcord.Infrastructure.Migrations
                     LocalChannelId = table.Column<long>(type: "bigint", nullable: false),
                     RemoteChannelId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     RemoteChannelName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    FollowedByUserId = table.Column<long>(type: "bigint", nullable: false),
+                    FollowedByUserId = table.Column<long>(type: "bigint", nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    SharedSecret = table.Column<byte[]>(type: "bytea", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
@@ -990,7 +991,7 @@ namespace Xcord.Infrastructure.Migrations
                         column: x => x.FollowedByUserId,
                         principalTable: "users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(

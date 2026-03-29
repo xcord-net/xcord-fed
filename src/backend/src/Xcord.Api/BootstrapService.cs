@@ -367,6 +367,18 @@ public static class BootstrapService
         }
         else
         {
+            // In Production, refuse to start without KEK unless explicitly opted out
+            if (app.Environment.IsProduction())
+            {
+                var allowPlaintext = config.GetValue<bool>("Encryption:AllowPlaintextDek", false);
+                if (!allowPlaintext)
+                {
+                    throw new InvalidOperationException(
+                        "Production environment requires a KEK (Key Encryption Key) for envelope encryption. " +
+                        "Provide a KEK via /run/secrets/xcord-kek or Encryption:Kek config. " +
+                        "To accept the risk of plaintext DEK storage, set Encryption:AllowPlaintextDek=true.");
+                }
+            }
             await InitializeWithoutKekAsync(db, encKeyHolder, configKey, wrappedDbKey, plaintextDbKey);
         }
     }

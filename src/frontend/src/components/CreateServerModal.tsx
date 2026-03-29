@@ -45,6 +45,7 @@ export default function CreateServerModal(props: CreateServerModalProps) {
             </label>
             <input
               id="server-name"
+              data-testid="create-server-name-input"
               type="text"
               value={name()}
               onInput={(e) => setName(e.currentTarget.value)}

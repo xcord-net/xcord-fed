@@ -163,32 +163,69 @@ public sealed class FederationInboxHandler(
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app) =>
         app.MapPost("/api/v1/federation/inbox", async (
             HttpContext httpContext,
-            [FromBody] FederationInboxRequest request,
             [FromServices] FederationInboxHandler handler,
             [FromServices] IOptions<FederationOptions> federationOptions,
+            [FromServices] AppDbContext db,
+            [FromServices] IEncryptionService encryptionService,
             CancellationToken ct) =>
         {
-            // HMAC signature verification for federation requests.
-            // When RequireSignatureVerification is true (production default), all requests
-            // must include a valid X-Federation-Signature header. When false (development),
-            // missing signatures are allowed but present signatures are still verified.
+            // Read raw body first (before JSON deserialization) for HMAC verification
+            using var reader = new StreamReader(httpContext.Request.Body);
+            var rawBody = await reader.ReadToEndAsync(ct);
+
+            var request = System.Text.Json.JsonSerializer.Deserialize<FederationInboxRequest>(rawBody,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (request == null)
+                return Results.BadRequest("Invalid request body");
+
             var signatureHeader = httpContext.Request.Headers["X-Federation-Signature"].FirstOrDefault();
             var requireSignature = federationOptions.Value.RequireSignatureVerification;
 
-            if (requireSignature)
+            if (requireSignature || !string.IsNullOrEmpty(signatureHeader))
             {
-                // Federation HMAC signature verification requires shared secrets established
-                // via federation key exchange, which is not yet implemented. Until key exchange
-                // is available, reject all inbound federation requests in production.
-                // Set Federation:RequireSignatureVerification to false for development.
-                return Results.Problem(
-                    statusCode: 501,
-                    title: "FEDERATION_AUTH_NOT_IMPLEMENTED",
-                    detail: "Federation HMAC signature verification is not yet implemented");
-            }
+                if (string.IsNullOrEmpty(signatureHeader))
+                {
+                    return Results.Problem(
+                        statusCode: 401,
+                        title: "SIGNATURE_REQUIRED",
+                        detail: "X-Federation-Signature header is required");
+                }
 
-            // Development mode: allow unsigned requests with a warning header
-            httpContext.Response.Headers["X-Federation-Warning"] = "Signature verification is disabled";
+                // Look up the shared secret for this source instance
+                var normalizedUrl = request.SourceInstanceUrl?.TrimEnd('/') ?? "";
+                var follow = await db.FederationFollows
+                    .AsNoTracking()
+                    .Where(f => f.RemoteInstanceUrl == normalizedUrl && f.IsActive)
+                    .Select(f => new { f.SharedSecret })
+                    .FirstOrDefaultAsync(ct);
+
+                if (follow == null || follow.SharedSecret.Length == 0)
+                {
+                    return Results.Problem(
+                        statusCode: 401,
+                        title: "UNKNOWN_SOURCE",
+                        detail: "No active follow relationship with shared secret for this source instance");
+                }
+
+                // Decrypt the shared secret and verify HMAC
+                var secretBase64 = encryptionService.Decrypt(follow.SharedSecret);
+                var secretBytes = Convert.FromBase64String(secretBase64);
+                var verifyError = FederationSignatureService.Verify(secretBytes, rawBody, signatureHeader);
+
+                if (verifyError != null)
+                {
+                    return Results.Problem(
+                        statusCode: 401,
+                        title: "INVALID_SIGNATURE",
+                        detail: verifyError);
+                }
+            }
+            else
+            {
+                // Development mode: allow unsigned requests with a warning header
+                httpContext.Response.Headers["X-Federation-Warning"] = "Signature verification is disabled";
+            }
 
             return await handler.ExecuteAsync(request, ct);
         })

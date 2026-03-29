@@ -45,6 +45,12 @@ public static class ServiceCollectionExtensions
             cfg.ConnectTimeout = 5000;
             cfg.SyncTimeout = 1000;
             cfg.ConnectRetry = 3;
+            // Apply per-instance ACL credentials when provisioned by the hub.
+            // When Username/Password are absent, the default connection (no auth) is used.
+            if (!string.IsNullOrWhiteSpace(redisOpts.Username))
+                cfg.User = redisOpts.Username;
+            if (!string.IsNullOrWhiteSpace(redisOpts.Password))
+                cfg.Password = redisOpts.Password;
             return ConnectionMultiplexer.Connect(cfg);
         });
 

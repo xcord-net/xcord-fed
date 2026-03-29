@@ -58,7 +58,7 @@ export default function PasswordChangeForm() {
     <div class={styles.section}>
       <h3 data-testid="change-password-heading" class={styles.heading}>Change Password</h3>
       <form onSubmit={handleSubmit} class={styles.form}>
-        {error() && <p class={styles.errorText}>{error()}</p>}
+        {error() && <p data-testid="change-password-error" class={styles.errorText}>{error()}</p>}
         {success() && <p data-testid="change-password-success" class={styles.successText}>{success()}</p>}
         <div class={styles.fieldGroup}>
           <label for="current-password" class={styles.label}>

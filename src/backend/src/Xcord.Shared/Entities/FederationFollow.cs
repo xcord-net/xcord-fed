@@ -32,13 +32,21 @@ public sealed class FederationFollow : ISoftDeletable
 
     /// <summary>
     /// User who created this federation follow (FK to User).
+    /// Null for system-created follows from the federation handshake.
     /// </summary>
-    public long FollowedByUserId { get; set; }
+    public long? FollowedByUserId { get; set; }
 
     /// <summary>
     /// Whether this follow is actively receiving messages.
     /// </summary>
     public bool IsActive { get; set; }
+
+    /// <summary>
+    /// Encrypted shared secret for HMAC-SHA256 signature verification.
+    /// Generated during the follow handshake and exchanged with the remote instance.
+    /// Stored encrypted at rest (bytea).
+    /// </summary>
+    public byte[] SharedSecret { get; set; } = Array.Empty<byte>();
 
     /// <summary>
     /// Follow creation timestamp.
@@ -52,5 +60,5 @@ public sealed class FederationFollow : ISoftDeletable
 
     // Navigation properties
     public Channel LocalChannel { get; set; } = null!;
-    public User FollowedByUser { get; set; } = null!;
+    public User? FollowedByUser { get; set; }
 }
