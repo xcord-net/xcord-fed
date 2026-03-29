@@ -2,6 +2,7 @@ import { createSignal, createRoot } from 'solid-js';
 import type { ForumPost } from '../types/forum';
 
 export type SettingsTab = 'profile' | 'blocks' | 'notifications' | 'notes';
+export type ServerSettingsTab = 'overview' | 'automod' | 'bans' | 'audit-log' | 'emoji' | 'stickers' | 'vanity-url' | 'templates' | 'boost' | 'insights' | 'invites' | 'app-directory' | 'bots' | 'welcome-screen' | 'updates';
 
 const store = createRoot(() => {
   const [showSearch, setShowSearch] = createSignal(false);
@@ -14,6 +15,7 @@ const store = createRoot(() => {
   const [showScheduledMessages, setShowScheduledMessages] = createSignal(false);
   const [selectedForumPost, setSelectedForumPost] = createSignal<ForumPost | null>(null);
   const [showServerSettings, setShowServerSettings] = createSignal(false);
+  const [serverSettingsTab, setServerSettingsTab] = createSignal<ServerSettingsTab>('overview');
 
   return {
     showSearch, setShowSearch,
@@ -26,6 +28,7 @@ const store = createRoot(() => {
     showScheduledMessages, setShowScheduledMessages,
     selectedForumPost, setSelectedForumPost,
     showServerSettings, setShowServerSettings,
+    serverSettingsTab, setServerSettingsTab,
   };
 });
 
@@ -41,6 +44,7 @@ export function useModals() {
     get showScheduledMessages() { return store.showScheduledMessages(); },
     get selectedForumPost() { return store.selectedForumPost(); },
     get showServerSettings() { return store.showServerSettings(); },
+    get serverSettingsTab() { return store.serverSettingsTab(); },
 
     toggleSearch() { store.setShowSearch(!store.showSearch()); },
     togglePins() { store.setShowPins(!store.showPins()); },
@@ -59,7 +63,10 @@ export function useModals() {
     selectForumPost(post: ForumPost | null) { store.setSelectedForumPost(post); },
 
     toggleServerSettings() { store.setShowServerSettings(!store.showServerSettings()); },
-    openServerSettings() { store.setShowServerSettings(true); },
+    openServerSettings(tab?: ServerSettingsTab) {
+      if (tab) store.setServerSettingsTab(tab);
+      store.setShowServerSettings(true);
+    },
     closeServerSettings() { store.setShowServerSettings(false); },
   };
 }

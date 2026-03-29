@@ -73,8 +73,8 @@
 
 .errorBanner {
   padding: 0.5rem 1rem;
-  background-color: rgba(239, 68, 68, 0.2);
-  color: #f87171;
+  background-color: var(--color-xcord-danger-bg);
+  color: var(--color-xcord-danger-text);
   font-size: 0.875rem;
 }
 

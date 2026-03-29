@@ -30,7 +30,11 @@ import { useSignalR } from '../stores/signalr.store';
 import { useUnread } from '../stores/unread.store';
 import { useModals } from '../stores/modal.store';
 import { requestPermission } from '../services/notification.service';
+import { tooltip } from '../directives/tooltip';
 import styles from './Layout.module.css';
+
+// Ensure the directive is not tree-shaken
+void tooltip;
 
 // SVG icons for header
 function SearchIcon(props: { class?: string }) {
@@ -246,6 +250,7 @@ export default function Layout() {
                       data-testid="search-button"
                       title="Search"
                       aria-label="Search"
+                      use:tooltip="Search"
                       class={`${styles.headerBtn}${modals.showSearch ? ` ${styles.headerBtnActive}` : ''}`}
                       onClick={() => modals.toggleSearch()}
                     >
@@ -255,6 +260,7 @@ export default function Layout() {
                       data-testid="channel-settings-button"
                       title="Channel Settings"
                       aria-label="Channel Settings"
+                      use:tooltip="Channel Settings"
                       class={`${styles.headerBtn}${modals.showChannelSettings ? ` ${styles.headerBtnActive}` : ''}`}
                       onClick={() => modals.toggleChannelSettings()}
                     >
@@ -265,6 +271,7 @@ export default function Layout() {
                         data-testid="server-settings-button"
                         title="Server Settings"
                         aria-label="Server Settings"
+                        use:tooltip="Server Settings"
                         class={`${styles.headerBtn}${modals.showServerSettings ? ` ${styles.headerBtnActive}` : ''}`}
                         onClick={() => modals.openServerSettings()}
                       >

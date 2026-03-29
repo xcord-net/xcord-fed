@@ -100,7 +100,7 @@
 }
 
 .requiredStar {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   margin-left: 0.125rem;
 }
 
@@ -131,7 +131,7 @@
 }
 
 .argError {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.75rem;
 }
 

@@ -7,10 +7,10 @@
 
 .alertError {
   padding: 0.75rem 1rem;
-  background-color: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background-color: var(--color-xcord-danger-bg);
+  border: 1px solid var(--color-xcord-danger-border);
   border-radius: 0.25rem;
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.875rem;
 }
 
@@ -118,7 +118,7 @@
   height: 0.625rem;
   border-radius: 50%;
   flex-shrink: 0;
-  background-color: #4ade80;
+  background-color: var(--color-xcord-success-text);
 }
 
 .statusDotStopped {
@@ -172,7 +172,7 @@
 
 .stopButton {
   padding: 0.25rem 0.75rem;
-  background-color: #ca8a04;
+  background-color: var(--color-xcord-warning);
   color: white;
   font-size: 0.75rem;
   font-weight: 500;
@@ -181,7 +181,7 @@
 }
 
 .stopButton:hover {
-  background-color: #a16207;
+  background-color: var(--color-xcord-warning-hover);
 }
 
 .stopButton:disabled {
@@ -190,12 +190,12 @@
 
 .stopButton:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px #facc15;
+  box-shadow: 0 0 0 2px var(--color-xcord-warning-glow);
 }
 
 .startButton {
   padding: 0.25rem 0.75rem;
-  background-color: #16a34a;
+  background-color: var(--color-xcord-success-dark);
   color: white;
   font-size: 0.75rem;
   font-weight: 500;
@@ -204,7 +204,7 @@
 }
 
 .startButton:hover {
-  background-color: #15803d;
+  background-color: var(--color-xcord-success-dark-hover);
 }
 
 .startButton:disabled {
@@ -213,7 +213,7 @@
 
 .startButton:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px #4ade80;
+  box-shadow: 0 0 0 2px var(--color-xcord-success-text);
 }
 
 .configureButton {
@@ -313,7 +313,7 @@
 .deleteButton {
   padding: 0.25rem 0.75rem;
   background-color: rgba(220, 38, 38, 0.2);
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.75rem;
   font-weight: 500;
   border-radius: 0.25rem;
@@ -321,7 +321,7 @@
 }
 
 .deleteButton:hover {
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   color: white;
 }
 
@@ -331,11 +331,11 @@
 
 .deleteButton:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px #f87171;
+  box-shadow: 0 0 0 2px var(--color-xcord-danger-text);
 }
 
 .assignError {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.75rem;
 }
 
@@ -400,14 +400,14 @@
   flex-shrink: 0;
   padding: 0.25rem 0.5rem;
   background-color: rgba(220, 38, 38, 0.2);
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.75rem;
   border-radius: 0.25rem;
   transition: color 150ms, background-color 150ms;
 }
 
 .revokeButton:hover {
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   color: white;
 }
 
@@ -417,7 +417,7 @@
 
 .revokeButton:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px #f87171;
+  box-shadow: 0 0 0 2px var(--color-xcord-danger-text);
 }
 
 /* Agent card */
@@ -502,7 +502,7 @@
 }
 
 .agentAssignError {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.75rem;
   margin-top: 0.25rem;
 }
@@ -642,7 +642,7 @@
 }
 
 .requiredMark {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
 }
 
 .fieldInput {
@@ -682,10 +682,10 @@
 
 .formAlertError {
   padding: 0.5rem 0.75rem;
-  background-color: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background-color: var(--color-xcord-danger-bg);
+  border: 1px solid var(--color-xcord-danger-border);
   border-radius: 0.25rem;
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.875rem;
 }
 
@@ -694,7 +694,7 @@
   background-color: rgba(34, 197, 94, 0.2);
   border: 1px solid rgba(34, 197, 94, 0.3);
   border-radius: 0.25rem;
-  color: #4ade80;
+  color: var(--color-xcord-success-text);
   font-size: 0.875rem;
 }
 
@@ -763,7 +763,7 @@
 }
 
 .paramRequiredMark {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   margin-left: 0.25rem;
 }
 

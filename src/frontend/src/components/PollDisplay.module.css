@@ -156,8 +156,8 @@
 }
 
 .endPollButton:hover {
-  color: #f87171;
-  border-color: color-mix(in srgb, #f87171 40%, transparent);
+  color: var(--color-xcord-danger-text);
+  border-color: color-mix(in srgb, var(--color-xcord-danger-text) 40%, transparent);
 }
 
 .endPollButton:disabled {
@@ -203,7 +203,7 @@
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
   color: #ffffff;
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   border-radius: 0.25rem;
   transition: background-color 150ms;
   border: none;
@@ -211,7 +211,7 @@
 }
 
 .confirmEndButton:hover {
-  background-color: #b91c1c;
+  background-color: var(--color-xcord-danger-hover);
 }
 
 .confirmEndButton:disabled {
@@ -315,7 +315,7 @@
 }
 
 .removeOptionButton:hover {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
 }
 
 .addOptionButton {
@@ -380,7 +380,7 @@
 }
 
 .validationError {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.75rem;
   margin: 0;
 }

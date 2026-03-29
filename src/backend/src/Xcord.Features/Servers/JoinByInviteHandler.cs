@@ -18,9 +18,9 @@ public sealed class JoinByInviteHandler(
     INotificationService notificationService,
     ICurrentUserService currentUserService,
     ILogger<JoinByInviteHandler> logger)
-    : IRequestHandler<JoinByInviteCommand, Result<ServerDto>>
+    : IRequestHandler<JoinByInviteCommand, Result<JoinByInviteResponse>>
 {
-    public async Task<Result<ServerDto>> Handle(JoinByInviteCommand request, CancellationToken cancellationToken)
+    public async Task<Result<JoinByInviteResponse>> Handle(JoinByInviteCommand request, CancellationToken cancellationToken)
     {
         var userIdResult = currentUserService.GetCurrentUserId();
         if (userIdResult.IsFailure) return userIdResult.Error;
@@ -70,7 +70,7 @@ public sealed class JoinByInviteHandler(
             invite.Uses++;
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            return new ServerDto(
+            return new JoinByInviteResponse(
                 Id: invite.Server.Id,
                 Name: invite.Server.Name,
                 Description: invite.Server.Description,
@@ -79,7 +79,8 @@ public sealed class JoinByInviteHandler(
                 OwnerId: invite.Server.OwnerId,
                 MemberCount: invite.Server.MemberCount,
                 PreferredLocale: invite.Server.PreferredLocale,
-                CreatedAt: invite.Server.CreatedAt
+                CreatedAt: invite.Server.CreatedAt,
+                ChannelId: invite.ChannelId
             );
         }
 
@@ -209,7 +210,7 @@ public sealed class JoinByInviteHandler(
             "User {UserId} joined server {ServerId} via invite {InviteCode}",
             userId, invite.ServerId, request.InviteCode);
 
-        return new ServerDto(
+        return new JoinByInviteResponse(
             Id: invite.Server.Id,
             Name: invite.Server.Name,
             Description: invite.Server.Description,
@@ -218,7 +219,8 @@ public sealed class JoinByInviteHandler(
             OwnerId: invite.Server.OwnerId,
             MemberCount: invite.Server.MemberCount,
             PreferredLocale: invite.Server.PreferredLocale,
-            CreatedAt: invite.Server.CreatedAt
+            CreatedAt: invite.Server.CreatedAt,
+            ChannelId: invite.ChannelId
         );
     }
 
@@ -226,7 +228,7 @@ public sealed class JoinByInviteHandler(
     {
         return app.MapPost("/api/v1/invites/{code}/accept", async (
             string code,
-            IRequestHandler<JoinByInviteCommand, Result<ServerDto>> handler,
+            IRequestHandler<JoinByInviteCommand, Result<JoinByInviteResponse>> handler,
             CancellationToken ct) =>
         {
             var command = new JoinByInviteCommand(code);

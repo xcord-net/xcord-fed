@@ -40,11 +40,26 @@ public sealed record InviteDto(
     int Uses,
     DateTimeOffset? ExpiresAt,
     DateTimeOffset CreatedAt,
-    long? GroupId
+    long? GroupId,
+    long? ChannelId
 );
 
 public sealed record CreateInviteRequest(
     int? MaxUses,
     DateTimeOffset? ExpiresAt,
-    long? GroupId
+    long? GroupId,
+    long? ChannelId
+);
+
+public sealed record JoinByInviteResponse(
+    long Id,
+    string Name,
+    string? Description,
+    string? IconUrl,
+    string? BannerUrl,
+    long OwnerId,
+    int MemberCount,
+    string? PreferredLocale,
+    DateTimeOffset CreatedAt,
+    long? ChannelId
 );

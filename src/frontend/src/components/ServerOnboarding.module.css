@@ -288,7 +288,7 @@
   width: 4rem;
   height: 4rem;
   border-radius: 9999px;
-  background-color: color-mix(in srgb, #22c55e 20%, transparent);
+  background-color: color-mix(in srgb, var(--color-xcord-success) 20%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -347,7 +347,7 @@
 }
 
 .submitError {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.75rem;
 }
 

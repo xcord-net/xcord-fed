@@ -51,21 +51,21 @@
 }
 
 .buttonSuccess {
-  background-color: #16a34a;
+  background-color: var(--color-xcord-success-dark);
   color: #ffffff;
 }
 
 .buttonSuccess:hover:not(:disabled) {
-  background-color: #15803d;
+  background-color: var(--color-xcord-success-dark-hover);
 }
 
 .buttonDanger {
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   color: #ffffff;
 }
 
 .buttonDanger:hover:not(:disabled) {
-  background-color: #b91c1c;
+  background-color: var(--color-xcord-danger-hover);
 }
 
 .buttonLink {

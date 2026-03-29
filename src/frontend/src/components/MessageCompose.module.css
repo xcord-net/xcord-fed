@@ -217,10 +217,10 @@
 .errorAlert {
   padding: 0.5rem 0.75rem;
   margin-bottom: 0.25rem;
-  background-color: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background-color: var(--color-xcord-danger-bg);
+  border: 1px solid var(--color-xcord-danger-border);
   border-radius: 0.25rem;
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.75rem;
 }
 

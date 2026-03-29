@@ -38,7 +38,7 @@
 }
 
 .answerButton {
-  background-color: #16a34a;
+  background-color: var(--color-xcord-success-dark);
   color: #ffffff;
   padding: 0.75rem 1.5rem;
   border-radius: 9999px;
@@ -46,16 +46,16 @@
 }
 
 .answerButton:hover {
-  background-color: #15803d;
+  background-color: var(--color-xcord-success-dark-hover);
 }
 
 .answerButton:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px #4ade80;
+  box-shadow: 0 0 0 2px var(--color-xcord-success-text);
 }
 
 .declineButton {
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   color: #ffffff;
   padding: 0.75rem 1.5rem;
   border-radius: 9999px;
@@ -63,12 +63,12 @@
 }
 
 .declineButton:hover {
-  background-color: #b91c1c;
+  background-color: var(--color-xcord-danger-hover);
 }
 
 .declineButton:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px #f87171;
+  box-shadow: 0 0 0 2px var(--color-xcord-danger-text);
 }
 
 /* ---- Active call bar ---- */
@@ -149,7 +149,7 @@
 }
 
 .controlButtonActive {
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   color: #ffffff;
 }
 
@@ -164,7 +164,7 @@
 }
 
 .endCallButton {
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   color: #ffffff;
   padding: 0.5rem 1rem;
   border-radius: 9999px;
@@ -172,7 +172,7 @@
 }
 
 .endCallButton:hover {
-  background-color: #b91c1c;
+  background-color: var(--color-xcord-danger-hover);
 }
 
 /* ---- Participant list ---- */

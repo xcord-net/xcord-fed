@@ -62,8 +62,8 @@
 }
 
 .successBanner {
-  background-color: color-mix(in srgb, #16a34a 20%, transparent);
-  color: #4ade80;
+  background-color: color-mix(in srgb, var(--color-xcord-success-dark) 20%, transparent);
+  color: var(--color-xcord-success-text);
   font-size: 0.875rem;
   padding: 0.5rem 0.75rem;
   border-radius: 0.25rem;
@@ -83,8 +83,8 @@
 }
 
 .statusEnabled {
-  background-color: color-mix(in srgb, #22c55e 20%, transparent);
-  color: #4ade80;
+  background-color: color-mix(in srgb, var(--color-xcord-success) 20%, transparent);
+  color: var(--color-xcord-success-text);
 }
 
 .statusDisabled {
@@ -277,7 +277,7 @@
 }
 
 .fieldError {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.75rem;
   margin-top: 0.25rem;
 }
@@ -338,14 +338,14 @@
 .removeChannelBtn {
   background: none;
   border: none;
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.75rem;
   cursor: pointer;
   padding: 0;
 }
 
 .removeChannelBtn:hover {
-  color: #fca5a5;
+  color: var(--color-xcord-danger-text-light);
 }
 
 .channelFieldGrid {
@@ -375,7 +375,7 @@
 }
 
 .submitError {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.75rem;
 }
 

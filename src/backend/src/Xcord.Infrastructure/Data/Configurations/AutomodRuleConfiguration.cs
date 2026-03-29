@@ -70,6 +70,16 @@ public sealed class AutomodRuleConfiguration : IEntityTypeConfiguration<AutomodR
             .IsRequired()
             .HasDefaultValue(true);
 
+        // ChannelId (optional, FK to Channel with SetNull)
+        builder.Property(r => r.ChannelId);
+
+        builder.HasOne(r => r.Channel)
+            .WithMany()
+            .HasForeignKey(r => r.ChannelId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasIndex(r => r.ChannelId);
+
         // Timestamps
         builder.Property(r => r.CreatedAt)
             .IsRequired();

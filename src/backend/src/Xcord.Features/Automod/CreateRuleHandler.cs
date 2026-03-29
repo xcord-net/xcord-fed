@@ -20,7 +20,8 @@ public sealed record CreateRuleCommand(
     string? ActionConfig,
     string? ExemptRoleIds,
     string? ExemptChannelIds,
-    bool ExemptBots
+    bool ExemptBots,
+    long? ChannelId
 );
 
 public sealed class CreateRuleHandler(
@@ -103,6 +104,7 @@ public sealed class CreateRuleHandler(
             ExemptRoleIds = request.ExemptRoleIds,
             ExemptChannelIds = request.ExemptChannelIds,
             ExemptBots = request.ExemptBots,
+            ChannelId = request.ChannelId,
             CreatedAt = now
         };
 
@@ -125,6 +127,7 @@ public sealed class CreateRuleHandler(
             ExemptRoleIds: rule.ExemptRoleIds,
             ExemptChannelIds: rule.ExemptChannelIds,
             ExemptBots: rule.ExemptBots,
+            ChannelId: rule.ChannelId,
             CreatedAt: rule.CreatedAt
         );
     }
@@ -147,7 +150,8 @@ public sealed class CreateRuleHandler(
                 ActionConfig: request.ActionConfig,
                 ExemptRoleIds: request.ExemptRoleIds,
                 ExemptChannelIds: request.ExemptChannelIds,
-                ExemptBots: request.ExemptBots
+                ExemptBots: request.ExemptBots,
+                ChannelId: request.ChannelId
             );
 
             return await handler.ExecuteAsync(command, ct);
@@ -167,5 +171,6 @@ internal sealed record CreateRuleRequest(
     string? ActionConfig,
     string? ExemptRoleIds,
     string? ExemptChannelIds,
-    bool ExemptBots
+    bool ExemptBots,
+    long? ChannelId
 );

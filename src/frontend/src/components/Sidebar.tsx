@@ -16,7 +16,11 @@ import VoicePanel from './VoicePanel';
 import StatusPicker from './StatusPicker';
 import Modal from './ui/Modal';
 import Menu from './ui/Menu';
+import { tooltip } from '../directives/tooltip';
 import styles from './Sidebar.module.css';
+
+// Ensure the directive is not tree-shaken
+void tooltip;
 
 // --- SVG Icon Components ---
 
@@ -92,7 +96,6 @@ export default function Sidebar() {
   const [isLocked, setIsLocked] = createSignal(false);
   const [focusedChannelId, setFocusedChannelId] = createSignal<string | null>(null);
   const [showInviteModal, setShowInviteModal] = createSignal(false);
-  const [showServerSettings, setShowServerSettings] = createSignal(false);
   const [showServerMenu, setShowServerMenu] = createSignal(false);
   const [showLeaveConfirm, setShowLeaveConfirm] = createSignal(false);
   const [showCreateChannel, setShowCreateChannel] = createSignal(false);
@@ -310,6 +313,7 @@ export default function Sidebar() {
               data-testid="create-channel-button"
               aria-label="Create Channel"
               title="Create Channel"
+              use:tooltip="Create Channel"
               class={styles.headerPlusButton}
               onClick={() => setShowCreateChannel(true)}
             >
@@ -353,7 +357,7 @@ export default function Sidebar() {
                 data-testid="server-menu-settings"
                 type="button"
                 role="menuitem"
-                onClick={() => { setShowServerSettings(true); setShowServerMenu(false); setIsLocked(false); }}
+                onClick={() => { modals.openServerSettings(); setShowServerMenu(false); setIsLocked(false); }}
                 class={styles.menuItem}
               >
                 Server Settings
@@ -502,6 +506,7 @@ export default function Sidebar() {
                   class={styles.iconButton}
                   aria-label="Settings"
                   title="Settings"
+                  use:tooltip="Settings"
                   onClick={() => modals.openSettings('profile')}
                 >
                   <GearIcon class={styles.smallIcon} />
@@ -511,6 +516,7 @@ export default function Sidebar() {
                   class={`${styles.iconButton} ${styles.iconButtonDanger}`}
                   aria-label="Log Out"
                   title="Log Out"
+                  use:tooltip="Log Out"
                   onClick={() => authStore.logout()}
                 >
                   <LogoutIcon class={styles.smallIcon} />
@@ -530,10 +536,11 @@ export default function Sidebar() {
       </Show>
 
       {/* Server settings modal */}
-      <Show when={showServerSettings() && serverStore.selectedServerId}>
+      <Show when={modals.showServerSettings && serverStore.selectedServerId}>
         <ServerSettings
           serverId={serverStore.selectedServerId!}
-          onClose={() => setShowServerSettings(false)}
+          onClose={() => modals.closeServerSettings()}
+          initialTab={modals.serverSettingsTab}
         />
       </Show>
 

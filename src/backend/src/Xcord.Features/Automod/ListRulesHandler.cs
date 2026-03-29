@@ -66,6 +66,7 @@ public sealed class ListRulesHandler(
                 r.ExemptRoleIds,
                 r.ExemptChannelIds,
                 r.ExemptBots,
+                r.ChannelId,
                 r.CreatedAt
             ))
             .ToListAsync(cancellationToken);

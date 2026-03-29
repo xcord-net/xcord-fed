@@ -17,13 +17,13 @@
 }
 
 .errorText {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.875rem;
   margin-bottom: 0.75rem;
 }
 
 .successText {
-  color: #4ade80;
+  color: var(--color-xcord-success-text);
   font-size: 0.875rem;
   margin-bottom: 0.75rem;
 }
@@ -46,7 +46,7 @@
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 9999px;
-  background-color: #4ade80;
+  background-color: var(--color-xcord-success-text);
 }
 
 .statusDotDisabled {
@@ -83,7 +83,7 @@
 
 .dangerButton {
   padding: 0.5rem 1rem;
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   color: white;
   border-radius: 0.25rem;
   font-weight: 500;
@@ -92,7 +92,7 @@
 }
 
 .dangerButton:hover {
-  background-color: #b91c1c;
+  background-color: var(--color-xcord-danger-hover);
 }
 
 .dangerButton:disabled {

@@ -12,7 +12,7 @@ using Xcord.Infrastructure.Data;
 namespace Xcord.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260328235117_InitialCreate")]
+    [Migration("20260329005553_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -231,6 +231,9 @@ namespace Xcord.Infrastructure.Migrations
                     b.Property<int>("ActionType")
                         .HasColumnType("integer");
 
+                    b.Property<long?>("ChannelId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -269,6 +272,8 @@ namespace Xcord.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ChannelId");
 
                     b.HasIndex("ServerId");
 
@@ -1127,6 +1132,9 @@ namespace Xcord.Infrastructure.Migrations
                         .HasMaxLength(8)
                         .HasColumnType("character varying(8)");
 
+                    b.Property<long?>("ChannelId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1154,6 +1162,8 @@ namespace Xcord.Infrastructure.Migrations
                         .HasDefaultValue(0);
 
                     b.HasKey("Code");
+
+                    b.HasIndex("ChannelId");
 
                     b.HasIndex("CreatedByUserId");
 
@@ -3041,11 +3051,18 @@ namespace Xcord.Infrastructure.Migrations
 
             modelBuilder.Entity("Xcord.Entities.AutomodRule", b =>
                 {
+                    b.HasOne("Xcord.Entities.Channel", "Channel")
+                        .WithMany()
+                        .HasForeignKey("ChannelId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Xcord.Entities.Server", "Server")
                         .WithMany()
                         .HasForeignKey("ServerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Channel");
 
                     b.Navigation("Server");
                 });
@@ -3399,6 +3416,11 @@ namespace Xcord.Infrastructure.Migrations
 
             modelBuilder.Entity("Xcord.Entities.Invite", b =>
                 {
+                    b.HasOne("Xcord.Entities.Channel", "Channel")
+                        .WithMany()
+                        .HasForeignKey("ChannelId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Xcord.Entities.User", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedByUserId")
@@ -3414,6 +3436,8 @@ namespace Xcord.Infrastructure.Migrations
                         .HasForeignKey("ServerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Channel");
 
                     b.Navigation("CreatedBy");
 

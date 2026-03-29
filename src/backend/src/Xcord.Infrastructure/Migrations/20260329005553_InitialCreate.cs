@@ -823,6 +823,7 @@ namespace Xcord.Infrastructure.Migrations
                     ExemptRoleIds = table.Column<string>(type: "text", nullable: true),
                     ExemptChannelIds = table.Column<string>(type: "text", nullable: true),
                     ExemptBots = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    ChannelId = table.Column<long>(type: "bigint", nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
@@ -1807,11 +1808,18 @@ namespace Xcord.Infrastructure.Migrations
                     ExpiresAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    GroupId = table.Column<long>(type: "bigint", nullable: true)
+                    GroupId = table.Column<long>(type: "bigint", nullable: true),
+                    ChannelId = table.Column<long>(type: "bigint", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_invites", x => x.Code);
+                    table.ForeignKey(
+                        name: "FK_invites_channels_ChannelId",
+                        column: x => x.ChannelId,
+                        principalTable: "channels",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_invites_groups_GroupId",
                         column: x => x.GroupId,
@@ -2106,6 +2114,11 @@ namespace Xcord.Infrastructure.Migrations
                 column: "ServerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_automod_rules_ChannelId",
+                table: "automod_rules",
+                column: "ChannelId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_automod_rules_ServerId",
                 table: "automod_rules",
                 column: "ServerId");
@@ -2344,6 +2357,11 @@ namespace Xcord.Infrastructure.Migrations
                 name: "IX_groups_ServerId_Position",
                 table: "groups",
                 columns: new[] { "ServerId", "Position" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_invites_ChannelId",
+                table: "invites",
+                column: "ChannelId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_invites_CreatedByUserId",
@@ -2869,6 +2887,14 @@ namespace Xcord.Infrastructure.Migrations
                 principalTable: "servers",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_automod_rules_channels_ChannelId",
+                table: "automod_rules",
+                column: "ChannelId",
+                principalTable: "channels",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.SetNull);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_automod_rules_servers_ServerId",

@@ -63,6 +63,14 @@ public sealed class InviteConfiguration : IEntityTypeConfiguration<Invite>
             .HasForeignKey(i => i.GroupId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        // ChannelId (optional, FK to Channel with SetNull)
+        builder.Property(i => i.ChannelId);
+
+        builder.HasOne(i => i.Channel)
+            .WithMany()
+            .HasForeignKey(i => i.ChannelId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // Indexes
         builder.HasIndex(i => i.ServerId);
         builder.HasIndex(i => i.ExpiresAt);

@@ -50,8 +50,14 @@ public sealed class Invite : ISoftDeletable
     /// </summary>
     public long? GroupId { get; set; }
 
+    /// <summary>
+    /// Optional channel ID to navigate to after joining (FK to Channel).
+    /// </summary>
+    public long? ChannelId { get; set; }
+
     // Navigation properties
     public Server Server { get; set; } = null!;
     public User? CreatedBy { get; set; }
     public Group? Group { get; set; }
+    public Channel? Channel { get; set; }
 }

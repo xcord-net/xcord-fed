@@ -13,7 +13,7 @@
 .voiceLabel {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #4ade80;
+  color: var(--color-xcord-success-text);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -32,11 +32,11 @@
 }
 
 .connectionStatusConnected {
-  color: #4ade80;
+  color: var(--color-xcord-success-text);
 }
 
 .connectionStatusConnecting {
-  color: #facc15;
+  color: var(--color-xcord-warning-glow);
 }
 
 /* Screen share indicator */
@@ -88,12 +88,12 @@
 
 .voiceButtonMuteActive {
   flex: 1;
-  background-color: rgba(239, 68, 68, 0.2);
-  color: #f87171;
+  background-color: var(--color-xcord-danger-bg);
+  color: var(--color-xcord-danger-text);
 }
 
 .voiceButtonMuteActive:hover {
-  background-color: rgba(239, 68, 68, 0.3);
+  background-color: var(--color-xcord-danger-border);
 }
 
 .voiceButtonMuteInactive {
@@ -125,12 +125,12 @@
 }
 
 .voiceButtonDeafenActive {
-  background-color: rgba(239, 68, 68, 0.2);
-  color: #f87171;
+  background-color: var(--color-xcord-danger-bg);
+  color: var(--color-xcord-danger-text);
 }
 
 .voiceButtonDeafenActive:hover {
-  background-color: rgba(239, 68, 68, 0.3);
+  background-color: var(--color-xcord-danger-border);
 }
 
 .voiceButtonDeafenInactive {
@@ -143,12 +143,12 @@
 }
 
 .voiceButtonLeave {
-  background-color: rgba(239, 68, 68, 0.2);
-  color: #f87171;
+  background-color: var(--color-xcord-danger-bg);
+  color: var(--color-xcord-danger-text);
 }
 
 .voiceButtonLeave:hover {
-  background-color: rgba(239, 68, 68, 0.3);
+  background-color: var(--color-xcord-danger-border);
 }
 
 .screenShareButtonIcon {

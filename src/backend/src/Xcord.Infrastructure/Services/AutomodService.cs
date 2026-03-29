@@ -47,11 +47,24 @@ public sealed class AutomodService : IAutomodService
         bool isBot,
         CancellationToken cancellationToken = default)
     {
-        // Load all enabled rules for this server
-        var rules = await _dbContext.AutomodRules
+        // Load all enabled rules for this server (channel-specific and server-wide)
+        var allRules = await _dbContext.AutomodRules
             .AsNoTracking()
             .Where(r => r.ServerId == serverId && r.Enabled)
             .ToListAsync(cancellationToken);
+
+        if (allRules.Count == 0)
+        {
+            return AutomodResult.Allowed();
+        }
+
+        // Channel-specific rules take precedence over server-wide rules.
+        // If any channel-specific rules exist for this channel, only those are evaluated.
+        // Server-wide rules (ChannelId == null) are the fallback when no channel-specific rules match.
+        var channelRules = allRules.Where(r => r.ChannelId == channelId).ToList();
+        var rules = channelRules.Count > 0
+            ? channelRules
+            : allRules.Where(r => r.ChannelId == null).ToList();
 
         if (rules.Count == 0)
         {

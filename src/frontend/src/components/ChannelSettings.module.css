@@ -79,6 +79,17 @@
   height: min(500px, 60vh);
 }
 
+/* Access panel */
+.accessPanel {
+  /* no special height constraint needed */
+}
+
+.accessDescription {
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
 /* Sections */
 .section {
   padding: 1.25rem 1.5rem;
@@ -97,7 +108,7 @@
 .dangerHeading {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 1rem;
@@ -123,7 +134,7 @@
 }
 
 .required {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
 }
 
 /* Channel name input with # prefix */
@@ -295,7 +306,7 @@
 /* Danger zone */
 .deleteChannelButton {
   padding: 0.5rem 1rem;
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   color: #ffffff;
   font-size: 0.875rem;
   font-weight: 500;
@@ -306,12 +317,12 @@
 }
 
 .deleteChannelButton:hover {
-  background-color: #b91c1c;
+  background-color: var(--color-xcord-danger-hover);
 }
 
 .deleteChannelButton:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px #f87171;
+  box-shadow: 0 0 0 2px var(--color-xcord-danger-text);
 }
 
 /* Status messages */
@@ -321,7 +332,7 @@
   background-color: rgb(34 197 94 / 0.2);
   border: 1px solid rgb(34 197 94 / 0.3);
   border-radius: 0.25rem;
-  color: #4ade80;
+  color: var(--color-xcord-success-text);
   font-size: 0.875rem;
 }
 
@@ -331,7 +342,7 @@
   background-color: rgb(239 68 68 / 0.2);
   border: 1px solid rgb(239 68 68 / 0.3);
   border-radius: 0.25rem;
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.875rem;
 }
 
@@ -429,7 +440,7 @@
 
 .dialogDeleteButton {
   padding: 0.5rem 1rem;
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   color: #ffffff;
   font-size: 0.875rem;
   font-weight: 500;
@@ -440,10 +451,10 @@
 }
 
 .dialogDeleteButton:hover {
-  background-color: #b91c1c;
+  background-color: var(--color-xcord-danger-hover);
 }
 
 .dialogDeleteButton:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px #f87171;
+  box-shadow: 0 0 0 2px var(--color-xcord-danger-text);
 }

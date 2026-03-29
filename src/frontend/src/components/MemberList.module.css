@@ -180,7 +180,7 @@
   padding: 0.5rem 0.75rem;
   text-align: left;
   font-size: 0.875rem;
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   background: none;
   border: none;
   cursor: pointer;
@@ -188,7 +188,7 @@
 }
 
 .contextBan:hover {
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   color: white;
 }
 
@@ -292,7 +292,7 @@
 
 .banButton {
   padding: 0.5rem 1rem;
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   color: white;
   font-size: 0.875rem;
   font-weight: 500;
@@ -303,10 +303,10 @@
 }
 
 .banButton:hover {
-  background-color: #b91c1c;
+  background-color: var(--color-xcord-danger-hover);
 }
 
 .banButton:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px #f87171;
+  box-shadow: 0 0 0 2px var(--color-xcord-danger-text);
 }

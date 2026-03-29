@@ -161,7 +161,7 @@
 }
 
 .submitError {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.75rem;
 }
 
@@ -336,7 +336,7 @@
 }
 
 .pinnedIcon {
-  color: #facc15;
+  color: var(--color-xcord-warning-glow);
   font-size: 0.75rem;
 }
 

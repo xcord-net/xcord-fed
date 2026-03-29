@@ -39,7 +39,7 @@
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   color: #ffffff;
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
@@ -50,5 +50,5 @@
 }
 
 .stopButton:hover {
-  background-color: #b91c1c;
+  background-color: var(--color-xcord-danger-hover);
 }

@@ -74,6 +74,12 @@ public sealed class AutomodRule : ISoftDeletable
     public bool ExemptBots { get; set; } = true;
 
     /// <summary>
+    /// Optional channel ID to scope this rule to a specific channel.
+    /// When null the rule applies server-wide.
+    /// </summary>
+    public long? ChannelId { get; set; }
+
+    /// <summary>
     /// Rule creation timestamp.
     /// </summary>
     public DateTimeOffset CreatedAt { get; set; }
@@ -85,4 +91,5 @@ public sealed class AutomodRule : ISoftDeletable
 
     // Navigation properties
     public Server Server { get; set; } = null!;
+    public Channel? Channel { get; set; }
 }

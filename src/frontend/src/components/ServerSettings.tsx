@@ -27,6 +27,7 @@ import styles from './ServerSettings.module.css';
 interface ServerSettingsProps {
   serverId: string;
   onClose: () => void;
+  initialTab?: SettingsTab;
 }
 
 type NotificationLevel = 'AllMessages' | 'OnlyMentions' | 'Nothing';
@@ -71,7 +72,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
   };
   const visibleTabs = () => TABS.filter((tab) => !tab.ownerOnly || isOwner());
 
-  const [activeTab, setActiveTab] = createSignal<SettingsTab>('overview');
+  const [activeTab, setActiveTab] = createSignal<SettingsTab>(props.initialTab ?? 'overview');
   const [name, setName] = createSignal('');
   const [description, setDescription] = createSignal('');
   const [systemChannelId, setSystemChannelId] = createSignal<string>('');

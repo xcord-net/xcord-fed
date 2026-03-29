@@ -1,5 +1,6 @@
 import { For, Show, createMemo, createSignal, onMount } from 'solid-js';
 import { useEmojis } from '../stores/emoji.store';
+import { useModals } from '../stores/modal.store';
 import { tooltip } from '../directives/tooltip';
 import styles from './EmojiPicker.module.css';
 
@@ -10,10 +11,12 @@ interface EmojiPickerProps {
   onSelect: (emoji: string) => void;
   onClose?: () => void;
   serverId?: string;
+  isAdmin?: boolean;
 }
 
 export default function EmojiPicker(props: EmojiPickerProps) {
   const emojiStore = useEmojis();
+  const modals = useModals();
   const [selectedCategory, setSelectedCategory] = createSignal(0);
   const [focusedIndex, setFocusedIndex] = createSignal(0);
 
@@ -99,6 +102,15 @@ export default function EmojiPicker(props: EmojiPickerProps) {
     >
       <div class={styles.header}>
         <h3 class={styles.headerTitle}>Emoji Picker</h3>
+        <Show when={props.isAdmin && props.serverId}>
+          <button
+            data-testid="emoji-manage-link"
+            class={styles.manageLink}
+            onClick={() => { modals.openServerSettings('emoji'); props.onClose?.(); }}
+          >
+            Manage Emoji
+          </button>
+        </Show>
       </div>
 
       {/* Category bar */}

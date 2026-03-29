@@ -14,5 +14,6 @@ public sealed record AutomodRuleDto(
     string? ExemptRoleIds,
     string? ExemptChannelIds,
     bool ExemptBots,
+    long? ChannelId,
     DateTimeOffset CreatedAt
 );

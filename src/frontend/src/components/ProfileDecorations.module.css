@@ -108,7 +108,7 @@
 }
 
 .successText {
-  color: #4ade80;
+  color: var(--color-xcord-success-text);
   font-size: 0.875rem;
 }
 

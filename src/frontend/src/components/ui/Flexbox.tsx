@@ -1,3 +1,54 @@
+/**
+ * Flexbox - composable flex container component for SolidJS
+ *
+ * Usage examples:
+ *
+ *   // Horizontal row with centered alignment and gap
+ *   <Flexbox align="center" gap={0.5}>
+ *     <Icon /> <span>Label</span>
+ *   </Flexbox>
+ *
+ *   // Vertical column, stretch children, space-between
+ *   <Flexbox direction="vertical" justify="between" align="stretch" gap="1rem">
+ *     <Header />
+ *     <Content />
+ *     <Footer />
+ *   </Flexbox>
+ *
+ *   // Inline flex with wrapping
+ *   <Flexbox inline wrap="wrap" gap={0.25}>
+ *     {tags().map(t => <Tag>{t}</Tag>)}
+ *   </Flexbox>
+ *
+ *   // Flexbox.Item for individual child control
+ *   <Flexbox align="center">
+ *     <Flexbox.Item grow>
+ *       <input />
+ *     </Flexbox.Item>
+ *     <Flexbox.Item shrink={0}>
+ *       <button>Send</button>
+ *     </Flexbox.Item>
+ *   </Flexbox>
+ *
+ *   // Pass-through HTML div props (className, onClick, data-testid, etc.) work on both
+ *   <Flexbox class={styles.toolbar} data-testid="toolbar" gap={1}>
+ *     ...
+ *   </Flexbox>
+ *
+ * Props:
+ *   direction  - 'horizontal' (default) | 'vertical'
+ *   align      - align-items: 'start' | 'center' | 'end' | 'stretch' | 'baseline'
+ *   justify    - justify-content: 'start' | 'center' | 'end' | 'between' | 'around' | 'evenly'
+ *   gap        - number (rem units) or CSS string (e.g. "8px")
+ *   wrap       - 'wrap' | 'nowrap' | 'wrap-reverse'
+ *   inline     - renders as inline-flex when true
+ *
+ * Flexbox.Item props:
+ *   grow       - flex-grow: number or true (shorthand for 1)
+ *   shrink     - flex-shrink: number
+ *   basis      - flex-basis: CSS string
+ *   align      - align-self override
+ */
 import type { JSX } from 'solid-js';
 import { splitProps } from 'solid-js';
 

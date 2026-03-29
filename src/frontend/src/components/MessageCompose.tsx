@@ -1,8 +1,10 @@
-import { createSignal, createEffect, onCleanup, onMount, Show } from 'solid-js';
+import { createSignal, createEffect, onCleanup, onMount, Show, createMemo } from 'solid-js';
 import { useMessages } from '../stores/message.store';
 import { useChannels } from '../stores/channel.store';
 import { useSignalR } from '../stores/signalr.store';
 import { useMembers } from '../stores/member.store';
+import { useAuth } from '../stores/auth.store';
+import { useServers } from '../stores/server.store';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import { CreatePollForm } from './PollDisplay';
@@ -10,7 +12,11 @@ import GifPicker from './GifPicker';
 import EmojiPicker from './EmojiPicker';
 import MemberList from './MemberList';
 import Dropdown from './ui/Dropdown';
+import { tooltip } from '../directives/tooltip';
 import styles from './MessageCompose.module.css';
+
+// Ensure the directive is not tree-shaken
+void tooltip;
 
 interface MessageComposeProps {
   conversationId: string;
@@ -90,6 +96,8 @@ export default function MessageCompose(props: MessageComposeProps) {
   const channelStore = useChannels();
   const signalR = useSignalR();
   const memberStore = useMembers();
+  const authStore = useAuth();
+  const serverStore = useServers();
   const [content, setContent] = createSignal('');
   const [replyToId, setReplyToId] = createSignal<string | null>(null);
   const [isSending, setIsSending] = createSignal(false);
@@ -160,6 +168,13 @@ export default function MessageCompose(props: MessageComposeProps) {
 
   const currentChannel = () =>
     props.channelId ? channelStore.channels.find((c) => c.id === props.channelId) : undefined;
+
+  const isServerAdmin = createMemo(() => {
+    const channel = currentChannel();
+    if (!channel?.serverId) return false;
+    const server = serverStore.servers.find((s) => s.id === channel.serverId);
+    return !!server && !!authStore.user?.id && server.ownerId === authStore.user.id;
+  });
 
   const slowModeInterval = () => {
     if (!props.channelId) return 0;
@@ -406,19 +421,19 @@ export default function MessageCompose(props: MessageComposeProps) {
       </Show>
 
       <div class={`${styles.bar} ${hasTopSection() ? styles.barContinued : ''}`}>
-        <button data-testid="compose-attach-button" class={styles.btn} onClick={handleAttachmentClick} disabled={uploading() || isSending()} aria-label="Attach file" title="Attach file">
+        <button data-testid="compose-attach-button" class={styles.btn} use:tooltip="Attach file" onClick={handleAttachmentClick} disabled={uploading() || isSending()} aria-label="Attach file" title="Attach file">
           <PaperclipIcon />
         </button>
 
-        <button data-testid="compose-poll-button" class={styles.btn} onClick={() => setShowPollForm(!showPollForm())} disabled={isSending()} aria-label="Create poll" title="Create poll">
+        <button data-testid="compose-poll-button" class={styles.btn} use:tooltip="Create poll" onClick={() => setShowPollForm(!showPollForm())} disabled={isSending()} aria-label="Create poll" title="Create poll">
           <BarChartIcon />
         </button>
 
         <Show when={gifAvailable()}>
-          <button data-testid="compose-gif-button" class={styles.btnText} ref={(el) => { gifButtonRef = el; }} onClick={() => setShowGifPicker(!showGifPicker())} disabled={isSending() || isSlowModeActive()} aria-label="Send GIF" title="Send GIF">GIF</button>
+          <button data-testid="compose-gif-button" class={styles.btnText} use:tooltip="Send GIF" ref={(el) => { gifButtonRef = el; }} onClick={() => setShowGifPicker(!showGifPicker())} disabled={isSending() || isSlowModeActive()} aria-label="Send GIF" title="Send GIF">GIF</button>
         </Show>
 
-        <button data-testid="compose-emoji-button" class={styles.btn} ref={(el) => { emojiButtonRef = el; }} onClick={() => setShowEmojiPicker(!showEmojiPicker())} disabled={isSending()} aria-label="Insert emoji" title="Insert emoji">
+        <button data-testid="compose-emoji-button" class={styles.btn} use:tooltip="Insert emoji" ref={(el) => { emojiButtonRef = el; }} onClick={() => setShowEmojiPicker(!showEmojiPicker())} disabled={isSending()} aria-label="Insert emoji" title="Insert emoji">
           <SmileIcon />
         </button>
 
@@ -452,7 +467,7 @@ export default function MessageCompose(props: MessageComposeProps) {
       </Dropdown>
 
       <Dropdown open={showEmojiPicker()} onClose={() => setShowEmojiPicker(false)} trigger={emojiButtonRef}>
-        <EmojiPicker onSelect={handleEmojiSelect} onClose={() => setShowEmojiPicker(false)} />
+        <EmojiPicker onSelect={handleEmojiSelect} onClose={() => setShowEmojiPicker(false)} serverId={currentChannel()?.serverId} isAdmin={isServerAdmin()} />
       </Dropdown>
 
       <Dropdown open={showMemberList()} onClose={() => setShowMemberList(false)} trigger={membersButtonRef} anchor="top-end">

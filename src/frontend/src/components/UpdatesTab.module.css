@@ -18,10 +18,10 @@
 
 .errorBanner {
   padding: 0.75rem 1rem;
-  background-color: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background-color: var(--color-xcord-danger-bg);
+  border: 1px solid var(--color-xcord-danger-border);
   border-radius: 0.25rem;
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.875rem;
 }
 
@@ -30,7 +30,7 @@
   background-color: rgba(234, 179, 8, 0.1);
   border: 1px solid rgba(234, 179, 8, 0.3);
   border-radius: 0.25rem;
-  color: #facc15;
+  color: var(--color-xcord-warning-glow);
   font-size: 0.875rem;
 }
 
@@ -105,10 +105,10 @@
 
 .toggleError {
   padding: 0.5rem 1rem;
-  background-color: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background-color: var(--color-xcord-danger-bg);
+  border: 1px solid var(--color-xcord-danger-border);
   border-radius: 0.25rem;
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.875rem;
 }
 
@@ -213,7 +213,7 @@
 
 .badgeMinimum {
   font-size: 0.625rem;
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   color: white;
   padding: 0.125rem 0.375rem;
   border-radius: 9999px;
@@ -288,20 +288,20 @@
 .minimumVersionBanner {
   margin-bottom: 0.75rem;
   padding: 0.5rem 0.75rem;
-  background-color: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background-color: var(--color-xcord-danger-bg-subtle);
+  border: 1px solid var(--color-xcord-danger-border);
   border-radius: 0.25rem;
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.75rem;
 }
 
 .upgradeError {
   margin-bottom: 0.75rem;
   padding: 0.5rem 0.75rem;
-  background-color: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background-color: var(--color-xcord-danger-bg);
+  border: 1px solid var(--color-xcord-danger-border);
   border-radius: 0.25rem;
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.875rem;
 }
 
@@ -311,7 +311,7 @@
   background-color: rgba(34, 197, 94, 0.2);
   border: 1px solid rgba(34, 197, 94, 0.3);
   border-radius: 0.25rem;
-  color: #4ade80;
+  color: var(--color-xcord-success-text);
   font-size: 0.875rem;
 }
 
@@ -332,15 +332,15 @@
 }
 
 .sectionTitleBreaking {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
 }
 
 .sectionTitleFeatures {
-  color: #4ade80;
+  color: var(--color-xcord-success-text);
 }
 
 .sectionTitleFixes {
-  color: #facc15;
+  color: var(--color-xcord-warning-glow);
 }
 
 .sectionTitleOther {
@@ -369,17 +369,17 @@
 }
 
 .listIconBreaking {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   flex-shrink: 0;
 }
 
 .listIconFeature {
-  color: #4ade80;
+  color: var(--color-xcord-success-text);
   flex-shrink: 0;
 }
 
 .listIconFix {
-  color: #facc15;
+  color: var(--color-xcord-warning-glow);
   flex-shrink: 0;
 }
 
@@ -479,17 +479,17 @@
 
 .historyStatusCompleted {
   font-weight: 600;
-  color: #4ade80;
+  color: var(--color-xcord-success-text);
 }
 
 .historyStatusFailed {
   font-weight: 600;
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
 }
 
 .historyStatusInProgress {
   font-weight: 600;
-  color: #facc15;
+  color: var(--color-xcord-warning-glow);
 }
 
 .historyStatusDefault {
@@ -512,6 +512,6 @@
 
 .historyErrorMessage {
   margin-top: 0.25rem;
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.75rem;
 }

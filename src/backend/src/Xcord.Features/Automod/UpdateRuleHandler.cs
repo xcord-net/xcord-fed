@@ -21,7 +21,9 @@ public sealed record UpdateRuleCommand(
     string? ActionConfig,
     string? ExemptRoleIds,
     string? ExemptChannelIds,
-    bool? ExemptBots
+    bool? ExemptBots,
+    long? ChannelId,
+    bool ClearChannelId = false
 );
 
 public sealed class UpdateRuleHandler(
@@ -103,6 +105,15 @@ public sealed class UpdateRuleHandler(
             rule.ExemptBots = request.ExemptBots.Value;
         }
 
+        if (request.ClearChannelId)
+        {
+            rule.ChannelId = null;
+        }
+        else if (request.ChannelId.HasValue)
+        {
+            rule.ChannelId = request.ChannelId.Value;
+        }
+
         await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(
@@ -121,6 +132,7 @@ public sealed class UpdateRuleHandler(
             ExemptRoleIds: rule.ExemptRoleIds,
             ExemptChannelIds: rule.ExemptChannelIds,
             ExemptBots: rule.ExemptBots,
+            ChannelId: rule.ChannelId,
             CreatedAt: rule.CreatedAt
         );
     }
@@ -145,7 +157,9 @@ public sealed class UpdateRuleHandler(
                 ActionConfig: request.ActionConfig,
                 ExemptRoleIds: request.ExemptRoleIds,
                 ExemptChannelIds: request.ExemptChannelIds,
-                ExemptBots: request.ExemptBots
+                ExemptBots: request.ExemptBots,
+                ChannelId: request.ChannelId,
+                ClearChannelId: request.ClearChannelId
             );
 
             return await handler.ExecuteAsync(command, ct);
@@ -165,5 +179,7 @@ internal sealed record UpdateRuleRequest(
     string? ActionConfig,
     string? ExemptRoleIds,
     string? ExemptChannelIds,
-    bool? ExemptBots
+    bool? ExemptBots,
+    long? ChannelId,
+    bool ClearChannelId = false
 );

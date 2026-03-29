@@ -10,7 +10,7 @@
 }
 
 .deleteButton:hover {
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
 }
 
 .confirmWrapper {
@@ -47,7 +47,7 @@
 }
 
 .confirmButton {
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   color: #ffffff;
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
@@ -57,7 +57,7 @@
 }
 
 .confirmButton:hover {
-  background-color: #b91c1c;
+  background-color: var(--color-xcord-danger-hover);
 }
 
 .confirmButton:disabled {

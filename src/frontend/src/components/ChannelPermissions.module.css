@@ -26,7 +26,7 @@
 .errorBanner {
   padding: 0.5rem 1rem;
   background-color: rgb(239 68 68 / 0.2);
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.875rem;
 }
 
@@ -212,13 +212,13 @@
 
 /* State-specific active styles */
 .permOptionAllow {
-  color: #4ade80;
+  color: var(--color-xcord-success-text);
   background-color: rgb(74 222 128 / 0.1);
   font-weight: 600;
 }
 
 .permOptionDeny {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   background-color: rgb(248 113 113 / 0.1);
   font-weight: 600;
 }

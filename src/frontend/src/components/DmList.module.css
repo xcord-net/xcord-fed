@@ -85,7 +85,7 @@
 }
 
 .dmError {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.875rem;
   margin-top: 0.5rem;
 }
@@ -201,7 +201,7 @@
 }
 
 .groupError {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.875rem;
 }
 
@@ -284,14 +284,14 @@
 }
 
 .managementAddError {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.75rem;
   margin-bottom: 0.5rem;
 }
 
 .leaveGroupBtn {
   width: 100%;
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   color: white;
   border: none;
   padding: 0.25rem 0.75rem;
@@ -302,7 +302,7 @@
 }
 
 .leaveGroupBtn:hover {
-  background-color: #b91c1c;
+  background-color: var(--color-xcord-danger-hover);
 }
 
 .removeMembersSection {
@@ -318,7 +318,7 @@
 .removeMemberBtn {
   background: none;
   border: none;
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.75rem;
   cursor: pointer;
   display: block;
@@ -326,7 +326,7 @@
 }
 
 .removeMemberBtn:hover {
-  color: #fca5a5;
+  color: var(--color-xcord-danger-text-light);
 }
 
 /* List */

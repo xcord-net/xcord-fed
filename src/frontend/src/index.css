@@ -29,6 +29,32 @@
   --color-xcord-yellow: #f0b232;
   --color-xcord-red: #ed4245;
 
+  /* === Danger === */
+  --color-xcord-danger: #dc2626;
+  --color-xcord-danger-hover: #b91c1c;
+  --color-xcord-danger-dark: #991b1b;
+  --color-xcord-danger-text: #f87171;
+  --color-xcord-danger-text-light: #fca5a5;
+  --color-xcord-danger-bg: rgba(239, 68, 68, 0.2);
+  --color-xcord-danger-bg-hover: rgba(239, 68, 68, 0.4);
+  --color-xcord-danger-bg-subtle: rgba(239, 68, 68, 0.1);
+  --color-xcord-danger-border: rgba(239, 68, 68, 0.3);
+
+  /* === Success === */
+  --color-xcord-success: #22c55e;
+  --color-xcord-success-text: #4ade80;
+  --color-xcord-success-bg: rgba(34, 197, 94, 0.2);
+  --color-xcord-success-glow: rgba(74, 222, 128, 1);
+  --color-xcord-success-dark: #16a34a;
+  --color-xcord-success-dark-hover: #15803d;
+
+  /* === Warning === */
+  --color-xcord-warning: #ca8a04;
+  --color-xcord-warning-hover: #a16207;
+  --color-xcord-warning-glow: #facc15;
+  --color-xcord-warning-bg: rgba(113, 63, 18, 0.3);
+  --color-xcord-warning-border: rgba(202, 138, 4, 0.4);
+
   /* === Border === */
   --color-xcord-border: #1e2130;
 

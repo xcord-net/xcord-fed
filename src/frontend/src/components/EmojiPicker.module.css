@@ -12,6 +12,9 @@
 .header {
   padding: 0.5rem 1rem;
   border-bottom: 1px solid var(--color-xcord-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .headerTitle {
@@ -85,4 +88,19 @@
 .emojiImage {
   width: 1.5rem;
   height: 1.5rem;
+}
+
+.manageLink {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-xcord-brand);
+  font-size: 0.75rem;
+  padding: 0;
+  text-decoration: underline;
+  transition: opacity 0.15s;
+}
+
+.manageLink:hover {
+  opacity: 0.8;
 }

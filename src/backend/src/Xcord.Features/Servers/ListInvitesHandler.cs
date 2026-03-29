@@ -45,7 +45,8 @@ public sealed class ListInvitesHandler(
                 i.Uses,
                 i.ExpiresAt,
                 i.CreatedAt,
-                i.GroupId
+                i.GroupId,
+                i.ChannelId
             ))
             .ToListAsync(cancellationToken);
 

@@ -126,7 +126,7 @@
 }
 
 .errorText {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.75rem;
 }
 

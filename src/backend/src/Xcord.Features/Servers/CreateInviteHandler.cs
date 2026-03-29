@@ -15,7 +15,8 @@ public sealed record CreateInviteCommand(
     long ServerId,
     int? MaxUses,
     DateTimeOffset? ExpiresAt,
-    long? GroupId
+    long? GroupId,
+    long? ChannelId
 );
 
 public sealed class CreateInviteHandler(
@@ -87,6 +88,19 @@ public sealed class CreateInviteHandler(
             }
         }
 
+        // Validate ChannelId if provided
+        if (request.ChannelId.HasValue)
+        {
+            var channelExists = await dbContext.Channels
+                .AsNoTracking()
+                .AnyAsync(c => c.Id == request.ChannelId.Value && c.ServerId == request.ServerId, cancellationToken);
+
+            if (!channelExists)
+            {
+                return Error.NotFound("CHANNEL_NOT_FOUND", "The specified channel was not found in this server");
+            }
+        }
+
         // Generate unique 8-character alphanumeric code
         string code;
         int attempts = 0;
@@ -113,6 +127,7 @@ public sealed class CreateInviteHandler(
             Uses = 0,
             ExpiresAt = request.ExpiresAt,
             GroupId = request.GroupId,
+            ChannelId = request.ChannelId,
             CreatedAt = now
         };
 
@@ -131,7 +146,8 @@ public sealed class CreateInviteHandler(
             Uses: invite.Uses,
             ExpiresAt: invite.ExpiresAt,
             CreatedAt: invite.CreatedAt,
-            GroupId: invite.GroupId
+            GroupId: invite.GroupId,
+            ChannelId: invite.ChannelId
         );
     }
 
@@ -163,7 +179,8 @@ public sealed class CreateInviteHandler(
                 ServerId: id,
                 MaxUses: request.MaxUses,
                 ExpiresAt: request.ExpiresAt,
-                GroupId: request.GroupId
+                GroupId: request.GroupId,
+                ChannelId: request.ChannelId
             );
 
             return await handler.ExecuteAsync(command, ct);

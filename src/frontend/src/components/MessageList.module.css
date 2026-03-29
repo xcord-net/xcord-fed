@@ -118,12 +118,12 @@
 }
 
 .actionButtonDelete:hover {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   background-color: var(--color-xcord-bg-primary);
 }
 
 .actionButtonPin:hover {
-  color: #facc15;
+  color: var(--color-xcord-warning-glow);
   background-color: var(--color-xcord-bg-primary);
 }
 
@@ -359,7 +359,7 @@
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
   color: white;
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   border: none;
   border-radius: 0.25rem;
   cursor: pointer;
@@ -367,5 +367,5 @@
 }
 
 .deleteButton:hover {
-  background-color: #b91c1c;
+  background-color: var(--color-xcord-danger-hover);
 }

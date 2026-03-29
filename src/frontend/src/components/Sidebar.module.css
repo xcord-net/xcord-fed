@@ -129,12 +129,12 @@
   text-align: left;
   font-size: 0.875rem;
   line-height: 1.25rem;
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   transition: color 150ms, background-color 150ms, border-color 150ms;
 }
 
 .menuItemDanger:hover {
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   color: white;
 }
 
@@ -610,7 +610,7 @@
 }
 
 .iconButtonDanger:hover {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   background-color: var(--color-xcord-bg-primary);
 }
 
@@ -665,7 +665,7 @@
   padding-right: 1rem;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   color: white;
   font-size: 0.875rem;
   line-height: 1.25rem;
@@ -675,12 +675,12 @@
 }
 
 .leaveButton:hover {
-  background-color: #b91c1c;
+  background-color: var(--color-xcord-danger-hover);
 }
 
 .leaveButton:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px #f87171;
+  box-shadow: 0 0 0 2px var(--color-xcord-danger-text);
 }
 
 /* Create channel modal */

@@ -4,6 +4,7 @@ import { useChannels } from '../stores/channel.store';
 import ChannelPermissions from './ChannelPermissions';
 import Modal from './ui/Modal';
 import { getErrorMessage } from '../utils/errors';
+import type { Group } from '../types/member';
 import styles from './ChannelSettings.module.css';
 
 interface ChannelSettingsProps {
@@ -41,8 +42,16 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
   const [isSaving, setIsSaving] = createSignal(false);
   const [successMsg, setSuccessMsg] = createSignal('');
   const [errorMsg, setErrorMsg] = createSignal('');
-  const [activeTab, setActiveTab] = createSignal<'overview' | 'permissions'>('overview');
+  const [activeTab, setActiveTab] = createSignal<'overview' | 'permissions' | 'access'>('overview');
   const [showDeleteConfirm, setShowDeleteConfirm] = createSignal(false);
+
+  // Access tab state
+  const [groups, setGroups] = createSignal<Group[]>([]);
+  const [accessGroupId, setAccessGroupId] = createSignal<string>('');
+  const [isLoadingGroups, setIsLoadingGroups] = createSignal(false);
+  const [accessSaving, setAccessSaving] = createSignal(false);
+  const [accessSuccessMsg, setAccessSuccessMsg] = createSignal('');
+  const [accessErrorMsg, setAccessErrorMsg] = createSignal('');
 
   onMount(() => {
     const channel = currentChannel();
@@ -51,8 +60,47 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
       setTopic(channel.topic ?? '');
       setSlowMode(channel.slowModeSeconds);
       setIsNsfw(channel.isNsfw);
+      setAccessGroupId(channel.accessGroupId ?? '');
     }
   });
+
+  const loadGroups = async () => {
+    if (groups().length > 0) return;
+    setIsLoadingGroups(true);
+    try {
+      const result = await api.get<Group[]>(`/api/v1/servers/${props.serverId}/groups`);
+      setGroups(result);
+    } catch {
+      // ignore - groups list will be empty
+    } finally {
+      setIsLoadingGroups(false);
+    }
+  };
+
+  const handleAccessTabClick = () => {
+    setActiveTab('access');
+    loadGroups();
+  };
+
+  const handleSaveAccess = async () => {
+    setAccessSaving(true);
+    setAccessSuccessMsg('');
+    setAccessErrorMsg('');
+    try {
+      const groupId = accessGroupId() || null;
+      await api.patch(`/api/v1/channels/${props.channelId}`, {
+        accessGroupId: groupId,
+      });
+      channelStore.updateChannel(props.channelId, {
+        accessGroupId: groupId ?? undefined,
+      });
+      setAccessSuccessMsg('Access settings saved successfully.');
+    } catch (err: unknown) {
+      setAccessErrorMsg(getErrorMessage(err, 'Failed to save access settings.'));
+    } finally {
+      setAccessSaving(false);
+    }
+  };
 
   const handleSave = async (e: Event) => {
     e.preventDefault();
@@ -122,6 +170,15 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
           >
             Permissions
           </button>
+          <button
+            data-testid="channel-settings-tab-access"
+            type="button"
+            aria-label="Channel Access tab"
+            class={`${styles.tab} ${activeTab() === 'access' ? styles.tabActive : ''}`}
+            onClick={handleAccessTabClick}
+          >
+            Access
+          </button>
         </div>
 
         {/* Body */}
@@ -130,6 +187,75 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
             <ChannelPermissions serverId={props.serverId} channelId={props.channelId} />
           </div>
         </Show>
+
+        <Show when={activeTab() === 'access'}>
+          <div class={styles.accessPanel}>
+            <section class={styles.section}>
+              <h3 class={styles.sectionHeading}>Access Control</h3>
+              <p class={styles.accessDescription}>
+                Restrict this channel to members of a specific group. Set to "Everyone" to allow all members.
+              </p>
+              <div class={styles.fieldGroup}>
+                <label for="access-group" class={styles.fieldLabel}>
+                  Access Group
+                </label>
+                <Show when={isLoadingGroups()}>
+                  <p class={styles.fieldHint}>Loading groups...</p>
+                </Show>
+                <Show when={!isLoadingGroups()}>
+                  <select
+                    id="access-group"
+                    data-testid="channel-access-group-select"
+                    value={accessGroupId()}
+                    onChange={(e) => setAccessGroupId(e.currentTarget.value)}
+                    class={styles.selectInput}
+                  >
+                    <option value="">Everyone (no restriction)</option>
+                    <For each={groups()}>
+                      {(group) => (
+                        <option value={group.id}>{group.name}</option>
+                      )}
+                    </For>
+                  </select>
+                  <p class={styles.fieldHint}>
+                    Only members in the selected group will be able to see and join this channel.
+                  </p>
+                </Show>
+              </div>
+            </section>
+
+            <Show when={accessSuccessMsg()}>
+              <div role="status" class={styles.successMsg}>
+                {accessSuccessMsg()}
+              </div>
+            </Show>
+            <Show when={accessErrorMsg()}>
+              <div role="alert" class={styles.errorMsg}>
+                {accessErrorMsg()}
+              </div>
+            </Show>
+
+            <div class={styles.footerActions}>
+              <button
+                type="button"
+                onClick={props.onClose}
+                class={styles.cancelButton}
+              >
+                Cancel
+              </button>
+              <button
+                data-testid="channel-access-save-button"
+                type="button"
+                disabled={accessSaving()}
+                onClick={handleSaveAccess}
+                class={styles.saveButton}
+              >
+                {accessSaving() ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </Show>
+
         <Show when={activeTab() === 'overview'}>
           <form onSubmit={handleSave}>
             {/* Overview section */}

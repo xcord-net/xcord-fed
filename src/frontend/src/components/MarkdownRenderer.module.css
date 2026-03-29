@@ -73,14 +73,14 @@
 
 .mentionEveryone {
   background-color: rgba(234, 179, 8, 0.2);
-  color: #facc15;
+  color: var(--color-xcord-warning-glow);
   border-radius: 0.25rem;
   padding: 0 0.125rem;
 }
 
 .mentionHere {
   background-color: rgba(234, 179, 8, 0.2);
-  color: #facc15;
+  color: var(--color-xcord-warning-glow);
   border-radius: 0.25rem;
   padding: 0 0.125rem;
 }

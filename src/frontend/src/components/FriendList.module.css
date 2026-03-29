@@ -110,11 +110,11 @@
 }
 
 .addFriendMessageSuccess {
-  color: #4ade80;
+  color: var(--color-xcord-success-text);
 }
 
 .addFriendMessageError {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
 }
 
 /* List area */
@@ -213,7 +213,7 @@
 }
 
 .removeBtn:hover {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
 }
 
 /* Pending tab */
@@ -271,7 +271,7 @@
 }
 
 .acceptBtn {
-  background-color: #16a34a;
+  background-color: var(--color-xcord-success-dark);
   color: white;
   border: none;
   padding: 0.25rem 0.75rem;
@@ -280,11 +280,11 @@
 }
 
 .acceptBtn:hover {
-  background-color: #15803d;
+  background-color: var(--color-xcord-success-dark-hover);
 }
 
 .rejectBtn {
-  background-color: #dc2626;
+  background-color: var(--color-xcord-danger);
   color: white;
   border: none;
   padding: 0.25rem 0.75rem;
@@ -293,7 +293,7 @@
 }
 
 .rejectBtn:hover {
-  background-color: #b91c1c;
+  background-color: var(--color-xcord-danger-hover);
 }
 
 .cancelRequestBtn {
@@ -305,5 +305,5 @@
 }
 
 .cancelRequestBtn:hover {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
 }

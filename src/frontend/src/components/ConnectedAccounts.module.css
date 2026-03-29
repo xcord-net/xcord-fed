@@ -67,18 +67,18 @@
 }
 
 .disconnectButton {
-  color: #f87171;
+  color: var(--color-xcord-danger-text);
   font-size: 0.875rem;
   padding: 0.25rem 0.75rem;
   border-radius: 0.25rem;
-  background-color: rgba(239, 68, 68, 0.1);
+  background-color: var(--color-xcord-danger-bg-subtle);
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .disconnectButton:hover {
-  color: #fca5a5;
-  background-color: rgba(239, 68, 68, 0.2);
+  color: var(--color-xcord-danger-text-light);
+  background-color: var(--color-xcord-danger-bg);
 }
 
 .addSection {
