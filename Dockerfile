@@ -13,7 +13,7 @@ COPY src/backend/src/Xcord.Shared/Xcord.Shared.csproj src/backend/src/Xcord.Shar
 COPY xcord-common/src/Xcord.Common/Xcord.Common.csproj xcord-common/src/Xcord.Common/
 
 # Restore dependencies
-RUN dotnet restore src/backend/src/Xcord.Api/Xcord.Api.csproj
+RUN dotnet restore src/backend/src/Xcord.Api/Xcord.Api.csproj -r linux-musl-x64 -p:PublishReadyToRun=true
 
 # Copy full source
 COPY xcord-common/ xcord-common/
@@ -24,10 +24,14 @@ RUN dotnet publish src/backend/src/Xcord.Api/Xcord.Api.csproj \
     -c Release \
     -o /app/publish \
     -p:Version=$VERSION \
+    -r linux-musl-x64 \
+    -p:PublishReadyToRun=true \
+    --self-contained false \
     --no-restore
 
 # ===== Stage 2: Build frontend (client SPA) =====
 FROM node:24-alpine AS build-frontend
+RUN npm install -g npm@latest
 WORKDIR /src
 ARG VERSION=0.0.0-dev
 ENV VITE_APP_VERSION=$VERSION
@@ -40,6 +44,7 @@ RUN npm run build
 
 # ===== Stage 2b: Build admin SPA =====
 FROM node:24-alpine AS build-admin
+RUN npm install -g npm@latest
 WORKDIR /app
 ARG VERSION=0.0.0-dev
 ENV VITE_APP_VERSION=$VERSION
@@ -83,7 +88,7 @@ USER xcord
 
 EXPOSE 80
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=5s --timeout=3s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:80/health || exit 1
 
 ENTRYPOINT ["/app/entrypoint.sh"]
