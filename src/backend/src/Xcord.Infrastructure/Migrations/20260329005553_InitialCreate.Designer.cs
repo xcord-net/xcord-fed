@@ -2681,6 +2681,10 @@ namespace Xcord.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("bytea");
 
+                    b.Property<string>("HubKey")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<bool>("IsAdmin")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")

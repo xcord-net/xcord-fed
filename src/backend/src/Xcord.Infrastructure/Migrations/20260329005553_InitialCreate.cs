@@ -57,6 +57,7 @@ namespace Xcord.Infrastructure.Migrations
                     IsBot = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     IsAdmin = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     IsDisabled = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    HubKey = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
                     EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     TwoFactorFailureCount = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),

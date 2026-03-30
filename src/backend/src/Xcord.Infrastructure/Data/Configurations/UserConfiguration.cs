@@ -103,6 +103,9 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.LastLoginAt);
 
+        // HubKey (optional, max 64)
+        builder.Property(u => u.HubKey).HasMaxLength(64);
+
         // Scheduled deletion timestamp (optional)
         builder.Property(u => u.ScheduledDeletionAt);
 

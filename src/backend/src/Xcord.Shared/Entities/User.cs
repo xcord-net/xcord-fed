@@ -116,6 +116,11 @@ public sealed class User : ISoftDeletable
     public DateTimeOffset? ScheduledDeletionAt { get; set; }
 
     /// <summary>
+    /// Anonymous hub key for server list association. Null if user hasn't visited a hub header.
+    /// </summary>
+    public string? HubKey { get; set; }
+
+    /// <summary>
     /// Soft delete timestamp (implements ISoftDeletable).
     /// </summary>
     public DateTimeOffset? DeletedAt { get; set; }
