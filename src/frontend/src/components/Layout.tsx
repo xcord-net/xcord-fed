@@ -1,6 +1,8 @@
-import { Show, createEffect, createMemo, onMount } from 'solid-js';
+import { Show, createEffect, createMemo, createSignal, onMount } from 'solid-js';
 import { useParams, useNavigate } from '@solidjs/router';
 import Sidebar from './Sidebar';
+import HubHeader from './HubHeader';
+import { api } from '../api/client';
 import ChannelDirectory from './ChannelDirectory';
 import DmList from './DmList';
 import FriendList from './FriendList';
@@ -90,6 +92,8 @@ export default function Layout() {
   const modals = useModals();
   const dmStore = useDms();
 
+  const [hubUrl, setHubUrl] = createSignal<string | null>(null);
+
   const isDmView = createMemo(() => params.serverId === 'me');
 
   createEffect(() => {
@@ -117,6 +121,10 @@ export default function Layout() {
     });
     // Request notification permission after auth (not on login page)
     requestPermission().catch(() => {});
+    // Fetch public config to determine if a hub header should be shown
+    api.get<{ hubUrl: string | null }>('/api/v1/config')
+      .then(config => setHubUrl(config.hubUrl ?? null))
+      .catch(() => {});
     // Connect to the real-time hub so message/presence/typing events are received.
     signalR.connectSignalR().then(() => {
       const channel = channelStore.channels.find(
@@ -243,6 +251,10 @@ export default function Layout() {
 
   return (
     <div class={styles.root} data-signalr-connected={String(signalR.isConnected)} data-signalr-conversation-joined={String(conversationJoined())}>
+      <Show when={hubUrl()}>
+        <HubHeader hubUrl={hubUrl()!} instanceUrl={window.location.origin} />
+      </Show>
+      <div class={styles.mainRow}>
       {/* Unified sidebar - always present */}
       <Sidebar />
 
@@ -457,6 +469,7 @@ export default function Layout() {
         </div>
         </Show>
       </Show>
+      </div>{/* end mainRow */}
 
       {/* Settings modal */}
       <Modal data-testid="user-settings-modal" open={modals.showSettings !== null} onClose={() => modals.closeSettings()} aria-label="User Settings" size="lg">

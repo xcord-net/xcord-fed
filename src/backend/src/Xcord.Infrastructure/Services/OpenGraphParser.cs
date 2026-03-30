@@ -93,7 +93,7 @@ public sealed class OpenGraphParser
             data.SiteName = DecodeHtml(siteNameMatch.Groups[1].Value);
         }
 
-        // Extract theme-color
+        // Extract theme-color (only accept valid hex colors to prevent CSS injection)
         var themeColorMatch = ThemeColorRegex.Match(html);
         if (themeColorMatch.Success)
         {
@@ -103,7 +103,12 @@ public sealed class OpenGraphParser
             {
                 color = '#' + color;
             }
-            data.Color = color;
+
+            // Only accept strictly valid hex colors (#RGB or #RRGGBB) to prevent CSS injection
+            if (Regex.IsMatch(color, @"^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$"))
+            {
+                data.Color = color;
+            }
         }
 
         return data;

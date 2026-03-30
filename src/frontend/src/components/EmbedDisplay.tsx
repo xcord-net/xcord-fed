@@ -6,8 +6,13 @@ interface EmbedDisplayProps {
   embed: MessageEmbed;
 }
 
+const HEX_COLOR_RE = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/;
+
 export default function EmbedDisplay(props: EmbedDisplayProps) {
-  const borderColor = () => props.embed.color ?? '#d4943a'; // xcord-brand fallback
+  const borderColor = () => {
+    const c = props.embed.color;
+    return c && HEX_COLOR_RE.test(c) ? c : '#d4943a';
+  };
 
   return (
     <div

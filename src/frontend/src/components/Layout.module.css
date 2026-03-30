@@ -2,8 +2,15 @@
 .root {
   height: 100vh;
   display: flex;
+  flex-direction: column;
   background-color: var(--color-xcord-bg-primary);
   color: var(--color-xcord-text-primary);
+}
+
+.mainRow {
+  display: flex;
+  flex: 1;
+  min-height: 0;
 }
 
 /* ===== Loading / empty state ===== */
