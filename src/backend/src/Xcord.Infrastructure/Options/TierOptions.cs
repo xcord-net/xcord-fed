@@ -27,6 +27,12 @@ public sealed class TierOptions
     public int MaxVideoConcurrency { get; set; }
     public int MaxStreambotsPerChannel { get; set; }
 
+    /// <summary>
+    /// Maximum number of users that can occupy broadcast stage slots simultaneously.
+    /// Default 8 matches the grid layout's slot capacity.
+    /// </summary>
+    public int MaxBroadcastStageSize { get; set; } = 8;
+
     // Quality limits - 0 means unlimited (for standalone instances)
     public int MaxAudioBitrateKbps { get; set; }
     public int MaxVideoBitrateKbps { get; set; }

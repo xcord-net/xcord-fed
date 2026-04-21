@@ -223,6 +223,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<OpenGraphParser>();
         services.AddScoped<IMemberBillingService, MemberBillingService>();
         services.AddScoped<Xcord.Features.Billing.MemberBillingWebhookHandler>();
+        services.AddScoped<Xcord.Features.Broadcasts.BroadcastEgressBuilder>();
 
         // Discord migration
         services.AddSingleton<DiscordRateLimiter>();
