@@ -89,6 +89,20 @@ services:
     tmpfs:
       - /tmp
 
+  # MinIO bucket bootstrap: provisions required buckets on startup.
+  minio-bootstrap:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin} &&
+      mc mb --ignore-existing local/broadcasts &&
+      echo 'MinIO buckets provisioned'
+      "
+    restart: "no"
+
 volumes:
   postgres-data:
   redis-data:
