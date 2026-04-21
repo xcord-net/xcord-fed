@@ -13,4 +13,5 @@ public enum ChannelCapability : long
     Video = 1 << 2,
     Forum = 1 << 3,
     Announcement = 1 << 4,
+    Streaming = 1 << 5,
 }

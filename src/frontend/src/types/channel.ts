@@ -5,6 +5,7 @@ export const Capability = {
   Video: 4,
   Forum: 8,
   Announcement: 16,
+  Streaming: 32,
 } as const;
 
 const capabilityNameMap: Record<string, number> = {
@@ -13,6 +14,7 @@ const capabilityNameMap: Record<string, number> = {
   video: Capability.Video,
   forum: Capability.Forum,
   announcement: Capability.Announcement,
+  streaming: Capability.Streaming,
 };
 
 /**
