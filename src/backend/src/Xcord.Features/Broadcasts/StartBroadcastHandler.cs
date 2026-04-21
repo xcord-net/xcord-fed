@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Broadcasts;
@@ -24,6 +26,7 @@ public sealed record StartBroadcastResponse(
     long BroadcastId,
     string PublishToken,
     string RoomName,
+    string LivekitUrl,
     string HlsUrl);
 
 public sealed class StartBroadcastHandler(
@@ -34,6 +37,7 @@ public sealed class StartBroadcastHandler(
     ILiveKitService livekitService,
     INotificationService notificationService,
     BroadcastEgressBuilder egressBuilder,
+    IOptions<LiveKitOptions> livekitOptions,
     ILogger<StartBroadcastHandler> logger)
     : IRequestHandler<StartBroadcastCommand, Result<StartBroadcastResponse>>,
       IValidatable<StartBroadcastCommand>
@@ -217,6 +221,7 @@ public sealed class StartBroadcastHandler(
             BroadcastId: broadcastId,
             PublishToken: publishToken,
             RoomName: roomName,
+            LivekitUrl: livekitOptions.Value.Host,
             HlsUrl: hlsUrl);
     }
 

@@ -35,6 +35,7 @@ interface StartBroadcastResponse {
   broadcastId: string;
   publishToken: string;
   roomName: string;
+  livekitUrl: string;
   hlsUrl: string;
 }
 
@@ -42,7 +43,7 @@ interface HostCredentials {
   broadcastId: string;
   token: string;
   roomName: string;
-  livekitUrl?: string;
+  livekitUrl: string;
 }
 
 interface GuestCredentials {
@@ -145,6 +146,7 @@ export function useBroadcast() {
         broadcastId: res.broadcastId,
         token: res.publishToken,
         roomName: res.roomName,
+        livekitUrl: res.livekitUrl,
       });
       await loadActiveBroadcastInternal(channelId);
       return res;

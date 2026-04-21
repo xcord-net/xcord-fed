@@ -35,14 +35,6 @@ function slotCountFor(preset: BroadcastLayoutPreset): number {
 }
 
 // LiveKit URL used by the broadcast production room. The server-issued token
-// already encodes the correct room, but we need a server URL to connect. For
-// MVP we reuse the same LiveKit endpoint the backend advertises via the voice
-// flow; the broadcast response does not currently include it, so we read it
-// from the window config when available.
-function getLivekitUrl(): string {
-  const w = window as unknown as { __XCORD_LIVEKIT_URL__?: string };
-  return w.__XCORD_LIVEKIT_URL__ ?? '';
-}
 
 export default function BroadcastHostPanel(props: Props) {
   const broadcast = useBroadcast();
@@ -129,15 +121,9 @@ export default function BroadcastHostPanel(props: Props) {
       );
 
       // Connect to LiveKit as publisher.
-      const url = getLivekitUrl();
-      if (!url) {
-        setError('LiveKit URL not configured. Broadcast started but local camera preview unavailable.');
-        return;
-      }
-
       try {
         liveRoom = new Room({ adaptiveStream: true, dynacast: true });
-        await liveRoom.connect(url, res.publishToken);
+        await liveRoom.connect(res.livekitUrl, res.publishToken);
         await liveRoom.localParticipant.setCameraEnabled(true);
         await liveRoom.localParticipant.setMicrophoneEnabled(true);
         attachLocalPreview(liveRoom);
