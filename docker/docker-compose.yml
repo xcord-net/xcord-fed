@@ -83,12 +83,41 @@ services:
     command: --config /etc/livekit.yaml
     volumes:
       - ./livekit.yaml:/etc/livekit.yaml:ro
+    depends_on:
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:7880"]
       interval: 5s
       timeout: 3s
       retries: 10
       start_period: 5s
+
+  # LiveKit Egress: renders web pages in headless Chrome and publishes them
+  # as HLS/RTMP/file. Coordinates with livekit-server via Redis.
+  livekit-egress:
+    image: livekit/egress:v1.8
+    restart: unless-stopped
+    depends_on:
+      livekit:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      EGRESS_CONFIG_BODY: |
+        api_key: devkey
+        api_secret: devsecretdevsecretdevsecretdevsecret
+        ws_url: ws://livekit:7880
+        redis:
+          address: redis:6379
+        insecure: true
+        health_port: 7780
+        debug_handler_port: 7779
+    # Egress needs a large shm size for Chrome
+    shm_size: 1gb
+    # Egress needs /tmp access for Chrome scratch space
+    tmpfs:
+      - /tmp
 
   mailpit:
     image: axllent/mailpit:latest

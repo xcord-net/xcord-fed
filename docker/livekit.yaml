@@ -8,6 +8,11 @@ rtc:
   use_external_ip: false
   tcp_port: 7881
 
+# Redis is used to coordinate with the livekit-egress service.
+# Egress reads room info from Redis and publishes status updates there.
+redis:
+  address: redis:6379
+
 keys:
   devkey: devsecretdevsecretdevsecretdevsecret
 
