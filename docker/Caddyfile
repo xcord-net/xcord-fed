@@ -1,0 +1,37 @@
+{
+	admin :2019
+}
+
+# Standalone instance deployment: serves the app on the instance domain and
+# proxies broadcast HLS traffic to MinIO with a forward_auth check against
+# the backend's broadcasts/hls-check endpoint.
+#
+# In hub-managed deployments the hub's Caddy handles routing; this file is
+# for single-tenant (self-hosted) deployments that run xcord-fed standalone.
+{$INSTANCE_DOMAIN:localhost} {
+	tls internal
+
+	# HLS broadcast playlist/segments: auth via the instance backend, then
+	# proxy the underlying object to MinIO. Path shape is:
+	#   /hls/broadcasts/{broadcastId}/{playlist|segment.ts}
+	@hls path_regexp broadcastPath ^/hls/broadcasts/([^/]+)/.+$
+	handle @hls {
+		forward_auth app:80 {
+			uri /api/v1/broadcasts/{re.broadcastPath.1}/hls-check
+			copy_headers Cookie
+		}
+		# Rewrite /hls/broadcasts/... to /broadcasts/... for MinIO path-style
+		uri strip_prefix /hls
+		reverse_proxy minio:9000 {
+			header_up Host minio:9000
+		}
+	}
+
+	# Everything else: the app backend
+	reverse_proxy app:80
+
+	log {
+		output stdout
+		format console
+	}
+}
