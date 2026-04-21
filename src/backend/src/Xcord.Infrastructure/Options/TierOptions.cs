@@ -25,6 +25,7 @@ public sealed class TierOptions
     public int MaxRateLimit { get; set; }
     public int MaxVoiceConcurrency { get; set; }
     public int MaxVideoConcurrency { get; set; }
+    public int MaxStreambotsPerChannel { get; set; }
 
     // Quality limits - 0 means unlimited (for standalone instances)
     public int MaxAudioBitrateKbps { get; set; }
