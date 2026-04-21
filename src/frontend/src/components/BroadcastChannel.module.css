@@ -1,0 +1,18 @@
+.container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  overflow: hidden;
+}
+
+.idle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}

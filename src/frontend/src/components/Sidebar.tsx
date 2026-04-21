@@ -51,11 +51,27 @@ function ForumChannelIcon(props: { class?: string }) {
   );
 }
 
+function StreamingChannelIcon(props: { class?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class={props.class ?? 'w-4 h-4'} aria-hidden="true">
+      <path d="M4.93 19.07A10 10 0 0 1 4.93 4.93" />
+      <path d="M7.76 16.24a6 6 0 0 1 0-8.49" />
+      <circle cx="12" cy="12" r="2" />
+      <path d="M16.24 7.76a6 6 0 0 1 0 8.49" />
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+    </svg>
+  );
+}
+
 function ChannelIcon(props: { capabilities: number; class?: string }) {
   return (
     <Show when={hasCapability(props.capabilities, Capability.Voice)} fallback={
-      <Show when={hasCapability(props.capabilities, Capability.Forum)} fallback={<TextChannelIcon class={props.class} />}>
-        <ForumChannelIcon class={props.class} />
+      <Show when={hasCapability(props.capabilities, Capability.Streaming)} fallback={
+        <Show when={hasCapability(props.capabilities, Capability.Forum)} fallback={<TextChannelIcon class={props.class} />}>
+          <ForumChannelIcon class={props.class} />
+        </Show>
+      }>
+        <StreamingChannelIcon class={props.class} />
       </Show>
     }>
       <VoiceChannelIcon class={props.class} />
@@ -244,7 +260,7 @@ export default function Sidebar() {
       <button
         role="option"
         aria-selected={channelStore.selectedChannelId === channel.id}
-        aria-label={`${hasCapability(channel.capabilities, Capability.Voice) ? 'Voice channel' : hasCapability(channel.capabilities, Capability.Forum) ? 'Forum channel' : 'Text channel'} ${channel.name}${hasUnread() ? `, ${unreadCount()} unread` : ''}`}
+        aria-label={`${hasCapability(channel.capabilities, Capability.Voice) ? 'Voice channel' : hasCapability(channel.capabilities, Capability.Streaming) ? 'Streaming channel' : hasCapability(channel.capabilities, Capability.Forum) ? 'Forum channel' : 'Text channel'} ${channel.name}${hasUnread() ? `, ${unreadCount()} unread` : ''}`}
         data-channel-id={channel.id}
         data-testid={`channel-item-${channel.id}`}
         tabindex={focusedChannelId() === channel.id || (focusedChannelId() === null && channelStore.selectedChannelId === channel.id) ? 0 : -1}
@@ -618,6 +634,10 @@ export default function Sidebar() {
               <label class={styles.createModalCheckbox}>
                 <input data-testid="capability-checkbox-announcement" type="checkbox" checked={hasCapability(newCapabilities(), Capability.Announcement)} onChange={() => setNewCapabilities(p => p ^ Capability.Announcement)} />
                 Announcement
+              </label>
+              <label class={styles.createModalCheckbox}>
+                <input data-testid="capability-checkbox-streaming" type="checkbox" checked={hasCapability(newCapabilities(), Capability.Streaming)} onChange={() => setNewCapabilities(p => p ^ Capability.Streaming)} />
+                Streaming
               </label>
             </div>
           </div>

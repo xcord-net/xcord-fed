@@ -15,6 +15,7 @@ import SearchPanel from './SearchPanel';
 import PinList from './PinList';
 import ThreadPanel from './ThreadPanel';
 import ForumPostList from './ForumPostList';
+import BroadcastChannel from './BroadcastChannel';
 import UserProfileEditor from './UserProfileEditor';
 import BlockList from './BlockList';
 import NotificationSettings from './NotificationSettings';
@@ -374,7 +375,13 @@ export default function Layout() {
                 <div class={styles.contentRow}>
                   {/* Messages area */}
                   <div class={styles.messagesArea}>
-                    <Show when={currentChannel()?.capabilities && hasCapability(currentChannel()!.capabilities, Capability.Forum)}>
+                    <Show when={currentChannel()?.capabilities && hasCapability(currentChannel()!.capabilities, Capability.Streaming)}>
+                      <BroadcastChannel
+                        channelId={params.channelId!}
+                        canManageBroadcasts={true}
+                      />
+                    </Show>
+                    <Show when={currentChannel()?.capabilities && hasCapability(currentChannel()!.capabilities, Capability.Forum) && !hasCapability(currentChannel()!.capabilities, Capability.Streaming)}>
                       <Show when={!modals.selectedForumPost}>
                         <ForumPostList
                           serverId={params.serverId!}
@@ -403,7 +410,10 @@ export default function Layout() {
                         )}
                       </Show>
                     </Show>
-                    <Show when={!currentChannel()?.capabilities || !hasCapability(currentChannel()!.capabilities, Capability.Forum)}>
+                    <Show when={
+                      (!currentChannel()?.capabilities || !hasCapability(currentChannel()!.capabilities, Capability.Forum)) &&
+                      (!currentChannel()?.capabilities || !hasCapability(currentChannel()!.capabilities, Capability.Streaming))
+                    }>
                       <ScreenShareViewer />
                       <MessageList conversationId={convId()} />
                       <TypingIndicator conversationId={convId()} />

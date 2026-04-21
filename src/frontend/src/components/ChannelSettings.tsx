@@ -1,9 +1,11 @@
-import { For, Show, createSignal, onMount } from 'solid-js';
+import { For, Show, createMemo, createSignal, onMount } from 'solid-js';
 import { api } from '../api/client';
 import { useChannels } from '../stores/channel.store';
 import ChannelPermissions from './ChannelPermissions';
+import StreambotManager from './StreambotManager';
 import Modal from './ui/Modal';
 import { getErrorMessage } from '../utils/errors';
+import { Capability, hasCapability } from '../types/channel';
 import type { Group } from '../types/member';
 import styles from './ChannelSettings.module.css';
 
@@ -42,7 +44,12 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
   const [isSaving, setIsSaving] = createSignal(false);
   const [successMsg, setSuccessMsg] = createSignal('');
   const [errorMsg, setErrorMsg] = createSignal('');
-  const [activeTab, setActiveTab] = createSignal<'overview' | 'permissions' | 'access'>('overview');
+  const [activeTab, setActiveTab] = createSignal<'overview' | 'permissions' | 'access' | 'streambots'>('overview');
+
+  const hasStreaming = createMemo(() => {
+    const ch = currentChannel();
+    return !!ch && hasCapability(ch.capabilities, Capability.Streaming);
+  });
   const [showDeleteConfirm, setShowDeleteConfirm] = createSignal(false);
 
   // Access tab state
@@ -179,6 +186,17 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
           >
             Access
           </button>
+          <Show when={hasStreaming()}>
+            <button
+              data-testid="channel-settings-tab-streambots"
+              type="button"
+              aria-label="Streambots tab"
+              class={`${styles.tab} ${activeTab() === 'streambots' ? styles.tabActive : ''}`}
+              onClick={() => setActiveTab('streambots')}
+            >
+              Streambots
+            </button>
+          </Show>
         </div>
 
         {/* Body */}
@@ -186,6 +204,10 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
           <div class={styles.permissionsPanel}>
             <ChannelPermissions serverId={props.serverId} channelId={props.channelId} />
           </div>
+        </Show>
+
+        <Show when={activeTab() === 'streambots' && hasStreaming()}>
+          <StreambotManager channelId={props.channelId} />
         </Show>
 
         <Show when={activeTab() === 'access'}>
