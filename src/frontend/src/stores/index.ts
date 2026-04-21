@@ -17,6 +17,8 @@ import { usePresence } from './presence.store';
 import { useTyping } from './typing.store';
 import { useVoice } from './voice.store';
 import { useUnread } from './unread.store';
+import { useBroadcast } from './broadcast.store';
+import { useStreambot } from './streambot.store';
 import { useSignalR } from './signalr.store';
 
 /**
@@ -47,4 +49,6 @@ export async function resetAllStores(): Promise<void> {
   useTyping().clearTyping();
   useVoice().clearVoiceState();
   useUnread().clearUnreads();
+  useBroadcast().reset();
+  useStreambot().reset();
 }

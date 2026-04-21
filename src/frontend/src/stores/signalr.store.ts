@@ -10,6 +10,7 @@ import { useMessages } from './message.store';
 import { useChannels } from './channel.store';
 import { useFriends } from './friend.store';
 import { useDms } from './dm.store';
+import { useBroadcast } from './broadcast.store';
 import { handleNewMessageNotification } from '../services/notification.service';
 import type { PresenceStatus } from '../types/presence';
 import type { Message } from '../types/message';
@@ -69,6 +70,13 @@ const SIGNALR_EVENTS = [
   'Notify_UnreadUpdated',
   'Notify_FriendRequest',
   'Notify_FriendAccepted',
+  'Broadcast_Started',
+  'Broadcast_Ended',
+  'Broadcast_LayoutChanged',
+  'Broadcast_StreambotsChanged',
+  'Broadcast_StageChanged',
+  'Broadcast_StatusChanged',
+  'Broadcast_StreambotStatusChanged',
   'System_ShuttingDown',
 ] as const;
 
@@ -170,6 +178,30 @@ export function useSignalR() {
     // Voice events
     connection.on('Voice_StateUpdated', (data: { userId: string; channelId: string | null; isMuted: boolean; isDeafened: boolean }) => {
       voice.updateVoiceState(data.userId, data.channelId, data.isMuted, data.isDeafened);
+    });
+
+    // Broadcast events - route raw payload to the broadcast store which handles
+    // per-event state patching or reload as needed.
+    connection.on('Broadcast_Started', (data: Record<string, unknown>) => {
+      useBroadcast()._onSignalREvent('Broadcast_Started', data);
+    });
+    connection.on('Broadcast_Ended', (data: Record<string, unknown>) => {
+      useBroadcast()._onSignalREvent('Broadcast_Ended', data);
+    });
+    connection.on('Broadcast_LayoutChanged', (data: Record<string, unknown>) => {
+      useBroadcast()._onSignalREvent('Broadcast_LayoutChanged', data);
+    });
+    connection.on('Broadcast_StreambotsChanged', (data: Record<string, unknown>) => {
+      useBroadcast()._onSignalREvent('Broadcast_StreambotsChanged', data);
+    });
+    connection.on('Broadcast_StageChanged', (data: Record<string, unknown>) => {
+      useBroadcast()._onSignalREvent('Broadcast_StageChanged', data);
+    });
+    connection.on('Broadcast_StatusChanged', (data: Record<string, unknown>) => {
+      useBroadcast()._onSignalREvent('Broadcast_StatusChanged', data);
+    });
+    connection.on('Broadcast_StreambotStatusChanged', (data: Record<string, unknown>) => {
+      useBroadcast()._onSignalREvent('Broadcast_StreambotStatusChanged', data);
     });
 
     // Notification events
