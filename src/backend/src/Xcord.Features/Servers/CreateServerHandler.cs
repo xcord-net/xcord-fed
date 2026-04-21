@@ -143,7 +143,7 @@ public sealed class CreateServerHandler(
                            Role.AttachFiles | Role.ReadMessageHistory | Role.AddReactions |
                            Role.Connect | Role.Speak | Role.CreatePublicThreads |
                            Role.SendMessagesInThreads | Role.UseExternalEmojis |
-                           Role.ChangeNickname | Role.Video),
+                           Role.ChangeNickname | Role.Video | Role.ViewBroadcast),
             Position = 1,
             CreatedAt = now
         };

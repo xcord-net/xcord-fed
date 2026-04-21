@@ -51,6 +51,10 @@ public enum Role : long
     ManageReports = 1L << 33,
     ManageAutomod = 1L << 34,
 
+    // Broadcast / streaming (bits 35-36)
+    ManageBroadcasts = 1L << 35,
+    ViewBroadcast = 1L << 36,
+
     // Administrator super-permission (bit 62)
     Administrator = 1L << 62
 }
