@@ -1,0 +1,64 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+  background-color: currentColor;
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.errorIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  background-color: currentColor;
+  color: var(--color-xcord-bg-primary);
+  font-size: 0.625rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.statusConnecting {
+  color: var(--color-xcord-warning-glow);
+  background-color: var(--color-xcord-warning-bg);
+  border-color: var(--color-xcord-warning-border);
+}
+
+.statusActive {
+  color: var(--color-xcord-success-text);
+  background-color: var(--color-xcord-success-bg);
+  border-color: color-mix(in srgb, var(--color-xcord-success-text) 30%, transparent);
+}
+
+.statusFailed {
+  color: var(--color-xcord-danger-text);
+  background-color: var(--color-xcord-danger-bg);
+  border-color: var(--color-xcord-danger-border);
+}
+
+.statusEnded {
+  color: var(--color-xcord-text-muted);
+  background-color: var(--color-xcord-bg-secondary);
+  border-color: var(--color-xcord-border);
+}
