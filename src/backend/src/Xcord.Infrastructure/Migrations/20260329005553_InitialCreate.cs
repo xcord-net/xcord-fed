@@ -2068,6 +2068,126 @@ namespace Xcord.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "broadcasts",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false),
+                    ChannelId = table.Column<long>(type: "bigint", nullable: false),
+                    HostUserId = table.Column<long>(type: "bigint", nullable: false),
+                    EgressJobId = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    LayoutPreset = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                    HlsPlaylistKey = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
+                    Status = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                    StartedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    EndedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_broadcasts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_broadcasts_channels_ChannelId",
+                        column: x => x.ChannelId,
+                        principalTable: "channels",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_broadcasts_users_HostUserId",
+                        column: x => x.HostUserId,
+                        principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "stream_bots",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false),
+                    ChannelId = table.Column<long>(type: "bigint", nullable: false),
+                    CreatedByUserId = table.Column<long>(type: "bigint", nullable: false),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Platform = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                    RtmpUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    EncryptedStreamKey = table.Column<byte[]>(type: "bytea", nullable: false),
+                    IsDefault = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_stream_bots", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_stream_bots_channels_ChannelId",
+                        column: x => x.ChannelId,
+                        principalTable: "channels",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_stream_bots_users_CreatedByUserId",
+                        column: x => x.CreatedByUserId,
+                        principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "broadcast_stage_slots",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false),
+                    BroadcastId = table.Column<long>(type: "bigint", nullable: false),
+                    UserId = table.Column<long>(type: "bigint", nullable: false),
+                    SlotIndex = table.Column<int>(type: "integer", nullable: false),
+                    AddedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_broadcast_stage_slots", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_broadcast_stage_slots_broadcasts_BroadcastId",
+                        column: x => x.BroadcastId,
+                        principalTable: "broadcasts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_broadcast_stage_slots_users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "broadcast_streambots",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false),
+                    BroadcastId = table.Column<long>(type: "bigint", nullable: false),
+                    StreamBotId = table.Column<long>(type: "bigint", nullable: false),
+                    Status = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                    LastError = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: true),
+                    StartedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    EndedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_broadcast_streambots", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_broadcast_streambots_broadcasts_BroadcastId",
+                        column: x => x.BroadcastId,
+                        principalTable: "broadcasts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_broadcast_streambots_stream_bots_StreamBotId",
+                        column: x => x.StreamBotId,
+                        principalTable: "stream_bots",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_app_listings_BotTokenId",
                 table: "app_listings",
@@ -2141,6 +2261,44 @@ namespace Xcord.Infrastructure.Migrations
                 name: "IX_bans_UserId",
                 table: "bans",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_broadcast_stage_slots_BroadcastId_SlotIndex",
+                table: "broadcast_stage_slots",
+                columns: new[] { "BroadcastId", "SlotIndex" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_broadcast_stage_slots_BroadcastId_UserId",
+                table: "broadcast_stage_slots",
+                columns: new[] { "BroadcastId", "UserId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_broadcast_stage_slots_UserId",
+                table: "broadcast_stage_slots",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_broadcast_streambots_BroadcastId_StreamBotId",
+                table: "broadcast_streambots",
+                columns: new[] { "BroadcastId", "StreamBotId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_broadcast_streambots_StreamBotId",
+                table: "broadcast_streambots",
+                column: "StreamBotId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_broadcasts_ChannelId_Status",
+                table: "broadcasts",
+                columns: new[] { "ChannelId", "Status" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_broadcasts_HostUserId",
+                table: "broadcasts",
+                column: "HostUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_bot_tokens_TokenHash",
@@ -2744,6 +2902,16 @@ namespace Xcord.Infrastructure.Migrations
                 column: "StickerPackId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_stream_bots_ChannelId",
+                table: "stream_bots",
+                column: "ChannelId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_stream_bots_CreatedByUserId",
+                table: "stream_bots",
+                column: "CreatedByUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_thread_members_ThreadId",
                 table: "thread_members",
                 column: "ThreadId");
@@ -2980,6 +3148,18 @@ namespace Xcord.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "bans");
+
+            migrationBuilder.DropTable(
+                name: "broadcast_stage_slots");
+
+            migrationBuilder.DropTable(
+                name: "broadcast_streambots");
+
+            migrationBuilder.DropTable(
+                name: "broadcasts");
+
+            migrationBuilder.DropTable(
+                name: "stream_bots");
 
             migrationBuilder.DropTable(
                 name: "calls");

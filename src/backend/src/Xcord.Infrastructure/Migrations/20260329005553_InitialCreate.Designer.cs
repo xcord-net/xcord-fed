@@ -378,6 +378,121 @@ namespace Xcord.Infrastructure.Migrations
                     b.ToTable("bot_tokens", (string)null);
                 });
 
+            modelBuilder.Entity("Xcord.Entities.Broadcast", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ChannelId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EgressJobId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTimeOffset?>("EndedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("HlsPlaylistKey")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<long>("HostUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("LayoutPreset")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HostUserId");
+
+                    b.HasIndex("ChannelId", "Status");
+
+                    b.ToTable("broadcasts", (string)null);
+                });
+
+            modelBuilder.Entity("Xcord.Entities.BroadcastStageSlot", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("AddedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("BroadcastId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SlotIndex")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("BroadcastId", "SlotIndex")
+                        .IsUnique();
+
+                    b.HasIndex("BroadcastId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("broadcast_stage_slots", (string)null);
+                });
+
+            modelBuilder.Entity("Xcord.Entities.BroadcastStreambot", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("BroadcastId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("EndedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<long>("StreamBotId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StreamBotId");
+
+                    b.HasIndex("BroadcastId", "StreamBotId")
+                        .IsUnique();
+
+                    b.ToTable("broadcast_streambots", (string)null);
+                });
+
             modelBuilder.Entity("Xcord.Entities.Call", b =>
                 {
                     b.Property<long>("Id")
@@ -2398,6 +2513,56 @@ namespace Xcord.Infrastructure.Migrations
                     b.ToTable("sticker_packs", (string)null);
                 });
 
+            modelBuilder.Entity("Xcord.Entities.StreamBot", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ChannelId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("CreatedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<byte[]>("EncryptedStreamKey")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<bool>("IsDefault")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("RtmpUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChannelId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.ToTable("stream_bots", (string)null);
+                });
+
             modelBuilder.Entity("Xcord.Entities.SystemSetting", b =>
                 {
                     b.Property<string>("Key")
@@ -3110,6 +3275,63 @@ namespace Xcord.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Xcord.Entities.Broadcast", b =>
+                {
+                    b.HasOne("Xcord.Entities.Channel", "Channel")
+                        .WithMany()
+                        .HasForeignKey("ChannelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Xcord.Entities.User", "Host")
+                        .WithMany()
+                        .HasForeignKey("HostUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Channel");
+
+                    b.Navigation("Host");
+                });
+
+            modelBuilder.Entity("Xcord.Entities.BroadcastStageSlot", b =>
+                {
+                    b.HasOne("Xcord.Entities.Broadcast", "Broadcast")
+                        .WithMany("StageSlots")
+                        .HasForeignKey("BroadcastId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Xcord.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Broadcast");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Xcord.Entities.BroadcastStreambot", b =>
+                {
+                    b.HasOne("Xcord.Entities.Broadcast", "Broadcast")
+                        .WithMany("ActiveStreambots")
+                        .HasForeignKey("BroadcastId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Xcord.Entities.StreamBot", "StreamBot")
+                        .WithMany()
+                        .HasForeignKey("StreamBotId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Broadcast");
+
+                    b.Navigation("StreamBot");
                 });
 
             modelBuilder.Entity("Xcord.Entities.Call", b =>
@@ -3986,6 +4208,25 @@ namespace Xcord.Infrastructure.Migrations
                     b.Navigation("Server");
                 });
 
+            modelBuilder.Entity("Xcord.Entities.StreamBot", b =>
+                {
+                    b.HasOne("Xcord.Entities.Channel", "Channel")
+                        .WithMany()
+                        .HasForeignKey("ChannelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Xcord.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Channel");
+
+                    b.Navigation("CreatedBy");
+                });
+
             modelBuilder.Entity("Xcord.Entities.Thread", b =>
                 {
                     b.HasOne("Xcord.Entities.Channel", "Channel")
@@ -4201,6 +4442,13 @@ namespace Xcord.Infrastructure.Migrations
             modelBuilder.Entity("Xcord.Entities.AppListing", b =>
                 {
                     b.Navigation("Reviews");
+                });
+
+            modelBuilder.Entity("Xcord.Entities.Broadcast", b =>
+                {
+                    b.Navigation("ActiveStreambots");
+
+                    b.Navigation("StageSlots");
                 });
 
             modelBuilder.Entity("Xcord.Entities.Category", b =>
