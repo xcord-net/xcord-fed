@@ -98,6 +98,12 @@ public DbSet<VoiceState> VoiceStates => Set<VoiceState>();
     public DbSet<DiscordMigration> DiscordMigrations => Set<DiscordMigration>();
     public DbSet<DiscordIdMapping> DiscordIdMappings => Set<DiscordIdMapping>();
 
+    // Broadcast / streaming
+    public DbSet<Broadcast> Broadcasts => Set<Broadcast>();
+    public DbSet<BroadcastStageSlot> BroadcastStageSlots => Set<BroadcastStageSlot>();
+    public DbSet<StreamBot> StreamBots => Set<StreamBot>();
+    public DbSet<BroadcastStreambot> BroadcastStreambots => Set<BroadcastStreambot>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
