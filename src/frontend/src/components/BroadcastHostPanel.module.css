@@ -1,0 +1,435 @@
+.panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  min-height: 0;
+}
+
+/* ===== Idle state ===== */
+.idleWrap {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.heading {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-xcord-text-primary);
+}
+
+.subheading {
+  font-size: 0.875rem;
+  color: var(--color-xcord-text-muted);
+  margin: 0;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sectionHeading {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-xcord-text-secondary);
+  margin: 0;
+}
+
+.emptyText {
+  font-size: 0.875rem;
+  color: var(--color-xcord-text-muted);
+  margin: 0;
+}
+
+/* ===== Layout picker (idle, grid of cards) ===== */
+.layoutGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.layoutCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: var(--color-xcord-bg-secondary);
+  border: 2px solid var(--color-xcord-border);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: border-color 150ms, background-color 150ms;
+  color: var(--color-xcord-text-primary);
+}
+
+.layoutCard:hover {
+  background-color: var(--color-xcord-bg-accent);
+}
+
+.layoutCardActive {
+  border-color: var(--color-xcord-brand);
+  background-color: var(--color-xcord-bg-accent);
+}
+
+.layoutLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.layoutDesc {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  text-align: center;
+}
+
+.thumbWrap {
+  width: 96px;
+  height: 64px;
+  background-color: var(--color-xcord-bg-tertiary);
+  border-radius: 0.25rem;
+  padding: 4px;
+  overflow: hidden;
+}
+
+.thumbGrid {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+}
+
+.thumbCell {
+  background-color: var(--color-xcord-brand);
+  border-radius: 2px;
+  opacity: 0.7;
+}
+
+.thumbSpotlight {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.thumbMain {
+  flex: 1;
+  background-color: var(--color-xcord-brand);
+  border-radius: 2px;
+  opacity: 0.8;
+}
+
+.thumbRowSmall {
+  display: flex;
+  gap: 2px;
+  height: 16px;
+}
+
+.thumbSmall {
+  flex: 1;
+  background-color: var(--color-xcord-brand);
+  border-radius: 2px;
+  opacity: 0.5;
+}
+
+.thumbPip {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.thumbOverlay {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 30%;
+  height: 40%;
+  background-color: var(--color-xcord-brand);
+  opacity: 0.9;
+  border-radius: 2px;
+  border: 1px solid var(--color-xcord-bg-tertiary);
+}
+
+.thumbSbs {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  gap: 2px;
+}
+
+.thumbHalf {
+  flex: 1;
+  background-color: var(--color-xcord-brand);
+  border-radius: 2px;
+  opacity: 0.7;
+}
+
+/* ===== Streambot list ===== */
+.streambotList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.streambotRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-xcord-bg-secondary);
+  border-radius: 0.375rem;
+  border: 1px solid var(--color-xcord-border);
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.streambotRow:hover {
+  background-color: var(--color-xcord-bg-accent);
+}
+
+.streambotName {
+  flex: 1;
+  color: var(--color-xcord-text-primary);
+}
+
+.streambotPlatform {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-muted);
+}
+
+/* ===== Actions ===== */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.startButton {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background-color: var(--color-xcord-brand);
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.startButton:hover:not(:disabled) {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.startButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.errorMsg {
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-xcord-danger-bg);
+  color: var(--color-xcord-danger-text);
+  border: 1px solid var(--color-xcord-danger-border);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+/* ===== Live state ===== */
+.liveWrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.liveHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+  background-color: var(--color-xcord-bg-secondary);
+  flex-shrink: 0;
+}
+
+.liveTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.liveDot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+  background-color: var(--color-xcord-red);
+  box-shadow: 0 0 8px var(--color-xcord-red);
+  animation: livePulse 2s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.liveTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-xcord-text-primary);
+}
+
+.endButton {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background-color: var(--color-xcord-danger);
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.endButton:hover:not(:disabled) {
+  background-color: var(--color-xcord-danger-hover);
+}
+
+.endButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.liveBody {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1rem;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .liveBody {
+    grid-template-columns: 1fr;
+  }
+}
+
+.previewCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.previewWrap {
+  position: relative;
+  background-color: #000;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+}
+
+.previewVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background-color: #000;
+}
+
+.previewControls {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.5rem;
+}
+
+.controlButton {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.controlButton:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.controlButtonActive {
+  background-color: var(--color-xcord-danger);
+  border-color: var(--color-xcord-danger);
+}
+
+.streambotStatuses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.controlCol {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.layoutRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.layoutPill {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: var(--color-xcord-bg-secondary);
+  color: var(--color-xcord-text-primary);
+  border: 1px solid var(--color-xcord-border);
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background-color 150ms, border-color 150ms;
+}
+
+.layoutPill:hover {
+  background-color: var(--color-xcord-bg-accent);
+}
+
+.layoutPillActive {
+  background-color: var(--color-xcord-brand);
+  color: white;
+  border-color: var(--color-xcord-brand);
+}
+
+.stageGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.5rem;
+}
