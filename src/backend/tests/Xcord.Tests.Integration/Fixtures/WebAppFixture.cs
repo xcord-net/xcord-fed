@@ -185,6 +185,9 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseSetting("LiveKit:ApiKey", "test-key");
         builder.UseSetting("LiveKit:ApiSecret", "test-secret-that-is-long-enough-for-hmac");
         builder.UseSetting("LiveKit:Host", "ws://localhost:7880");
+        builder.UseSetting("LiveKit:HlsBaseUrl", "https://test.xcord.local/hls");
+        builder.UseSetting("LiveKit:EgressTemplateBaseUrl", "https://test.xcord.local");
+        builder.UseSetting("LiveKit:EgressServiceUrl", "http://localhost:7980");
         builder.UseSetting("Instance:Domain", "test.xcord.local");
         builder.UseSetting("Instance:Name", "Test Instance");
         builder.UseSetting("Snowflake:WorkerId", "1");
@@ -222,6 +225,15 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
                 .ToList();
             foreach (var d in storageDescriptors) services.Remove(d);
             services.AddSingleton<IStorageService, NullStorageService>();
+
+            // Replace the real LiveKit client with a fake that never contacts a LiveKit
+            // server, so broadcast/voice tests can exercise the full handler pipeline
+            // without external dependencies.
+            var liveKitDescriptors = services
+                .Where(d => d.ServiceType == typeof(ILiveKitService))
+                .ToList();
+            foreach (var d in liveKitDescriptors) services.Remove(d);
+            services.AddSingleton<ILiveKitService, FakeLiveKitService>();
 
             // Override DbContext to suppress PendingModelChangesWarning
             var dbDescriptor = services.SingleOrDefault(d =>
