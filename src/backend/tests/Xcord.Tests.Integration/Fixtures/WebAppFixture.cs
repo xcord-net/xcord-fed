@@ -61,7 +61,7 @@ public class WebAppFixture : IAsyncLifetime
             await db.Database.EnsureCreatedAsync();
 
             // Generate RSA key pair for JWT - private key encrypted at rest with DEK
-            using var rsa = RSA.Create(2048);
+            using var rsa = RSA.Create(3072);
             var privateKeyBase64 = Convert.ToBase64String(rsa.ExportRSAPrivateKey());
             _rsaPublicKeyBase64 = Convert.ToBase64String(rsa.ExportRSAPublicKey());
             var now = DateTimeOffset.UtcNow;

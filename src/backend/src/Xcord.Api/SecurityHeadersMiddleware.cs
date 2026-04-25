@@ -33,8 +33,8 @@ public sealed class SecurityHeadersMiddleware
                 $"default-src 'self'; " +
                 $"script-src 'self'; " +
                 $"connect-src 'self' wss: ws:; " +
-                $"img-src 'self' blob: data:; " +
-                $"style-src 'self' 'unsafe-inline'; " +
+                $"img-src 'self' blob:; " +
+                $"style-src 'self'; " +
                 $"media-src 'self' blob:; " +
                 $"font-src 'self'; " +
                 $"frame-ancestors {frameAncestors}");

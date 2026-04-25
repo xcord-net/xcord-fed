@@ -23,9 +23,13 @@ public sealed class UploadDataHandler : IEndpoint
             AppDbContext dbContext,
             IStorageService storageService,
             ICurrentUserService currentUserService,
+            IImageValidator imageValidator,
             HttpContext httpContext,
             CancellationToken ct) =>
         {
+            if (attachmentId <= 0)
+                return Results.Json(new { error = "VALIDATION_ERROR", message = "Invalid attachment id" }, statusCode: 400);
+
             var userIdResult = currentUserService.GetCurrentUserId();
             if (userIdResult.IsFailure)
                 return Results.Json(new { error = "UNAUTHORIZED", message = "User is not authenticated" }, statusCode: 401);
@@ -70,7 +74,21 @@ public sealed class UploadDataHandler : IEndpoint
                 return Results.Json(new { error = "FILE_TOO_LARGE", message = "File exceeds maximum size" }, statusCode: 413);
             }
 
-            await storageService.UploadAsync(attachment.S3Key, data, attachment.ContentType);
+            // For image uploads, parse and re-encode through ImageSharp before storage.
+            // This rejects polyglot files, mislabeled types, and HTML/SVG masquerading as images,
+            // and strips EXIF/ICC metadata. Non-image content types (audio, video, pdf, text/plain)
+            // pass through unchanged; the upload allowlist already excludes dangerous types.
+            var contentTypeToStore = attachment.ContentType;
+            if (imageValidator.IsImageContentType(attachment.ContentType))
+            {
+                var validation = await imageValidator.ValidateAndReencodeAsync(data, attachment.ContentType, ct);
+                if (validation.IsFailure)
+                    return Results.Json(new { error = validation.Error.Code, message = validation.Error.Message }, statusCode: validation.Error.StatusCode);
+                data = validation.Value.Bytes;
+                contentTypeToStore = validation.Value.ContentType;
+            }
+
+            await storageService.UploadAsync(attachment.S3Key, data, contentTypeToStore);
 
             return Results.Ok();
         })

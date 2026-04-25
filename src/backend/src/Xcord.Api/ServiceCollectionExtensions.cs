@@ -209,6 +209,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<Xcord.Features.Messages.IMessageProcessor, Xcord.Features.Messages.MessageProcessor>();
         services.AddSingleton<IStorageService, S3StorageService>();
         services.AddSingleton<IThumbnailService, ImageSharpThumbnailService>();
+        services.AddSingleton<IImageValidator, ImageSharpImageValidator>();
         services.AddSingleton<OutgoingWebhookEventQueue>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddSingleton<IEmailService, SmtpEmailService>();

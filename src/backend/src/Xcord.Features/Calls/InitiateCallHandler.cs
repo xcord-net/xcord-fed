@@ -4,9 +4,12 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using StackExchange.Redis;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Calls;
@@ -20,8 +23,12 @@ public sealed class InitiateCallHandler(
     SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
     INotificationService notificationService,
+    IConnectionMultiplexer redis,
+    IOptions<RedisOptions> redisOptions,
     ILogger<InitiateCallHandler> logger) : IRequestHandler<InitiateCallRequest, Result<InitiateCallResponse>>
 {
+    private readonly string _channelPrefix = redisOptions.Value.ChannelPrefix;
+
     public async Task<Result<InitiateCallResponse>> Handle(InitiateCallRequest request, CancellationToken cancellationToken)
     {
         var userIdResult = currentUserService.GetCurrentUserId();
@@ -64,6 +71,21 @@ public sealed class InitiateCallHandler(
 
         // Get the recipient (the other user in the DM)
         var recipientId = dmChannel.Members.First(m => m.UserId != currentUserId).UserId;
+
+        var minId = Math.Min(currentUserId, recipientId);
+        var maxId = Math.Max(currentUserId, recipientId);
+        var rateLimitKey = $"{_channelPrefix}:callinit:{minId}:{maxId}";
+        var redisDb = redis.GetDatabase();
+        var acquired = await redisDb.StringSetAsync(
+            rateLimitKey,
+            DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            TimeSpan.FromSeconds(10),
+            When.NotExists);
+
+        if (!acquired)
+        {
+            return Error.RateLimited("CALL_RATE_LIMITED", "Please wait before placing another call");
+        }
 
         var callId = snowflakeGenerator.NextId();
 

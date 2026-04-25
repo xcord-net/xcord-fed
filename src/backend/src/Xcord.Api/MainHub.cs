@@ -155,14 +155,16 @@ public class MainHub : Hub
             var channelId = voiceState.ChannelId;
             var wasStreaming = voiceState.IsStreaming;
 
-            // Remove VoiceState entity
+            var serverId = await context.Channels
+                .Where(c => c.Id == channelId)
+                .Select(c => c.ServerId)
+                .FirstOrDefaultAsync();
+
             context.VoiceStates.Remove(voiceState);
 
-            // Remove from SignalR voice group
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"voice:{channelId}");
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"voice:{serverId}:{channelId}");
 
-            // Broadcast state update to voice channel
-            await Clients.Group($"voice:{channelId}")
+            await Clients.Group($"voice:{serverId}:{channelId}")
                 .SendAsync("Voice_StateUpdated", new
                 {
                     userId = userId.Value,
@@ -170,10 +172,9 @@ public class MainHub : Hub
                     isConnected = false
                 });
 
-            // If user was streaming, broadcast stream ended
             if (wasStreaming)
             {
-                await Clients.Group($"voice:{channelId}")
+                await Clients.Group($"voice:{serverId}:{channelId}")
                     .SendAsync("Voice_StreamEnded", new
                     {
                         userId = userId.Value,
@@ -194,6 +195,11 @@ public class MainHub : Hub
 
     public async Task JoinConversation(long conversationId)
     {
+        if (conversationId <= 0)
+        {
+            throw new HubException("Invalid id");
+        }
+
         var userId = GetUserId();
         if (userId == null)
         {
@@ -235,6 +241,11 @@ public class MainHub : Hub
 
     public async Task LeaveConversation(long conversationId)
     {
+        if (conversationId <= 0)
+        {
+            throw new HubException("Invalid id");
+        }
+
         var userId = GetUserId();
         if (userId == null)
         {
@@ -250,6 +261,11 @@ public class MainHub : Hub
 
     public async Task StartTyping(long conversationId)
     {
+        if (conversationId <= 0)
+        {
+            throw new HubException("Invalid id");
+        }
+
         var userId = GetUserId();
         if (userId == null)
         {
@@ -396,6 +412,11 @@ public class MainHub : Hub
 
     public async Task<object> JoinVoiceChannel(long channelId)
     {
+        if (channelId <= 0)
+        {
+            throw new HubException("Invalid id");
+        }
+
         var userId = GetUserId();
         if (userId == null)
         {
@@ -414,6 +435,16 @@ public class MainHub : Hub
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
         var liveKitService = scope.ServiceProvider.GetRequiredService<ILiveKitService>();
+
+        var channel = await context.Channels
+            .FirstOrDefaultAsync(c => c.Id == channelId && c.DeletedAt == null);
+
+        if (channel == null)
+        {
+            throw new HubException("Channel not found");
+        }
+
+        var serverId = channel.ServerId;
 
         // Check Connect permission
         var permissionResult = await roleService.EnsureChannelRole(
@@ -444,12 +475,16 @@ public class MainHub : Hub
         if (existingState != null)
         {
             var oldChannelId = existingState.ChannelId;
+            var oldServerId = await context.Channels
+                .Where(c => c.Id == oldChannelId)
+                .Select(c => c.ServerId)
+                .FirstOrDefaultAsync();
             context.VoiceStates.Remove(existingState);
             await context.SaveChangesAsync();
 
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"voice:{oldChannelId}");
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"voice:{oldServerId}:{oldChannelId}");
 
-            await Clients.Group($"voice:{oldChannelId}")
+            await Clients.Group($"voice:{oldServerId}:{oldChannelId}")
                 .SendAsync("Voice_StateUpdated", new
                 {
                     userId = userId.Value,
@@ -507,11 +542,9 @@ public class MainHub : Hub
         context.VoiceStates.Add(voiceState);
         await context.SaveChangesAsync();
 
-        // Add to SignalR voice group
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"voice:{channelId}");
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"voice:{serverId}:{channelId}");
 
-        // Broadcast state update to voice channel
-        await Clients.Group($"voice:{channelId}")
+        await Clients.Group($"voice:{serverId}:{channelId}")
             .SendAsync("Voice_StateUpdated", new
             {
                 userId = userId.Value,
@@ -547,6 +580,11 @@ public class MainHub : Hub
 
     public async Task LeaveVoiceChannel(long channelId)
     {
+        if (channelId <= 0)
+        {
+            throw new HubException("Invalid id");
+        }
+
         var userId = GetUserId();
         if (userId == null)
         {
@@ -558,7 +596,6 @@ public class MainHub : Hub
         using var scope = _serviceScopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        // Find and remove VoiceState
         var voiceState = await context.VoiceStates
             .FirstOrDefaultAsync(vs => vs.UserId == userId.Value && vs.ChannelId == channelId);
 
@@ -568,14 +605,17 @@ public class MainHub : Hub
             return;
         }
 
+        var serverId = await context.Channels
+            .Where(c => c.Id == channelId)
+            .Select(c => c.ServerId)
+            .FirstOrDefaultAsync();
+
         context.VoiceStates.Remove(voiceState);
         await context.SaveChangesAsync();
 
-        // Remove from SignalR voice group
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"voice:{channelId}");
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"voice:{serverId}:{channelId}");
 
-        // Broadcast state update
-        await Clients.Group($"voice:{channelId}")
+        await Clients.Group($"voice:{serverId}:{channelId}")
             .SendAsync("Voice_StateUpdated", new
             {
                 userId = userId.Value,
@@ -588,6 +628,11 @@ public class MainHub : Hub
 
     public async Task UpdateVoiceState(long channelId, bool? isMuted, bool? isDeafened, bool? isStreaming)
     {
+        if (channelId <= 0)
+        {
+            throw new HubException("Invalid id");
+        }
+
         var userId = GetUserId();
         if (userId == null)
         {
@@ -600,7 +645,6 @@ public class MainHub : Hub
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
 
-        // Find VoiceState
         var voiceState = await context.VoiceStates
             .FirstOrDefaultAsync(vs => vs.UserId == userId.Value && vs.ChannelId == channelId);
 
@@ -608,6 +652,11 @@ public class MainHub : Hub
         {
             throw new HubException("Not in voice channel");
         }
+
+        var serverId = await context.Channels
+            .Where(c => c.Id == channelId)
+            .Select(c => c.ServerId)
+            .FirstOrDefaultAsync();
 
         // If isStreaming is being changed to true, check ShareScreen permission
         if (isStreaming == true && !voiceState.IsStreaming)
@@ -641,8 +690,7 @@ public class MainHub : Hub
 
         await context.SaveChangesAsync();
 
-        // Broadcast state update
-        await Clients.Group($"voice:{channelId}")
+        await Clients.Group($"voice:{serverId}:{channelId}")
             .SendAsync("Voice_StateUpdated", new
             {
                 userId = userId.Value,
@@ -661,6 +709,11 @@ public class MainHub : Hub
 
     public async Task<object> RefreshVoiceToken(long channelId)
     {
+        if (channelId <= 0)
+        {
+            throw new HubException("Invalid id");
+        }
+
         var userId = GetUserId();
         if (userId == null)
         {
@@ -674,7 +727,49 @@ public class MainHub : Hub
         var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
         var liveKitService = scope.ServiceProvider.GetRequiredService<ILiveKitService>();
 
-        // Verify user has VoiceState (still connected)
+        var channel = await context.Channels
+            .FirstOrDefaultAsync(c => c.Id == channelId && c.DeletedAt == null);
+
+        if (channel == null)
+        {
+            throw new HubException("Channel not found");
+        }
+
+        var serverId = channel.ServerId;
+
+        var connectResult = await roleService.EnsureChannelRole(
+            userId.Value,
+            channelId,
+            Role.Connect);
+
+        if (connectResult.IsFailure)
+        {
+            var staleState = await context.VoiceStates
+                .FirstOrDefaultAsync(vs => vs.UserId == userId.Value && vs.ChannelId == channelId);
+
+            if (staleState != null)
+            {
+                context.VoiceStates.Remove(staleState);
+                await context.SaveChangesAsync();
+
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"voice:{serverId}:{channelId}");
+
+                await Clients.Group($"voice:{serverId}:{channelId}")
+                    .SendAsync("Voice_StateUpdated", new
+                    {
+                        userId = userId.Value,
+                        channelId,
+                        isConnected = false
+                    });
+
+                _logger.LogInformation(
+                    "User {UserId} removed from voice channel {ChannelId} on Connect revocation during token refresh",
+                    userId, channelId);
+            }
+
+            throw new HubException("Forbidden");
+        }
+
         var voiceState = await context.VoiceStates
             .FirstOrDefaultAsync(vs => vs.UserId == userId.Value && vs.ChannelId == channelId);
 
@@ -683,7 +778,6 @@ public class MainHub : Hub
             throw new HubException("Not in voice channel");
         }
 
-        // Check if user still has ShareScreen permission
         var channelPerms = await roleService.GetChannelRoles(userId.Value, channelId);
         var canScreenShare = (channelPerms & (long)Role.ShareScreen) != 0;
 
@@ -735,6 +829,11 @@ public class MainHub : Hub
 
     public async Task StartStream(long channelId)
     {
+        if (channelId <= 0)
+        {
+            throw new HubException("Invalid id");
+        }
+
         var userId = GetUserId();
         if (userId == null)
         {
@@ -747,7 +846,6 @@ public class MainHub : Hub
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
 
-        // Verify user has VoiceState in channel (must be in voice)
         var voiceState = await context.VoiceStates
             .FirstOrDefaultAsync(vs => vs.UserId == userId.Value && vs.ChannelId == channelId);
 
@@ -755,6 +853,11 @@ public class MainHub : Hub
         {
             throw new HubException("Not in voice channel");
         }
+
+        var serverId = await context.Channels
+            .Where(c => c.Id == channelId)
+            .Select(c => c.ServerId)
+            .FirstOrDefaultAsync();
 
         // Verify ShareScreen permission
         var permissionResult = await roleService.EnsureChannelRole(
@@ -778,12 +881,10 @@ public class MainHub : Hub
             }
         }
 
-        // Set IsStreaming to true
         voiceState.IsStreaming = true;
         await context.SaveChangesAsync();
 
-        // Broadcast stream started to voice channel
-        await Clients.Group($"voice:{channelId}")
+        await Clients.Group($"voice:{serverId}:{channelId}")
             .SendAsync("Voice_StreamStarted", new
             {
                 userId = userId.Value,
@@ -795,6 +896,11 @@ public class MainHub : Hub
 
     public async Task StopStream(long channelId)
     {
+        if (channelId <= 0)
+        {
+            throw new HubException("Invalid id");
+        }
+
         var userId = GetUserId();
         if (userId == null)
         {
@@ -806,7 +912,6 @@ public class MainHub : Hub
         using var scope = _serviceScopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        // Verify user has VoiceState in channel
         var voiceState = await context.VoiceStates
             .FirstOrDefaultAsync(vs => vs.UserId == userId.Value && vs.ChannelId == channelId);
 
@@ -815,12 +920,15 @@ public class MainHub : Hub
             throw new HubException("Not in voice channel");
         }
 
-        // Set IsStreaming to false
+        var serverId = await context.Channels
+            .Where(c => c.Id == channelId)
+            .Select(c => c.ServerId)
+            .FirstOrDefaultAsync();
+
         voiceState.IsStreaming = false;
         await context.SaveChangesAsync();
 
-        // Broadcast stream ended to voice channel
-        await Clients.Group($"voice:{channelId}")
+        await Clients.Group($"voice:{serverId}:{channelId}")
             .SendAsync("Voice_StreamEnded", new
             {
                 userId = userId.Value,

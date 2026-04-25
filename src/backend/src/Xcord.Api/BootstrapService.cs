@@ -361,24 +361,28 @@ public static class BootstrapService
         var wrappedDbKey = db.SystemSettings.FirstOrDefault(s => s.Key == "WrappedEncryptionKey");
         var plaintextDbKey = db.SystemSettings.FirstOrDefault(s => s.Key == "EncryptionKey");
 
+        // Production guard: refuse to start without KEK unless explicitly opted out.
+        // This must run BEFORE any DB write or DEK generation so we cannot accidentally
+        // persist a plaintext DEK in production.
+        if (kek == null && app.Environment.IsProduction())
+        {
+            var allowPlaintext = config.GetValue<bool>("Encryption:AllowPlaintextDek", false);
+            if (!allowPlaintext)
+            {
+                throw new InvalidOperationException(
+                    "Production environment requires a configured KEK (Encryption:Kek setting). " +
+                    "Plaintext DEK is not allowed. " +
+                    "Provide a KEK via /run/secrets/xcord-kek or Encryption:Kek config. " +
+                    "To accept the risk of plaintext DEK storage, set Encryption:AllowPlaintextDek=true.");
+            }
+        }
+
         if (kek != null)
         {
             await InitializeWithKekAsync(db, encKeyHolder, kek, configKey, wrappedDbKey, plaintextDbKey);
         }
         else
         {
-            // In Production, refuse to start without KEK unless explicitly opted out
-            if (app.Environment.IsProduction())
-            {
-                var allowPlaintext = config.GetValue<bool>("Encryption:AllowPlaintextDek", false);
-                if (!allowPlaintext)
-                {
-                    throw new InvalidOperationException(
-                        "Production environment requires a KEK (Key Encryption Key) for envelope encryption. " +
-                        "Provide a KEK via /run/secrets/xcord-kek or Encryption:Kek config. " +
-                        "To accept the risk of plaintext DEK storage, set Encryption:AllowPlaintextDek=true.");
-                }
-            }
             await InitializeWithoutKekAsync(db, encKeyHolder, configKey, wrappedDbKey, plaintextDbKey);
         }
     }

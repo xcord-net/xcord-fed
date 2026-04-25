@@ -6,8 +6,19 @@ interface HubHeaderProps {
   instanceUrl: string;
 }
 
+const HUB_KEY_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+
 export default function HubHeader(props: HubHeaderProps) {
   const [hubKey, setHubKey] = createSignal<string | null>(null);
+  let iframeRef: HTMLIFrameElement | undefined;
+
+  // Pin to the hub origin we already trust at runtime; federation precludes a static allowlist.
+  let expectedOrigin: string | null = null;
+  try {
+    expectedOrigin = new URL(props.hubUrl).origin;
+  } catch {
+    expectedOrigin = null;
+  }
 
   onMount(async () => {
     try {
@@ -19,11 +30,15 @@ export default function HubHeader(props: HubHeaderProps) {
   });
 
   const handleMessage = (event: MessageEvent) => {
-    if (event.data?.type === 'xcord_hub_key' && event.data.hubKey) {
-      const key = event.data.hubKey;
-      setHubKey(key);
-      api.put('/api/v1/users/@me/hub-key', { hubKey: key }).catch(() => {});
-    }
+    if (expectedOrigin === null) return;
+    if (event.origin !== expectedOrigin) return;
+    if (event.source !== iframeRef?.contentWindow) return;
+    const data = event.data;
+    if (!data || data.type !== 'xcord_hub_key') return;
+    const key = data.hubKey;
+    if (typeof key !== 'string' || !HUB_KEY_PATTERN.test(key)) return;
+    setHubKey(key);
+    api.put('/api/v1/users/@me/hub-key', { hubKey: key }).catch(() => {});
   };
 
   onMount(() => window.addEventListener('message', handleMessage));
@@ -39,6 +54,7 @@ export default function HubHeader(props: HubHeaderProps) {
 
   return (
     <iframe
+      ref={iframeRef}
       src={iframeSrc()}
       style={{
         width: '100%',

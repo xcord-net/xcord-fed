@@ -91,7 +91,7 @@ public class CrossServerTokenTests
     /// </summary>
     private static string GenerateForeignInstanceToken(long userId)
     {
-        using var foreignRsa = RSA.Create(2048);
+        using var foreignRsa = RSA.Create(3072);
 
         var claims = new List<Claim>
         {
@@ -124,7 +124,7 @@ public class CrossServerTokenTests
     /// </summary>
     private static string GenerateForeignTwoFactorToken(long userId)
     {
-        using var foreignRsa = RSA.Create(2048);
+        using var foreignRsa = RSA.Create(3072);
 
         var claims = new List<Claim>
         {

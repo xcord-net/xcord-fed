@@ -31,10 +31,10 @@ public sealed class GetWsTicketHandler(
             .Replace("/", "_")
             .Replace("=", "");
 
-        // Store in Redis with 30 second TTL
+        // Store in Redis with 5 minute TTL
         var db = redis.GetDatabase();
         var ticketKey = $"{_channelPrefix}:wsticket:{ticket}";
-        await db.StringSetAsync(ticketKey, request.UserId.ToString(), TimeSpan.FromSeconds(30));
+        await db.StringSetAsync(ticketKey, request.UserId.ToString(), TimeSpan.FromMinutes(5));
 
         return Result<string>.Success(ticket);
     }

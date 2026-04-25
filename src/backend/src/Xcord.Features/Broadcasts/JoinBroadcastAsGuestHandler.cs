@@ -57,19 +57,17 @@ public sealed class JoinBroadcastAsGuestHandler(
                 "BROADCAST_NOT_ACTIVE",
                 "Cannot join a broadcast that is not Starting or Live");
 
-        // Screen share gated on the same server permission as voice channels.
-        var channelPerms = await roleService.GetChannelRoles(userId, broadcast.ChannelId);
-        var canScreenShare = (channelPerms & (long)Role.ShareScreen) != 0;
-
         var roomName = egressBuilder.BuildRoomName(broadcast.ChannelId);
 
+        // Guest token is spectator-only; stage-slot promotion must re-issue with
+        // publish grants so a viewer cannot push tracks before the host adds them.
         var token = livekitService.GenerateToken(
             userId: userId,
             roomName: roomName,
-            canPublish: true,
+            canPublish: false,
             canSubscribe: true,
-            canPublishData: true,
-            canScreenShare: canScreenShare,
+            canPublishData: false,
+            canScreenShare: false,
             ttl: TimeSpan.FromHours(2));
 
         logger.LogInformation(

@@ -33,7 +33,9 @@ public sealed class LoginHandler(
     : IRequestHandler<LoginRequest, Result<object>>, IValidatable<LoginRequest>
 {
     private const int MaxFailedAttempts = 5;
+    private const int Max2FaCodesPerWindow = 3;
     private static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan TwoFactorIssueWindow = TimeSpan.FromMinutes(5);
 
     public Error? Validate(LoginRequest request)
     {
@@ -98,6 +100,20 @@ public sealed class LoginHandler(
         // If 2FA enabled, generate code and return 2FA required response
         if (user.TwoFactorEnabled)
         {
+            // Per-user rate limit on 2FA code issuance: max 3 codes per 5-minute window
+            var twoFactorRateLimitKey = $"{redisOptions.Value.ChannelPrefix}:2fa_codes:{user.Id}";
+            var issueCount = await db.StringIncrementAsync(twoFactorRateLimitKey);
+            if (issueCount == 1)
+            {
+                await db.KeyExpireAsync(twoFactorRateLimitKey, TwoFactorIssueWindow);
+            }
+            if (issueCount > Max2FaCodesPerWindow)
+            {
+                return Error.RateLimited(
+                    "TOO_MANY_2FA_REQUESTS",
+                    "Please wait before requesting another verification code");
+            }
+
             var twoFactorCode = GenerateTwoFactorCode();
             var now = DateTimeOffset.UtcNow;
 

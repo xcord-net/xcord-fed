@@ -156,9 +156,42 @@ public sealed class GiphyGifService : IGifService
                     height = heightElement.GetInt32();
             }
 
+            // Validate URLs before passthrough; drop entry entirely if either URL is invalid.
+            if (!IsValidGifUrl(url) || !IsValidGifUrl(previewUrl))
+            {
+                _logger.LogWarning("Dropping Giphy result {Id} due to invalid URL", id);
+                continue;
+            }
+
             items.Add(new GifItem(id, title, url, previewUrl, width, height));
         }
 
         return new GifSearchResult(items);
+    }
+
+    /// <summary>
+    /// Validates that a URL is a safe HTTPS URL pointing at a known Giphy host.
+    /// Rejects null/empty, non-absolute URLs, non-https schemes (no data:, javascript:, http:),
+    /// and hosts that are not under giphy.com.
+    /// </summary>
+    private static bool IsValidGifUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return false;
+
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            return false;
+
+        if (!string.Equals(uri.Scheme, "https", StringComparison.Ordinal))
+            return false;
+
+        var host = uri.Host;
+        if (string.IsNullOrEmpty(host))
+            return false;
+
+        // Allowlist Giphy hostnames (giphy.com and any subdomain such as media.giphy.com,
+        // media0.giphy.com, i.giphy.com, etc.).
+        return host.Equals("giphy.com", StringComparison.OrdinalIgnoreCase)
+            || host.EndsWith(".giphy.com", StringComparison.OrdinalIgnoreCase);
     }
 }

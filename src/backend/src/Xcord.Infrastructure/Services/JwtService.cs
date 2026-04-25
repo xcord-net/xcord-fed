@@ -83,7 +83,7 @@ public sealed class JwtService : IJwtService
         else
         {
             // First boot: generate new RSA key pair, encrypt private key
-            using var rsa = RSA.Create(2048);
+            using var rsa = RSA.Create(3072);
             var privateKey = Convert.ToBase64String(rsa.ExportRSAPrivateKey());
             var publicKey = Convert.ToBase64String(rsa.ExportRSAPublicKey());
 
@@ -192,7 +192,7 @@ public sealed class JwtService : IJwtService
                 ValidateAudience = true,
                 ValidAudience = _jwtOptions.Audience,
                 ValidateLifetime = true,
-                ClockSkew = TimeSpan.FromSeconds(30)
+                ClockSkew = TimeSpan.FromSeconds(5)
             };
 
             var principal = tokenHandler.ValidateToken(token, validationParams, out _);

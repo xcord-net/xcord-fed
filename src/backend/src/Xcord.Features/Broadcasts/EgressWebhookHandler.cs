@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 using Xcord.Entities;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Options;
@@ -30,6 +31,8 @@ public sealed class EgressWebhookHandler : IEndpoint
             [FromServices] AppDbContext dbContext,
             [FromServices] INotificationService notificationService,
             [FromServices] IOptions<LiveKitOptions> livekitOptions,
+            [FromServices] IConnectionMultiplexer redis,
+            [FromServices] IOptions<RedisOptions> redisOptions,
             [FromServices] ILogger<EgressWebhookHandler> logger,
             CancellationToken ct) =>
         {
@@ -82,6 +85,22 @@ public sealed class EgressWebhookHandler : IEndpoint
                 return Results.BadRequest();
             }
 
+            // Replay protection: LiveKit retries webhooks on non-2xx responses, and a
+            // captured-and-replayed JWT remains valid for its full lifetime. NX-set a
+            // per-(egress,event) marker so each event is applied at most once.
+            var redisDb = redis.GetDatabase();
+            var idempotencyKey =
+                $"{redisOptions.Value.ChannelPrefix}:lk_egress:{egressId}:{evt.Event}";
+            var firstDelivery = await redisDb.StringSetAsync(
+                idempotencyKey, "1", TimeSpan.FromMinutes(10), When.NotExists);
+            if (!firstDelivery)
+            {
+                logger.LogDebug(
+                    "Egress webhook replay suppressed for egress {EgressId} event {Event}",
+                    egressId, evt.Event);
+                return Results.Ok();
+            }
+
             var broadcast = await dbContext.Broadcasts
                 .Include(b => b.Channel)
                 .FirstOrDefaultAsync(b => b.EgressJobId == egressId, ct);
@@ -101,27 +120,51 @@ public sealed class EgressWebhookHandler : IEndpoint
             switch (evt.Event)
             {
                 case "egress_started":
+                    // A Live, Ended, or Failed broadcast must never regress to Starting/Live
+                    // from a stale or replayed start event. Only honor this transition out of
+                    // the Starting state.
                     if (broadcast.Status == BroadcastStatus.Starting)
                     {
                         broadcast.Status = BroadcastStatus.Live;
                         broadcastChanged = true;
                     }
-                    break;
-
-                case "egress_ended":
-                    if (broadcast.Status != BroadcastStatus.Ended)
+                    else
                     {
-                        broadcast.Status = BroadcastStatus.Ended;
-                        broadcast.EndedAt = now;
-                        broadcastChanged = true;
-                        await MarkActiveStreambotsAsync(
-                            dbContext, broadcast.Id,
-                            BroadcastStreambotStatus.Ended,
-                            lastError: null, now, ct);
+                        logger.LogWarning(
+                            "Ignoring egress_started for broadcast {BroadcastId} in status {Status}",
+                            broadcast.Id, broadcast.Status);
                     }
                     break;
 
+                case "egress_ended":
+                    if (broadcast.Status == BroadcastStatus.Ended
+                        || broadcast.Status == BroadcastStatus.Failed)
+                    {
+                        logger.LogDebug(
+                            "Ignoring egress_ended for broadcast {BroadcastId} already in terminal status {Status}",
+                            broadcast.Id, broadcast.Status);
+                        break;
+                    }
+                    broadcast.Status = BroadcastStatus.Ended;
+                    broadcast.EndedAt = now;
+                    broadcastChanged = true;
+                    await MarkActiveStreambotsAsync(
+                        dbContext, broadcast.Id,
+                        BroadcastStreambotStatus.Ended,
+                        lastError: null, now, ct);
+                    break;
+
                 case "egress_failed":
+                    // Don't overwrite a cleanly Ended broadcast with a late Failed event.
+                    // Both Ended and Failed are terminal; first writer wins.
+                    if (broadcast.Status == BroadcastStatus.Ended
+                        || broadcast.Status == BroadcastStatus.Failed)
+                    {
+                        logger.LogWarning(
+                            "Ignoring egress_failed for broadcast {BroadcastId} already in terminal status {Status}",
+                            broadcast.Id, broadcast.Status);
+                        break;
+                    }
                     broadcast.Status = BroadcastStatus.Failed;
                     broadcast.EndedAt = now;
                     broadcastChanged = true;

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
+using System.Security.Claims;
 using Xcord.Infrastructure.Options;
 
 namespace Xcord.Api;
@@ -33,36 +34,36 @@ public class HubRateLimitFilter : IHubFilter
         Func<HubInvocationContext, ValueTask<object?>> next)
     {
         var connectionId = invocationContext.Context.ConnectionId;
-        var key = $"{_channelPrefix}:hubrate:{connectionId}";
+        var userIdentifier = invocationContext.Context.UserIdentifier
+            ?? invocationContext.Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var rateKeyPart = !string.IsNullOrEmpty(userIdentifier)
+            ? $"user:{userIdentifier}"
+            : $"conn:{connectionId}";
+        var key = $"{_channelPrefix}:hubrate:{rateKeyPart}";
         var db = _redis.GetDatabase();
 
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var windowStart = now - WindowSeconds;
 
-        // Remove old entries outside the window
         await db.SortedSetRemoveRangeByScoreAsync(key, 0, windowStart);
 
-        // Get current count in window
         var count = await db.SortedSetLengthAsync(key);
 
         if (count >= MaxInvocations)
         {
             _logger.LogWarning(
-                "Rate limit exceeded for connection {ConnectionId} on method {Method}",
-                connectionId,
-                invocationContext.HubMethodName);
+                "Rate limit exceeded for {RateKey} on method {Method} (connection {ConnectionId})",
+                rateKeyPart,
+                invocationContext.HubMethodName,
+                connectionId);
 
-            // Send error to caller, do NOT disconnect
             throw new HubException("Rate limit exceeded. Please slow down.");
         }
 
-        // Add current invocation to sorted set
         await db.SortedSetAddAsync(key, Guid.NewGuid().ToString(), now);
 
-        // Set expiry on the key to clean up after window expires
         await db.KeyExpireAsync(key, TimeSpan.FromSeconds(WindowSeconds * 2));
 
-        // Continue with the invocation
         return await next(invocationContext);
     }
 }
