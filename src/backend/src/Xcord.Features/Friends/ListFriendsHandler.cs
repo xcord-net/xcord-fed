@@ -14,18 +14,29 @@ namespace Xcord.Features.Friends;
 public sealed record ListFriendsRequest(
     FriendshipStatus Status = FriendshipStatus.Accepted,
     int Limit = 100,
-    long? Before = null
+    string? Cursor = null
+);
+
+public sealed record ListFriendsResponse(
+    List<FriendshipDto> Friendships,
+    string? NextCursor = null
 );
 
 public sealed class ListFriendsHandler(
     AppDbContext dbContext,
-    ICurrentUserService currentUserService) : IRequestHandler<ListFriendsRequest, Result<List<FriendshipDto>>>
+    ICurrentUserService currentUserService,
+    ICursorService cursorService) : IRequestHandler<ListFriendsRequest, Result<ListFriendsResponse>>
 {
-    public async Task<Result<List<FriendshipDto>>> Handle(ListFriendsRequest request, CancellationToken cancellationToken)
+    public async Task<Result<ListFriendsResponse>> Handle(ListFriendsRequest request, CancellationToken cancellationToken)
     {
         var userIdResult = currentUserService.GetCurrentUserId();
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
+
+        // Decode opaque cursor (returns null when no cursor was supplied)
+        var cursorResult = cursorService.Decode(request.Cursor);
+        if (cursorResult.IsFailure) return cursorResult.Error;
+        var beforeId = cursorResult.Value;
 
         var limit = Math.Clamp(request.Limit, 1, 200);
 
@@ -37,9 +48,9 @@ public sealed class ListFriendsHandler(
                 (f.SenderId == userId || f.ReceiverId == userId) &&
                 f.Status == request.Status);
 
-        if (request.Before.HasValue)
+        if (beforeId.HasValue)
         {
-            query = query.Where(f => f.Id < request.Before.Value);
+            query = query.Where(f => f.Id < beforeId.Value);
         }
 
         var friendships = await query
@@ -62,7 +73,11 @@ public sealed class ListFriendsHandler(
             f.CreatedAt
         )).ToList();
 
-        return dtos;
+        var nextCursor = dtos.Count == limit && dtos.Count > 0
+            ? cursorService.Encode(dtos[^1].Id)
+            : null;
+
+        return new ListFriendsResponse(Friendships: dtos, NextCursor: nextCursor);
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app) =>
@@ -70,14 +85,14 @@ public sealed class ListFriendsHandler(
             [FromServices] ListFriendsHandler handler,
             FriendshipStatus? status,
             int? limit,
-            long? before,
+            string? cursor,
             CancellationToken ct) =>
         {
             return await handler.ExecuteAsync(
                 new ListFriendsRequest(
                     Status: status ?? FriendshipStatus.Accepted,
                     Limit: limit ?? 100,
-                    Before: before),
+                    Cursor: cursor),
                 ct);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)

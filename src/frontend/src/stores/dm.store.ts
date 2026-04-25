@@ -66,9 +66,12 @@ export function useDms() {
     async loadDms(): Promise<void> {
       store.setIsLoading(true);
       try {
-        // Backend returns DmChannelDto[] - a flat array with a Members property.
+        // Backend returns ListDmsResponse: { dmChannels: DmChannelDto[], nextCursor?: string | null }.
         // We map each entry to DmChannel (1:1) or DmGroup (group) based on isGroup.
-        const raw = await api.get<RawDmChannelDto[]>('/api/v1/users/@me/dms');
+        const response = await api.get<{ dmChannels: RawDmChannelDto[]; nextCursor?: string | null }>(
+          '/api/v1/users/@me/dms',
+        );
+        const raw = response.dmChannels ?? [];
         // Get current user ID from the auth store.
         const currentUserId = useAuth().user?.id;
         const channels: DmChannel[] = [];

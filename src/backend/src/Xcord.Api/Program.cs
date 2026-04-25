@@ -74,6 +74,7 @@ app.Use(async (context, next) =>
 });
 
 app.UseAuthentication();
+app.UseCsrfHeader();
 app.UseAuthorization();
 app.UseStaticFiles();
 

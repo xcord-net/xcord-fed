@@ -196,7 +196,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IKekProvider, FileKekProvider>();
         services.AddSingleton<EncryptionKeyHolder>();
         services.AddSingleton<IEncryptionService>(sp =>
-            new PgCryptoEncryptionService(sp.GetRequiredService<EncryptionKeyHolder>().Key));
+            new PgCryptoEncryptionService(sp.GetRequiredService<EncryptionKeyHolder>()));
+        services.AddScoped<IKeyRotationService, KeyRotationService>();
+        services.AddSingleton<ICursorService, CursorService>();
 
         services.AddScoped<IJwtService, JwtService>();
         services.AddSingleton<RsaKeySingleton>();
@@ -346,14 +348,14 @@ public static class ServiceCollectionExtensions
                     var allOrigins = corsOpts.AllowedOrigins.Concat(MobileOrigins).ToArray();
                     policy.WithOrigins(allOrigins)
                         .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH")
-                        .WithHeaders("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin")
+                        .WithHeaders("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "X-Xcord-Request")
                         .AllowCredentials();
                 }
                 else
                 {
                     policy.AllowAnyOrigin()
                         .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH")
-                        .WithHeaders("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin");
+                        .WithHeaders("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "X-Xcord-Request");
                 }
             });
         });
@@ -363,6 +365,37 @@ public static class ServiceCollectionExtensions
     {
         var jwtOpts = config.GetSection(JwtOptions.SectionName)
             .Get<JwtOptions>() ?? throw new InvalidOperationException("JWT configuration is required");
+
+        var hubOpts = config.GetSection(HubOptions.SectionName).Get<HubOptions>() ?? new HubOptions();
+
+        // Pre-load the pinned hub public key (if any). Pinning is per-instance: the
+        // operator (or the registration handshake) configures Hub:HubPublicKey and
+        // Hub:HubIssuer when this instance federates with a hub. If neither is set,
+        // any token with a hub issuer claim is rejected outright in the resolver
+        // below. We do not fall back to "trust any RSA key with a matching iss
+        // claim" -- that was the MED-3 vulnerability.
+        Microsoft.IdentityModel.Tokens.RsaSecurityKey? pinnedHubKey = null;
+        if (!string.IsNullOrWhiteSpace(hubOpts.HubPublicKey))
+        {
+            try
+            {
+                var rsa = System.Security.Cryptography.RSA.Create();
+                rsa.ImportFromPem(hubOpts.HubPublicKey);
+                pinnedHubKey = new Microsoft.IdentityModel.Tokens.RsaSecurityKey(rsa);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    "Hub:HubPublicKey is set but could not be parsed as a PEM-encoded public key. " +
+                    "Expected a SubjectPublicKeyInfo block (-----BEGIN PUBLIC KEY-----).", ex);
+            }
+        }
+
+        var validIssuers = new List<string> { jwtOpts.Issuer };
+        if (!string.IsNullOrWhiteSpace(hubOpts.HubIssuer) && pinnedHubKey != null)
+        {
+            validIssuers.Add(hubOpts.HubIssuer);
+        }
 
         services.AddAuthentication(options =>
         {
@@ -377,10 +410,41 @@ public static class ServiceCollectionExtensions
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = jwtOpts.Issuer,
+                ValidIssuers = validIssuers,
                 ValidAudience = jwtOpts.Audience,
                 ClockSkew = TimeSpan.FromSeconds(30),
-                NameClaimType = "sub"
+                NameClaimType = "sub",
+
+                // Pin signing keys per-issuer. Tokens with the local instance issuer
+                // are validated against the local RSA public key (loaded later via
+                // BootstrapService); tokens with the configured hub issuer must be
+                // signed by the pinned hub public key. Any other issuer is rejected
+                // (ValidateIssuer also enforces this; the resolver additionally
+                // returns no keys so signature validation fails defensively).
+                IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
+                {
+                    var issuer = securityToken?.Issuer;
+
+                    if (issuer == jwtOpts.Issuer)
+                    {
+                        // Local instance: use whichever key BootstrapService has
+                        // installed on TokenValidationParameters.IssuerSigningKey.
+                        return parameters.IssuerSigningKey != null
+                            ? new[] { parameters.IssuerSigningKey }
+                            : Array.Empty<Microsoft.IdentityModel.Tokens.SecurityKey>();
+                    }
+
+                    if (pinnedHubKey != null
+                        && !string.IsNullOrWhiteSpace(hubOpts.HubIssuer)
+                        && issuer == hubOpts.HubIssuer)
+                    {
+                        return new Microsoft.IdentityModel.Tokens.SecurityKey[] { pinnedHubKey };
+                    }
+
+                    // Unknown issuer (including the hub issuer when no key is
+                    // pinned): reject by returning no keys.
+                    return Array.Empty<Microsoft.IdentityModel.Tokens.SecurityKey>();
+                }
             };
 
             // Route "Authorization: Bot ..." requests to the Bot auth handler

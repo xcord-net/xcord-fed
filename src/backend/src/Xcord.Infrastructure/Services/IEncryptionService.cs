@@ -25,4 +25,14 @@ public interface IEncryptionService
     /// <param name="value">The value to hash.</param>
     /// <returns>HMAC-SHA256 hash bytes.</returns>
     byte[] ComputeHmac(string value);
+
+    /// <summary>
+    /// Computes HMAC-SHA256 over the supplied bytes using an instance-stable
+    /// signing key dedicated to opaque cursor pagination tokens. The key is
+    /// derived from the same root encryption key but kept domain-separate from
+    /// the blind-index HMAC and the data encryption key.
+    /// </summary>
+    /// <param name="data">The bytes to authenticate.</param>
+    /// <returns>HMAC-SHA256 hash bytes (32 bytes).</returns>
+    byte[] ComputeCursorHmac(byte[] data);
 }

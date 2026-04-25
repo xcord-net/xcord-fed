@@ -391,63 +391,69 @@ public static class BootstrapService
         AppDbContext db, EncryptionKeyHolder encKeyHolder, byte[] kek,
         string? configKey, SystemSetting? wrappedDbKey, SystemSetting? plaintextDbKey)
     {
+        // 1. If the new keyring table already has rows, load them all.
+        var existingKeys = await db.EncryptedDataKeys
+            .OrderBy(k => k.Version)
+            .ToListAsync();
+
+        if (existingKeys.Count > 0)
+        {
+            foreach (var keyRow in existingKeys)
+            {
+                var dekBytes = KeyWrappingService.UnwrapDek(keyRow.WrappedKey, kek);
+                encKeyHolder.AddKey(
+                    version: (byte)keyRow.Version,
+                    keyMaterial: Convert.ToBase64String(dekBytes),
+                    isActive: keyRow.IsActive);
+            }
+            Log.Information(
+                "Loaded {Count} encryption key version(s) from encrypted_data_keys; active version is {Active}",
+                existingKeys.Count, encKeyHolder.ActiveVersion);
+            return;
+        }
+
+        // 2. Migration paths from the legacy single-row SystemSettings storage.
+        //    Each branch produces version 1 in the new keyring AND removes the
+        //    legacy row so subsequent boots take the keyring path above.
+        byte[] seedDek;
+        string seedSource;
+
         if (wrappedDbKey != null)
         {
-            // Normal restart: unwrap DEK from DB
-            var wrappedBytes = Convert.FromBase64String(wrappedDbKey.Value);
-            var dekBytes = KeyWrappingService.UnwrapDek(wrappedBytes, kek);
-            encKeyHolder.SetKey(Convert.ToBase64String(dekBytes));
-            Log.Information("Encryption key unwrapped from database using KEK");
+            seedDek = KeyWrappingService.UnwrapDek(Convert.FromBase64String(wrappedDbKey.Value), kek);
+            db.SystemSettings.Remove(wrappedDbKey);
+            seedSource = "WrappedEncryptionKey";
         }
         else if (plaintextDbKey != null)
         {
-            // Migration: wrap existing plaintext DEK with KEK
-            var dekBytes = Convert.FromBase64String(plaintextDbKey.Value);
-            var wrappedBytes = KeyWrappingService.WrapDek(dekBytes, kek);
-            db.SystemSettings.Add(new SystemSetting
-            {
-                Key = "WrappedEncryptionKey",
-                Value = Convert.ToBase64String(wrappedBytes),
-                CreatedAt = DateTimeOffset.UtcNow,
-                UpdatedAt = DateTimeOffset.UtcNow
-            });
+            seedDek = Convert.FromBase64String(plaintextDbKey.Value);
             db.SystemSettings.Remove(plaintextDbKey);
-            await db.SaveChangesAsync();
-            encKeyHolder.SetKey(plaintextDbKey.Value);
-            Log.Information("Migrated plaintext encryption key to envelope encryption");
+            seedSource = "EncryptionKey (plaintext, will be envelope-encrypted)";
         }
         else if (!string.IsNullOrEmpty(configKey))
         {
-            // Migration: wrap config-provided DEK with KEK
-            var dekBytes = Convert.FromBase64String(configKey);
-            var wrappedBytes = KeyWrappingService.WrapDek(dekBytes, kek);
-            db.SystemSettings.Add(new SystemSetting
-            {
-                Key = "WrappedEncryptionKey",
-                Value = Convert.ToBase64String(wrappedBytes),
-                CreatedAt = DateTimeOffset.UtcNow,
-                UpdatedAt = DateTimeOffset.UtcNow
-            });
-            await db.SaveChangesAsync();
-            encKeyHolder.SetKey(configKey);
-            Log.Information("Wrapped config encryption key with KEK and stored in database");
+            seedDek = Convert.FromBase64String(configKey);
+            seedSource = "Encryption:EncryptionKey config";
         }
         else
         {
-            // First boot with KEK: generate DEK, wrap it, store wrapped
-            var dekBytes = System.Security.Cryptography.RandomNumberGenerator.GetBytes(32);
-            var wrappedBytes = KeyWrappingService.WrapDek(dekBytes, kek);
-            db.SystemSettings.Add(new SystemSetting
-            {
-                Key = "WrappedEncryptionKey",
-                Value = Convert.ToBase64String(wrappedBytes),
-                CreatedAt = DateTimeOffset.UtcNow,
-                UpdatedAt = DateTimeOffset.UtcNow
-            });
-            await db.SaveChangesAsync();
-            encKeyHolder.SetKey(Convert.ToBase64String(dekBytes));
-            Log.Information("Generated new encryption key (envelope-encrypted) on first boot");
+            seedDek = System.Security.Cryptography.RandomNumberGenerator.GetBytes(32);
+            seedSource = "newly generated";
         }
+
+        var wrappedSeed = KeyWrappingService.WrapDek(seedDek, kek);
+        db.EncryptedDataKeys.Add(new EncryptedDataKey
+        {
+            Version = 1,
+            WrappedKey = wrappedSeed,
+            IsActive = true,
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+
+        await db.SaveChangesAsync();
+
+        encKeyHolder.AddKey(version: 1, keyMaterial: Convert.ToBase64String(seedDek), isActive: true);
+        Log.Information("Encryption keyring initialized at version 1 (source: {Source})", seedSource);
     }
 
     private static async Task InitializeWithoutKekAsync(
@@ -458,6 +464,13 @@ public static class BootstrapService
         {
             throw new InvalidOperationException(
                 "Database contains a wrapped encryption key (WrappedEncryptionKey) but no KEK is configured. " +
+                "Provide the KEK via /run/secrets/xcord-kek or Encryption:Kek config.");
+        }
+
+        if (await db.EncryptedDataKeys.AnyAsync())
+        {
+            throw new InvalidOperationException(
+                "Database contains wrapped DEKs in encrypted_data_keys but no KEK is configured. " +
                 "Provide the KEK via /run/secrets/xcord-kek or Encryption:Kek config.");
         }
 

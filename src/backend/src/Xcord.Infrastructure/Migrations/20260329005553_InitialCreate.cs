@@ -131,6 +131,20 @@ namespace Xcord.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "encrypted_data_keys",
+                columns: table => new
+                {
+                    Version = table.Column<int>(type: "integer", nullable: false),
+                    WrappedKey = table.Column<byte[]>(type: "bytea", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_encrypted_data_keys", x => x.Version);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "email_confirmation_tokens",
                 columns: table => new
                 {
@@ -2433,6 +2447,13 @@ namespace Xcord.Infrastructure.Migrations
                 column: "ExpiresAt");
 
             migrationBuilder.CreateIndex(
+                name: "IX_encrypted_data_keys_IsActive_Unique",
+                table: "encrypted_data_keys",
+                column: "IsActive",
+                unique: true,
+                filter: "\"IsActive\" = true");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_email_confirmation_tokens_UserId",
                 table: "email_confirmation_tokens",
                 column: "UserId");
@@ -3181,6 +3202,9 @@ namespace Xcord.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "email_confirmation_tokens");
+
+            migrationBuilder.DropTable(
+                name: "encrypted_data_keys");
 
             migrationBuilder.DropTable(
                 name: "embeds");

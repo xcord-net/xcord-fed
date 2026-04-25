@@ -15,19 +15,21 @@ public sealed record SearchMessagesRequest(
     long? ConversationId,
     bool? HasLink,
     bool? HasAttachment,
-    long? Before,
+    string? Cursor,
     int Limit = 25
 );
 
 public sealed record SearchMessagesResponse(
     List<MessageDto> Messages,
-    bool HasMore
+    bool HasMore,
+    string? NextCursor = null
 );
 
 public sealed class SearchMessagesHandler(
     AppDbContext dbContext,
     IConversationResolver conversationResolver,
-    ICurrentUserService currentUserService)
+    ICurrentUserService currentUserService,
+    ICursorService cursorService)
     : IRequestHandler<SearchMessagesRequest, Result<SearchMessagesResponse>>, IValidatable<SearchMessagesRequest>
 {
     public Error? Validate(SearchMessagesRequest request)
@@ -49,6 +51,11 @@ public sealed class SearchMessagesHandler(
         var userIdResult = currentUserService.GetCurrentUserId();
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
+
+        // Decode opaque cursor (returns null when no cursor was supplied)
+        var cursorResult = cursorService.Decode(request.Cursor);
+        if (cursorResult.IsFailure) return cursorResult.Error;
+        var beforeId = cursorResult.Value;
 
         List<long> allowedConversationIds;
 
@@ -107,9 +114,9 @@ public sealed class SearchMessagesHandler(
         }
 
         // Apply cursor-based pagination
-        if (request.Before.HasValue)
+        if (beforeId.HasValue)
         {
-            query = query.Where(m => m.Id < request.Before.Value);
+            query = query.Where(m => m.Id < beforeId.Value);
         }
 
         // Fetch one extra to determine HasMore
@@ -146,7 +153,12 @@ public sealed class SearchMessagesHandler(
             CreatedAt: m.Message.CreatedAt
         )).ToList();
 
-        return new SearchMessagesResponse(Messages: messageDtos, HasMore: hasMore);
+        // Encode the next cursor when there are more results to fetch
+        var nextCursor = hasMore && messageDtos.Count > 0
+            ? cursorService.Encode(messageDtos[^1].Id)
+            : null;
+
+        return new SearchMessagesResponse(Messages: messageDtos, HasMore: hasMore, NextCursor: nextCursor);
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app) =>
@@ -155,7 +167,7 @@ public sealed class SearchMessagesHandler(
             long? conversationId,
             bool? hasLink,
             bool? hasAttachment,
-            long? before,
+            string? cursor,
             int? limit,
             [FromServices] SearchMessagesHandler handler,
             CancellationToken ct) =>
@@ -165,7 +177,7 @@ public sealed class SearchMessagesHandler(
                 ConversationId: conversationId,
                 HasLink: hasLink,
                 HasAttachment: hasAttachment,
-                Before: before,
+                Cursor: cursor,
                 Limit: limit ?? 25
             );
             return await handler.ExecuteAsync(request, ct);

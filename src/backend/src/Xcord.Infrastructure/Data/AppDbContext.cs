@@ -18,6 +18,7 @@ public sealed class AppDbContext : DbContext
     public DbSet<TwoFactorBackupCode> TwoFactorBackupCodes => Set<TwoFactorBackupCode>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
+    public DbSet<EncryptedDataKey> EncryptedDataKeys => Set<EncryptedDataKey>();
     public DbSet<BotToken> BotTokens => Set<BotToken>();
     public DbSet<Webhook> Webhooks => Set<Webhook>();
     public DbSet<Server> Servers => Set<Server>();

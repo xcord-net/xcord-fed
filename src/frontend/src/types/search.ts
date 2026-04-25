@@ -7,13 +7,13 @@ export interface SearchFilters {
   hasLink?: boolean;
   hasEmbed?: boolean;
   hasAttachment?: boolean;
-  before?: string;
-  after?: string;
+  cursor?: string;
   channelId?: string;
 }
 
 export interface SearchResult {
   messages: Message[];
-  totalCount: number;
+  totalCount?: number;
   hasMore: boolean;
+  nextCursor?: string | null;
 }

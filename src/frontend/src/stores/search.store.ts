@@ -23,7 +23,7 @@ export function useSearch() {
     get filters() { return store.filters(); },
     get isSearching() { return store.isSearching(); },
 
-    async search(filters: SearchFilters, offset: number = 0): Promise<void> {
+    async search(filters: SearchFilters): Promise<void> {
       store.setIsSearching(true);
       try {
         const params = new URLSearchParams();
@@ -33,10 +33,8 @@ export function useSearch() {
         if (filters.hasLink !== undefined) params.append('hasLink', String(filters.hasLink));
         if (filters.hasEmbed !== undefined) params.append('hasEmbed', String(filters.hasEmbed));
         if (filters.hasAttachment !== undefined) params.append('hasAttachment', String(filters.hasAttachment));
-        if (filters.before) params.append('before', filters.before);
-        if (filters.after) params.append('after', filters.after);
+        if (filters.cursor) params.append('cursor', filters.cursor);
         if (filters.channelId) params.append('channelId', filters.channelId);
-        params.append('offset', String(offset));
         params.append('limit', '25');
 
         const result = await api.get<SearchResult>(`/api/v1/search?${params.toString()}`);

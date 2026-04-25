@@ -77,7 +77,10 @@ export function useFriends() {
     async loadFriends(): Promise<void> {
       store.setIsLoading(true);
       try {
-        const dtos = await api.get<FriendshipDto[]>('/api/v1/users/@me/friends?status=Accepted');
+        const response = await api.get<{ friendships: FriendshipDto[]; nextCursor?: string | null }>(
+          '/api/v1/users/@me/friends?status=Accepted',
+        );
+        const dtos = response.friendships ?? [];
         const myUserId = store.currentUserId() ?? '';
         store.setFriends(dtos.map((dto) => friendshipToFriend(dto, myUserId)));
       } finally {
@@ -88,7 +91,10 @@ export function useFriends() {
     async loadFriendRequests(): Promise<void> {
       store.setIsLoading(true);
       try {
-        const dtos = await api.get<FriendshipDto[]>('/api/v1/users/@me/friends?status=Pending');
+        const response = await api.get<{ friendships: FriendshipDto[]; nextCursor?: string | null }>(
+          '/api/v1/users/@me/friends?status=Pending',
+        );
+        const dtos = response.friendships ?? [];
         const myUserId = store.currentUserId() ?? '';
         const incoming = dtos.filter((d) => d.receiverId === myUserId).map(friendshipToRequest);
         const outgoing = dtos.filter((d) => d.senderId === myUserId).map(friendshipToRequest);

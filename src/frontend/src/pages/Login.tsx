@@ -35,7 +35,8 @@ export default function Login() {
     }
     // Navigate to first server's channel directory
     try {
-      const servers = await fetch('/api/v1/users/@me/servers', { credentials: 'include' }).then(r => r.json());
+      const data = await fetch('/api/v1/users/@me/servers', { credentials: 'include' }).then(r => r.json());
+      const servers = Array.isArray(data?.servers) ? data.servers : [];
       if (servers.length > 0) {
         navigate(`/channels/${servers[0].id}`, { replace: true });
         return;

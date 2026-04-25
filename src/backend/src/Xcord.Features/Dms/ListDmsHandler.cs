@@ -11,18 +11,29 @@ namespace Xcord.Features.Dms;
 
 public sealed record ListDmsRequest(
     int Limit = 50,
-    long? Before = null
+    string? Cursor = null
+);
+
+public sealed record ListDmsResponse(
+    DmChannelDto[] DmChannels,
+    string? NextCursor = null
 );
 
 public sealed class ListDmsHandler(
     AppDbContext dbContext,
-    ICurrentUserService currentUserService) : IRequestHandler<ListDmsRequest, Result<DmChannelDto[]>>
+    ICurrentUserService currentUserService,
+    ICursorService cursorService) : IRequestHandler<ListDmsRequest, Result<ListDmsResponse>>
 {
-    public async Task<Result<DmChannelDto[]>> Handle(ListDmsRequest request, CancellationToken cancellationToken)
+    public async Task<Result<ListDmsResponse>> Handle(ListDmsRequest request, CancellationToken cancellationToken)
     {
         var userIdResult = currentUserService.GetCurrentUserId();
         if (userIdResult.IsFailure) return userIdResult.Error;
         var currentUserId = userIdResult.Value;
+
+        // Decode opaque cursor (returns null when no cursor was supplied)
+        var cursorResult = cursorService.Decode(request.Cursor);
+        if (cursorResult.IsFailure) return cursorResult.Error;
+        var beforeId = cursorResult.Value;
 
         var limit = Math.Clamp(request.Limit, 1, 100);
 
@@ -30,9 +41,9 @@ public sealed class ListDmsHandler(
         var query = dbContext.DmChannels
             .Where(dm => dm.Members.Any(m => m.UserId == currentUserId));
 
-        if (request.Before.HasValue)
+        if (beforeId.HasValue)
         {
-            query = query.Where(dm => dm.Id < request.Before.Value);
+            query = query.Where(dm => dm.Id < beforeId.Value);
         }
 
         // Get DM channels with members, ordered by most recent first
@@ -78,19 +89,23 @@ public sealed class ListDmsHandler(
             ));
         }
 
-        return result.ToArray();
+        var nextCursor = result.Count == limit && result.Count > 0
+            ? cursorService.Encode(result[^1].Id)
+            : null;
+
+        return new ListDmsResponse(DmChannels: result.ToArray(), NextCursor: nextCursor);
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app) =>
         app.MapGet("/api/v1/users/@me/dms", async (
             [FromServices] ListDmsHandler handler,
             int? limit,
-            long? before,
+            string? cursor,
             CancellationToken ct) =>
             await handler.ExecuteAsync(
                 new ListDmsRequest(
                     Limit: limit ?? 50,
-                    Before: before),
+                    Cursor: cursor),
                 ct))
             .RequireAnyAuthorization(Policies.User, Policies.Bot)
             .WithName("ListDms")

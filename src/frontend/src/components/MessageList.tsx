@@ -229,7 +229,9 @@ export default function MessageList(props: MessageListProps) {
       const oldHeight = scrollContainer.scrollHeight;
       const oldScrollTop = scrollContainer.scrollTop;
 
-      messageStore.loadMessages(props.conversationId, messageStore.messages[0]?.id).then(() => {
+      const olderCursor = messageStore.nextCursor;
+      if (!olderCursor) return;
+      messageStore.loadMessages(props.conversationId, olderCursor).then(() => {
         // Maintain scroll position after prepending messages
         if (scrollContainer) {
           scrollContainer.scrollTop = scrollContainer.scrollHeight - oldHeight + oldScrollTop;

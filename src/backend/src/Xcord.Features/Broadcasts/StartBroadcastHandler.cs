@@ -182,9 +182,10 @@ public sealed class StartBroadcastHandler(
         broadcast.EgressJobId = egressJobId;
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        // Publish token for the host - 2h TTL so long broadcasts don't need re-issuance
-        // before the layout/stage mutation flow refreshes the egress (which re-mints an
-        // egress identity token but does NOT affect publisher tokens).
+        // Publish token for the host - 30m TTL matching voice channel tokens.
+        // Limitation: there is no broadcast token refresh endpoint yet, so broadcasts
+        // longer than 30 minutes will require the host to restart the broadcast. A
+        // RefreshBroadcastToken hub method should be added to mirror RefreshVoiceToken.
         var publishToken = livekitService.GenerateToken(
             userId: userId,
             roomName: roomName,
@@ -192,7 +193,7 @@ public sealed class StartBroadcastHandler(
             canSubscribe: true,
             canPublishData: true,
             canScreenShare: true,
-            ttl: TimeSpan.FromHours(2));
+            ttl: TimeSpan.FromMinutes(30));
 
         var hlsUrl = egressBuilder.BuildHlsUrl(broadcastId);
 

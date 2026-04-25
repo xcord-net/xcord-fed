@@ -10,19 +10,30 @@ namespace Xcord.Features.Servers;
 
 public sealed record ListUserServersQuery(
     int Limit = 100,
-    long? Before = null
+    string? Cursor = null
+);
+
+public sealed record ListUserServersResponse(
+    List<ServerDto> Servers,
+    string? NextCursor = null
 );
 
 public sealed class ListUserServersHandler(
     AppDbContext dbContext,
-    ICurrentUserService currentUserService)
-    : IRequestHandler<ListUserServersQuery, Result<List<ServerDto>>>
+    ICurrentUserService currentUserService,
+    ICursorService cursorService)
+    : IRequestHandler<ListUserServersQuery, Result<ListUserServersResponse>>
 {
-    public async Task<Result<List<ServerDto>>> Handle(ListUserServersQuery request, CancellationToken cancellationToken)
+    public async Task<Result<ListUserServersResponse>> Handle(ListUserServersQuery request, CancellationToken cancellationToken)
     {
         var userIdResult = currentUserService.GetCurrentUserId();
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
+
+        // Decode opaque cursor (returns null when no cursor was supplied)
+        var cursorResult = cursorService.Decode(request.Cursor);
+        if (cursorResult.IsFailure) return cursorResult.Error;
+        var beforeId = cursorResult.Value;
 
         var limit = Math.Clamp(request.Limit, 1, 200);
 
@@ -32,9 +43,9 @@ public sealed class ListUserServersHandler(
             .Where(sm => sm.UserId == userId)
             .Select(sm => sm.Server);
 
-        if (request.Before.HasValue)
+        if (beforeId.HasValue)
         {
-            query = query.Where(s => s.Id < request.Before.Value);
+            query = query.Where(s => s.Id < beforeId.Value);
         }
 
         var servers = await query
@@ -53,20 +64,24 @@ public sealed class ListUserServersHandler(
             ))
             .ToListAsync(cancellationToken);
 
-        return servers;
+        var nextCursor = servers.Count == limit && servers.Count > 0
+            ? cursorService.Encode(servers[^1].Id)
+            : null;
+
+        return new ListUserServersResponse(Servers: servers, NextCursor: nextCursor);
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
     {
         return app.MapGet("/api/v1/users/@me/servers", async (
-            IRequestHandler<ListUserServersQuery, Result<List<ServerDto>>> handler,
+            IRequestHandler<ListUserServersQuery, Result<ListUserServersResponse>> handler,
             int? limit,
-            long? before,
+            string? cursor,
             CancellationToken ct) =>
         {
             var query = new ListUserServersQuery(
                 Limit: limit ?? 100,
-                Before: before
+                Cursor: cursor
             );
             return await handler.ExecuteAsync(query, ct);
         })

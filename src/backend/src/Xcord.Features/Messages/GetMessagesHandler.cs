@@ -12,12 +12,13 @@ namespace Xcord.Features.Messages;
 
 public sealed record GetMessagesRequest(
     long ConversationId,
-    long? Before = null,
+    string? Cursor = null,
     int Limit = 50
 );
 
 public sealed record GetMessagesResponse(
-    List<MessageDto> Messages
+    List<MessageDto> Messages,
+    string? NextCursor = null
 );
 
 public sealed record MessageDto(
@@ -59,7 +60,8 @@ public sealed class GetMessagesHandler(
     AppDbContext dbContext,
     IConversationResolver conversationResolver,
     ICurrentUserService currentUserService,
-    IStorageService storageService)
+    IStorageService storageService,
+    ICursorService cursorService)
     : IRequestHandler<GetMessagesRequest, Result<GetMessagesResponse>>, IValidatable<GetMessagesRequest>
 {
     public Error? Validate(GetMessagesRequest request)
@@ -79,6 +81,11 @@ public sealed class GetMessagesHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
+        // Decode opaque cursor (returns null when no cursor was supplied)
+        var cursorResult = cursorService.Decode(request.Cursor);
+        if (cursorResult.IsFailure) return cursorResult.Error;
+        var beforeId = cursorResult.Value;
+
         // Resolve conversation and check permissions
         var contextResult = await conversationResolver.ResolveAsync(
             request.ConversationId, userId, Role.ReadMessageHistory, cancellationToken);
@@ -90,9 +97,9 @@ public sealed class GetMessagesHandler(
             .Where(m => m.ConversationId == request.ConversationId);
 
         // Apply cursor if provided (messages before the given ID)
-        if (request.Before.HasValue)
+        if (beforeId.HasValue)
         {
-            query = query.Where(m => m.Id < request.Before.Value);
+            query = query.Where(m => m.Id < beforeId.Value);
         }
 
         // Order by ID descending (newest first) and take limit
@@ -179,21 +186,31 @@ public sealed class GetMessagesHandler(
             );
         }).ToList();
 
-        return new GetMessagesResponse(Messages: messageDtos);
+        // Build NextCursor from the oldest returned message (newest-first ordering means
+        // the last item is the oldest; the next page should fetch messages older than that).
+        // If the page came back smaller than the limit, there are no more older messages.
+        string? nextCursor = null;
+        if (messageDtos.Count == request.Limit && messageDtos.Count > 0)
+        {
+            var oldestId = messageDtos[^1].Id;
+            nextCursor = cursorService.Encode(oldestId);
+        }
+
+        return new GetMessagesResponse(Messages: messageDtos, NextCursor: nextCursor);
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
     {
         return app.MapGet("/api/v1/conversations/{conversationId}/messages", async (
             long conversationId,
-            long? before,
+            string? cursor,
             int? limit,
             [FromServices] GetMessagesHandler handler,
             CancellationToken ct) =>
         {
             var request = new GetMessagesRequest(
                 ConversationId: conversationId,
-                Before: before,
+                Cursor: cursor,
                 Limit: limit ?? 50
             );
 

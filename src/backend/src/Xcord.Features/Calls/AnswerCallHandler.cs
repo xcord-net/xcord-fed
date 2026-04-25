@@ -81,7 +81,10 @@ public sealed class AnswerCallHandler(
             EnableSimulcast = _tierOptions.CanUseSimulcast
         };
 
-        // Generate LiveKit tokens for both users with server-enforced quality limits
+        // Generate LiveKit tokens for both users with server-enforced quality limits.
+        // 30m TTL matches voice channel tokens. Limitation: there is no call token refresh
+        // endpoint yet - calls longer than 30 minutes will require re-answer. A
+        // RefreshCallToken hub method should be added to mirror RefreshVoiceToken.
         var callerToken = liveKitService.GenerateToken(
             userId: call.CallerId,
             roomName: roomName,
@@ -89,7 +92,7 @@ public sealed class AnswerCallHandler(
             canSubscribe: true,
             canPublishData: true,
             canScreenShare: true,
-            ttl: TimeSpan.FromHours(2),
+            ttl: TimeSpan.FromMinutes(30),
             qualityConstraints: qualityConstraints);
 
         var recipientToken = liveKitService.GenerateToken(
@@ -99,7 +102,7 @@ public sealed class AnswerCallHandler(
             canSubscribe: true,
             canPublishData: true,
             canScreenShare: true,
-            ttl: TimeSpan.FromHours(2),
+            ttl: TimeSpan.FromMinutes(30),
             qualityConstraints: qualityConstraints);
 
         using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);

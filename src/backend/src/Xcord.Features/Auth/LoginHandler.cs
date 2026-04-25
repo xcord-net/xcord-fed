@@ -218,6 +218,10 @@ public sealed class LoginHandler(
                         AuthCookieHelper.SetAccessTokenCookie(httpContext, loginResponse.AccessToken, 15);
                         AuthCookieHelper.SetRefreshTokenCookie(httpContext, loginResponse.RefreshToken);
 
+                        // POST-Redirect-GET (303) is not applicable here: this is a JSON API consumed
+                        // by the SPA via fetch, not an HTML form post. Tokens are delivered via
+                        // httpOnly cookies (above), and the response body carries only non-secret
+                        // identity metadata. A 303 redirect would break the SPA contract.
                         return Results.Ok(new
                         {
                             authenticated = true,

@@ -24,7 +24,10 @@ export function useServers() {
     async fetchServers(): Promise<void> {
       store.setIsLoading(true);
       try {
-        const servers = await api.get<Server[]>('/api/v1/users/@me/servers');
+        const response = await api.get<{ servers: Server[]; nextCursor?: string | null }>(
+          '/api/v1/users/@me/servers',
+        );
+        const servers = response.servers ?? [];
         store.setServers(servers.map(normalizeServer));
       } finally {
         store.setIsLoading(false);

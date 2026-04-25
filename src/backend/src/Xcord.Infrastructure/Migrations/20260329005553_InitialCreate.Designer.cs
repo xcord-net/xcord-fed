@@ -949,6 +949,31 @@ namespace Xcord.Infrastructure.Migrations
                     b.ToTable("email_confirmation_tokens", (string)null);
                 });
 
+            modelBuilder.Entity("Xcord.Entities.EncryptedDataKey", b =>
+                {
+                    b.Property<int>("Version")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<byte[]>("WrappedKey")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.HasKey("Version");
+
+                    b.HasIndex("IsActive")
+                        .IsUnique()
+                        .HasDatabaseName("IX_encrypted_data_keys_IsActive_Unique")
+                        .HasFilter("\"IsActive\" = true");
+
+                    b.ToTable("encrypted_data_keys", (string)null);
+                });
+
             modelBuilder.Entity("Xcord.Entities.Embed", b =>
                 {
                     b.Property<long>("Id")

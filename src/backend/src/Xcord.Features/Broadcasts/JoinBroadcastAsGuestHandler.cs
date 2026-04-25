@@ -61,6 +61,8 @@ public sealed class JoinBroadcastAsGuestHandler(
 
         // Guest token is spectator-only; stage-slot promotion must re-issue with
         // publish grants so a viewer cannot push tracks before the host adds them.
+        // Limitation: 30m TTL with no guest refresh endpoint - guests viewing past 30
+        // minutes must re-join. A RefreshBroadcastGuestToken hub method should be added.
         var token = livekitService.GenerateToken(
             userId: userId,
             roomName: roomName,
@@ -68,7 +70,7 @@ public sealed class JoinBroadcastAsGuestHandler(
             canSubscribe: true,
             canPublishData: false,
             canScreenShare: false,
-            ttl: TimeSpan.FromHours(2));
+            ttl: TimeSpan.FromMinutes(30));
 
         logger.LogInformation(
             "Issued guest broadcast token to user {UserId} for broadcast {BroadcastId}",

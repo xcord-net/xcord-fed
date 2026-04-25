@@ -7,7 +7,7 @@ describe('server.store', () => {
     // Reset singleton store state by fetching empty data
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => [],
+      json: async () => ({ servers: [], nextCursor: null }),
     });
     const servers = useServers();
     await servers.fetchServers();
@@ -24,7 +24,7 @@ describe('server.store', () => {
 
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => mockServers,
+        json: async () => ({ servers: mockServers, nextCursor: null }),
       });
 
       const servers = useServers();

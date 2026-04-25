@@ -145,20 +145,21 @@ public class MainHub : Hub
         // Notify servers of offline status
         await _presenceNotifier.NotifyPresenceChangedAsync(userId.Value, PresenceStatus.Offline, serverIds);
 
-        // Clean up any VoiceState entities and notify
+        // Clean up any VoiceState entities and notify (skip soft-deleted channels)
         var voiceStates = await context.VoiceStates
             .Where(vs => vs.UserId == userId.Value)
+            .Join(context.Channels.Where(c => c.DeletedAt == null),
+                vs => vs.ChannelId,
+                c => c.Id,
+                (vs, c) => new { VoiceState = vs, Channel = c })
             .ToListAsync();
 
-        foreach (var voiceState in voiceStates)
+        foreach (var vs in voiceStates)
         {
+            var voiceState = vs.VoiceState;
             var channelId = voiceState.ChannelId;
             var wasStreaming = voiceState.IsStreaming;
-
-            var serverId = await context.Channels
-                .Where(c => c.Id == channelId)
-                .Select(c => c.ServerId)
-                .FirstOrDefaultAsync();
+            var serverId = vs.Channel.ServerId;
 
             context.VoiceStates.Remove(voiceState);
 

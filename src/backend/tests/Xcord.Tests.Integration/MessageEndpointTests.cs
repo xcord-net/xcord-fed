@@ -285,13 +285,24 @@ public class MessageEndpointTests
         var msg4 = await _helper.SendMessageAsync(user.AccessToken, conversationId, "Message 4");
         var msg5 = await _helper.SendMessageAsync(user.AccessToken, conversationId, "Message 5");
 
-        var msg3Id = msg3.GetProperty("id").ReadLong();
         var msg2Id = msg2.GetProperty("id").ReadLong();
         var msg1Id = msg1.GetProperty("id").ReadLong();
 
-        // Get messages before msg3 (should return msg2 and msg1)
+        // First page: get the 3 newest messages (msg5, msg4, msg3) and capture the
+        // server-issued opaque cursor pointing at the boundary (older than msg3).
+        var firstPage = await _helper.AuthGetAsync(
+            $"/api/v1/conversations/{conversationId}/messages?limit=3",
+            user.AccessToken);
+        firstPage.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var firstBody = await firstPage.ReadAsJsonAsync<JsonElement>();
+        firstBody.GetProperty("messages").EnumerateArray().Count().Should().Be(3);
+        var nextCursor = firstBody.GetProperty("nextCursor").GetString();
+        nextCursor.Should().NotBeNullOrEmpty();
+
+        // Use the opaque cursor to fetch the next page (should return msg2 and msg1).
         var response = await _helper.AuthGetAsync(
-            $"/api/v1/conversations/{conversationId}/messages?before={msg3Id}&limit=5",
+            $"/api/v1/conversations/{conversationId}/messages?cursor={nextCursor}&limit=5",
             user.AccessToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -302,6 +313,23 @@ public class MessageEndpointTests
         messages.Should().HaveCount(2);
         messages[0].GetProperty("id").ReadLong().Should().Be(msg2Id);
         messages[1].GetProperty("id").ReadLong().Should().Be(msg1Id);
+    }
+
+    [Fact]
+    public async Task GetMessages_WithTamperedCursor_Returns400()
+    {
+        var user = await _helper.RegisterUserAsync();
+        var server = await _helper.CreateServerAsync(user.AccessToken);
+        var serverId = server.GetProperty("id").ReadLong();
+        var channel = await _helper.CreateChannelAsync(user.AccessToken, serverId);
+        var conversationId = channel.GetProperty("conversationId").ReadLong();
+
+        // A tampered/garbage cursor must be rejected with 400 Validation
+        var response = await _helper.AuthGetAsync(
+            $"/api/v1/conversations/{conversationId}/messages?cursor=not-a-real-cursor",
+            user.AccessToken);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     // ──────────── Bulk Delete ────────────
