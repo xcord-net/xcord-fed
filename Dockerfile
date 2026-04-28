@@ -88,7 +88,11 @@ USER xcord
 
 EXPOSE 80
 
-HEALTHCHECK --interval=5s --timeout=3s --start-period=5s --retries=3 \
+# start-period covers cold .NET startup: EF migration check + crypto init + RSA
+# generation + admin/server seeding + ASP.NET startup. Observed ~13s on a fast
+# host; CI runners (2-vCPU GitHub free tier) routinely exceed 20s. retries cap
+# the unhealthy window in steady state without giving up during cold boot.
+HEALTHCHECK --interval=10s --timeout=3s --start-period=60s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:80/health || exit 1
 
 ENTRYPOINT ["/app/entrypoint.sh"]
