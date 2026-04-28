@@ -57,7 +57,12 @@ describe('ReactionDisplay', () => {
       <ReactionDisplay reactions={reactions()} messageId="m-1" conversationId="c-1" />
     ));
     fireEvent.click(getByTestId('reaction-badge-thumbsup'));
-    await waitFor(() => expect(calls.calls.some(c => c.method === 'PUT' && c.url.includes('/reactions/thumbsup'))).toBe(true));
+    // toggleReaction fires reloadMessages() fire-and-forget after the PUT resolves.
+    // Wait for BOTH so the in-flight GET doesn't trip the unmocked-fetch guard.
+    await waitFor(() => {
+      expect(calls.calls.some(c => c.method === 'PUT' && c.url.includes('/reactions/thumbsup'))).toBe(true);
+      expect(calls.calls.some(c => c.method === 'GET' && c.url.includes('/messages'))).toBe(true);
+    });
   });
 
   it('calls DELETE to remove reaction when current user is in userIds', async () => {
@@ -69,6 +74,9 @@ describe('ReactionDisplay', () => {
       <ReactionDisplay reactions={reactions()} messageId="m-1" conversationId="c-1" />
     ));
     fireEvent.click(getByTestId('reaction-badge-heart'));
-    await waitFor(() => expect(calls.calls.some(c => c.method === 'DELETE' && c.url.includes('/reactions/heart'))).toBe(true));
+    await waitFor(() => {
+      expect(calls.calls.some(c => c.method === 'DELETE' && c.url.includes('/reactions/heart'))).toBe(true);
+      expect(calls.calls.some(c => c.method === 'GET' && c.url.includes('/messages'))).toBe(true);
+    });
   });
 });
