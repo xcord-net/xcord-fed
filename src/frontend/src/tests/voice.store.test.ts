@@ -39,7 +39,8 @@ let lastMockRoomInstance: {
 
 // Mock livekit-client so no real WebRTC code runs in unit tests.
 vi.mock('livekit-client', () => {
-  const Room = vi.fn().mockImplementation(() => {
+  // vitest 4 requires `function` (not arrow) for mocks used as constructors.
+  const Room = vi.fn().mockImplementation(function () {
     const instance = {
       state: 'disconnected',
       localParticipant: {

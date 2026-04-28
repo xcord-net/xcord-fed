@@ -3,13 +3,16 @@ import { render } from '@solidjs/testing-library';
 
 // hls.js needs MediaSource which is not available in jsdom; stub it.
 vi.mock('hls.js', () => {
-  const Hls = vi.fn().mockImplementation(() => ({
-    loadSource: vi.fn(),
-    attachMedia: vi.fn(),
-    on: vi.fn(),
-    destroy: vi.fn(),
-    startLoad: vi.fn(),
-  })) as unknown as { isSupported: () => boolean; Events: Record<string, string> };
+  // vitest 4 requires `function` (not arrow) for mocks used as constructors.
+  const Hls = vi.fn(function () {
+    return {
+      loadSource: vi.fn(),
+      attachMedia: vi.fn(),
+      on: vi.fn(),
+      destroy: vi.fn(),
+      startLoad: vi.fn(),
+    };
+  }) as unknown as { isSupported: () => boolean; Events: Record<string, string> };
   Hls.isSupported = () => true;
   Hls.Events = { MANIFEST_PARSED: 'manifestParsed', ERROR: 'hlsError' };
   return { default: Hls };

@@ -72,13 +72,16 @@ describe('playSound', () => {
       },
     };
 
-    const AudioContextMock = vi.fn(() => ({
-      createOscillator: vi.fn(() => oscillatorMock),
-      createGain: vi.fn(() => gainMock),
-      destination: {},
-      currentTime: 0,
-      close: closeMock,
-    }));
+    // vitest 4 requires `function` (not arrow) for mocks used as constructors.
+    const AudioContextMock = vi.fn(function () {
+      return {
+        createOscillator: vi.fn(() => oscillatorMock),
+        createGain: vi.fn(() => gainMock),
+        destination: {},
+        currentTime: 0,
+        close: closeMock,
+      };
+    });
 
     vi.stubGlobal('AudioContext', AudioContextMock);
 
@@ -98,7 +101,7 @@ describe('playSound', () => {
     delete (window as unknown as Record<string, unknown>)['webkitAudioContext'];
 
     const playMock = vi.fn().mockResolvedValue(undefined);
-    const AudioMock = vi.fn(() => ({ play: playMock, volume: 1 }));
+    const AudioMock = vi.fn(function () { return { play: playMock, volume: 1 }; });
     vi.stubGlobal('Audio', AudioMock);
 
     playSound();
@@ -162,8 +165,11 @@ describe('showDesktopNotification', () => {
 // module exports, which is not reliable with ESM live bindings.
 // ---------------------------------------------------------------------------
 
-vi.mock('../stores/notification.store', () => ({
-  useNotifications: vi.fn(() => ({
+// Hoisted default factory so beforeEach can reseed the mock implementation
+// after vi.mocked(...).mockReturnValue() overrides on a per-test basis.
+// Must use vi.hoisted because vi.mock's factory runs before module-level vars init.
+const { defaultNotificationsStore } = vi.hoisted(() => ({
+  defaultNotificationsStore: () => ({
     settings: {
       muteAll: false,
       mutedChannelIds: [],
@@ -176,7 +182,11 @@ vi.mock('../stores/notification.store', () => ({
     },
     channelOverrides: [],
     isLoading: false,
-  })),
+  }),
+}));
+
+vi.mock('../stores/notification.store', () => ({
+  useNotifications: vi.fn(defaultNotificationsStore),
 }));
 
 describe('handleNewMessageNotification', () => {
@@ -202,28 +212,46 @@ describe('handleNewMessageNotification', () => {
         exponentialRampToValueAtTime: vi.fn(),
       },
     };
-    return vi.fn(() => ({
-      createOscillator: vi.fn(() => oscillatorStub),
-      createGain: vi.fn(() => gainStub),
-      destination: {},
-      currentTime: 0,
-      close: vi.fn(),
-    }));
+    return vi.fn(function () {
+      return {
+        createOscillator: vi.fn(() => oscillatorStub),
+        createGain: vi.fn(() => gainStub),
+        destination: {},
+        currentTime: 0,
+        close: vi.fn(),
+      };
+    });
   }
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Re-seed useNotifications default — per-test mockReturnValue overrides
+    // (e.g. the muted-channel test) would otherwise persist into later tests.
+    const { useNotifications } = await import('../stores/notification.store');
+    // Cast through unknown — the test only exercises a narrow subset of the
+    // store, and listing every field/method just to satisfy the type would
+    // be brittle.
+    vi.mocked(useNotifications).mockImplementation(
+      defaultNotificationsStore as unknown as typeof useNotifications,
+    );
+
     // Stub AudioContext so playSound() doesn't error in jsdom.
     audioCtxMock = makeAudioContextStub();
     vi.stubGlobal('AudioContext', audioCtxMock);
+    // vitest 4's stubGlobal changed how window.* is resolved from constructor
+    // mocks; assign to window directly to ensure source code's `window.AudioContext`
+    // and `new Notification(...)` see the mocks.
+    (window as unknown as Record<string, unknown>).AudioContext = audioCtxMock;
 
     // Stub Notification with granted permission.
-    notificationMock = vi.fn();
+    // vitest 4 requires `function` (not arrow) for mocks called with `new`.
+    notificationMock = vi.fn(function () { return {}; });
     Object.defineProperty(notificationMock, 'permission', {
       value: 'granted',
       configurable: true,
       writable: true,
     });
     vi.stubGlobal('Notification', notificationMock);
+    (window as unknown as Record<string, unknown>).Notification = notificationMock;
 
     // Default state: tab NOT focused.
     window.dispatchEvent(new Event('blur'));
@@ -231,7 +259,10 @@ describe('handleNewMessageNotification', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
-    vi.restoreAllMocks();
+    // vitest 4 made restoreAllMocks() also reset module-level vi.mock() factory
+    // implementations, which broke per-test useNotifications overrides. Use
+    // clearAllMocks (clears call history only) and let beforeEach reseed.
+    vi.clearAllMocks();
     // Reset tab focus state.
     window.dispatchEvent(new Event('focus'));
   });
