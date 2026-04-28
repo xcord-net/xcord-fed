@@ -1,0 +1,289 @@
+{
+  "version": "0.1.66",
+  "features": [
+    {
+      "summary": "per-component test infrastructure + 10 god-file splits",
+      "commit": "4f89213"
+    },
+    {
+      "summary": "wire BroadcastChannel into Layout and Sidebar for Streaming capability",
+      "commit": "69e2557"
+    },
+    {
+      "summary": "add StreambotManager channel settings UI",
+      "commit": "0e4f0c7"
+    },
+    {
+      "summary": "add BroadcastGreenRoom, StageSlot, StreambotStatusBadge components",
+      "commit": "da41fb5"
+    },
+    {
+      "summary": "add BroadcastHostPanel and BroadcastGuestPanel for live broadcast control",
+      "commit": "fed6c1c"
+    },
+    {
+      "summary": "add BroadcastViewer (HLS playback for viewers)",
+      "commit": "9cdcb8b"
+    },
+    {
+      "summary": "add broadcast and streambot stores",
+      "commit": "3cffb2d"
+    },
+    {
+      "summary": "add LiveKit egress webhook receiver",
+      "commit": "b343751"
+    },
+    {
+      "summary": "add broadcast guest-token, hls-check, get, list handlers",
+      "commit": "6cd8779"
+    },
+    {
+      "summary": "add broadcast layout/stage/streambot mutation handlers",
+      "commit": "b105f87"
+    },
+    {
+      "summary": "add broadcast start/end handlers with LiveKit egress integration",
+      "commit": "06f9e4c"
+    },
+    {
+      "summary": "add streambot CRUD handlers with encrypted stream keys",
+      "commit": "a663f19"
+    },
+    {
+      "summary": "add broadcast layout template endpoint (grid/spotlight/pip/side-by-side)",
+      "commit": "a80af83"
+    },
+    {
+      "summary": "add LiveKit egress API methods (Start/Stop/Restart)",
+      "commit": "ddc94dc"
+    },
+    {
+      "summary": "add LiveKit egress options and broadcast permissions",
+      "commit": "473d356"
+    },
+    {
+      "summary": "add broadcast and streambot entities + EF configs",
+      "commit": "8fb70b0"
+    },
+    {
+      "summary": "add broadcast tables to InitialCreate migration",
+      "commit": "2484733"
+    },
+    {
+      "summary": "add Streaming capability",
+      "commit": "14338b7"
+    },
+    {
+      "summary": "add HubKey storage to User entity with GET/PUT endpoints",
+      "commit": "585f032"
+    },
+    {
+      "summary": "add instance info endpoint and expose HubUrl in config response",
+      "commit": "50aa144"
+    },
+    {
+      "summary": "snowflake ID validation, node 24 docker build, frontend polish",
+      "commit": "b0638f9"
+    },
+    {
+      "summary": "E2E tests, per-channel automod/invites, custom emoji, UX polish",
+      "commit": "11675f8"
+    },
+    {
+      "summary": "content-first UI redesign, CSS modules, channel capabilities",
+      "commit": "3461427"
+    },
+    {
+      "summary": "Discord-to-Xcord server migration tool",
+      "commit": "37767bc"
+    },
+    {
+      "summary": "seed default server on first boot, clean up log output",
+      "commit": "c9ff141"
+    },
+    {
+      "summary": "rewrite run.sh as Docker-only stack, fix all EF warnings",
+      "commit": "4c12c85"
+    },
+    {
+      "summary": "add registration toggle, admin seeding, config endpoint, notification fix",
+      "commit": "8bc9575"
+    },
+    {
+      "summary": "integrate Updates tab and version badge into fed UI",
+      "commit": "38dfbdd"
+    },
+    {
+      "summary": "add UpdatesTab component for fed admin server settings",
+      "commit": "eb3f5bd"
+    },
+    {
+      "summary": "add fed-side admin system version and upgrade endpoints",
+      "commit": "7149edc"
+    },
+    {
+      "summary": "add IHubClient for fed-to-hub API communication",
+      "commit": "4e85f1f"
+    },
+    {
+      "summary": "add data-testid to delete account cancel button",
+      "commit": "757cff4"
+    },
+    {
+      "summary": "add data-testid attributes and fix 2FA confirm-enable endpoint",
+      "commit": "7e21b28"
+    },
+    {
+      "summary": "add dev-only test seed endpoint and entrypoint config improvements",
+      "commit": "b21a991"
+    },
+    {
+      "summary": "add data-testid attributes to frontend components",
+      "commit": "b80cfb1"
+    },
+    {
+      "summary": "add dev user seeding, instance stats endpoint, and refactor shared patterns",
+      "commit": "9e56ac0"
+    },
+    {
+      "summary": "seed admin account on instance startup from config",
+      "commit": "b78d18f"
+    },
+    {
+      "summary": "add --tier flag to run.sh for simulating hub tier constraints",
+      "commit": "eb64e36"
+    },
+    {
+      "summary": "rename Permission/Role/MemberSubscriptionTier to Role/Group/Tier for monetization model",
+      "commit": "029a06d"
+    },
+    {
+      "summary": "rename Permission->Role, Role->Group, MemberSubscriptionTier->Tier entities",
+      "commit": "159a951"
+    }
+  ],
+  "fixes": [
+    {
+      "summary": "complete security audit remediation (round 2)",
+      "commit": "66d70bc"
+    },
+    {
+      "summary": "security audit hardening across backend and tests",
+      "commit": "40fdc55"
+    },
+    {
+      "summary": "include livekitUrl in StartBroadcast response so host can connect",
+      "commit": "f0fb867"
+    },
+    {
+      "summary": "validate embed theme-color to prevent CSS injection",
+      "commit": "d99bef7"
+    },
+    {
+      "summary": "wire up DM/Friends area, fix E2E test reliability",
+      "commit": "28a78e0"
+    },
+    {
+      "summary": "faster container startup (R2R, healthcheck tuning)",
+      "commit": "0ef7917"
+    },
+    {
+      "summary": "EF query filter warnings, run.sh dev reliability fixes",
+      "commit": "38105b3"
+    },
+    {
+      "summary": "add autocomplete attribute to Register password field",
+      "commit": "0eec929"
+    },
+    {
+      "summary": "replace transactional outbox with direct inline dispatch",
+      "commit": "3df3304"
+    },
+    {
+      "summary": "resolve 14 E2E test failures across frontend, backend, and tests",
+      "commit": "23c7fbc"
+    },
+    {
+      "summary": "correct xcord-common project reference paths",
+      "commit": "66af9a8"
+    },
+    {
+      "summary": "use shared TokenHelper and update architecture test marker",
+      "commit": "6989b63"
+    },
+    {
+      "summary": "add vite allowedHosts config and extract shared library",
+      "commit": "7bf9591"
+    }
+  ],
+  "other": [
+    {
+      "summary": "re-arm fetch stub on teardown + type fixup for resolve callback",
+      "commit": "b2fda38",
+      "type": "test"
+    },
+    {
+      "summary": "add streambot integration tests and fake LiveKit service",
+      "commit": "8143316",
+      "type": "test"
+    },
+    {
+      "summary": "add hls.js dependency",
+      "commit": "eed1580",
+      "type": "chore"
+    },
+    {
+      "summary": "add broadcasts MinIO bucket",
+      "commit": "edd1dd4",
+      "type": "chore"
+    },
+    {
+      "summary": "add Caddy HLS route with forward_auth",
+      "commit": "d4fc3e2",
+      "type": "chore"
+    },
+    {
+      "summary": "add livekit-egress service to compose",
+      "commit": "c6b1c9a",
+      "type": "chore"
+    },
+    {
+      "summary": "reduce integration test runtime with low bcrypt cost and more parallelism",
+      "commit": "4550be6",
+      "type": "perf"
+    },
+    {
+      "summary": "share single container set across integration tests",
+      "commit": "0799053",
+      "type": "perf"
+    },
+    {
+      "summary": "update xcord-common submodule (remove tracked build artifacts)",
+      "commit": "e5b9fe4",
+      "type": "chore"
+    },
+    {
+      "summary": "add mailpit service and dev run script",
+      "commit": "815d3cb",
+      "type": "chore"
+    },
+    {
+      "summary": "update xcord-common submodule",
+      "commit": "f6be22e",
+      "type": "chore"
+    },
+    {
+      "summary": "add recursive submodule checkout for xcord-common",
+      "commit": "b79fbd8",
+      "type": "ci"
+    },
+    {
+      "summary": "replace em-dashes with hyphens across codebase",
+      "commit": "61fb8e6",
+      "type": "style"
+    }
+  ],
+  "breakingChanges": [],
+  "migrationNotes": "",
+  "knownIssues": ""
+}
