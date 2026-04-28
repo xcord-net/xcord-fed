@@ -1,0 +1,174 @@
+.sectionTitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-xcord-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.spinnerSmall {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 0;
+}
+
+.spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--color-xcord-text-muted);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.emptyState {
+  text-align: center;
+  padding: 2rem 0;
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.cardList > * + * {
+  margin-top: 0.75rem;
+}
+
+.agentCard {
+  background-color: var(--color-xcord-bg-secondary);
+  border: 1px solid var(--color-xcord-border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.agentCardInner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.agentInfo {
+  min-width: 0;
+  flex: 1;
+}
+
+.agentNameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.agentName {
+  color: var(--color-xcord-text-primary);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.agentCategory {
+  background-color: color-mix(in srgb, var(--color-xcord-brand) 20%, transparent);
+  color: var(--color-xcord-brand);
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.agentDescription {
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.agentParams {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  margin-top: 0.375rem;
+}
+
+.assignToBotButton {
+  flex-shrink: 0;
+  padding: 0.375rem 0.75rem;
+  background-color: var(--color-xcord-brand);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  transition: color 150ms, background-color 150ms;
+}
+
+.assignToBotButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.assignToBotButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.agentAssignRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.assignSelect {
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  border: 1px solid var(--color-xcord-border);
+  outline: none;
+}
+
+.assignSelect:focus {
+  border-color: var(--color-xcord-brand);
+}
+
+.assignConfirmButton {
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-xcord-brand);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  transition: color 150ms, background-color 150ms;
+}
+
+.assignConfirmButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.assignConfirmButton:disabled {
+  opacity: 0.5;
+}
+
+.assignConfirmButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.assignCancelButton {
+  padding: 0.25rem 0.5rem;
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  background: none;
+  border-radius: 0.25rem;
+  transition: color 150ms;
+}
+
+.assignCancelButton:hover {
+  color: white;
+}
+
+.agentAssignError {
+  color: var(--color-xcord-danger-text);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}

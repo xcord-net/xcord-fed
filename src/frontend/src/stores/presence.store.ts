@@ -24,5 +24,9 @@ export function usePresence() {
     clearPresence(): void {
       store.setPresenceMap(new Map());
     },
+
+    reset(): void {
+      store.setPresenceMap(new Map());
+    },
   };
 }

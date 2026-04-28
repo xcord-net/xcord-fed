@@ -1,0 +1,86 @@
+/* Create channel modal */
+.createModalBody {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.createModalField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.createModalLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-xcord-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.createModalInput {
+  width: 100%;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-xcord-border);
+}
+
+.createModalInput:focus {
+  border-color: var(--color-xcord-brand);
+  outline: none;
+}
+
+.createModalInput:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.createModalCheckboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.createModalCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-xcord-text-primary);
+}
+
+.createModalCheckbox input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--color-xcord-brand);
+}
+
+.createModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.createModalSubmit {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-brand);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  transition: background-color 150ms;
+}
+
+.createModalSubmit:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.createModalSubmit:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}

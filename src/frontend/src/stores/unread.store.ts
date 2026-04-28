@@ -46,5 +46,9 @@ export function useUnread() {
     clearUnreads(): void {
       store.setUnreadMap(new Map());
     },
+
+    reset(): void {
+      store.setUnreadMap(new Map());
+    },
   };
 }

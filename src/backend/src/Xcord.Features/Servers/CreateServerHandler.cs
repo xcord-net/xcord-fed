@@ -24,6 +24,7 @@ public sealed class CreateServerHandler(
     AppDbContext dbContext,
     SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
+    IHttpContextAccessor httpContextAccessor,
     IOptions<TierOptions> tierOptions,
     ILogger<CreateServerHandler> logger)
     : IRequestHandler<CreateServerCommand, Result<CreateServerResponse>>, IValidatable<CreateServerCommand>
@@ -69,9 +70,12 @@ public sealed class CreateServerHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        // Tier gating: enforce server capacity limit (0 = unlimited)
+        // Tier gating: enforce server capacity limit (0 = unlimited).
+        // Instance admin (operator) is exempt - the limit is for tenants on a SaaS
+        // plan, not the operator running the instance.
+        var isAdmin = httpContextAccessor.HttpContext?.User.HasClaim(c => c.Type == "admin" && c.Value == "true") ?? false;
         var maxServers = tierOptions.Value.MaxServers;
-        if (maxServers > 0)
+        if (maxServers > 0 && !isAdmin)
         {
             var serverCount = await dbContext.Servers
                 .CountAsync(s => s.DeletedAt == null, cancellationToken);

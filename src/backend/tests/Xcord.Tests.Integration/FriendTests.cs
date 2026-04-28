@@ -216,7 +216,7 @@ public class FriendTests
 
         senderPendingResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var senderPending = await senderPendingResponse.ReadAsJsonAsync<JsonElement>();
-        senderPending.EnumerateArray()
+        senderPending.GetProperty("friendships").EnumerateArray()
             .Should().NotContain(f => f.GetProperty("id").ReadLong() == friendshipId,
                 "declined friend request must no longer appear in the sender's pending list");
 
@@ -227,7 +227,7 @@ public class FriendTests
 
         receiverPendingResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var receiverPending = await receiverPendingResponse.ReadAsJsonAsync<JsonElement>();
-        receiverPending.EnumerateArray()
+        receiverPending.GetProperty("friendships").EnumerateArray()
             .Should().NotContain(f => f.GetProperty("id").ReadLong() == friendshipId,
                 "declined friend request must no longer appear in the receiver's pending list");
     }
@@ -270,7 +270,7 @@ public class FriendTests
 
         listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var friends = await listResponse.ReadAsJsonAsync<JsonElement>();
-        var friendArray = friends.EnumerateArray().ToList();
+        var friendArray = friends.GetProperty("friendships").EnumerateArray().ToList();
         friendArray.Should().NotContain(f => f.GetProperty("id").ReadLong() == friendshipId);
     }
 
@@ -347,7 +347,7 @@ public class FriendTests
 
         listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var friends = await listResponse.ReadAsJsonAsync<JsonElement>();
-        var friendArray = friends.EnumerateArray().ToList();
+        var friendArray = friends.GetProperty("friendships").EnumerateArray().ToList();
 
         // Should contain the accepted friendship but not the pending one
         friendArray.Should().Contain(f => f.GetProperty("id").ReadLong() == f1Id);
@@ -375,7 +375,7 @@ public class FriendTests
 
         listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var friends = await listResponse.ReadAsJsonAsync<JsonElement>();
-        var friendArray = friends.EnumerateArray().ToList();
+        var friendArray = friends.GetProperty("friendships").EnumerateArray().ToList();
 
         friendArray.Should().Contain(f => f.GetProperty("id").ReadLong() == friendshipId);
         friendArray.All(f => f.GetProperty("status").GetString() == "Pending").Should().BeTrue();
@@ -392,7 +392,7 @@ public class FriendTests
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var friends = await response.ReadAsJsonAsync<JsonElement>();
-        friends.EnumerateArray().Should().BeEmpty();
+        friends.GetProperty("friendships").EnumerateArray().Should().BeEmpty();
     }
 
     // ──────────── Duplicate: Already Friends ────────────

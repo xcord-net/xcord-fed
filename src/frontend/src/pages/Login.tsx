@@ -33,7 +33,9 @@ export default function Login() {
       navigate(sanitizeRedirect(redirectParam));
       return;
     }
-    // Navigate to first server's channel directory
+    // Navigate to first server's channel directory, or /channels/me when the
+    // user has no servers (DMs/friends view). Avoid '/' so the post-login URL
+    // is always under /channels/* for any caller waiting on that pattern.
     try {
       const data = await fetch('/api/v1/users/@me/servers', { credentials: 'include' }).then(r => r.json());
       const servers = Array.isArray(data?.servers) ? data.servers : [];
@@ -42,7 +44,7 @@ export default function Login() {
         return;
       }
     } catch {}
-    navigate('/');
+    navigate('/channels/me', { replace: true });
   };
 
   const handleSubmit = async (e: Event) => {

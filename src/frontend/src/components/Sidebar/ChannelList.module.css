@@ -1,0 +1,53 @@
+/* Channel list */
+.channelList {
+  flex: 1;
+  overflow-y: auto;
+  padding-left: 0.375rem;
+  padding-right: 0.375rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+/* Loading skeleton */
+.skeletonRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+}
+
+.skeletonIcon {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  background-color: var(--color-xcord-bg-primary);
+  flex-shrink: 0;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Section labels & dividers */
+.favoritesLabel {
+  padding: 0.25rem 0.375rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--color-xcord-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sectionDivider {
+  height: 1px;
+  background-color: var(--color-xcord-border);
+  margin: 0.375rem 0.25rem;
+}

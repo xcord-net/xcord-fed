@@ -1,0 +1,51 @@
+.confirmModalBody {
+  padding: 1.5rem;
+}
+
+.confirmModalText {
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  margin-top: 0;
+}
+
+.confirmModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.confirmCancelButton {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: var(--color-xcord-text-primary);
+  background-color: var(--color-xcord-bg-primary);
+  border-radius: 0.25rem;
+  transition: background-color 150ms;
+  border: none;
+  cursor: pointer;
+}
+
+.confirmCancelButton:hover {
+  background-color: var(--color-xcord-bg-tertiary);
+}
+
+.confirmEndButton {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: #ffffff;
+  background-color: var(--color-xcord-danger);
+  border-radius: 0.25rem;
+  transition: background-color 150ms;
+  border: none;
+  cursor: pointer;
+}
+
+.confirmEndButton:hover {
+  background-color: var(--color-xcord-danger-hover);
+}
+
+.confirmEndButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

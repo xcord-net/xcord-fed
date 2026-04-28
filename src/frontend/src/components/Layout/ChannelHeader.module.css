@@ -1,0 +1,64 @@
+/* ===== Channel header ===== */
+.channelHeader {
+  height: 3rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--color-xcord-border);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  background-color: var(--color-xcord-bg-primary);
+  flex-shrink: 0;
+}
+
+.channelName {
+  font-weight: 600;
+  color: white;
+}
+
+.channelTopic {
+  margin-left: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--color-xcord-text-muted);
+  border-left: 1px solid var(--color-xcord-border);
+  padding-left: 1rem;
+}
+
+/* ===== Header action buttons ===== */
+.headerActions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.headerBtn {
+  padding: 0.375rem;
+  border-radius: 0.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-xcord-text-muted);
+  transition: color 150ms, background-color 150ms;
+}
+
+.headerBtn:hover {
+  color: white;
+  background-color: var(--color-xcord-bg-secondary);
+}
+
+.headerBtnActive {
+  color: white;
+  background-color: var(--color-xcord-bg-secondary);
+}
+
+.headerBtn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.headerIcon {
+  width: 1rem;
+  height: 1rem;
+}

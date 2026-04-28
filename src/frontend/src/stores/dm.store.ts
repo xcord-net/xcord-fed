@@ -90,8 +90,13 @@ export function useDms() {
               createdAt: dto.lastMessage?.createdAt ?? new Date(0).toISOString(),
             });
           } else {
-            // For 1:1 DMs, pick the other member as recipient.
-            const recipient = dto.members.find((m) => m.userId !== currentUserId) ?? dto.members[0];
+            // For 1:1 DMs, the backend orders members with the recipient (other party)
+            // first. We still defensively prefer the find-by-id path if currentUserId is
+            // available, but fall back to members[0] (recipient by backend ordering)
+            // when it isn't, instead of accidentally selecting self.
+            const recipient = currentUserId
+              ? (dto.members.find((m) => m.userId !== currentUserId) ?? dto.members[0])
+              : dto.members[0];
             channels.push({
               id: dto.id,
               conversationId: dto.conversationId,

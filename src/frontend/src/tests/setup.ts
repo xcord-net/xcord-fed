@@ -1,7 +1,32 @@
-// Mock global fetch if needed
-globalThis.fetch = vi.fn() as typeof globalThis.fetch;
+import '@testing-library/jest-dom/vitest';
+import { afterEach, vi } from 'vitest';
+import { cleanup } from '@solidjs/testing-library';
 
-// Reset mocks after each test
+// jsdom polyfills for browser APIs that components occasionally read at import/render time.
+if (typeof window !== 'undefined' && !window.matchMedia) {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+}
+
 afterEach(() => {
+  cleanup();
   vi.clearAllMocks();
+  if (typeof globalThis.fetch === 'function' && 'mockReset' in globalThis.fetch) {
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockReset();
+  }
 });
+
+globalThis.fetch = vi.fn(async () => {
+  throw new Error('fetch was called without being mocked - stub it with mockFetch() in your test');
+}) as typeof globalThis.fetch;

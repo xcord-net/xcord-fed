@@ -1,0 +1,20 @@
+/* Attachment list */
+.attachmentList {
+  margin-top: 0.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.attachmentLink {
+  font-size: 0.75rem;
+  color: var(--color-xcord-brand);
+  text-decoration: underline;
+}
+
+.attachmentThumbnail {
+  max-height: 12rem;
+  max-width: 20rem;
+  border-radius: 0.25rem;
+  object-fit: contain;
+}

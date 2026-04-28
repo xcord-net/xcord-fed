@@ -40,15 +40,15 @@ export async function resetAllStores(): Promise<void> {
   useNotifications().reset();
   useCalls().reset();
   useThreads().reset();
-  usePins().clearPins();
+  usePins().reset();
   useSearch().reset();
   useEmojis().reset();
   useForums().reset();
   useProfiles().reset();
-  usePresence().clearPresence();
-  useTyping().clearTyping();
-  useVoice().clearVoiceState();
-  useUnread().clearUnreads();
+  usePresence().reset();
+  useTyping().reset();
+  useVoice().reset();
+  useUnread().reset();
   useBroadcast().reset();
   useStreambot().reset();
 }

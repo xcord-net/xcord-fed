@@ -133,7 +133,7 @@ public class BlockTests
         listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var friends = await listResponse.ReadAsJsonAsync<JsonElement>();
-        var friendArray = friends.EnumerateArray().ToList();
+        var friendArray = friends.GetProperty("friendships").EnumerateArray().ToList();
         friendArray.Should().NotContain(f => f.GetProperty("id").ReadLong() == friendshipId);
     }
 

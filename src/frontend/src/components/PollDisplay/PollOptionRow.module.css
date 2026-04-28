@@ -1,0 +1,85 @@
+.optionWrapper {
+  position: relative;
+}
+
+.optionButton {
+  position: relative;
+  width: 100%;
+  text-align: left;
+  border-radius: 0.25rem;
+  overflow: hidden;
+  transition: border-color 150ms;
+  border-width: 1px;
+  border-style: solid;
+  background: none;
+  padding: 0;
+}
+
+.optionButtonDefault {
+  border-color: var(--color-xcord-bg-primary);
+  cursor: pointer;
+}
+
+.optionButtonDefault:hover {
+  border-color: color-mix(in srgb, var(--color-xcord-brand) 40%, transparent);
+}
+
+.optionButtonVoted {
+  border-color: var(--color-xcord-brand);
+  cursor: pointer;
+}
+
+.optionButtonClosed {
+  cursor: default;
+}
+
+.optionProgress {
+  position: absolute;
+  inset: 0;
+  transition: width 300ms;
+}
+
+.optionProgressDefault {
+  background-color: color-mix(in srgb, var(--color-xcord-bg-primary) 60%, transparent);
+}
+
+.optionProgressVoted {
+  background-color: color-mix(in srgb, var(--color-xcord-brand) 20%, transparent);
+}
+
+.optionContent {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  gap: 0.5rem;
+}
+
+.optionLabelGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.optionVotedCheck {
+  color: var(--color-xcord-brand);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.optionText {
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.optionPercent {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  font-weight: 500;
+}

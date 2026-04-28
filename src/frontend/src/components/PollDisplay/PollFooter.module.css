@@ -1,0 +1,56 @@
+.pollFooter {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.totalVotes {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+}
+
+.multiSelectNote {
+  margin-left: 0.25rem;
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.closedBadge {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  background-color: var(--color-xcord-bg-primary);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.expiryText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+}
+
+.endPollButton {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--color-xcord-bg-primary);
+  background: none;
+  transition: color 150ms, border-color 150ms;
+  cursor: pointer;
+}
+
+.endPollButton:hover {
+  color: var(--color-xcord-danger-text);
+  border-color: color-mix(in srgb, var(--color-xcord-danger-text) 40%, transparent);
+}
+
+.endPollButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

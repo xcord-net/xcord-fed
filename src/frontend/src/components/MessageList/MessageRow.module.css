@@ -1,0 +1,178 @@
+/* Individual message row */
+.messageRow {
+  position: relative;
+}
+
+.messageRowGrouped {
+  padding-left: 3.5rem;
+}
+
+.messageRowGrouped:hover,
+.messageRowBase:hover {
+  background-color: color-mix(in srgb, var(--color-xcord-bg-primary) 30%, transparent);
+}
+
+/* Hover action toolbar (lives inside .messageRow) */
+.actionBar {
+  position: absolute;
+  right: 0.5rem;
+  top: 0;
+  background-color: var(--color-xcord-bg-tertiary);
+  border-radius: 0.25rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  border: 1px solid var(--color-xcord-border);
+  z-index: 30;
+  display: none;
+}
+
+.actionBarVisible {
+  display: flex;
+}
+
+/* Show action bar on row hover or when emoji picker is open */
+.messageRow:hover .actionBar,
+.messageRow:focus-within .actionBar {
+  display: flex;
+}
+
+.actionButton {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  background: none;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+
+.actionButton:hover {
+  color: white;
+  background-color: var(--color-xcord-bg-primary);
+}
+
+.actionButtonDelete:hover {
+  color: var(--color-xcord-danger-text);
+  background-color: var(--color-xcord-bg-primary);
+}
+
+.actionButtonPin:hover {
+  color: var(--color-xcord-warning-glow);
+  background-color: var(--color-xcord-bg-primary);
+}
+
+/* Reaction picker overlay */
+.reactionPickerOverlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 40;
+}
+
+.reactionPickerPopover {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 0.25rem;
+  z-index: 50;
+}
+
+/* Relative wrapper for the react button + picker */
+.reactionButtonWrap {
+  position: relative;
+}
+
+/* Grouped message (no header) */
+.groupedContent {
+  padding: 0.125rem 0;
+}
+
+.groupedText {
+  font-size: 0.875rem;
+  color: var(--color-xcord-text-primary);
+}
+
+.editedBadge {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  margin-left: 0.25rem;
+}
+
+/* Full message row (avatar + header) */
+.messageWithHeader {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.25rem 0;
+}
+
+.avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background-color: var(--color-xcord-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
+.messageBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.messageHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.authorName {
+  font-weight: 600;
+}
+
+.messageTimestamp {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.replyIndicator {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.messageContent {
+  font-size: 0.875rem;
+  color: var(--color-xcord-text-primary);
+  word-break: break-word;
+}
+
+/* Thread indicator button */
+.threadIndicator {
+  margin-top: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-xcord-brand);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.threadIndicator:hover {
+  text-decoration: underline;
+}

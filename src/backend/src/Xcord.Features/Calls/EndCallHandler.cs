@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using StackExchange.Redis;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
 using Xcord.Infrastructure.Data;
@@ -21,10 +22,13 @@ public sealed class EndCallHandler(
     ICurrentUserService currentUserService,
     ILiveKitService liveKitService,
     INotificationService notificationService,
+    IConnectionMultiplexer redis,
     IOptions<InstanceOptions> instanceOptions,
+    IOptions<RedisOptions> redisOptions,
     ILogger<EndCallHandler> logger) : IRequestHandler<EndCallRequest, Result<bool>>
 {
     private readonly InstanceOptions _instanceOptions = instanceOptions.Value;
+    private readonly string _channelPrefix = redisOptions.Value.ChannelPrefix;
 
     public async Task<Result<bool>> Handle(EndCallRequest request, CancellationToken cancellationToken)
     {
@@ -124,6 +128,15 @@ public sealed class EndCallHandler(
         {
             await transaction.RollbackAsync(cancellationToken);
             throw;
+        }
+
+        // Release the per-pair initiation rate-limit key so a follow-up call is not blocked
+        // by the 10s spam guard set in InitiateCallHandler.
+        if (recipientId.HasValue)
+        {
+            var minId = Math.Min(call.CallerId, recipientId.Value);
+            var maxId = Math.Max(call.CallerId, recipientId.Value);
+            await redis.GetDatabase().KeyDeleteAsync($"{_channelPrefix}:callinit:{minId}:{maxId}");
         }
 
         // Notify both participants after the transaction is committed

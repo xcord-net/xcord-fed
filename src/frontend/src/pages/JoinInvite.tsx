@@ -33,37 +33,35 @@ export default function JoinInvite() {
     }
   });
 
-  const navigateToServer = async (serverId: string) => {
-    try {
-      const resp = await api.get<{ channels: { id: string }[] }>(`/api/v1/servers/${serverId}/channels`);
-      const firstChannel = resp.channels?.[0];
-      if (firstChannel) {
-        navigate(`/channels/${serverId}/${firstChannel.id}`);
-      } else {
-        navigate(`/channels/me`);
-      }
-    } catch {
-      navigate(`/channels/me`);
-    }
+  const navigateToServer = (serverId: string) => {
+    // Navigate directly to the server route - the channel directory or first
+    // channel will be selected by the destination page. Avoids an extra round
+    // trip to fetch channels just to pick one.
+    navigate(`/channels/${serverId}`, { replace: true });
   };
 
   const handleJoin = async () => {
+    // Capture the code at handler invocation time so a navigation that fires
+    // mid-handler (which clears the route param to undefined) doesn't cause us
+    // to issue follow-up requests with undefined in the URL.
+    const code = params.code;
+    if (!code) return;
     setJoining(true);
     setError('');
     try {
       // Try joining as a regular invite code first
-      const server = await serverStore.joinByInvite(params.code);
+      const server = await serverStore.joinByInvite(code);
       setJoined(true);
-      await navigateToServer(server.id);
+      navigateToServer(server.id);
     } catch {
       // If regular invite fails, try vanity slug join
       try {
         const vanityResult = await api.post<{ serverId: string; serverName: string }>(
-          `/api/v1/invite/${params.code}/join`
+          `/api/v1/invite/${code}/join`
         );
         const serverId = String(vanityResult.serverId);
         setJoined(true);
-        await navigateToServer(serverId);
+        navigateToServer(serverId);
       } catch (err2: unknown) {
         setError(getErrorMessage(err2, 'Failed to join server'));
       }

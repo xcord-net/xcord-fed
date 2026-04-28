@@ -1,0 +1,72 @@
+/* GroupList.module.css */
+
+.sidebar {
+  width: 14rem;
+  border-right: 1px solid var(--color-xcord-border);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.sidebarLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 6rem;
+}
+
+.sidebarEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+  text-align: center;
+}
+
+.mutedText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.groupItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.75rem;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color 150ms, color 150ms;
+  color: var(--color-xcord-text-secondary);
+}
+
+.groupItem:hover {
+  background-color: rgb(26 29 37 / 0.5);
+  color: #ffffff;
+}
+
+.groupItem:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.groupItemActive {
+  background-color: var(--color-xcord-bg-primary);
+  color: #ffffff;
+}
+
+.groupColorDot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.groupName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.875rem;
+}

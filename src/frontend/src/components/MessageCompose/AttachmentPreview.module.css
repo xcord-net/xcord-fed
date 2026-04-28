@@ -1,0 +1,44 @@
+.filePreview {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-xcord-bg-primary);
+  border-bottom: 1px solid var(--color-xcord-bg-secondary);
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+}
+
+.fileIcon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.fileInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.fileName {
+  font-size: 0.875rem;
+  color: var(--color-xcord-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileSize {
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.removeBtn {
+  color: var(--color-xcord-text-muted);
+  flex-shrink: 0;
+  transition: color 150ms;
+}
+
+.removeBtn:hover {
+  color: var(--color-xcord-text-primary);
+}

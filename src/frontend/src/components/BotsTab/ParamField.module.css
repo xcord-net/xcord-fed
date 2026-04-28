@@ -1,0 +1,62 @@
+.paramField {
+  margin-bottom: 0.75rem;
+}
+
+.paramLabel {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-xcord-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.paramRequiredMark {
+  color: var(--color-xcord-danger-text);
+  margin-left: 0.25rem;
+}
+
+.paramDescription {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.paramCheckboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.paramCheckbox {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  accent-color: var(--color-xcord-brand);
+}
+
+.paramCheckboxText {
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.875rem;
+}
+
+.paramInput {
+  width: 100%;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-xcord-border);
+  outline: none;
+}
+
+.paramInput:focus {
+  border-color: var(--color-xcord-brand);
+}
+
+.paramInput:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}

@@ -15,6 +15,7 @@ public sealed record DeleteServerCommand(long ServerId);
 public sealed class DeleteServerHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
+    IHttpContextAccessor httpContextAccessor,
     ILogger<DeleteServerHandler> logger)
     : IRequestHandler<DeleteServerCommand, Result<bool>>
 {
@@ -33,10 +34,12 @@ public sealed class DeleteServerHandler(
             return Error.NotFound("SERVER_NOT_FOUND", "Server not found");
         }
 
-        // Only owner can delete
-        if (server.OwnerId != userId)
+        // Owner can delete; instance admin can delete any server (used for cleanup
+        // of abandoned servers from prior test runs and operator-driven moderation).
+        var isAdmin = httpContextAccessor.HttpContext?.User.HasClaim(c => c.Type == "admin" && c.Value == "true") ?? false;
+        if (server.OwnerId != userId && !isAdmin)
         {
-            return Error.Forbidden("NOT_OWNER", "Only the server owner can delete the server");
+            return Error.Forbidden("NOT_OWNER", "Only the server owner or instance admin can delete the server");
         }
 
         // Soft delete

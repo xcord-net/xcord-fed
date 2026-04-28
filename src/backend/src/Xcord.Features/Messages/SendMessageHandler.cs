@@ -330,7 +330,7 @@ public sealed class SendMessageHandler(
             }).ToList();
 
             await notificationService.NotifyConversationAsync(request.ConversationId, "Chat_MessageCreated",
-                MessageOutboxPayloads.ForCreated(message, authorForResponse.Username, authorForResponse.AvatarUrl,
+                MessageEventPayloads.ForCreated(message, authorForResponse.Username, authorForResponse.AvatarUrl,
                     attachments: notifyAttachments));
 
             logger.LogInformation(

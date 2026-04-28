@@ -154,7 +154,7 @@ public sealed class EditMessageHandler(
         // Notify conversation after save - include full message data so clients can update their
         // message store immediately without a separate API fetch.
         await notificationService.NotifyConversationAsync(request.ConversationId, "Chat_MessageUpdated",
-            MessageOutboxPayloads.ForCreated(message, message.Author?.Username, message.Author?.AvatarUrl, message.EditedAt));
+            MessageEventPayloads.ForCreated(message, message.Author?.Username, message.Author?.AvatarUrl, message.EditedAt));
 
         // Execute deferred automod actions after save
         var deferredActions = processingResult.Value.DeferredActions;

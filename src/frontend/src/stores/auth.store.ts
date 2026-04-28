@@ -141,5 +141,11 @@ export function useAuth() {
         store.setIsLoading(false);
       }
     },
+
+    reset(): void {
+      store.setUser(null);
+      store.setIsAuthenticated(false);
+      store.setIsLoading(true);
+    },
   };
 }

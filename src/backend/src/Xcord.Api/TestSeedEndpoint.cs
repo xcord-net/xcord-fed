@@ -14,7 +14,8 @@ public sealed record SeedUserRequest(
     string Username,
     string DisplayName,
     string Email,
-    string Password
+    string Password,
+    bool Admin = false
 );
 
 public static class TestSeedEndpoint
@@ -112,7 +113,7 @@ public static class TestSeedEndpoint
                     PasswordHash = passwordHash,
                     EmailConfirmed = true,
                     TwoFactorEnabled = false,
-                    IsAdmin = false,
+                    IsAdmin = request.Admin,
                     IsBot = false,
                     IsDisabled = false,
                     CreatedAt = now,

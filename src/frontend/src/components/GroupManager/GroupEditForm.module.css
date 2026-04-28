@@ -1,0 +1,224 @@
+/* GroupEditForm.module.css */
+
+.editForm {
+  padding: 1rem 1.25rem;
+}
+
+.editFormHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.editFormTitle {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.deleteGroupButton {
+  color: var(--color-xcord-danger-text);
+  font-size: 0.875rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 150ms;
+  border-radius: 0.25rem;
+}
+
+.deleteGroupButton:hover {
+  color: var(--color-xcord-danger-text-light);
+}
+
+.deleteGroupButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-danger-text);
+}
+
+.fieldGroup {
+  margin-bottom: 0.75rem;
+}
+
+.fieldLabel {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-xcord-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.375rem;
+}
+
+.textInput {
+  width: 100%;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-xcord-border);
+}
+
+.textInput:focus {
+  border-color: var(--color-xcord-brand);
+  outline: none;
+}
+
+.textInput:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+/* Color picker */
+.colorSwatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.colorSwatch {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  transition: transform 150ms;
+}
+
+.colorSwatch:hover {
+  transform: scale(1.1);
+}
+
+.colorSwatch:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.colorSwatchSelected {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--color-xcord-bg-secondary);
+}
+
+.hexRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.colorPreview {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--color-xcord-border);
+  flex-shrink: 0;
+}
+
+.hexInput {
+  width: 7rem;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-xcord-border);
+  font-family: monospace;
+}
+
+.hexInput:focus {
+  border-color: var(--color-xcord-brand);
+  outline: none;
+}
+
+.hexInput:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+/* Roles / permission flags */
+.rolesList {
+  /* stacked items */
+}
+
+.roleItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+
+.roleCheckbox {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--color-xcord-border);
+  background-color: var(--color-xcord-bg-tertiary);
+  cursor: pointer;
+  accent-color: var(--color-xcord-brand);
+}
+
+.roleCheckbox:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.roleLabel {
+  font-size: 0.875rem;
+  color: var(--color-xcord-text-secondary);
+  transition: color 150ms;
+}
+
+.roleItem:hover .roleLabel {
+  color: var(--color-xcord-text-primary);
+}
+
+/* Status messages */
+.successMsg {
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: rgb(34 197 94 / 0.2);
+  border: 1px solid rgb(34 197 94 / 0.3);
+  border-radius: 0.25rem;
+  color: var(--color-xcord-success-text);
+  font-size: 0.875rem;
+}
+
+.errorMsgInline {
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: rgb(239 68 68 / 0.2);
+  border: 1px solid rgb(239 68 68 / 0.3);
+  border-radius: 0.25rem;
+  color: var(--color-xcord-danger-text);
+  font-size: 0.875rem;
+}
+
+/* Save button row */
+.saveRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.saveButton {
+  padding: 0.5rem 1.25rem;
+  background-color: var(--color-xcord-brand);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.saveButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.saveButton:disabled {
+  opacity: 0.5;
+}
+
+.saveButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}

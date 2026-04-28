@@ -1,0 +1,46 @@
+/* Delete modal content */
+.deleteModalBody {
+  padding: 1.5rem;
+}
+
+.deleteModalText {
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.deleteModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.cancelButton {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: var(--color-xcord-text-primary);
+  background-color: var(--color-xcord-bg-primary);
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.cancelButton:hover {
+  background-color: var(--color-xcord-bg-tertiary);
+}
+
+.deleteButton {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: white;
+  background-color: var(--color-xcord-danger);
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.deleteButton:hover {
+  background-color: var(--color-xcord-danger-hover);
+}

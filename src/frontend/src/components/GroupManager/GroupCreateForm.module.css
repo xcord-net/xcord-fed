@@ -1,0 +1,100 @@
+/* GroupCreateForm.module.css */
+
+.createForm {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+}
+
+.formHeading {
+  color: #ffffff;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.fieldGroup {
+  margin-bottom: 0.75rem;
+}
+
+.fieldLabel {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-xcord-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.375rem;
+}
+
+.required {
+  color: var(--color-xcord-danger-text);
+}
+
+.textInput {
+  width: 100%;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-xcord-border);
+}
+
+.textInput:focus {
+  border-color: var(--color-xcord-brand);
+  outline: none;
+}
+
+.textInput:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.formActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.submitButton {
+  padding: 0.375rem 1rem;
+  background-color: var(--color-xcord-brand);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.submitButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+}
+
+.submitButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.cancelFormButton {
+  padding: 0.375rem 1rem;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.cancelFormButton:hover {
+  background-color: var(--color-xcord-bg-tertiary);
+}
+
+.cancelFormButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}

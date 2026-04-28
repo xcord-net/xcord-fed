@@ -46,5 +46,10 @@ export function usePins() {
     clearPins(): void {
       store.setPinnedMessages([]);
     },
+
+    reset(): void {
+      store.setPinnedMessages([]);
+      store.setIsLoading(false);
+    },
   };
 }

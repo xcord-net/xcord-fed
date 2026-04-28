@@ -1,0 +1,60 @@
+/* Thread create form - z-index above action bar (30) so it isn't occluded */
+.threadCreateForm {
+  position: relative;
+  z-index: 31;
+  margin-top: 0.25rem;
+  margin-left: 3.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background-color: var(--color-xcord-bg-tertiary);
+  border-radius: 0.25rem;
+  border: 1px solid var(--color-xcord-border);
+}
+
+.threadNameInput {
+  flex: 1;
+  background-color: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--color-xcord-border);
+  outline: none;
+  transition: border-color 150ms;
+}
+
+.threadNameInput:focus {
+  border-color: var(--color-xcord-brand);
+}
+
+.threadCreateSubmit {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  background-color: var(--color-xcord-brand);
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.threadCreateSubmit:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.threadCreateCancel {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  background: none;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: color 150ms;
+}
+
+.threadCreateCancel:hover {
+  color: white;
+}

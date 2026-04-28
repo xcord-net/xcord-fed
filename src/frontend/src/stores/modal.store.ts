@@ -68,5 +68,34 @@ export function useModals() {
       store.setShowServerSettings(true);
     },
     closeServerSettings() { store.setShowServerSettings(false); },
+
+    /** Close every open modal. Called on logout / navigation events that should
+     *  reset modal state so a stale modal backdrop doesn't block the destination. */
+    closeAll() {
+      store.setShowSearch(false);
+      store.setShowPins(false);
+      store.setShowThreads(false);
+      store.setShowSettings(null);
+      store.setShowChannelSettings(false);
+      store.setShowGroupManager(false);
+      store.setShowEvents(false);
+      store.setShowScheduledMessages(false);
+      store.setSelectedForumPost(null);
+      store.setShowServerSettings(false);
+    },
+
+    reset(): void {
+      store.setShowSearch(false);
+      store.setShowPins(false);
+      store.setShowThreads(false);
+      store.setShowSettings(null);
+      store.setShowChannelSettings(false);
+      store.setShowGroupManager(false);
+      store.setShowEvents(false);
+      store.setShowScheduledMessages(false);
+      store.setSelectedForumPost(null);
+      store.setShowServerSettings(false);
+      store.setServerSettingsTab('overview');
+    },
   };
 }

@@ -1,0 +1,7 @@
+/* ===== Right-side panels ===== */
+.rightPanel {
+  width: 20rem;
+  border-left: 1px solid var(--color-xcord-border);
+  background-color: var(--color-xcord-bg-secondary);
+  overflow-y: auto;
+}

@@ -1,0 +1,78 @@
+/* GroupManager.module.css */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--color-xcord-bg-secondary);
+}
+
+.header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.heading {
+  color: var(--color-xcord-text-primary);
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.createButton {
+  padding: 0.375rem 0.75rem;
+  background-color: var(--color-xcord-brand);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.createButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.createButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.errorBanner {
+  padding: 0.5rem 1rem;
+  background-color: rgb(239 68 68 / 0.2);
+  color: var(--color-xcord-danger-text);
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Editor pane */
+.editorPane {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Empty editor state */
+.editorEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+  text-align: center;
+}
+
+.mutedText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}

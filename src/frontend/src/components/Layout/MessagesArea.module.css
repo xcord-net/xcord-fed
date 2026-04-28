@@ -1,0 +1,94 @@
+/* ===== Messages area ===== */
+.messagesArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* ===== Forum thread view ===== */
+.forumThreadView {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.forumThreadHeader {
+  height: 3rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--color-xcord-border);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  background-color: var(--color-xcord-bg-primary);
+  flex-shrink: 0;
+}
+
+.forumBackButton {
+  color: var(--color-xcord-brand);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  margin-right: 0.75rem;
+  padding: 0;
+}
+
+.forumBackButton:hover {
+  text-decoration: underline;
+}
+
+.forumPostTitle {
+  font-weight: 600;
+  color: white;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===== Edit bar ===== */
+.editBarWrapper {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-bottom: 1.5rem;
+}
+
+.editBarInner {
+  background-color: var(--color-xcord-bg-primary);
+  border-radius: 0.5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.editBarLabel {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--color-xcord-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.editTextarea {
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+  border: 1px solid var(--color-xcord-border);
+  resize: none;
+  outline: none;
+}
+
+.editBarHint {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--color-xcord-text-muted);
+}

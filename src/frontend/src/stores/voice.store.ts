@@ -557,5 +557,15 @@ export function useVoice() {
       store.setIsScreenSharing(false);
       store.setScreenShareParticipantId(null);
     },
+
+    reset(): void {
+      this.clearVoiceState();
+      store.setIsConnecting(false);
+      store.setError(null);
+      livekitRoom = null;
+      signalrConnection = null;
+      serverSideJoined = false;
+      intentionalLeave = false;
+    },
   };
 }

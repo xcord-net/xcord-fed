@@ -69,7 +69,12 @@ public sealed class ListDmsHandler(
                     m.CreatedAt))
                 .FirstOrDefaultAsync(cancellationToken);
 
+            // Order members so the OTHER party is first for 1:1 DMs. This lets the
+            // frontend identify the recipient as members[0] without needing to know
+            // currentUserId synchronously (avoids a race where the user store hasn't
+            // loaded yet and the recipient ends up being identified as self).
             var members = dm.Members
+                .OrderBy(m => m.UserId == currentUserId ? 1 : 0)
                 .Select(m => new DmMemberDto(
                     m.UserId,
                     m.User.Username,

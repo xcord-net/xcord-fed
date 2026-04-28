@@ -1,0 +1,51 @@
+/* DeleteGroupModal.module.css */
+
+.dialogBody {
+  padding: 1.5rem;
+}
+
+.dialogText {
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.dialogCancelButton {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: var(--color-xcord-text-primary);
+  background-color: var(--color-xcord-bg-primary);
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.dialogCancelButton:hover {
+  background-color: var(--color-xcord-bg-tertiary);
+}
+
+.dialogDeleteButton {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: #ffffff;
+  background-color: var(--color-xcord-danger);
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.dialogDeleteButton:hover {
+  background-color: var(--color-xcord-danger-hover);
+}
+
+.dialogDeleteButton:disabled {
+  opacity: 0.5;
+}

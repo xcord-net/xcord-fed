@@ -261,6 +261,8 @@ public sealed class CreateChannelHandler(
             name = channel.Name,
             topic = channel.Topic,
             type = channel.Type.ToString(),
+            capabilities = channel.Capabilities.ToString(),
+            accessGroupId = channel.AccessGroupId,
             position = channel.Position,
             slowModeSeconds = channel.SlowModeSeconds,
             isNsfw = channel.IsNsfw,

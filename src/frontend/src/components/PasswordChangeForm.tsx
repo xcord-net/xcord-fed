@@ -1,5 +1,6 @@
 import { createSignal } from 'solid-js';
 import { api } from '../api/client';
+import { useModals } from '../stores/modal.store';
 import { getErrorMessage } from '../utils/errors';
 import styles from './PasswordChangeForm.module.css';
 
@@ -19,6 +20,7 @@ export function validatePasswordChange(
 // ---- Component ----
 
 export default function PasswordChangeForm() {
+  const modals = useModals();
   const [currentPassword, setCurrentPassword] = createSignal('');
   const [newPassword, setNewPassword] = createSignal('');
   const [confirmPassword, setConfirmPassword] = createSignal('');
@@ -47,6 +49,9 @@ export default function PasswordChangeForm() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      // Close the settings modal after a brief moment so the user sees the
+      // success message but isn't trapped in the modal afterward.
+      setTimeout(() => modals.closeSettings(), 1500);
     } catch (err: unknown) {
       setError(getErrorMessage(err, 'Failed to change password'));
     } finally {

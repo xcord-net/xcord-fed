@@ -1,5 +1,6 @@
 import { createSignal, Show, For } from 'solid-js';
 import { api } from '../api/client';
+import { useModals } from '../stores/modal.store';
 import { getErrorMessage } from '../utils/errors';
 import styles from './TwoFactorSetup.module.css';
 
@@ -120,6 +121,9 @@ export default function TwoFactorSetup(props: TwoFactorSetupProps) {
     setCopied(false);
     setPhase('idle');
     setSuccess('Two-factor authentication enabled successfully. Keep your backup codes safe.');
+    // Close the settings modal after enabling so the user isn't trapped in the
+    // modal afterwards (matches PasswordChangeForm behavior).
+    setTimeout(() => useModals().closeSettings(), 1500);
   };
 
   const handleDisableInit = () => {

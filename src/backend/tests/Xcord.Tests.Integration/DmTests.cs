@@ -130,7 +130,7 @@ public class DmTests
         listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var dms = await listResponse.ReadAsJsonAsync<JsonElement>();
-        var dmArray = dms.EnumerateArray().ToList();
+        var dmArray = dms.GetProperty("dmChannels").EnumerateArray().ToList();
 
         dmArray.Should().HaveCountGreaterThanOrEqualTo(1);
         dmArray.Should().Contain(dm => dm.GetProperty("id").ReadLong() == createdDmId);
@@ -298,7 +298,7 @@ public class DmTests
         listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var dms = await listResponse.ReadAsJsonAsync<JsonElement>();
-        var dmArray = dms.EnumerateArray().ToList();
+        var dmArray = dms.GetProperty("dmChannels").EnumerateArray().ToList();
 
         dmArray.Should().NotContain(d => d.GetProperty("id").ReadLong() == dmId);
     }

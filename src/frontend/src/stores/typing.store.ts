@@ -103,5 +103,13 @@ export function useTyping() {
         store.setTimeoutMap(new Map());
       }
     },
+
+    reset(): void {
+      store.timeoutMap().forEach(timeouts => {
+        timeouts.forEach(t => clearTimeout(t.timerId));
+      });
+      store.setTypingMap(new Map());
+      store.setTimeoutMap(new Map());
+    },
   };
 }

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System.Security.Cryptography;
 using Xcord.Infrastructure.Data;
 
 namespace Xcord.Features.Auth;
@@ -21,10 +20,8 @@ public sealed class LogoutHandler(AppDbContext dbContext)
 
     public async Task<Result<bool>> HandleWithToken(string refreshTokenValue, CancellationToken cancellationToken)
     {
-        // Hash the token
-        var tokenHash = HashToken(refreshTokenValue);
+        var tokenHash = TokenHelper.HashToken(refreshTokenValue);
 
-        // Find and delete the refresh token
         var refreshToken = await dbContext.RefreshTokens
             .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash, cancellationToken);
 
@@ -35,13 +32,6 @@ public sealed class LogoutHandler(AppDbContext dbContext)
         }
 
         return true;
-    }
-
-    private static string HashToken(string token)
-    {
-        using var sha256 = SHA256.Create();
-        var hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(token));
-        return Convert.ToHexString(hashBytes);
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)

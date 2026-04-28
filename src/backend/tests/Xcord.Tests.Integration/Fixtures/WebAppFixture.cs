@@ -9,6 +9,7 @@ using StackExchange.Redis;
 using System.Security.Cryptography;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
+using Xcord.Api;
 using Xcord.Entities;
 using Xcord.Infrastructure.Services;
 using Xcord.Infrastructure.Data;
@@ -110,6 +111,7 @@ public class WebAppFixture : IAsyncLifetime
             AllowAutoRedirect = false,
             HandleCookies = false,
         });
+        Client.DefaultRequestHeaders.Add(CsrfHeaderMiddleware.HeaderName, "1");
     }
 
     public async Task DisposeAsync()
@@ -135,11 +137,13 @@ public class WebAppFixture : IAsyncLifetime
 
     public HttpClient CreateClientWithCookies()
     {
-        return _factory!.CreateClient(new WebApplicationFactoryClientOptions
+        var client = _factory!.CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false,
             HandleCookies = true,
         });
+        client.DefaultRequestHeaders.Add(CsrfHeaderMiddleware.HeaderName, "1");
+        return client;
     }
 
     /// <summary>

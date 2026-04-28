@@ -86,8 +86,11 @@ export function useMessages() {
           // Prepend older messages
           store.setMessages([...newMessages, ...store.messages()]);
         } else {
-          // Initial load
-          store.setMessages(newMessages);
+          // Initial load. Preserve any optimistic messages currently in the store
+          // (id starts with "pending-") so an in-flight send is not wiped by the
+          // initial fetch returning before the POST response.
+          const pending = store.messages().filter((m) => m.id.startsWith('pending-'));
+          store.setMessages([...newMessages, ...pending]);
         }
       } finally {
         store.setIsLoading(false);
@@ -125,20 +128,16 @@ export function useMessages() {
         });
         const realMessage = normalizeMessage(rawMessage);
 
-        // Replace optimistic message with real one (match by nonce if server echoed it, otherwise by temp ID)
+        // Replace optimistic message with real one (match by nonce if server echoed
+        // it, otherwise by temp ID). SignalR may have delivered this same message
+        // already, so dedupe by id afterward.
         const replaced = store.messages().map((m) => {
-          if (m.nonce && m.nonce === nonce) {
-            return realMessage;
-          }
-          if (m.id === optimisticMessage.id) {
-            return realMessage;
-          }
+          if (m.nonce && m.nonce === nonce) return realMessage;
+          if (m.id === optimisticMessage.id) return realMessage;
           return m;
         });
-        // Deduplicate by ID - SignalR may have already delivered this message
-        // before the HTTP POST response arrived, creating a duplicate.
         const seen = new Set<string>();
-        store.setMessages(replaced.filter(m => {
+        store.setMessages(replaced.filter((m) => {
           if (seen.has(m.id)) return false;
           seen.add(m.id);
           return true;

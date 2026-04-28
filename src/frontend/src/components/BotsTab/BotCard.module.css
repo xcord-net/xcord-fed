@@ -1,0 +1,327 @@
+.botCard {
+  background-color: var(--color-xcord-bg-secondary);
+  border: 1px solid var(--color-xcord-border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.botCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.botIdentity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.statusDotRunning {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background-color: var(--color-xcord-success-text);
+}
+
+.statusDotStopped {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background-color: var(--color-xcord-text-muted);
+}
+
+.botNames {
+  min-width: 0;
+}
+
+.botDisplayName {
+  color: var(--color-xcord-text-primary);
+  font-weight: 600;
+  font-size: 0.875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.botUsername {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+}
+
+.botAgent {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  margin-top: 0.125rem;
+}
+
+.botAgentName {
+  color: var(--color-xcord-text-secondary);
+}
+
+.botAgentUnassigned {
+  font-style: italic;
+}
+
+.botActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.stopButton {
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-xcord-warning);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  transition: color 150ms, background-color 150ms;
+}
+
+.stopButton:hover {
+  background-color: var(--color-xcord-warning-hover);
+}
+
+.stopButton:disabled {
+  opacity: 0.5;
+}
+
+.stopButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-warning-glow);
+}
+
+.startButton {
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-xcord-success-dark);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  transition: color 150ms, background-color 150ms;
+}
+
+.startButton:hover {
+  background-color: var(--color-xcord-success-dark-hover);
+}
+
+.startButton:disabled {
+  opacity: 0.5;
+}
+
+.startButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-success-text);
+}
+
+.configureButton {
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  transition: color 150ms, background-color 150ms;
+}
+
+.configureButton:hover {
+  background-color: var(--color-xcord-bg-primary);
+}
+
+.configureButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.assignAgentRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.assignSelect {
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  border: 1px solid var(--color-xcord-border);
+  outline: none;
+}
+
+.assignSelect:focus {
+  border-color: var(--color-xcord-brand);
+}
+
+.assignConfirmButton {
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-xcord-brand);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  transition: color 150ms, background-color 150ms;
+}
+
+.assignConfirmButton:hover {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.assignConfirmButton:disabled {
+  opacity: 0.5;
+}
+
+.assignConfirmButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.assignCancelButton {
+  padding: 0.25rem 0.5rem;
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  background: none;
+  border-radius: 0.25rem;
+  transition: color 150ms;
+}
+
+.assignCancelButton:hover {
+  color: white;
+}
+
+.assignAgentButton {
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  transition: color 150ms, background-color 150ms;
+}
+
+.assignAgentButton:hover {
+  background-color: var(--color-xcord-bg-primary);
+}
+
+.assignAgentButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+.deleteButton {
+  padding: 0.25rem 0.75rem;
+  background-color: rgba(220, 38, 38, 0.2);
+  color: var(--color-xcord-danger-text);
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  transition: color 150ms, background-color 150ms;
+}
+
+.deleteButton:hover {
+  background-color: var(--color-xcord-danger);
+  color: white;
+}
+
+.deleteButton:disabled {
+  opacity: 0.5;
+}
+
+.deleteButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-danger-text);
+}
+
+.assignError {
+  color: var(--color-xcord-danger-text);
+  font-size: 0.75rem;
+}
+
+/* Token list */
+.tokenSection {
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--color-xcord-border);
+  padding-top: 0.75rem;
+}
+
+.tokenSection > * + * {
+  margin-top: 0.5rem;
+}
+
+.tokenSectionLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-xcord-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.tokenRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background-color: var(--color-xcord-bg-primary);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.tokenInfo {
+  min-width: 0;
+}
+
+.tokenName {
+  color: var(--color-xcord-text-primary);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.tokenHash {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+  font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tokenDates {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.125rem;
+  color: var(--color-xcord-text-muted);
+  font-size: 0.75rem;
+}
+
+.revokeButton {
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  background-color: rgba(220, 38, 38, 0.2);
+  color: var(--color-xcord-danger-text);
+  font-size: 0.75rem;
+  border-radius: 0.25rem;
+  transition: color 150ms, background-color 150ms;
+}
+
+.revokeButton:hover {
+  background-color: var(--color-xcord-danger);
+  color: white;
+}
+
+.revokeButton:disabled {
+  opacity: 0.5;
+}
+
+.revokeButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-xcord-danger-text);
+}
