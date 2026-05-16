@@ -45,19 +45,19 @@ public sealed class UnblockUserHandler(
         // Hard delete the block
         dbContext.UserBlocks.Remove(userBlock);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Notify the unblocked user directly after save
         await notificationService.NotifyUserAsync(request.UserId, "Notify_UserUnblocked", new
         {
             blockerId = userId,
             blockedId = request.UserId
-        });
+        }, cancellationToken);
 
         // Remove from Redis cache
         var db = redis.GetDatabase();
         var redisKey = $"{_redisOptions.ChannelPrefix}:blocks:{userId}";
-        await db.SetRemoveAsync(redisKey, request.UserId);
+        await db.SetRemoveAsync(redisKey, request.UserId).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} unblocked user {UnblockedUserId}",
@@ -72,7 +72,7 @@ public sealed class UnblockUserHandler(
             [FromServices] UnblockUserHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new UnblockUserRequest(userId), ct);
+            return await handler.ExecuteAsync(new UnblockUserRequest(userId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("UnblockUser")

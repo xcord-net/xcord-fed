@@ -103,7 +103,7 @@ public sealed class AddStageSlotHandler(
             AddedAt = now
         };
         dbContext.BroadcastStageSlots.Add(slot);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Refresh stage slots from the tracker (they now include the new slot).
         var updatedSlots = broadcast.StageSlots
@@ -114,7 +114,7 @@ public sealed class AddStageSlotHandler(
         var roomName = egressBuilder.BuildRoomName(broadcast.ChannelId);
         var templateUrl = egressBuilder.BuildTemplateUrl(
             broadcast.Id, broadcast.LayoutPreset, updatedSlots, roomName);
-        var outputs = await egressBuilder.BuildOutputsAsync(broadcast.Id, cancellationToken);
+        var outputs = await egressBuilder.BuildOutputsAsync(broadcast.Id, cancellationToken).ConfigureAwait(false);
 
         string newEgressId;
         try
@@ -137,7 +137,7 @@ public sealed class AddStageSlotHandler(
         }
 
         broadcast.EgressJobId = newEgressId;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         await notificationService.NotifyConversationAsync(
             broadcast.Channel.ConversationId,
@@ -149,7 +149,7 @@ public sealed class AddStageSlotHandler(
                 stageSlots = updatedSlots
                     .Select(s => new BroadcastStageSlotDto(s.UserId, s.SlotIndex))
                     .ToArray()
-            });
+            }, cancellationToken);
 
         logger.LogInformation(
             "User {ActorId} added user {UserId} to slot {SlotIndex} on broadcast {BroadcastId}",
@@ -167,7 +167,7 @@ public sealed class AddStageSlotHandler(
             CancellationToken ct) =>
         {
             var command = new AddStageSlotCommand(broadcastId, request.UserId, request.SlotIndex);
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("AddBroadcastStageSlot")

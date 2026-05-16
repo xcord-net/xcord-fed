@@ -53,7 +53,7 @@ public sealed class AcceptFriendRequestHandler(
         // Update status to Accepted
         friendship.Status = FriendshipStatus.Accepted;
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Notify the original sender directly after save
         await notificationService.NotifyUserAsync(friendship.SenderId, "Notify_FriendAccepted", new
@@ -61,7 +61,7 @@ public sealed class AcceptFriendRequestHandler(
             friendshipId = friendship.Id,
             senderId = friendship.SenderId,
             receiverId = friendship.ReceiverId
-        });
+        }, cancellationToken);
 
         logger.LogInformation(
             "User {UserId} accepted friend request from user {SenderId}",
@@ -88,7 +88,7 @@ public sealed class AcceptFriendRequestHandler(
             [FromServices] AcceptFriendRequestHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new AcceptFriendRequestRequest(id), ct);
+            return await handler.ExecuteAsync(new AcceptFriendRequestRequest(id), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("AcceptFriendRequest")

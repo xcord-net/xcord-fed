@@ -31,7 +31,7 @@ public sealed class SaveServerTemplateHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        var perm = await roleService.EnsureServerRole(userId, request.ServerId, Role.ManageServer);
+        var perm = await roleService.EnsureServerRole(userId, request.ServerId, Role.ManageServer).ConfigureAwait(false);
         if (perm.IsFailure) return Error.Forbidden("MISSING_PERMISSIONS", "You do not have permission to manage this server");
 
         var channels = await dbContext.Channels.AsNoTracking()
@@ -55,7 +55,7 @@ public sealed class SaveServerTemplateHandler(
         };
 
         dbContext.ServerTemplates.Add(template);
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
         return new ServerTemplateResponse(template.Id, template.Name, template.Description,
             template.SourceServerId, template.ChannelData, template.GroupData, template.UsageCount, template.CreatedAt);

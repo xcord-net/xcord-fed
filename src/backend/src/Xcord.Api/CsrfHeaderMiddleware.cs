@@ -44,14 +44,41 @@ public sealed class CsrfHeaderMiddleware
             return;
         }
 
-        // SignalR negotiate (/hubs/*) authenticates via a one-time ticket in the query
-        // string, not cookies. The browser may attach the auth cookie incidentally on
-        // same-origin requests, but the hub does not trust it. Skip CSRF enforcement on
-        // these paths so real-time connections are not blocked.
-        if (context.Request.Path.StartsWithSegments("/hubs"))
+        // SignalR routes (/hubs/*) require special handling. The cookie -> Authorization
+        // header middleware in Program.cs means a SignalR negotiate POST CAN authenticate
+        // via the auth cookie alone if the browser attaches it. That makes negotiate a
+        // CSRF-relevant entry point in principle: a cross-origin attacker could try to
+        // establish a hub connection on behalf of a victim. To prevent that we require
+        // EITHER the X-Xcord-Request custom header OR a one-time ?ticket= query string
+        // on the negotiate request. The ticket is minted by /api/v1/auth/ws-ticket --
+        // an endpoint that already enforces the X-Xcord-Request CSRF header -- so its
+        // presence on the negotiate URL transitively proves CSRF safety.
+        //
+        // SignalR transport frames (websocket upgrade, long-polling /hubs/main?id=...)
+        // never authenticate via cookies (the client passes the token in the access_token
+        // query string, see OnMessageReceived in ServiceCollectionExtensions), so they
+        // skip CSRF entirely.
+        var path = context.Request.Path;
+        if (path.StartsWithSegments("/hubs"))
         {
-            await _next(context);
-            return;
+            var isNegotiate = path.Value!.EndsWith("/negotiate", StringComparison.OrdinalIgnoreCase);
+            if (!isNegotiate)
+            {
+                await _next(context);
+                return;
+            }
+
+            // Negotiate: a valid ticket query string substitutes for the CSRF header.
+            // The TicketAuthHandler later validates and consumes the ticket; here we
+            // only check that one is present so the SignalR JS client (which cannot
+            // attach custom headers on its internal negotiate POST in all browsers)
+            // is not blocked outright.
+            if (!string.IsNullOrEmpty(context.Request.Query["ticket"].ToString()))
+            {
+                await _next(context);
+                return;
+            }
+            // Fall through to the standard cookie-auth + X-Xcord-Request check.
         }
 
         var hasCookieAuth =

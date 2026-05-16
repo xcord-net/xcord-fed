@@ -165,6 +165,7 @@ export default function BanManager(props: BanManagerProps) {
             class={styles.pageButton}
             disabled={page() <= 1}
             onClick={() => setPage(page() - 1)}
+            aria-label="Previous page"
           >
             Previous
           </button>
@@ -175,6 +176,7 @@ export default function BanManager(props: BanManagerProps) {
             class={styles.pageButton}
             disabled={page() >= totalPages()}
             onClick={() => setPage(page() + 1)}
+            aria-label="Next page"
           >
             Next
           </button>

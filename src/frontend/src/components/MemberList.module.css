@@ -216,6 +216,12 @@
   padding: 0.25rem;
 }
 
+.groupAssignError {
+  font-size: 0.75rem;
+  color: var(--color-xcord-red, #ed4245);
+  padding: 0.25rem;
+}
+
 .groupAssignItem {
   display: flex;
   align-items: center;

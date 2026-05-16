@@ -55,7 +55,7 @@ public sealed class ImageSharpImageValidator : IImageValidator
             using var inputStream = new MemoryStream(inputBytes);
             // Load via ImageSharp. This parses the actual bytes and rejects polyglots / mislabeled files.
             // ImageSharp does not execute SVG, scripts, or any active content; PNG/JPEG/GIF/WebP only.
-            using var image = await Image.LoadAsync(inputStream, ct);
+            using var image = await Image.LoadAsync(inputStream, ct).ConfigureAwait(false);
 
             // Detect the actual image format from the parsed image, not the declared content type.
             // This catches "PNG declared, JPEG body" style mislabeling.
@@ -73,19 +73,19 @@ public sealed class ImageSharpImageValidator : IImageValidator
             switch (detectedFormat)
             {
                 case JpegFormat:
-                    await image.SaveAsJpegAsync(outputStream, new JpegEncoder { Quality = 90 }, ct);
+                    await image.SaveAsJpegAsync(outputStream, new JpegEncoder { Quality = 90 }, ct).ConfigureAwait(false);
                     canonicalContentType = "image/jpeg";
                     break;
                 case PngFormat:
-                    await image.SaveAsPngAsync(outputStream, new PngEncoder(), ct);
+                    await image.SaveAsPngAsync(outputStream, new PngEncoder(), ct).ConfigureAwait(false);
                     canonicalContentType = "image/png";
                     break;
                 case GifFormat:
-                    await image.SaveAsGifAsync(outputStream, new GifEncoder(), ct);
+                    await image.SaveAsGifAsync(outputStream, new GifEncoder(), ct).ConfigureAwait(false);
                     canonicalContentType = "image/gif";
                     break;
                 case WebpFormat:
-                    await image.SaveAsWebpAsync(outputStream, new WebpEncoder(), ct);
+                    await image.SaveAsWebpAsync(outputStream, new WebpEncoder(), ct).ConfigureAwait(false);
                     canonicalContentType = "image/webp";
                     break;
                 default:

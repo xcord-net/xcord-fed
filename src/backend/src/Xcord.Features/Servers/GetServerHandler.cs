@@ -31,7 +31,7 @@ public sealed class GetServerHandler(
         }
 
         // Check if user is a member of the server
-        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken);
+        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken).ConfigureAwait(false);
         if (memberCheck.IsFailure) return memberCheck.Error;
 
         return new ServerDto(
@@ -55,7 +55,7 @@ public sealed class GetServerHandler(
             CancellationToken ct) =>
         {
             var query = new GetServerQuery(id);
-            return await handler.ExecuteAsync(query, ct);
+            return await handler.ExecuteAsync(query, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("GetServer")

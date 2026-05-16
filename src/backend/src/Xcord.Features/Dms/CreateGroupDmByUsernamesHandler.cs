@@ -55,7 +55,7 @@ public sealed class CreateGroupDmByUsernamesHandler(
 
         var now = DateTimeOffset.UtcNow;
 
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             var conversationId = snowflakeGenerator.NextId();
@@ -87,8 +87,8 @@ public sealed class CreateGroupDmByUsernamesHandler(
                 });
             }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
             // Notify each member directly after save
             var dmCreatedPayload = new
@@ -99,7 +99,7 @@ public sealed class CreateGroupDmByUsernamesHandler(
             };
             foreach (var memberId in allMemberIds)
             {
-                await notificationService.NotifyUserAsync(memberId, "Notify_DmCreated", dmCreatedPayload);
+                await notificationService.NotifyUserAsync(memberId, "Notify_DmCreated", dmCreatedPayload, cancellationToken).ConfigureAwait(false);
             }
 
             logger.LogInformation(
@@ -125,7 +125,7 @@ public sealed class CreateGroupDmByUsernamesHandler(
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
     }

@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
 
 namespace Xcord.Features.Auth;
@@ -15,9 +17,11 @@ public sealed record RefreshTokenResponse(string AccessToken, string RefreshToke
 public sealed class RefreshTokenHandler(
     AppDbContext dbContext,
     IJwtService jwtService,
-    SnowflakeIdGenerator snowflakeGenerator)
+    SnowflakeIdGenerator snowflakeGenerator,
+    IOptions<AuthOptions> authOptions)
     : IRequestHandler<RefreshTokenRequest, Result<RefreshTokenResponse>>
 {
+    private readonly int _refreshTokenDays = authOptions.Value.JwtRefreshTokenDays;
     public Task<Result<RefreshTokenResponse>> Handle(RefreshTokenRequest request, CancellationToken cancellationToken)
     {
         // Note: The refresh token value will be passed from the endpoint via context
@@ -43,7 +47,7 @@ public sealed class RefreshTokenHandler(
         if (refreshToken.ExpiresAt < DateTimeOffset.UtcNow)
         {
             dbContext.RefreshTokens.Remove(refreshToken);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return Error.Validation("INVALID_TOKEN", "Invalid or expired refresh token");
         }
 
@@ -66,12 +70,12 @@ public sealed class RefreshTokenHandler(
             Id = snowflakeGenerator.NextId(),
             TokenHash = newRefreshTokenHash,
             UserId = refreshToken.UserId,
-            ExpiresAt = now.AddDays(30),
+            ExpiresAt = now.AddDays(_refreshTokenDays),
             CreatedAt = now
         };
 
         dbContext.RefreshTokens.Add(newRefreshToken);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Generate new JWT access token
         var accessToken = jwtService.GenerateAccessToken(
@@ -88,6 +92,7 @@ public sealed class RefreshTokenHandler(
         return app.MapPost("/api/v1/auth/refresh", async (
                 HttpContext httpContext,
                 [FromServices] RefreshTokenHandler handler,
+                [FromServices] IOptions<AuthOptions> authOpts,
                 CancellationToken ct) =>
             {
                 // Read refresh token from httpOnly cookie
@@ -100,13 +105,13 @@ public sealed class RefreshTokenHandler(
                         detail: "Refresh token not found");
                 }
 
-                var result = await handler.HandleWithToken(refreshTokenValue, ct);
+                var result = await handler.HandleWithToken(refreshTokenValue, ct).ConfigureAwait(false);
 
                 return result.Match(
                     success =>
                     {
                         // Set httpOnly cookies for both tokens
-                        AuthCookieHelper.SetAccessTokenCookie(httpContext, success.AccessToken, 15);
+                        AuthCookieHelper.SetAccessTokenCookie(httpContext, success.AccessToken, authOpts.Value.JwtAccessTokenMinutes);
                         AuthCookieHelper.SetRefreshTokenCookie(httpContext, success.RefreshToken);
 
                         return Results.Ok(new { authenticated = true });

@@ -76,17 +76,11 @@ public DbSet<VoiceState> VoiceStates => Set<VoiceState>();
     public DbSet<OnboardingPrompt> OnboardingPrompts => Set<OnboardingPrompt>();
     public DbSet<OnboardingCompletion> OnboardingCompletions => Set<OnboardingCompletion>();
     public DbSet<ServerInsightSnapshot> ServerInsightSnapshots => Set<ServerInsightSnapshot>();
-    public DbSet<ServerBoost> ServerBoosts => Set<ServerBoost>();
 
     // New entities for feature cards 193-198
     public DbSet<FederationFollow> FederationFollows => Set<FederationFollow>();
     public DbSet<FederationMessage> FederationMessages => Set<FederationMessage>();
     public DbSet<UserNote> UserNotes => Set<UserNote>();
-
-    // Member subscription billing
-    public DbSet<Tier> Tiers => Set<Tier>();
-    public DbSet<MemberSubscription> MemberSubscriptions => Set<MemberSubscription>();
-    public DbSet<ServerBillingConfig> ServerBillingConfigs => Set<ServerBillingConfig>();
 
     // Outgoing webhooks
     public DbSet<OutgoingWebhook> OutgoingWebhooks => Set<OutgoingWebhook>();

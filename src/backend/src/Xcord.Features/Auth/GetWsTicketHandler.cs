@@ -34,7 +34,7 @@ public sealed class GetWsTicketHandler(
         // Store in Redis with 5 minute TTL
         var db = redis.GetDatabase();
         var ticketKey = $"{_channelPrefix}:wsticket:{ticket}";
-        await db.StringSetAsync(ticketKey, request.UserId.ToString(), TimeSpan.FromMinutes(5));
+        await db.StringSetAsync(ticketKey, request.UserId.ToString(), TimeSpan.FromMinutes(5)).ConfigureAwait(false);
 
         return Result<string>.Success(ticket);
     }
@@ -51,7 +51,7 @@ public sealed class GetWsTicketHandler(
                     return Results.Problem(statusCode: userIdResult.Error.StatusCode, title: userIdResult.Error.Code, detail: userIdResult.Error.Message);
                 var userId = userIdResult.Value;
 
-                return await handler.ExecuteAsync(new GetWsTicketRequest(userId), ct, success => Results.Ok(new { ticket = success }));
+                return await handler.ExecuteAsync(new GetWsTicketRequest(userId), ct, success => Results.Ok(new { ticket = success })).ConfigureAwait(false);
             })
             .RequireAnyAuthorization(Policies.User, Policies.Bot)
             .WithName("GetWsTicket")

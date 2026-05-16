@@ -51,7 +51,7 @@ public sealed class DeleteRuleHandler(
 
         // Soft delete
         rule.SoftDelete();
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} deleted automod rule {RuleName} (ID: {RuleId}) from server {ServerId}",
@@ -69,7 +69,7 @@ public sealed class DeleteRuleHandler(
             CancellationToken ct) =>
         {
             var command = new DeleteRuleCommand(ServerId: serverId, RuleId: ruleId);
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("DeleteAutomodRule")

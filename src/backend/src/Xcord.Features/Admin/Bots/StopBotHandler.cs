@@ -50,7 +50,7 @@ public sealed class StopBotHandler(
 
         if (agentTokens.Count > 0)
         {
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
         logger.LogInformation("Stopped bot {BotId}, stopped={Stopped}", request.BotId, stopped);

@@ -72,7 +72,7 @@ public sealed class ScheduledMessageDispatcher(
                 "Scheduled message {Id}: no channel found for conversation {ConversationId}. Soft-deleting.",
                 scheduled.Id, scheduled.ConversationId);
             scheduled.SoftDelete();
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return;
         }
 
@@ -86,7 +86,7 @@ public sealed class ScheduledMessageDispatcher(
                 "Scheduled message {Id}: author {AuthorId} no longer has SendMessages in channel {ChannelId}. Soft-deleting.",
                 scheduled.Id, scheduled.AuthorId, channel.Id);
             scheduled.SoftDelete();
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return;
         }
 
@@ -101,11 +101,11 @@ public sealed class ScheduledMessageDispatcher(
                 "Scheduled message {Id}: author {AuthorId} not found. Soft-deleting.",
                 scheduled.Id, scheduled.AuthorId);
             scheduled.SoftDelete();
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return;
         }
 
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -128,8 +128,8 @@ public sealed class ScheduledMessageDispatcher(
             // Mark the scheduled message as sent.
             scheduled.SentAt = messageNow;
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
             Logger.LogInformation(
                 "Dispatched scheduled message {ScheduledId} as message {MessageId} in conversation {ConversationId}",
@@ -153,11 +153,11 @@ public sealed class ScheduledMessageDispatcher(
                     isPinned = message.IsPinned,
                     editedAt = (DateTimeOffset?)null,
                     createdAt = message.CreatedAt
-                });
+                }, cancellationToken);
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             Logger.LogError(ex,
                 "Failed to dispatch scheduled message {ScheduledId}", scheduled.Id);
         }

@@ -78,7 +78,7 @@ public sealed class InteractionCallbackHandler(
         // Retrieve the pending interaction from Redis.
         var db = redis.GetDatabase();
         var redisKey = BuildRedisKey(request.InteractionToken);
-        var tokenJson = await db.StringGetAsync(redisKey);
+        var tokenJson = await db.StringGetAsync(redisKey).ConfigureAwait(false);
 
         if (tokenJson.IsNullOrEmpty)
             return Error.NotFound("INTERACTION_TOKEN_EXPIRED", "Interaction token has expired or does not exist");
@@ -105,7 +105,7 @@ public sealed class InteractionCallbackHandler(
             return Error.Forbidden("BOT_MISMATCH", "Bot does not own this interaction");
 
         // Delete the token immediately so it can only be used once.
-        await db.KeyDeleteAsync(redisKey);
+        await db.KeyDeleteAsync(redisKey).ConfigureAwait(false);
 
         // If the callback type is a deferred update, nothing further to do.
         if (request.Type is InteractionCallbackType.DeferredChannelMessage or InteractionCallbackType.DeferredUpdateMessage)
@@ -128,7 +128,7 @@ public sealed class InteractionCallbackHandler(
 
             dbContext.Messages.Add(message);
 
-            await dbContext.SaveChangesAsync(ct);
+            await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
             await notificationService.NotifyConversationAsync(message.ConversationId, "Chat_MessageCreated", new
             {
@@ -138,7 +138,7 @@ public sealed class InteractionCallbackHandler(
                 content = message.Content,
                 type = message.Type.ToString(),
                 createdAt = message.CreatedAt
-            });
+            }, ct);
         }
 
         return new InteractionCallbackResponse("ok");

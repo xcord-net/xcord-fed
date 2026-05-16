@@ -25,7 +25,7 @@ public sealed class UnfollowChannelHandler(
         var userId = userIdResult.Value;
 
         // Caller must be a member of the source server
-        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken);
+        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken).ConfigureAwait(false);
         if (memberCheck.IsFailure) return memberCheck.Error;
 
         var subscription = await dbContext.CrosspostSubscriptions
@@ -41,7 +41,7 @@ public sealed class UnfollowChannelHandler(
 
         // Soft delete
         subscription.SoftDelete();
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return true;
     }
@@ -55,7 +55,7 @@ public sealed class UnfollowChannelHandler(
             CancellationToken ct) =>
         {
             var command = new UnfollowChannelCommand(serverId, channelId, subscriptionId);
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User)
         .WithName("UnfollowChannel")

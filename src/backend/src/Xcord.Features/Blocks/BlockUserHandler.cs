@@ -98,19 +98,19 @@ public sealed class BlockUserHandler(
             }
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Notify the blocked user directly after save
         await notificationService.NotifyUserAsync(request.UserId, "Notify_UserBlocked", new
         {
             blockerId = userId,
             blockedId = request.UserId
-        });
+        }, cancellationToken);
 
         // Cache block in Redis
         var db = redis.GetDatabase();
         var redisKey = $"{_redisOptions.ChannelPrefix}:blocks:{userId}";
-        await db.SetAddAsync(redisKey, request.UserId);
+        await db.SetAddAsync(redisKey, request.UserId).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} blocked user {BlockedUserId}",
@@ -132,7 +132,7 @@ public sealed class BlockUserHandler(
             [FromServices] BlockUserHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new BlockUserRequest(userId), ct);
+            return await handler.ExecuteAsync(new BlockUserRequest(userId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("BlockUser")

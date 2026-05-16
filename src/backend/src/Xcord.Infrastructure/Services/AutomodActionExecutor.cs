@@ -45,11 +45,11 @@ public sealed class AutomodActionExecutor : IAutomodActionExecutor
                 switch (action.ActionType)
                 {
                     case AutomodActionType.DeleteMessage:
-                        var msg = await _dbContext.Messages.FindAsync(messageId);
+                        var msg = await _dbContext.Messages.FindAsync(messageId).ConfigureAwait(false);
                         if (msg != null)
                         {
                             msg.SoftDelete();
-                            await _dbContext.SaveChangesAsync(cancellationToken);
+                            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                         }
                         break;
 
@@ -72,11 +72,11 @@ public sealed class AutomodActionExecutor : IAutomodActionExecutor
                             CreatedAt = DateTimeOffset.UtcNow
                         };
                         _dbContext.Timeouts.Add(timeout);
-                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                         break;
 
                     case AutomodActionType.AlertMods:
-                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                         await _notificationService.NotifyServerAsync(serverId, "Notify_AutomodAlert", new
                         {
                             ServerId = serverId,
@@ -85,7 +85,7 @@ public sealed class AutomodActionExecutor : IAutomodActionExecutor
                             AuthorId = authorId,
                             RuleId = action.RuleId,
                             RuleName = action.RuleName
-                        });
+                        }, cancellationToken);
                         break;
                 }
             }

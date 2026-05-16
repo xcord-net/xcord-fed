@@ -46,14 +46,50 @@ export default function ScheduledMessages(props: ScheduledMessagesProps) {
     loadMessages();
   });
 
-  // Auto-refresh every 30 seconds to keep countdown times accurate
-  const refreshInterval = setInterval(() => {
+  // Auto-refresh every 30 seconds to keep countdown times accurate.
+  // Pause polling when the tab is hidden to avoid burning battery/bandwidth
+  // in backgrounded tabs; resume (with an immediate refresh) on visibility.
+  // See kanban #162.
+  let refreshInterval: ReturnType<typeof setInterval> | null = null;
+
+  const tickIfIdle = () => {
     if (!isLoading()) {
       loadMessages();
     }
-  }, 30_000);
+  };
 
-  onCleanup(() => clearInterval(refreshInterval));
+  const startInterval = () => {
+    if (refreshInterval === null) {
+      refreshInterval = setInterval(tickIfIdle, 30_000);
+    }
+  };
+
+  const stopInterval = () => {
+    if (refreshInterval !== null) {
+      clearInterval(refreshInterval);
+      refreshInterval = null;
+    }
+  };
+
+  const handleVisibilityChange = () => {
+    if (document.hidden) {
+      stopInterval();
+    } else {
+      // Fire an immediate refresh on resume so countdowns aren't stale.
+      tickIfIdle();
+      startInterval();
+    }
+  };
+
+  if (!document.hidden) {
+    startInterval();
+  }
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+
+  onCleanup(() => {
+    stopInterval();
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+  });
 
   const handleCancel = async (messageId: string) => {
     setCancellingId(messageId);

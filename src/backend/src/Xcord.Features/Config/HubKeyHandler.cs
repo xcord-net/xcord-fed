@@ -16,7 +16,7 @@ public sealed class HubKeyHandler : IEndpoint
             CancellationToken ct) =>
         {
             var userId = long.Parse(httpContext.User.FindFirst("sub")!.Value);
-            var user = await db.Users.FirstAsync(u => u.Id == userId, ct);
+            var user = await db.Users.FirstAsync(u => u.Id == userId, ct).ConfigureAwait(false);
             return Results.Ok(new { hubKey = user.HubKey });
         })
         .RequireAuthorization()
@@ -30,9 +30,9 @@ public sealed class HubKeyHandler : IEndpoint
             CancellationToken ct) =>
         {
             var userId = long.Parse(httpContext.User.FindFirst("sub")!.Value);
-            var user = await db.Users.FirstAsync(u => u.Id == userId, ct);
+            var user = await db.Users.FirstAsync(u => u.Id == userId, ct).ConfigureAwait(false);
             user.HubKey = request.HubKey;
-            await db.SaveChangesAsync(ct);
+            await db.SaveChangesAsync(ct).ConfigureAwait(false);
             return Results.NoContent();
         })
         .RequireAuthorization()

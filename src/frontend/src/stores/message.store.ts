@@ -4,10 +4,7 @@ import { normalizeIds } from '../utils/snowflake';
 import type { Message } from '../types/message';
 
 function normalizeMessage(m: Message): Message {
-  const base = normalizeIds(
-    m as unknown as Record<string, unknown>,
-    'id', 'conversationId',
-  ) as unknown as Message;
+  const base = normalizeIds(m, 'id', 'conversationId');
   return {
     ...base,
     authorId: m.authorId ? String(m.authorId) : '',

@@ -1,4 +1,4 @@
-import { createSignal, For, Show, onMount } from 'solid-js';
+import { createSignal, For, Show, onMount, onCleanup } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import type { CustomEmoji } from '../types/emoji';
@@ -37,7 +37,7 @@ interface RequestUploadResponse {
  *   2. PUT  {uploadUrl}       → raw bytes
  *   3. POST /api/v1/attachments/{attachmentId}/confirm
  */
-async function uploadFileAndGetAttachmentId(file: File): Promise<string> {
+async function uploadFileAndGetAttachmentId(file: File, signal?: AbortSignal): Promise<string> {
   // Step 1: request an upload slot
   const requestResp = await api.post<RequestUploadResponse>('/api/v1/uploads', {
     fileName: file.name,
@@ -48,12 +48,19 @@ async function uploadFileAndGetAttachmentId(file: File): Promise<string> {
   const { attachmentId, uploadUrl } = requestResp;
 
   // Step 2: upload raw bytes to the proxy endpoint
+  //
+  // Raw fetch is intentional: `uploadUrl` is an S3-style presigned URL (the
+  // backend issues a pre-signed PUT that the browser sends directly to object
+  // storage). It does not hit the Xcord API, so the api client wrapper -- with
+  // its CSRF header, bearer auth, and 401/refresh handling -- would actively
+  // break the signed-URL contract.
   const bytes = await file.arrayBuffer();
   const putResp = await fetch(uploadUrl, {
     method: 'PUT',
     body: bytes,
     headers: { 'Content-Type': file.type || 'image/png' },
     credentials: 'include',
+    signal,
   });
 
   if (!putResp.ok) {
@@ -81,6 +88,16 @@ export default function EmojiManager(props: EmojiManagerProps) {
   const [selectedFile, setSelectedFile] = createSignal<File | null>(null);
   const [previewUrl, setPreviewUrl] = createSignal<string | null>(null);
   const [uploadError, setUploadError] = createSignal<string | null>(null);
+
+  // Track in-flight upload controllers so we can abort on unmount
+  const activeUploadControllers = new Set<AbortController>();
+
+  onCleanup(() => {
+    for (const controller of activeUploadControllers) {
+      controller.abort();
+    }
+    activeUploadControllers.clear();
+  });
 
   async function loadEmojis() {
     setIsLoading(true);
@@ -134,9 +151,11 @@ export default function EmojiManager(props: EmojiManagerProps) {
     }
 
     setIsUploading(true);
+    const controller = new AbortController();
+    activeUploadControllers.add(controller);
     try {
       // Upload the file and get an attachmentId
-      const attachmentId = await uploadFileAndGetAttachmentId(file);
+      const attachmentId = await uploadFileAndGetAttachmentId(file, controller.signal);
 
       // Determine if animated (GIF)
       const isAnimated = file.type === 'image/gif';
@@ -158,8 +177,13 @@ export default function EmojiManager(props: EmojiManagerProps) {
         setPreviewUrl(null);
       }
     } catch (err: unknown) {
+      // Swallow aborts triggered by component unmount
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        return;
+      }
       setUploadError(getErrorMessage(err, 'Failed to upload emoji'));
     } finally {
+      activeUploadControllers.delete(controller);
       setIsUploading(false);
     }
   }

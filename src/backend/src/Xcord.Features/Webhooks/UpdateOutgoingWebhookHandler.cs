@@ -2,9 +2,12 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
+using Xcord.Features.Moderation;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
@@ -21,6 +24,7 @@ public sealed record UpdateOutgoingWebhookCommand(
 
 public sealed class UpdateOutgoingWebhookHandler(
     AppDbContext dbContext,
+    SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
     IRoleService roleService,
     ILogger<UpdateOutgoingWebhookHandler> logger)
@@ -92,6 +96,12 @@ public sealed class UpdateOutgoingWebhookHandler(
         if (webhook == null)
             return Error.NotFound("WEBHOOK_NOT_FOUND", "Outgoing webhook not found");
 
+        // Capture before-state so the audit log can record whether the URL changed
+        // without ever persisting the URL itself (only its SHA256 hash).
+        var previousUrl = webhook.TargetUrl;
+        var previousIsActive = webhook.IsActive;
+        var previousEventTypesJson = webhook.EventTypesJson;
+
         // Apply partial updates
         if (request.TargetUrl != null)
             webhook.TargetUrl = request.TargetUrl;
@@ -102,7 +112,31 @@ public sealed class UpdateOutgoingWebhookHandler(
         if (request.IsActive.HasValue)
             webhook.IsActive = request.IsActive.Value;
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        // Audit log for outgoing webhook update. Forensic note: PreviousUrlHash is a
+        // SHA256 hex digest of the prior TargetUrl (never the URL itself) so an
+        // operator can compare suspicious URLs against historical state without
+        // leaking the URL into the audit table.
+        var urlChanged = request.TargetUrl != null && !string.Equals(previousUrl, webhook.TargetUrl, StringComparison.Ordinal);
+        var changes = new
+        {
+            UrlChanged = urlChanged,
+            PreviousUrlHash = urlChanged ? UpdateOutgoingWebhookHashing.Sha256Hex(previousUrl) : null,
+            IsActiveChanged = request.IsActive.HasValue && previousIsActive != webhook.IsActive,
+            EventTypesChanged = request.EventTypes != null && !string.Equals(previousEventTypesJson, webhook.EventTypesJson, StringComparison.Ordinal)
+        };
+
+        dbContext.AuditLogs.Add(new AuditLog
+        {
+            Id = snowflakeGenerator.NextId(),
+            ServerId = request.ServerId,
+            ActorId = userId,
+            ActionType = "WebhookUpdate",
+            TargetId = webhook.Id,
+            Changes = JsonSerializer.Serialize(changes),
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} updated outgoing webhook {WebhookId} for server {ServerId}",
@@ -135,7 +169,7 @@ public sealed class UpdateOutgoingWebhookHandler(
                 EventTypes: request.EventTypes,
                 IsActive: request.IsActive
             );
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAuthorization(Policies.User)
         .WithName("UpdateOutgoingWebhook")
@@ -148,3 +182,12 @@ public sealed record UpdateOutgoingWebhookRequest(
     string[]? EventTypes,
     bool? IsActive
 );
+
+internal static class UpdateOutgoingWebhookHashing
+{
+    public static string Sha256Hex(string? value)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value ?? string.Empty));
+        return Convert.ToHexString(bytes);
+    }
+}

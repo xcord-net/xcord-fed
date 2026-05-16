@@ -57,6 +57,7 @@ export default function PinList(props: PinListProps) {
                       data-testid="pin-list-unpin-button"
                       class={styles.unpinButton}
                       onClick={() => pinStore.unpinMessage(props.conversationId, message.id)}
+                      aria-label="Unpin message"
                     >
                       Unpin
                     </button>

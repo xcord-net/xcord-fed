@@ -34,7 +34,7 @@ public sealed class TrendingGifsHandler(
     {
         logger.LogInformation("Fetching trending GIFs with limit {Limit}", request.Limit);
 
-        var result = await gifService.TrendingAsync(request.Limit);
+        var result = await gifService.TrendingAsync(request.Limit).ConfigureAwait(false);
 
         var gifs = result.Items.Select(g => new GifDto(
             g.Id,
@@ -56,7 +56,7 @@ public sealed class TrendingGifsHandler(
             CancellationToken ct) =>
         {
             var query = new TrendingGifsQuery(limit);
-            return await handler.ExecuteAsync(query, ct);
+            return await handler.ExecuteAsync(query, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("TrendingGifs")

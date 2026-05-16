@@ -25,6 +25,7 @@ public sealed class JwtService : IJwtService
 
     private readonly AppDbContext _dbContext;
     private readonly JwtOptions _jwtOptions;
+    private readonly AuthOptions _authOptions;
     private readonly RsaKeySingleton _rsaKeySingleton;
     private readonly IEncryptionService _encryptionService;
     private readonly ILogger<JwtService> _logger;
@@ -33,12 +34,14 @@ public sealed class JwtService : IJwtService
     public JwtService(
         AppDbContext dbContext,
         IOptions<JwtOptions> jwtOptions,
+        IOptions<AuthOptions> authOptions,
         RsaKeySingleton rsaKeySingleton,
         IEncryptionService encryptionService,
         ILogger<JwtService> logger)
     {
         _dbContext = dbContext;
         _jwtOptions = jwtOptions.Value;
+        _authOptions = authOptions.Value;
         _rsaKeySingleton = rsaKeySingleton;
         _encryptionService = encryptionService;
         _logger = logger;
@@ -77,7 +80,7 @@ public sealed class JwtService : IJwtService
                 UpdatedAt = now
             });
             _dbContext.SystemSettings.Remove(plaintextKeySetting);
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             _logger.LogInformation("Migrated RSA private key from plaintext to encrypted storage");
         }
         else
@@ -105,7 +108,7 @@ public sealed class JwtService : IJwtService
                 UpdatedAt = now
             });
 
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             _logger.LogInformation("Generated new RSA key pair with encrypted private key");
         }
     }
@@ -133,7 +136,7 @@ public sealed class JwtService : IJwtService
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes),
+            Expires = DateTime.UtcNow.AddMinutes(_authOptions.JwtAccessTokenMinutes),
             Issuer = _jwtOptions.Issuer,
             Audience = _jwtOptions.Audience,
             SigningCredentials = credentials

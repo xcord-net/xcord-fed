@@ -47,7 +47,7 @@ export default function ForgotPassword() {
         </Show>
 
         <Show when={!submitted()}>
-          <form onSubmit={handleSubmit}>
+          <form data-testid="forgot-password-form" onSubmit={handleSubmit}>
             {error() && <p data-testid="forgot-password-error" class={styles.errorText}>{error()}</p>}
             <div class={styles.fieldGroup}>
               <label for="forgot-email" class={styles.label}>Email</label>

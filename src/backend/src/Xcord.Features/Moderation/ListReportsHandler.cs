@@ -104,7 +104,7 @@ public sealed class ListReportsHandler(
                 Status: status
             );
 
-            return await handler.ExecuteAsync(query, ct);
+            return await handler.ExecuteAsync(query, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("ListReports")

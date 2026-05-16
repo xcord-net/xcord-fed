@@ -40,7 +40,7 @@ public sealed class ThreadArchiver(
             thread.IsArchived = true;
         }
 
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
         Logger.LogInformation(
             "Auto-archived {Count} inactive threads",

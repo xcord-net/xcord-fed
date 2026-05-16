@@ -45,7 +45,7 @@ public sealed class ConfirmUploadHandler(
         }
 
         // Verify the file exists in S3
-        var exists = await storageService.ExistsAsync(attachment.S3Key);
+        var exists = await storageService.ExistsAsync(attachment.S3Key).ConfigureAwait(false);
         if (!exists)
         {
             return Error.Validation("FILE_NOT_UPLOADED", "File has not been uploaded to storage");
@@ -53,7 +53,7 @@ public sealed class ConfirmUploadHandler(
 
         // Mark as confirmed
         attachment.IsConfirmed = true;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return new ConfirmUploadResponse(Success: true);
     }
@@ -66,7 +66,7 @@ public sealed class ConfirmUploadHandler(
             CancellationToken ct) =>
         {
             var command = new ConfirmUploadCommand(attachmentId);
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("ConfirmUpload")

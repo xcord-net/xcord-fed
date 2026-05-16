@@ -37,7 +37,7 @@ public sealed class PollCloser(
 
         Logger.LogInformation("Closing {Count} expired polls", expiredPolls.Count);
 
-        using var transaction = await dbContext.Database.BeginTransactionAsync(ct);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
 
         try
         {
@@ -47,12 +47,12 @@ public sealed class PollCloser(
                 Logger.LogInformation("Closed expired poll {PollId}", poll.Id);
             }
 
-            await dbContext.SaveChangesAsync(ct);
-            await transaction.CommitAsync(ct);
+            await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+            await transaction.CommitAsync(ct).ConfigureAwait(false);
         }
         catch
         {
-            await transaction.RollbackAsync(ct);
+            await transaction.RollbackAsync(ct).ConfigureAwait(false);
             throw;
         }
 
@@ -66,7 +66,7 @@ public sealed class PollCloser(
                 {
                     PollId = poll.Id,
                     ConversationId = poll.Message.ConversationId
-                });
+                }, ct);
         }
     }
 }

@@ -31,7 +31,7 @@ public sealed class ListAllServersHandler(AppDbContext dbContext)
             ListAllServersHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new ListAllServersQuery(), ct);
+            return await handler.ExecuteAsync(new ListAllServersQuery(), ct).ConfigureAwait(false);
         })
         .RequireAuthorization(Policies.Admin)
         .Produces<List<AdminServerSummary>>(200)

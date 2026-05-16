@@ -4,17 +4,17 @@ import Home from './Home';
 
 describe('Home', () => {
   it('renders the placeholder text', () => {
-    const { getByText } = render(() => <Home />);
-    expect(getByText('Xcord client - channels coming soon')).toBeInTheDocument();
+    const { getByTestId } = render(() => <Home />);
+    expect(getByTestId('home-placeholder')).toHaveTextContent('Xcord client - channels coming soon');
   });
 
   it('renders without crashing', () => {
-    const { container } = render(() => <Home />);
-    expect(container.firstChild).not.toBeNull();
+    const { getByTestId } = render(() => <Home />);
+    expect(getByTestId('home-page')).toBeInTheDocument();
   });
 
-  it('renders a paragraph element', () => {
-    const { container } = render(() => <Home />);
-    expect(container.querySelector('p')).not.toBeNull();
+  it('renders the placeholder paragraph', () => {
+    const { getByTestId } = render(() => <Home />);
+    expect(getByTestId('home-placeholder')).toBeInTheDocument();
   });
 });

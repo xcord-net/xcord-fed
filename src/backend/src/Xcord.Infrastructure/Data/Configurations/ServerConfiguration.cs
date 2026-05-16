@@ -21,8 +21,6 @@ public sealed class ServerConfiguration : IEntityTypeConfiguration<Server>
         builder.Property(s => s.PreferredLocale).HasMaxLength(10);
         builder.Property(s => s.VanitySlug).HasMaxLength(32);
         builder.HasIndex(s => s.VanitySlug).IsUnique().HasFilter("\"VanitySlug\" IS NOT NULL");
-        builder.Property(s => s.BoostLevel).IsRequired().HasDefaultValue(0);
-        builder.Property(s => s.BoostCount).IsRequired().HasDefaultValue(0);
         builder.Property(s => s.SystemChannelId);
         builder.HasOne<Channel>().WithMany().HasForeignKey("SystemChannelId").OnDelete(DeleteBehavior.SetNull);
         builder.HasIndex(s => s.SystemChannelId);

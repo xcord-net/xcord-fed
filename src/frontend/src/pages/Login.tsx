@@ -2,6 +2,7 @@ import { createSignal, onMount, Show } from 'solid-js';
 import { useNavigate, useSearchParams, A } from '@solidjs/router';
 import { useAuth } from '../stores/auth.store';
 import { sanitizeRedirect } from '../utils/redirect';
+import { api } from '../api/client';
 import styles from './Login.module.css';
 
 export default function Login() {
@@ -17,11 +18,8 @@ export default function Login() {
   onMount(async () => {
     document.title = 'Log In - Xcord';
     try {
-      const res = await fetch('/api/v1/config');
-      if (res.ok) {
-        const data = await res.json();
-        setRegistrationEnabled(data.registrationEnabled);
-      }
+      const data = await api.get<{ registrationEnabled: boolean }>('/api/v1/config');
+      setRegistrationEnabled(data.registrationEnabled);
     } catch {}
   });
   const navigate = useNavigate();
@@ -37,7 +35,7 @@ export default function Login() {
     // user has no servers (DMs/friends view). Avoid '/' so the post-login URL
     // is always under /channels/* for any caller waiting on that pattern.
     try {
-      const data = await fetch('/api/v1/users/@me/servers', { credentials: 'include' }).then(r => r.json());
+      const data = await api.get<{ servers?: Array<{ id: string }> }>('/api/v1/users/@me/servers');
       const servers = Array.isArray(data?.servers) ? data.servers : [];
       if (servers.length > 0) {
         navigate(`/channels/${servers[0].id}`, { replace: true });
@@ -82,7 +80,7 @@ export default function Login() {
   return (
     <div class={styles.pageWrapper}>
       <Show when={!twoFactorToken()}>
-        <form onSubmit={handleSubmit} class={styles.card}>
+        <form data-testid="login-form" onSubmit={handleSubmit} class={styles.card}>
           <h1 data-testid="login-heading" class={styles.heading}>Welcome back!</h1>
           {error() && <p data-testid="login-error" class={styles.errorText}>{error()}</p>}
           <div class={styles.fieldGroup}>

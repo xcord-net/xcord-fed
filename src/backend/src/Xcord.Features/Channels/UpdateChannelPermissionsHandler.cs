@@ -139,22 +139,22 @@ public sealed class UpdateChannelPermissionsHandler(
             existing.Deny = deny;
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Invalidate permission caches for all members affected by this override
         if (targetType == OverrideTargetType.Group)
         {
-            await roleService.InvalidateGroupMembersRolesAsync(targetId, request.ServerId, cancellationToken);
+            await roleService.InvalidateGroupMembersRolesAsync(targetId, request.ServerId, cancellationToken).ConfigureAwait(false);
         }
         else
         {
-            await roleService.InvalidateUserRolesAsync(targetId, request.ServerId, cancellationToken);
+            await roleService.InvalidateUserRolesAsync(targetId, request.ServerId, cancellationToken).ConfigureAwait(false);
         }
 
         // Return the refreshed permissions list (delegate to the GET handler logic via shared helper)
         var getQuery = new GetChannelPermissionsQuery(request.ServerId, request.ChannelId);
         var getHandler = new GetChannelPermissionsHandler(dbContext, currentUserService, roleService);
-        return await getHandler.Handle(getQuery, cancellationToken);
+        return await getHandler.Handle(getQuery, cancellationToken).ConfigureAwait(false);
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
@@ -174,7 +174,7 @@ public sealed class UpdateChannelPermissionsHandler(
                     SubjectId: request.SubjectId,
                     Permissions: request.Permissions);
 
-                return await handler.ExecuteAsync(command, ct);
+                return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
             })
             .RequireAnyAuthorization(Policies.User)
             .WithTags("Channels")

@@ -84,7 +84,7 @@ public sealed class BotAuthenticationHandler : AuthenticationHandler<BotAuthenti
         botToken.LastUsedAt = DateTimeOffset.UtcNow;
         try
         {
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
         catch (Exception ex)
         {

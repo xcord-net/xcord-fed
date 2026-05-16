@@ -11,6 +11,7 @@ using StackExchange.Redis;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Xcord.Api;
+using Xcord.Api.Authorization;
 using Xcord.Features;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Options;
@@ -183,8 +184,9 @@ public static class ServiceCollectionExtensions
 
         services.AddOptions<EncryptionOptions>().Bind(config.GetSection(EncryptionOptions.SectionName));
 
-        // Member billing (Stripe Connect for per-server subscriptions)
-        services.AddOptions<MemberBillingOptions>().Bind(config.GetSection(MemberBillingOptions.SectionName));
+        // Internal API shared secret (used by xcord-hub to call internal endpoints).
+        // Optional in standalone deployments; the InternalKey policy fails closed when unset.
+        services.AddOptions<InternalAuthOptions>().Bind(config.GetSection(InternalAuthOptions.SectionName));
     }
 
     private static void AddCoreServices(IServiceCollection services, IConfiguration config)
@@ -224,8 +226,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<BotProcessManager>();
         services.AddSingleton<SsrfSafeHttpClient>();
         services.AddSingleton<OpenGraphParser>();
-        services.AddScoped<IMemberBillingService, MemberBillingService>();
-        services.AddScoped<Xcord.Features.Billing.MemberBillingWebhookHandler>();
         services.AddScoped<Xcord.Features.Broadcasts.BroadcastEgressBuilder>();
 
         // Discord migration
@@ -336,9 +336,6 @@ public static class ServiceCollectionExtensions
     {
         var corsOpts = config.GetSection(CorsOptions.SectionName).Get<CorsOptions>() ?? new CorsOptions();
 
-        if (corsOpts.AllowedOrigins.Length == 0 && !env.IsDevelopment())
-            throw new InvalidOperationException("Cors:AllowedOrigins must not be empty in non-Development environments");
-
         services.AddCors(options =>
         {
             options.AddDefaultPolicy(policy =>
@@ -353,6 +350,12 @@ public static class ServiceCollectionExtensions
                 }
                 else
                 {
+                    // Federation peers form an unbounded set of origins by design; an instance
+                    // cannot enumerate every other instance ahead of time. The default policy
+                    // therefore permits any origin so that cross-instance browser access
+                    // (federation discovery, embedded content, the hub UI, mobile webviews)
+                    // continues to work. Deployments that want a tighter policy can set
+                    // Cors:AllowedOrigins explicitly.
                     policy.AllowAnyOrigin()
                         .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH")
                         .WithHeaders("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "X-Xcord-Request");
@@ -491,6 +494,15 @@ public static class ServiceCollectionExtensions
                 .RequireClaim("email_confirmed", "true")
                 .RequireAssertion(ctx => !ctx.User.HasClaim("bot", "true"))
                 .RequireClaim("admin", "true"));
+
+            // Internal endpoints (called by xcord-hub) authenticate via a shared
+            // X-Internal-Key header rather than a JWT. The policy does not require
+            // an authenticated user; the requirement handler validates the header.
+            options.AddPolicy(Policies.InternalKey, policy => policy
+                .AddRequirements(new InternalKeyRequirement()));
         });
+
+        // Authorization handler for the InternalKey policy.
+        services.AddSingleton<IAuthorizationHandler, InternalKeyAuthorizationHandler>();
     }
 }

@@ -55,11 +55,11 @@ public sealed class DeleteGroupHandler(
 
         // Collect affected user IDs before soft-deleting so we have them for cache invalidation
         // even if the application later hard-deletes orphaned MemberGroup rows.
-        await roleService.InvalidateGroupMembersRolesAsync(request.GroupId, request.ServerId, cancellationToken);
+        await roleService.InvalidateGroupMembersRolesAsync(request.GroupId, request.ServerId, cancellationToken).ConfigureAwait(false);
 
         // Soft delete the group
         group.SoftDelete();
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} deleted group {GroupName} (ID: {GroupId}) in server {ServerId}",
@@ -77,7 +77,7 @@ public sealed class DeleteGroupHandler(
             CancellationToken ct) =>
         {
             var command = new DeleteGroupCommand(serverId, groupId);
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithTags("Groups")

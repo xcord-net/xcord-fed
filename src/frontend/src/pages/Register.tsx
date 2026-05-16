@@ -1,6 +1,7 @@
 import { createSignal, onMount } from 'solid-js';
 import { useNavigate, A } from '@solidjs/router';
 import { useAuth } from '../stores/auth.store';
+import { api } from '../api/client';
 import styles from './Register.module.css';
 
 export default function Register() {
@@ -16,13 +17,10 @@ export default function Register() {
   onMount(async () => {
     document.title = 'Register - Xcord';
     try {
-      const res = await fetch('/api/v1/config');
-      if (res.ok) {
-        const data = await res.json();
-        if (!data.registrationEnabled) {
-          navigate('/login');
-          return;
-        }
+      const data = await api.get<{ registrationEnabled: boolean }>('/api/v1/config');
+      if (!data.registrationEnabled) {
+        navigate('/login');
+        return;
       }
     } catch {}
   });
@@ -43,13 +41,14 @@ export default function Register() {
 
   return (
     <div class={styles.pageWrapper}>
-      <form onSubmit={handleSubmit} class={styles.card}>
+      <form data-testid="register-form" onSubmit={handleSubmit} class={styles.card}>
         <h1 data-testid="register-heading" class={styles.heading}>Create an account</h1>
         {error() && <p data-testid="register-error" class={styles.errorText}>{error()}</p>}
         <div class={styles.fieldGroup}>
           <label for="reg-username" class={styles.label}>Username</label>
           <input
             id="reg-username"
+            data-testid="register-username-input"
             type="text"
             value={username()}
             onInput={(e) => setUsername(e.currentTarget.value)}
@@ -61,6 +60,7 @@ export default function Register() {
           <label for="reg-email" class={styles.label}>Email</label>
           <input
             id="reg-email"
+            data-testid="register-email-input"
             type="email"
             value={email()}
             onInput={(e) => setEmail(e.currentTarget.value)}
@@ -72,6 +72,7 @@ export default function Register() {
           <label for="reg-password" class={styles.label}>Password</label>
           <input
             id="reg-password"
+            data-testid="register-password-input"
             type="password"
             value={password()}
             onInput={(e) => setPassword(e.currentTarget.value)}

@@ -1,3 +1,4 @@
+using System.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
@@ -117,14 +118,21 @@ public sealed class BanMemberHandler(
             CreatedAt = now
         };
 
+        var server = validationResult.Value;
+
+        // All ban mutations (Ban insert, ServerMember remove, MemberCount decrement,
+        // soft-delete of recent messages, audit-log entry, system message) MUST commit
+        // together or roll back together. Without a transaction a partial failure could
+        // leave the ban recorded but the member still in the server, or vice versa.
+        // RepeatableRead protects MemberCount + member set from interleaved
+        // joins/leaves during the operation.
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(
+            IsolationLevel.RepeatableRead, cancellationToken);
+
         dbContext.Bans.Add(ban);
 
         // Remove server member
         dbContext.ServerMembers.Remove(serverMember);
-
-        // Decrement server member count
-        var server = validationResult.Value;
-        server.MemberCount--;
 
         // Optionally bulk soft-delete messages
         if (request.DeleteMessageDays.HasValue && request.DeleteMessageDays.Value > 0)
@@ -155,7 +163,23 @@ public sealed class BanMemberHandler(
             snowflakeGenerator, server,
             request.UserId, moderatorId, MessageType.MemberBan, request.Reason, now, cancellationToken);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        // Atomically decrement Server.MemberCount with a SQL UPDATE rather than
+        // read-then-write. This avoids the lost-update race that arises when several
+        // concurrent membership changes (joins/leaves/bans) read MemberCount, each
+        // mutate their own copy, and then save. Done inside the same transaction.
+        await dbContext.Servers
+            .Where(s => s.Id == request.ServerId)
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(s => s.MemberCount, s => s.MemberCount - 1),
+                cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+
+        // Keep the in-memory server entity consistent with the committed value so any
+        // callers downstream observe the post-decrement count.
+        dbContext.Entry(server).Reload();
 
         // Notify after save
         await notificationService.NotifyServerAsync(request.ServerId, "Notify_MemberBanned", new
@@ -164,7 +188,7 @@ public sealed class BanMemberHandler(
             UserId = request.UserId,
             ModeratorId = moderatorId,
             Reason = request.Reason
-        });
+        }, cancellationToken);
 
         if (systemMsg != null)
         {
@@ -173,7 +197,7 @@ public sealed class BanMemberHandler(
                 MessageId = systemMsg.MessageId,
                 ConversationId = systemMsg.ConversationId,
                 AuthorId = (long?)null
-            });
+            }, cancellationToken);
         }
 
         logger.LogInformation(
@@ -206,7 +230,7 @@ public sealed class BanMemberHandler(
                 DeleteMessageDays: requestBody.DeleteMessageDays
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("BanMember")

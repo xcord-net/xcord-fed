@@ -51,7 +51,7 @@ public sealed class HandleInteractionHandler(
             botTokenId = botToken?.Id;
         }
 
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
         // Forward interaction event directly to the bot's endpoint after save.
         var payload = new
@@ -67,7 +67,7 @@ public sealed class HandleInteractionHandler(
             timestamp = DateTimeOffset.UtcNow
         };
         var json = JsonSerializer.Serialize(payload, SerializerOptions);
-        await botInteractionForwarder.ForwardAsync("Bot_Interaction", json, ct);
+        await botInteractionForwarder.ForwardAsync("Bot_Interaction", json, ct).ConfigureAwait(false);
 
         return new InteractionResponse(component.Id, "dispatched");
     }

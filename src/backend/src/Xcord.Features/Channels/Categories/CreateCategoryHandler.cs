@@ -100,7 +100,7 @@ public sealed class CreateCategoryHandler(
 
         dbContext.Categories.Add(category);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} created category {CategoryName} (ID: {CategoryId}) in server {ServerId}",
@@ -129,7 +129,7 @@ public sealed class CreateCategoryHandler(
                 Position: request.Position
             );
 
-            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{serverId}/categories/{success.Id}", success));
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{serverId}/categories/{success.Id}", success)).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateCategory")

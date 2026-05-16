@@ -77,11 +77,11 @@ public sealed class UpdatePresenceHandler(
         // Redis-based rate limiting: max 5 calls per minute per user
         var db = redis.GetDatabase();
         var rateLimitKey = $"{_prefix}presence_ratelimit:{userId}";
-        var count = await db.StringIncrementAsync(rateLimitKey);
+        var count = await db.StringIncrementAsync(rateLimitKey).ConfigureAwait(false);
         if (count == 1)
         {
             // First call in this window - set the expiry
-            await db.KeyExpireAsync(rateLimitKey, TimeSpan.FromSeconds(RateLimitWindowSeconds));
+            await db.KeyExpireAsync(rateLimitKey, TimeSpan.FromSeconds(RateLimitWindowSeconds)).ConfigureAwait(false);
         }
 
         if (count > RateLimitMax)
@@ -91,7 +91,7 @@ public sealed class UpdatePresenceHandler(
 
         // Parse and set status
         Enum.TryParse<PresenceStatus>(request.Status, ignoreCase: true, out var presenceStatus);
-        await presenceService.SetStatusAsync(userId, presenceStatus);
+        await presenceService.SetStatusAsync(userId, presenceStatus).ConfigureAwait(false);
 
         // Get all servers the user is a member of
         var serverIds = await dbContext.ServerMembers
@@ -102,11 +102,11 @@ public sealed class UpdatePresenceHandler(
         // Update heartbeat for non-offline statuses
         if (presenceStatus != PresenceStatus.Offline)
         {
-            await presenceService.HeartbeatAsync(userId, serverIds);
+            await presenceService.HeartbeatAsync(userId, serverIds).ConfigureAwait(false);
         }
 
         // Fan out Presence_Updated event to all servers the user belongs to
-        await presenceNotifier.NotifyPresenceChangedAsync(userId, presenceStatus, serverIds);
+        await presenceNotifier.NotifyPresenceChangedAsync(userId, presenceStatus, serverIds).ConfigureAwait(false);
 
         return true;
     }

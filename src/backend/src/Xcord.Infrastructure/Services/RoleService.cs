@@ -48,7 +48,7 @@ public sealed class RoleService : IRoleService
         try
         {
             var db = _redis.GetDatabase();
-            var cached = await db.StringGetAsync(cacheKey);
+            var cached = await db.StringGetAsync(cacheKey).ConfigureAwait(false);
             if (cached.HasValue && long.TryParse(cached.ToString(), out var cachedPerms))
             {
                 return cachedPerms;
@@ -59,12 +59,12 @@ public sealed class RoleService : IRoleService
             _logger.LogWarning(ex, "Redis unavailable when reading server role cache for user {UserId} server {ServerId}; falling back to DB", userId, serverId);
         }
 
-        var (roles, _) = await GetServerRolesWithEveryoneGroup(userId, serverId);
+        var (roles, _) = await GetServerRolesWithEveryoneGroup(userId, serverId).ConfigureAwait(false);
 
         try
         {
             var db = _redis.GetDatabase();
-            await db.StringSetAsync(cacheKey, roles.ToString(), CacheTtl);
+            await db.StringSetAsync(cacheKey, roles.ToString(), CacheTtl).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -153,7 +153,7 @@ public sealed class RoleService : IRoleService
         try
         {
             var db = _redis.GetDatabase();
-            var cached = await db.StringGetAsync(cacheKey);
+            var cached = await db.StringGetAsync(cacheKey).ConfigureAwait(false);
             if (cached.HasValue && long.TryParse(cached.ToString(), out var cachedPerms))
             {
                 return cachedPerms;
@@ -170,7 +170,7 @@ public sealed class RoleService : IRoleService
             try
             {
                 var cacheDb = _redis.GetDatabase();
-                await cacheDb.StringSetAsync(cacheKey, result.ToString(), CacheTtl);
+                await cacheDb.StringSetAsync(cacheKey, result.ToString(), CacheTtl).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -192,17 +192,17 @@ public sealed class RoleService : IRoleService
 
         // Step 2: Get server roles - reuse the @everyone group from the internal implementation
         // to avoid a second DB round-trip that the original code made at step 3 below.
-        var (roles, everyoneGroup) = await GetServerRolesWithEveryoneGroup(userId, channel.ServerId);
+        var (roles, everyoneGroup) = await GetServerRolesWithEveryoneGroup(userId, channel.ServerId).ConfigureAwait(false);
 
         // If user has no server roles or is Administrator, cache and return early
         if (roles == 0L)
         {
-            return await CacheAndReturn(0L);
+            return await CacheAndReturn(0L).ConfigureAwait(false);
         }
 
         if (roles == long.MaxValue)
         {
-            return await CacheAndReturn(long.MaxValue); // Administrator has all roles
+            return await CacheAndReturn(long.MaxValue).ConfigureAwait(false); // Administrator has all roles
         }
 
         // Step 3: @everyone group already loaded by GetServerRolesWithEveryoneGroup - no extra query
@@ -211,7 +211,7 @@ public sealed class RoleService : IRoleService
             _logger.LogWarning(
                 "Server {ServerId} has no @everyone group during channel role resolution",
                 channel.ServerId);
-            return await CacheAndReturn(roles); // Return server roles without overrides
+            return await CacheAndReturn(roles).ConfigureAwait(false); // Return server roles without overrides
         }
 
         // Step 4: Apply @everyone channel override
@@ -277,7 +277,7 @@ public sealed class RoleService : IRoleService
         }
 
         // Step 8: Cap roles for bots and cache
-        return await CacheAndReturn(CapBotRoles(roles));
+        return await CacheAndReturn(CapBotRoles(roles)).ConfigureAwait(false);
     }
 
     public async Task<Result<bool>> EnsureServerRole(
@@ -285,7 +285,7 @@ public sealed class RoleService : IRoleService
         long serverId,
         XcordRole role)
     {
-        var userRoles = await GetServerRoles(userId, serverId);
+        var userRoles = await GetServerRoles(userId, serverId).ConfigureAwait(false);
 
         if ((userRoles & (long)role) != 0)
         {
@@ -306,7 +306,7 @@ public sealed class RoleService : IRoleService
         long channelId,
         XcordRole role)
     {
-        var userRoles = await GetChannelRoles(userId, channelId);
+        var userRoles = await GetChannelRoles(userId, channelId).ConfigureAwait(false);
 
         if ((userRoles & (long)role) != 0)
         {
@@ -360,7 +360,7 @@ public sealed class RoleService : IRoleService
 
             // Delete server-level role cache entry for this user
             var serverKey = $"{_prefix}:perms:server:{userId}:{serverId}";
-            await db.KeyDeleteAsync(serverKey);
+            await db.KeyDeleteAsync(serverKey).ConfigureAwait(false);
 
             // Delete channel-level role cache entries for every channel in the server.
             // We query the channel IDs so we can construct the exact keys (no SCAN needed).
@@ -376,7 +376,7 @@ public sealed class RoleService : IRoleService
                     .Select(cid => (RedisKey)$"{_prefix}:perms:channel:{userId}:{cid}")
                     .ToArray();
 
-                await db.KeyDeleteAsync(channelKeys);
+                await db.KeyDeleteAsync(channelKeys).ConfigureAwait(false);
             }
         }
         catch (Exception ex)
@@ -424,7 +424,7 @@ public sealed class RoleService : IRoleService
 
         foreach (var uid in affectedUserIds)
         {
-            await InvalidateUserRolesAsync(uid, serverId, cancellationToken);
+            await InvalidateUserRolesAsync(uid, serverId, cancellationToken).ConfigureAwait(false);
         }
     }
 

@@ -94,7 +94,7 @@ public sealed class VoteHandler(
         }
 
         // Begin transaction
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -137,8 +137,8 @@ public sealed class VoteHandler(
 
             dbContext.PollVotes.AddRange(newVotes);
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
             // Notify after save
             await notificationService.NotifyConversationAsync(conversation.Id, "Poll_Voted", new
@@ -150,7 +150,7 @@ public sealed class VoteHandler(
                     Id = o.Id,
                     VoteCount = o.VoteCount
                 }).ToList()
-            });
+            }, cancellationToken);
 
             logger.LogInformation(
                 "User {UserId} voted on poll {PollId}",
@@ -166,7 +166,7 @@ public sealed class VoteHandler(
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
     }
@@ -184,7 +184,7 @@ public sealed class VoteHandler(
                 OptionIds: request.OptionIds
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("Vote")

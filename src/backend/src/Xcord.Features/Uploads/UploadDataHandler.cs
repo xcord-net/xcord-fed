@@ -61,7 +61,7 @@ public sealed class UploadDataHandler : IEndpoint
             }
 
             using var ms = new MemoryStream();
-            await httpContext.Request.Body.CopyToAsync(ms, ct);
+            await httpContext.Request.Body.CopyToAsync(ms, ct).ConfigureAwait(false);
             var data = ms.ToArray();
 
             if (data.Length == 0)
@@ -81,14 +81,14 @@ public sealed class UploadDataHandler : IEndpoint
             var contentTypeToStore = attachment.ContentType;
             if (imageValidator.IsImageContentType(attachment.ContentType))
             {
-                var validation = await imageValidator.ValidateAndReencodeAsync(data, attachment.ContentType, ct);
+                var validation = await imageValidator.ValidateAndReencodeAsync(data, attachment.ContentType, ct).ConfigureAwait(false);
                 if (validation.IsFailure)
                     return Results.Json(new { error = validation.Error.Code, message = validation.Error.Message }, statusCode: validation.Error.StatusCode);
                 data = validation.Value.Bytes;
                 contentTypeToStore = validation.Value.ContentType;
             }
 
-            await storageService.UploadAsync(attachment.S3Key, data, contentTypeToStore);
+            await storageService.UploadAsync(attachment.S3Key, data, contentTypeToStore).ConfigureAwait(false);
 
             return Results.Ok();
         })

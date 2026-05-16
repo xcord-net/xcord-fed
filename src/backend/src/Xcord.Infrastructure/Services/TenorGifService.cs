@@ -39,10 +39,10 @@ public sealed class TenorGifService : IGifService
         try
         {
             var url = $"search?q={Uri.EscapeDataString(query)}&key={_options.ApiKey}&limit={limit}&media_filter=gif";
-            var response = await _httpClient.GetAsync(url);
+            var response = await _httpClient.GetAsync(url).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
-            var json = await response.Content.ReadAsStringAsync();
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var result = ParseTenorResponse(json);
 
             _logger.LogInformation("Tenor search for '{Query}' returned {Count} results", query, result.Items.Count);
@@ -66,10 +66,10 @@ public sealed class TenorGifService : IGifService
         try
         {
             var url = $"featured?key={_options.ApiKey}&limit={limit}&media_filter=gif";
-            var response = await _httpClient.GetAsync(url);
+            var response = await _httpClient.GetAsync(url).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
-            var json = await response.Content.ReadAsStringAsync();
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var result = ParseTenorResponse(json);
 
             _logger.LogInformation("Tenor trending returned {Count} results", result.Items.Count);

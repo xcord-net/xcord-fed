@@ -35,7 +35,7 @@ public sealed class OutgoingWebhookEventProcessor : BackgroundService
         {
             try
             {
-                await ProcessEventAsync(entry, stoppingToken);
+                await ProcessEventAsync(entry, stoppingToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -106,7 +106,7 @@ public sealed class OutgoingWebhookEventProcessor : BackgroundService
 
         if (deliveriesCreated > 0)
         {
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             _logger.LogDebug("Created {Count} outgoing webhook deliveries for event {EventType}", deliveriesCreated, entry.EventType);
         }
     }

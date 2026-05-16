@@ -108,7 +108,7 @@ public sealed partial class RegisterHandler(
         }
 
         // Hash password (BCrypt, configurable work factor) - offloaded to Task.Run to avoid thread pool starvation
-        var passwordHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(request.Password, _authOptions.BcryptWorkFactor));
+        var passwordHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(request.Password, _authOptions.BcryptWorkFactor)).ConfigureAwait(false);
 
         // Encrypt email
         var encryptedEmail = encryptionService.Encrypt(request.Email.ToLowerInvariant());
@@ -163,13 +163,13 @@ public sealed partial class RegisterHandler(
 
         dbContext.RefreshTokens.Add(refreshToken);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Send email confirmation
         await notificationService.SendEmailAsync(
             request.Email,
             "Confirm your email address",
-            $"<p>Your confirmation code is: <strong>{confirmationCode}</strong></p><p>This code expires in 15 minutes.</p>");
+            $"<p>Your confirmation code is: <strong>{confirmationCode}</strong></p><p>This code expires in 15 minutes.</p>", cancellationToken);
 
         // Log that confirmation code was generated (code itself is not logged for security)
         logger.LogInformation("Email confirmation code generated for user {Username}", request.Username);
@@ -204,7 +204,7 @@ public sealed partial class RegisterHandler(
                         return Results.Problem(statusCode: validationError.StatusCode, title: validationError.Code, detail: validationError.Message);
                 }
 
-                var result = await handler.Handle(command, ct);
+                var result = await handler.Handle(command, ct).ConfigureAwait(false);
 
                 return result.Match(
                     success =>

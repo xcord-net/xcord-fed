@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
+using Xcord.Features.Moderation;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Services;
 using Xcord.Shared.Extensions;
@@ -19,6 +20,7 @@ public sealed record DeleteWebhookCommand(
 
 public sealed class DeleteWebhookHandler(
     AppDbContext dbContext,
+    SnowflakeIdGenerator snowflakeGenerator,
     ICurrentUserService currentUserService,
     IRoleService roleService,
     ILogger<DeleteWebhookHandler> logger)
@@ -90,7 +92,18 @@ public sealed class DeleteWebhookHandler(
 
         // Soft delete webhook
         webhook.SoftDelete();
-        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Audit log for webhook deletion (sensitive op affecting external delivery).
+        dbContext.AuditLogs.AddEntry(
+            snowflakeGenerator,
+            request.ServerId,
+            userId,
+            "WebhookDelete",
+            webhook.Id,
+            webhook.Name,
+            DateTimeOffset.UtcNow);
+
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} deleted webhook {WebhookId}",
@@ -112,7 +125,7 @@ public sealed class DeleteWebhookHandler(
                 WebhookId: webhookId
             );
 
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("DeleteWebhook")

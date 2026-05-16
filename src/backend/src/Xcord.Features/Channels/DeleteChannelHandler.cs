@@ -50,7 +50,7 @@ public sealed class DeleteChannelHandler(
         // Soft delete
         channel.SoftDelete();
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} deleted channel {ChannelId} in server {ServerId}",
@@ -67,7 +67,7 @@ public sealed class DeleteChannelHandler(
             CancellationToken ct) =>
         {
             var command = new DeleteChannelCommand(channelId);
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("DeleteChannel")

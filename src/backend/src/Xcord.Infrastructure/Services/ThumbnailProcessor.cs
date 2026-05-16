@@ -40,14 +40,14 @@ public sealed class ThumbnailProcessor : BackgroundService
         {
             try
             {
-                await ProcessPendingThumbnailsAsync(stoppingToken);
+                await ProcessPendingThumbnailsAsync(stoppingToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing thumbnails");
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(PollingIntervalSeconds), stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(PollingIntervalSeconds), stoppingToken).ConfigureAwait(false);
         }
 
         _logger.LogInformation("ThumbnailProcessor stopping");
@@ -90,7 +90,7 @@ public sealed class ThumbnailProcessor : BackgroundService
             try
             {
                 // Download original image from S3.
-                var imageBytes = await storageService.DownloadAsync(attachment.S3Key);
+                var imageBytes = await storageService.DownloadAsync(attachment.S3Key).ConfigureAwait(false);
 
                 // Generate thumbnail.
                 var result = await thumbnailService.GenerateThumbnailAsync(
@@ -103,7 +103,7 @@ public sealed class ThumbnailProcessor : BackgroundService
                 var now = DateTimeOffset.UtcNow;
                 var thumbnailKey = $"thumbnails/{now:yyyy}/{now:MM}/{attachment.Id}.jpg";
 
-                await storageService.UploadAsync(thumbnailKey, result.Bytes, "image/jpeg");
+                await storageService.UploadAsync(thumbnailKey, result.Bytes, "image/jpeg").ConfigureAwait(false);
 
                 attachment.ThumbnailS3Key = thumbnailKey;
 
@@ -120,6 +120,6 @@ public sealed class ThumbnailProcessor : BackgroundService
             }
         }
 
-        await context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 }

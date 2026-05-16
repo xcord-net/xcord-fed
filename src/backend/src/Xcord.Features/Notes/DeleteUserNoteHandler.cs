@@ -36,7 +36,7 @@ public sealed class DeleteUserNoteHandler(
         }
 
         note.SoftDelete();
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation("User {UserId} deleted note about user {TargetUserId}", userId, request.TargetUserId);
 
@@ -49,7 +49,7 @@ public sealed class DeleteUserNoteHandler(
             [FromServices] DeleteUserNoteHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new DeleteUserNoteRequest(targetUserId), ct);
+            return await handler.ExecuteAsync(new DeleteUserNoteRequest(targetUserId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("DeleteUserNote")

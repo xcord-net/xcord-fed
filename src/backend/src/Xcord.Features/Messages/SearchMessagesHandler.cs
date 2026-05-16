@@ -180,7 +180,7 @@ public sealed class SearchMessagesHandler(
                 Cursor: cursor,
                 Limit: limit ?? 25
             );
-            return await handler.ExecuteAsync(request, ct);
+            return await handler.ExecuteAsync(request, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("SearchMessages")

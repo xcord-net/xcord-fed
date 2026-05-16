@@ -39,10 +39,10 @@ public sealed class GiphyGifService : IGifService
         try
         {
             var url = $"search?q={Uri.EscapeDataString(query)}&api_key={_options.ApiKey}&limit={limit}";
-            var response = await _httpClient.GetAsync(url);
+            var response = await _httpClient.GetAsync(url).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
-            var json = await response.Content.ReadAsStringAsync();
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var result = ParseGiphyResponse(json);
 
             _logger.LogInformation("Giphy search for '{Query}' returned {Count} results", query, result.Items.Count);
@@ -66,10 +66,10 @@ public sealed class GiphyGifService : IGifService
         try
         {
             var url = $"trending?api_key={_options.ApiKey}&limit={limit}";
-            var response = await _httpClient.GetAsync(url);
+            var response = await _httpClient.GetAsync(url).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
-            var json = await response.Content.ReadAsStringAsync();
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var result = ParseGiphyResponse(json);
 
             _logger.LogInformation("Giphy trending returned {Count} results", result.Items.Count);

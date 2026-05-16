@@ -96,7 +96,7 @@ public sealed class CreateForumPostHandler(
             .Select(u => u.Username)
             .FirstOrDefaultAsync(cancellationToken) ?? string.Empty;
 
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -187,8 +187,8 @@ public sealed class CreateForumPostHandler(
                 dbContext.ForumPostTags.Add(postTag);
             }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
             // Notify after save
             await notificationService.NotifyConversationAsync(conversationId, "Forum_PostCreated", new
@@ -200,7 +200,7 @@ public sealed class CreateForumPostHandler(
                 Title = request.Title,
                 Tags = request.Tags,
                 CreatedAt = now
-            });
+            }, cancellationToken);
 
             logger.LogInformation(
                 "User {UserId} created forum post {ThreadId} in channel {ChannelId}",
@@ -219,7 +219,7 @@ public sealed class CreateForumPostHandler(
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
     }
@@ -239,7 +239,7 @@ public sealed class CreateForumPostHandler(
                 Tags: request.Tags ?? []
             );
 
-            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/channels/{success.ChannelId}/posts/{success.ThreadId}", success));
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/channels/{success.ChannelId}/posts/{success.ThreadId}", success)).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateForumPost")

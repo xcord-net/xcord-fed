@@ -54,7 +54,7 @@ public sealed class SearchGifsHandler(
     {
         logger.LogInformation("Searching GIFs for query '{Query}' with limit {Limit}", request.Query, request.Limit);
 
-        var result = await gifService.SearchAsync(request.Query, request.Limit);
+        var result = await gifService.SearchAsync(request.Query, request.Limit).ConfigureAwait(false);
 
         var gifs = result.Items.Select(g => new GifDto(
             g.Id,
@@ -77,7 +77,7 @@ public sealed class SearchGifsHandler(
             CancellationToken ct) =>
         {
             var searchQuery = new SearchGifsQuery(query, limit);
-            return await handler.ExecuteAsync(searchQuery, ct);
+            return await handler.ExecuteAsync(searchQuery, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("SearchGifs")

@@ -168,7 +168,7 @@ public sealed class UpdateChannelHandler(
         if (request.Capabilities.HasValue) channel.Capabilities = request.Capabilities.Value;
         if (request.AccessGroupId.HasValue) channel.AccessGroupId = request.AccessGroupId.Value;
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} updated channel {ChannelId} in server {ServerId}",
@@ -217,7 +217,7 @@ public sealed class UpdateChannelHandler(
                 AccessGroupId: request.AccessGroupId
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("UpdateChannel")

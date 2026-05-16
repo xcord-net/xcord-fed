@@ -106,8 +106,11 @@ public sealed class ChannelConfiguration : IEntityTypeConfiguration<Channel>
         // Soft delete (DeletedAt, implements ISoftDeletable)
         builder.Property(c => c.DeletedAt);
 
-        // Index for ordering: (ServerId, Position)
-        builder.HasIndex(c => new { c.ServerId, c.Position });
+        // Index for ordering: (ServerId, Position). Filtered to non-deleted rows because
+        // every list-channels query is wrapped by the global soft-delete filter -- the index
+        // only needs to cover live rows, which keeps it small and the planner happy.
+        builder.HasIndex(c => new { c.ServerId, c.Position })
+            .HasFilter("\"DeletedAt\" IS NULL");
 
         // Soft delete query filter is applied globally in AppDbContext
     }

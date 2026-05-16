@@ -65,7 +65,7 @@ public sealed class GetNotificationSettingsHandler(
             query = query.Where(ns => ns.ChannelId == request.ChannelId.Value);
         }
 
-        var settings = await query.ToListAsync(cancellationToken);
+        var settings = await query.ToListAsync(cancellationToken).ConfigureAwait(false);
 
         var dtos = settings.Select(ns => new NotificationSettingDto(
             Id: ns.Id,
@@ -91,7 +91,7 @@ public sealed class GetNotificationSettingsHandler(
             long? channelId,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new GetNotificationSettingsRequest(serverId, channelId), ct);
+            return await handler.ExecuteAsync(new GetNotificationSettingsRequest(serverId, channelId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("GetNotificationSettings")

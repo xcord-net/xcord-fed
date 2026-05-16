@@ -33,7 +33,7 @@ public sealed class GetMemberHandler(
         var currentUserId = userIdResult.Value;
 
         // Verify requesting user is a member of the server
-        var memberCheck = await dbContext.EnsureMembership(request.ServerId, currentUserId, cancellationToken);
+        var memberCheck = await dbContext.EnsureMembership(request.ServerId, currentUserId, cancellationToken).ConfigureAwait(false);
         if (memberCheck.IsFailure) return memberCheck.Error;
 
         // Query the target member
@@ -71,7 +71,7 @@ public sealed class GetMemberHandler(
             [FromServices] GetMemberHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new GetMemberQuery(serverId, userId), ct);
+            return await handler.ExecuteAsync(new GetMemberQuery(serverId, userId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("GetMember")

@@ -32,7 +32,7 @@ public sealed class CancelMigrationHandler(AppDbContext dbContext)
         migration.Status = "Failed";
         migration.ErrorMessage = "Cancelled by admin";
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return true;
     }

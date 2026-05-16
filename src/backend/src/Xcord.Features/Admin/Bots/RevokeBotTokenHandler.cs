@@ -40,7 +40,7 @@ public sealed class RevokeBotTokenHandler(
 
         botToken.IsRevoked = true;
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "Revoked bot token {TokenId} ({TokenName}) for bot {BotId}",
@@ -65,7 +65,7 @@ public sealed class RevokeBotTokenHandler(
                 TokenId: tokenId
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAuthorization(Policies.Admin)
         .WithName("RevokeBotToken")

@@ -82,7 +82,7 @@ public sealed class UpdateForumTagHandler(
         if (request.Position.HasValue)
             forumTag.Position = request.Position.Value;
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation("User {UserId} updated forum tag {TagId}", userId, request.TagId);
 
@@ -116,7 +116,7 @@ public sealed class UpdateForumTagHandler(
                 Position: request.Position
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("UpdateForumTag")

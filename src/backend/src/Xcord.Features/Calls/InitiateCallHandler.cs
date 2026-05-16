@@ -89,7 +89,7 @@ public sealed class InitiateCallHandler(
 
         var callId = snowflakeGenerator.NextId();
 
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -108,12 +108,12 @@ public sealed class InitiateCallHandler(
 
             dbContext.Calls.Add(call);
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
 
@@ -125,8 +125,8 @@ public sealed class InitiateCallHandler(
             CallerId = currentUserId,
             RecipientId = recipientId
         };
-        await notificationService.NotifyUserAsync(currentUserId, "Notify_IncomingCall", callPayload);
-        await notificationService.NotifyUserAsync(recipientId, "Notify_IncomingCall", callPayload);
+        await notificationService.NotifyUserAsync(currentUserId, "Notify_IncomingCall", callPayload, cancellationToken).ConfigureAwait(false);
+        await notificationService.NotifyUserAsync(recipientId, "Notify_IncomingCall", callPayload, cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} initiated call {CallId} in DM channel {DmChannelId}",
@@ -141,7 +141,7 @@ public sealed class InitiateCallHandler(
             [FromServices] InitiateCallHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new InitiateCallRequest(dmChannelId), ct);
+            return await handler.ExecuteAsync(new InitiateCallRequest(dmChannelId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("InitiateCall")

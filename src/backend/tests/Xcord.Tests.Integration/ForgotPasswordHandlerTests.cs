@@ -26,11 +26,11 @@ internal sealed class CapturingNotificationService : INotificationService
 
     public List<SentEmail> Emails { get; } = [];
 
-    public Task NotifyConversationAsync(long conversationId, string method, object payload) => Task.CompletedTask;
-    public Task NotifyUserAsync(long userId, string method, object payload) => Task.CompletedTask;
-    public Task NotifyServerAsync(long serverId, string method, object payload) => Task.CompletedTask;
+    public Task NotifyConversationAsync(long conversationId, string method, object payload, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    public Task NotifyUserAsync(long userId, string method, object payload, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    public Task NotifyServerAsync(long serverId, string method, object payload, CancellationToken cancellationToken = default) => Task.CompletedTask;
 
-    public Task SendEmailAsync(string to, string subject, string htmlBody)
+    public Task SendEmailAsync(string to, string subject, string htmlBody, CancellationToken cancellationToken = default)
     {
         Emails.Add(new SentEmail(to, subject, htmlBody));
         return Task.CompletedTask;

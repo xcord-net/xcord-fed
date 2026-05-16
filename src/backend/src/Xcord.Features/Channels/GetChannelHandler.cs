@@ -94,7 +94,7 @@ public sealed class GetChannelHandler(
         {
             var command = new GetChannelCommand(channelId);
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("GetChannel")

@@ -30,9 +30,12 @@ public sealed class MessageConfiguration : IEntityTypeConfiguration<Message>
 
         // Composite index on (ConversationId, CreatedAt DESC) - the primary pattern for loading
         // message history (paginated, most-recent-first). CreatedAt is descending because queries
-        // always order by newest first. A migration is required to apply this to the database.
+        // always order by newest first. Filtered to non-deleted rows because the global soft-delete
+        // query filter narrows every query to DeletedAt IS NULL; the index only needs to cover
+        // live messages, which keeps it dramatically smaller in conversations with heavy churn.
         builder.HasIndex(m => new { m.ConversationId, m.CreatedAt })
-            .IsDescending(false, true);
+            .IsDescending(false, true)
+            .HasFilter("\"DeletedAt\" IS NULL");
 
         // AuthorId (nullable, FK to User with SetNull)
         builder.Property(m => m.AuthorId);

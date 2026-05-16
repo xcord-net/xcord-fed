@@ -1,5 +1,6 @@
 import { For, Show } from 'solid-js';
 import styles from './GroupList.module.css';
+import { DEFAULT_GROUP_COLOR } from '../../constants/colors';
 
 interface Group {
   id: string;
@@ -47,7 +48,7 @@ export default function GroupList(props: GroupListProps) {
             {/* Color dot */}
             <span
               class={styles.groupColorDot}
-              style={{ 'background-color': group.color || '#d4943a' }}
+              style={{ 'background-color': group.color || DEFAULT_GROUP_COLOR }}
               aria-hidden="true"
             />
             <span class={styles.groupName}>{group.name}</span>

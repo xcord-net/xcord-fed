@@ -59,7 +59,7 @@ public sealed class UpdateUserProfileHandler(
             user.Bio = request.Bio;
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return new UserProfileDto(
             UserId: user.Id,
@@ -78,7 +78,7 @@ public sealed class UpdateUserProfileHandler(
             [FromServices] UpdateUserProfileHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(request, ct);
+            return await handler.ExecuteAsync(request, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User)
         .WithName("UpdateUserProfile")

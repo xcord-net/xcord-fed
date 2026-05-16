@@ -68,7 +68,7 @@ public sealed class JoinByInviteHandler(
             // remains correct (otherwise a member re-clicking an invite would let extra
             // users join a 1-use link without decrementing the counter).
             invite.Uses++;
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
             return new JoinByInviteResponse(
                 Id: invite.Server.Id,
@@ -187,7 +187,7 @@ public sealed class JoinByInviteHandler(
             }
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Notify after save
         if (systemMessageConversationId.HasValue && systemMessageId.HasValue)
@@ -197,14 +197,14 @@ public sealed class JoinByInviteHandler(
                 MessageId = systemMessageId.Value,
                 ConversationId = systemMessageConversationId.Value,
                 AuthorId = (long?)null
-            });
+            }, cancellationToken);
         }
 
         await notificationService.NotifyServerAsync(invite.ServerId, "Member_Joined", new
         {
             ServerId = invite.ServerId,
             UserId = userId
-        });
+        }, cancellationToken);
 
         logger.LogInformation(
             "User {UserId} joined server {ServerId} via invite {InviteCode}",
@@ -232,7 +232,7 @@ public sealed class JoinByInviteHandler(
             CancellationToken ct) =>
         {
             var command = new JoinByInviteCommand(code);
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("JoinByInvite")

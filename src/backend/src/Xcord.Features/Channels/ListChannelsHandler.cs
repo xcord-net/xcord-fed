@@ -69,12 +69,12 @@ public sealed class ListChannelsHandler(
         }
 
         // Check if user is a member
-        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken);
+        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken).ConfigureAwait(false);
         if (memberCheck.IsFailure) return memberCheck.Error;
 
         // Get server-level permissions to determine if the user is an admin/owner
         // (admins see all channels regardless of overrides)
-        var serverPerms = await roleService.GetServerRoles(userId, request.ServerId);
+        var serverPerms = await roleService.GetServerRoles(userId, request.ServerId).ConfigureAwait(false);
         var isAdmin = serverPerms == long.MaxValue ||
                       (serverPerms & (long)Role.Administrator) != 0;
 
@@ -128,7 +128,7 @@ public sealed class ListChannelsHandler(
         var visibleChannels = new List<ChannelDto>(allChannels.Count);
         foreach (var channel in allChannels)
         {
-            var channelPerms = await roleService.GetChannelRoles(userId, channel.Id);
+            var channelPerms = await roleService.GetChannelRoles(userId, channel.Id).ConfigureAwait(false);
             if ((channelPerms & (long)Role.ViewChannels) != 0)
             {
                 visibleChannels.Add(channel);
@@ -147,7 +147,7 @@ public sealed class ListChannelsHandler(
         {
             var command = new ListChannelsCommand(serverId);
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("ListChannels")

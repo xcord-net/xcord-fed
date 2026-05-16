@@ -83,7 +83,7 @@ public sealed class ListUserServersHandler(
                 Limit: limit ?? 100,
                 Cursor: cursor
             );
-            return await handler.ExecuteAsync(query, ct);
+            return await handler.ExecuteAsync(query, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("ListUserServers")

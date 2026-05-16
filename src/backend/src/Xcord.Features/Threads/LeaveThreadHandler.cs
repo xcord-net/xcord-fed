@@ -64,7 +64,7 @@ public sealed class LeaveThreadHandler(
         if (threadMember != null)
         {
             dbContext.ThreadMembers.Remove(threadMember);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
             logger.LogInformation(
                 "User {UserId} left thread {ThreadId}",
@@ -87,7 +87,7 @@ public sealed class LeaveThreadHandler(
                 ThreadId: threadId
             );
 
-            return await handler.ExecuteAsync(request, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(request, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("LeaveThread")

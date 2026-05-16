@@ -163,10 +163,7 @@ export function useSignalR() {
 
     // Channel events - broadcast to all server members when a channel is created
     connection.on('Chat_ChannelCreated', (channel: Channel) => {
-      const normalized = normalizeIds(
-        channel as unknown as Record<string, unknown>,
-        'id', 'serverId', 'conversationId', 'categoryId',
-      ) as unknown as Channel;
+      const normalized = normalizeIds(channel, 'id', 'serverId', 'conversationId', 'categoryId');
       channels.addChannel(normalized);
     });
 
@@ -289,7 +286,6 @@ export function useSignalR() {
       // Handle reconnected - handlers are already registered on the same
       // HubConnection object; do NOT call registerEventHandlers here.
       connection.onreconnected(async () => {
-        console.log('SignalR reconnected');
         store.setIsConnected(true);
         // Re-inject connection reference so voice store can invoke hub methods again.
         voice.setSignalRConnection(connection);
@@ -299,7 +295,6 @@ export function useSignalR() {
 
       // Handle reconnecting
       connection.onreconnecting((error) => {
-        console.log('SignalR reconnecting...', error);
         store.setIsConnected(false);
       });
 
@@ -307,7 +302,6 @@ export function useSignalR() {
       // with a fresh auth ticket. The old connection object is discarded, so its
       // WeakSet entry is eligible for GC.
       connection.onclose(async (error) => {
-        console.log('SignalR connection closed', error);
         store.setIsConnected(false);
         store.setConnection(null);
 
@@ -327,7 +321,6 @@ export function useSignalR() {
       store.setIsConnected(true);
       // Provide voice store with the connection so it can invoke hub methods.
       voice.setSignalRConnection(connection);
-      console.log('SignalR connected');
 
       // Send initial heartbeat
       await sendHeartbeat(connection);

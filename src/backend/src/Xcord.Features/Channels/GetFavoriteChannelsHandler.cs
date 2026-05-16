@@ -23,7 +23,7 @@ public sealed class GetFavoriteChannelsHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken);
+        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken).ConfigureAwait(false);
         if (memberCheck.IsFailure) return memberCheck.Error;
 
         var favoriteIds = await dbContext.ServerMembers
@@ -41,7 +41,7 @@ public sealed class GetFavoriteChannelsHandler(
             IRequestHandler<GetFavoriteChannelsQuery, Result<GetFavoriteChannelsResponse>> handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new GetFavoriteChannelsQuery(serverId), ct);
+            return await handler.ExecuteAsync(new GetFavoriteChannelsQuery(serverId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("GetFavoriteChannels")

@@ -249,7 +249,7 @@ public sealed class CreateChannelHandler(
             }
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Notify all server members after save
         await notificationService.NotifyServerAsync(request.ServerId, "Chat_ChannelCreated", new
@@ -267,7 +267,7 @@ public sealed class CreateChannelHandler(
             slowModeSeconds = channel.SlowModeSeconds,
             isNsfw = channel.IsNsfw,
             createdAt = channel.CreatedAt
-        });
+        }, cancellationToken);
 
         logger.LogInformation(
             "User {UserId} created channel {ChannelName} (ID: {ChannelId}) in server {ServerId}",
@@ -317,7 +317,7 @@ public sealed class CreateChannelHandler(
                 AccessGroupId: request.AccessGroupId
             );
 
-            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/channels/{success.Id}", success));
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/channels/{success.Id}", success)).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateChannel")

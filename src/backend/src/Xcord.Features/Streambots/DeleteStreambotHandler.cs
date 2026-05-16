@@ -42,7 +42,7 @@ public sealed class DeleteStreambotHandler(
             return permissionResult.Error;
 
         streambot.SoftDelete();
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} soft-deleted streambot {StreamBotId}",
@@ -59,7 +59,7 @@ public sealed class DeleteStreambotHandler(
             CancellationToken ct) =>
         {
             var command = new DeleteStreambotCommand(id);
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("DeleteStreambot")

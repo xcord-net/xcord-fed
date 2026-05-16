@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
-using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
@@ -36,9 +36,19 @@ public sealed class AutomodService : IAutomodService
 
     // Cache of compiled Regex instances keyed by (pattern, options).
     // Avoids reconstructing the regex (and re-running NonBacktracking analysis) on every message.
-    // Capped at 1000 entries; on overflow the cache is cleared (simple LRU-less strategy).
+    // MemoryCache enforces a per-entry LRU eviction when the SizeLimit is hit (each entry counts
+    // as size 1, so SizeLimit doubles as a max-entries cap). Entries also expire after 1 hour of
+    // disuse so a one-off pattern does not linger forever.
     private const int RegexCacheLimit = 1000;
-    private static readonly ConcurrentDictionary<string, Regex> RegexCache = new();
+    private static readonly MemoryCache RegexCache = new(new MemoryCacheOptions
+    {
+        SizeLimit = RegexCacheLimit
+    });
+    private static readonly MemoryCacheEntryOptions RegexEntryOptions = new()
+    {
+        Size = 1,
+        SlidingExpiration = TimeSpan.FromHours(1)
+    };
 
     public AutomodService(
         AppDbContext dbContext,
@@ -59,24 +69,29 @@ public sealed class AutomodService : IAutomodService
         bool isBot,
         CancellationToken cancellationToken = default)
     {
-        // Load all enabled rules for this server (channel-specific and server-wide)
-        var allRules = await _dbContext.AutomodRules
+        // Channel-specific rules take precedence over server-wide rules.
+        // Push the (ServerId, Enabled, ChannelId) filter into SQL so the DB returns only
+        // rules potentially applicable to this channel: either explicitly bound to it or
+        // server-wide (ChannelId IS NULL). The precedence (channel-specific overrides
+        // server-wide) is then resolved in-memory on the already-narrowed result set.
+        var candidateRules = await _dbContext.AutomodRules
             .AsNoTracking()
-            .Where(r => r.ServerId == serverId && r.Enabled)
+            .Where(r => r.ServerId == serverId
+                        && r.Enabled
+                        && (r.ChannelId == channelId || r.ChannelId == null))
             .ToListAsync(cancellationToken);
 
-        if (allRules.Count == 0)
+        if (candidateRules.Count == 0)
         {
             return AutomodResult.Allowed();
         }
 
-        // Channel-specific rules take precedence over server-wide rules.
-        // If any channel-specific rules exist for this channel, only those are evaluated.
-        // Server-wide rules (ChannelId == null) are the fallback when no channel-specific rules match.
-        var channelRules = allRules.Where(r => r.ChannelId == channelId).ToList();
+        // Channel-specific rules take precedence: if any exist, only those are evaluated.
+        // Otherwise fall back to server-wide rules (ChannelId == null).
+        var channelRules = candidateRules.Where(r => r.ChannelId == channelId).ToList();
         var rules = channelRules.Count > 0
             ? channelRules
-            : allRules.Where(r => r.ChannelId == null).ToList();
+            : candidateRules.Where(r => r.ChannelId == null).ToList();
 
         if (rules.Count == 0)
         {
@@ -95,7 +110,7 @@ public sealed class AutomodService : IAutomodService
             }
 
             // Evaluate the rule trigger
-            var triggered = await EvaluateTriggerAsync(rule, messageContent, serverId, authorId, cancellationToken);
+            var triggered = await EvaluateTriggerAsync(rule, messageContent, serverId, authorId, cancellationToken).ConfigureAwait(false);
 
             if (triggered)
             {
@@ -280,7 +295,7 @@ public sealed class AutomodService : IAutomodService
     {
         var cacheKey = $"{(int)baseOptions}:{pattern}";
 
-        if (RegexCache.TryGetValue(cacheKey, out var cached))
+        if (RegexCache.TryGetValue(cacheKey, out Regex? cached) && cached is not null)
         {
             return cached;
         }
@@ -299,13 +314,9 @@ public sealed class AutomodService : IAutomodService
             built = new Regex(pattern, baseOptions | RegexOptions.Compiled, TimeSpan.FromMilliseconds(20));
         }
 
-        // Bound the cache. On overflow clear it entirely (no LRU bookkeeping needed for this scope).
-        if (RegexCache.Count >= RegexCacheLimit)
-        {
-            RegexCache.Clear();
-        }
-
-        RegexCache.TryAdd(cacheKey, built);
+        // MemoryCache enforces SizeLimit by evicting the least-recently-used entry on insert.
+        // Each entry has Size = 1 so the cap is "max 1000 distinct patterns".
+        RegexCache.Set(cacheKey, built, RegexEntryOptions);
         return built;
     }
 
@@ -348,16 +359,16 @@ public sealed class AutomodService : IAutomodService
         var windowStart = now - config.IntervalSeconds;
 
         // Remove old entries outside the time window
-        await db.SortedSetRemoveRangeByScoreAsync(key, double.NegativeInfinity, windowStart);
+        await db.SortedSetRemoveRangeByScoreAsync(key, double.NegativeInfinity, windowStart).ConfigureAwait(false);
 
         // Add current message timestamp
-        await db.SortedSetAddAsync(key, now, now);
+        await db.SortedSetAddAsync(key, now, now).ConfigureAwait(false);
 
         // Set expiration on the key
-        await db.KeyExpireAsync(key, TimeSpan.FromSeconds(config.IntervalSeconds));
+        await db.KeyExpireAsync(key, TimeSpan.FromSeconds(config.IntervalSeconds)).ConfigureAwait(false);
 
         // Count messages in the window
-        var count = await db.SortedSetLengthAsync(key);
+        var count = await db.SortedSetLengthAsync(key).ConfigureAwait(false);
 
         return count > config.MaxMessages;
     }

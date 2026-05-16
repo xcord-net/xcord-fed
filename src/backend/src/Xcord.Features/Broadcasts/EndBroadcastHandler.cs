@@ -57,7 +57,7 @@ public sealed class EndBroadcastHandler(
         {
             try
             {
-                await livekitService.StopEgressAsync(broadcast.EgressJobId, cancellationToken);
+                await livekitService.StopEgressAsync(broadcast.EgressJobId, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -83,7 +83,7 @@ public sealed class EndBroadcastHandler(
             bs.EndedAt = now;
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         await notificationService.NotifyConversationAsync(
             broadcast.Channel.ConversationId,
@@ -93,7 +93,7 @@ public sealed class EndBroadcastHandler(
                 broadcastId = broadcast.Id,
                 channelId = broadcast.ChannelId,
                 endedAt = now
-            });
+            }, cancellationToken);
 
         logger.LogInformation(
             "User {UserId} ended broadcast {BroadcastId}",

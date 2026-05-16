@@ -141,6 +141,7 @@ export default function OwnershipTransfer(props: OwnershipTransferProps) {
                       class={styles.memberButton}
                       data-testid={`transfer-member-option-${member.userId}`}
                       onClick={() => handleSelectMember(member)}
+                      aria-pressed={selectedMember()?.userId === member.userId}
                     >
                       <div class={styles.memberAvatar}>
                         {(member.displayName || member.username).charAt(0).toUpperCase()}

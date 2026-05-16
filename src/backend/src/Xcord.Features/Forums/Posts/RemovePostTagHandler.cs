@@ -70,7 +70,7 @@ public sealed class RemovePostTagHandler(
         }
 
         dbContext.ForumPostTags.Remove(postTag);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} removed tag {TagId} from forum post {ThreadId}",
@@ -94,7 +94,7 @@ public sealed class RemovePostTagHandler(
                 TagId: tagId
             );
 
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("RemovePostTag")

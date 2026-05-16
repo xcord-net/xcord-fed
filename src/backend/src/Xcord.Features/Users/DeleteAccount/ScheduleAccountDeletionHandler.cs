@@ -57,7 +57,7 @@ public sealed class ScheduleAccountDeletionHandler(
         // Schedule deletion 14 days from now
         user.ScheduledDeletionAt = DateTimeOffset.UtcNow.AddDays(14);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return new ScheduleAccountDeletionResponse(user.ScheduledDeletionAt.Value);
     }

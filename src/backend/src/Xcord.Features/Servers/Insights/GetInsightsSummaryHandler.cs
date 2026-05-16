@@ -23,10 +23,10 @@ public sealed class GetInsightsSummaryHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        var perm = await roleService.EnsureServerRole(userId, request.ServerId, Role.ManageServer);
+        var perm = await roleService.EnsureServerRole(userId, request.ServerId, Role.ManageServer).ConfigureAwait(false);
         if (perm.IsFailure) return Error.Forbidden("MISSING_PERMISSIONS", "You do not have permission");
 
-        var server = await dbContext.Servers.AsNoTracking().FirstOrDefaultAsync(s => s.Id == request.ServerId, ct);
+        var server = await dbContext.Servers.AsNoTracking().FirstOrDefaultAsync(s => s.Id == request.ServerId, ct).ConfigureAwait(false);
         if (server == null) return Error.NotFound("SERVER_NOT_FOUND", "Server not found");
 
         var todayStart = DateTimeOffset.UtcNow.Date;

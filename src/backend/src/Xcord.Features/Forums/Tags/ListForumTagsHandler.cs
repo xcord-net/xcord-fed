@@ -82,7 +82,7 @@ public sealed class ListForumTagsHandler(
             CancellationToken ct) =>
         {
             var command = new ListForumTagsCommand(ChannelId: channelId);
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("ListForumTags")

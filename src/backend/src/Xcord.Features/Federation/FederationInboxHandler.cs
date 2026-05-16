@@ -5,10 +5,12 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Xcord.Exceptions;
 using Xcord.Entities;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Federation;
 
@@ -84,6 +86,14 @@ public sealed class FederationInboxHandler(
         {
             try
             {
+                // Payload-level validation: throw FederationProtocolException for malformed
+                // per-message data so the outer catch can warn-and-skip without affecting
+                // the rest of the batch.
+                if (string.IsNullOrWhiteSpace(message.RemoteMessageId))
+                    throw new FederationProtocolException("Federated message missing RemoteMessageId");
+                if (message.Content == null)
+                    throw new FederationProtocolException("Federated message has null content");
+
                 foreach (var follow in follows)
                 {
                     if (alreadyImportedSet.Contains(new { FederationFollowId = follow.Id, RemoteMessageId = message.RemoteMessageId }))
@@ -133,14 +143,49 @@ public sealed class FederationInboxHandler(
 
                 accepted++;
             }
+            catch (FederationProtocolException ex)
+            {
+                // Known-bad payload: malformed JSON, bad argument shape, bad base64/format,
+                // or local protocol validation failure. These are caller errors, not system
+                // faults - warn and continue.
+                logger.LogWarning(ex,
+                    "Rejected federated message {RemoteMessageId} for follows [{FollowIds}] from {SourceUrl}: protocol error ({ErrorCode}): {ExceptionMessage}",
+                    message.RemoteMessageId.SafeForLog(64),
+                    string.Join(",", followIds),
+                    normalizedUrl.SafeForLog(),
+                    ex.ErrorCode,
+                    ex.Message.SafeForLog(512));
+                rejected++;
+            }
+            catch (Exception ex) when (ex is System.Text.Json.JsonException or ArgumentException or FormatException)
+            {
+                // Framework-thrown payload errors: malformed JSON, bad argument shape, bad
+                // base64/format. Treat the same as a FederationProtocolException - warn and
+                // continue rather than fail the batch.
+                logger.LogWarning(ex,
+                    "Rejected federated message {RemoteMessageId} for follows [{FollowIds}] from {SourceUrl}: bad payload ({ExceptionType}): {ExceptionMessage}",
+                    message.RemoteMessageId.SafeForLog(64),
+                    string.Join(",", followIds),
+                    normalizedUrl.SafeForLog(),
+                    ex.GetType().Name,
+                    ex.Message.SafeForLog(512));
+                rejected++;
+            }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Failed to process federated message {RemoteMessageId}", message.RemoteMessageId);
+                // Unexpected exception: DB conflicts, IO errors, etc. Log at Error so
+                // operators see it — these typically indicate a real problem.
+                logger.LogError(ex,
+                    "Unexpected error processing federated message {RemoteMessageId} for follows [{FollowIds}] from {SourceUrl} ({ExceptionType})",
+                    message.RemoteMessageId.SafeForLog(64),
+                    string.Join(",", followIds),
+                    normalizedUrl.SafeForLog(),
+                    ex.GetType().Name);
                 rejected++;
             }
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Dispatch SignalR events after save
         foreach (var (localMessageId, conversationId) in pendingNotifications)
@@ -150,12 +195,12 @@ public sealed class FederationInboxHandler(
                 MessageId = localMessageId,
                 ConversationId = conversationId,
                 Federated = true
-            });
+            }, cancellationToken);
         }
 
         logger.LogInformation(
             "Federation inbox from {SourceUrl}: {Accepted} accepted, {Rejected} rejected",
-            normalizedUrl, accepted, rejected);
+            normalizedUrl.SafeForLog(), accepted, rejected);
 
         return new FederationInboxResponse(accepted, rejected);
     }
@@ -171,7 +216,7 @@ public sealed class FederationInboxHandler(
         {
             // Read raw body first (before JSON deserialization) for HMAC verification
             using var reader = new StreamReader(httpContext.Request.Body);
-            var rawBody = await reader.ReadToEndAsync(ct);
+            var rawBody = await reader.ReadToEndAsync(ct).ConfigureAwait(false);
 
             var request = System.Text.Json.JsonSerializer.Deserialize<FederationInboxRequest>(rawBody,
                 new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
@@ -227,7 +272,7 @@ public sealed class FederationInboxHandler(
                 httpContext.Response.Headers["X-Federation-Warning"] = "Signature verification is disabled";
             }
 
-            return await handler.ExecuteAsync(request, ct);
+            return await handler.ExecuteAsync(request, ct).ConfigureAwait(false);
         })
         .WithName("FederationInbox")
         .WithTags("Federation");

@@ -63,14 +63,14 @@ public sealed class GetAttachmentHandler(
         if (contextResult.IsFailure) return contextResult.Error;
 
         // Generate pre-signed download URL (1 hour expiry)
-        var downloadUrl = await storageService.GenerateDownloadUrlAsync(attachment.S3Key, TimeSpan.FromHours(1));
+        var downloadUrl = await storageService.GenerateDownloadUrlAsync(attachment.S3Key, TimeSpan.FromHours(1)).ConfigureAwait(false);
 
         // Generate pre-signed thumbnail URL if a thumbnail has been generated.
         // Empty string is a sentinel meaning "not applicable" (non-image attachment).
         string? thumbnailUrl = null;
         if (!string.IsNullOrEmpty(attachment.ThumbnailS3Key))
         {
-            thumbnailUrl = await storageService.GenerateDownloadUrlAsync(attachment.ThumbnailS3Key, TimeSpan.FromHours(1));
+            thumbnailUrl = await storageService.GenerateDownloadUrlAsync(attachment.ThumbnailS3Key, TimeSpan.FromHours(1)).ConfigureAwait(false);
         }
 
         return new GetAttachmentResponse(
@@ -95,7 +95,7 @@ public sealed class GetAttachmentHandler(
             CancellationToken ct) =>
         {
             var command = new GetAttachmentCommand(attachmentId);
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("GetAttachment")

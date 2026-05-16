@@ -54,11 +54,11 @@ public sealed class ForgotPasswordHandler(
 
         // Increment the counter for every request (regardless of whether the user exists)
         var db = redis.GetDatabase();
-        var currentCount = await db.StringIncrementAsync(redisKey);
+        var currentCount = await db.StringIncrementAsync(redisKey).ConfigureAwait(false);
         if (currentCount == 1)
         {
             // First request in this window - set TTL
-            await db.KeyExpireAsync(redisKey, ForgotPasswordWindow);
+            await db.KeyExpireAsync(redisKey, ForgotPasswordWindow).ConfigureAwait(false);
         }
 
         // If over limit, skip the email send but still return 204 (no user enumeration)
@@ -93,10 +93,10 @@ public sealed class ForgotPasswordHandler(
             var resetUrl = BuildResetUrl(scheme, instanceOptions.Value.Domain, rawToken);
             var htmlBody = BuildResetEmailBody(user.DisplayName, resetUrl);
 
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
             // Send password reset email
-            await notificationService.SendEmailAsync(decryptedEmail, "Reset your Xcord password", htmlBody);
+            await notificationService.SendEmailAsync(decryptedEmail, "Reset your Xcord password", htmlBody, cancellationToken).ConfigureAwait(false);
         }
 
         logger.LogInformation("Password reset requested");

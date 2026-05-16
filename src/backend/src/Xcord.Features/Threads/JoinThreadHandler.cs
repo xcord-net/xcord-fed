@@ -97,7 +97,7 @@ public sealed class JoinThreadHandler(
         // Update thread's LastActivityAt
         thread.LastActivityAt = now;
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} joined thread {ThreadId}",
@@ -123,7 +123,7 @@ public sealed class JoinThreadHandler(
                 ThreadId: threadId
             );
 
-            return await handler.ExecuteAsync(request, ct);
+            return await handler.ExecuteAsync(request, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("JoinThread")

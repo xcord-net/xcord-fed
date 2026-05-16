@@ -80,7 +80,7 @@ public sealed class FollowChannelHandler(
         }
 
         // Caller must be a member of the source server
-        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken);
+        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken).ConfigureAwait(false);
         if (memberCheck.IsFailure) return memberCheck.Error;
 
         // Check for duplicate subscription
@@ -107,7 +107,7 @@ public sealed class FollowChannelHandler(
         };
 
         dbContext.CrosspostSubscriptions.Add(subscription);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return new FollowChannelResponse(
             Id: subscription.Id,

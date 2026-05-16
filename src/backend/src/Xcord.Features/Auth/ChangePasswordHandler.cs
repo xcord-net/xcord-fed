@@ -43,7 +43,7 @@ public sealed class ChangePasswordHandler(AppDbContext dbContext, IOptions<AuthO
     public async Task<Result<bool>> Handle(ChangePasswordInternalRequest request, CancellationToken cancellationToken)
     {
         // Find user
-        var user = await dbContext.Users.FindAsync(new object[] { request.UserId }, cancellationToken);
+        var user = await dbContext.Users.FindAsync(new object[] { request.UserId }, cancellationToken).ConfigureAwait(false);
         if (user == null)
         {
             return Error.NotFound("USER_NOT_FOUND", "User not found");
@@ -56,7 +56,7 @@ public sealed class ChangePasswordHandler(AppDbContext dbContext, IOptions<AuthO
         }
 
         // Hash new password (BCrypt, configurable work factor) - offloaded to Task.Run to avoid thread pool starvation
-        user.PasswordHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(request.NewPassword, _authOptions.BcryptWorkFactor));
+        user.PasswordHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(request.NewPassword, _authOptions.BcryptWorkFactor)).ConfigureAwait(false);
 
         // Delete ALL refresh tokens for the user (force re-login everywhere)
         var refreshTokens = await dbContext.RefreshTokens
@@ -65,7 +65,7 @@ public sealed class ChangePasswordHandler(AppDbContext dbContext, IOptions<AuthO
 
         dbContext.RefreshTokens.RemoveRange(refreshTokens);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return true;
     }
@@ -93,7 +93,7 @@ public sealed class ChangePasswordHandler(AppDbContext dbContext, IOptions<AuthO
                         return Results.Problem(statusCode: validationError.StatusCode, title: validationError.Code, detail: validationError.Message);
                 }
 
-                var result = await handler.Handle(command, ct);
+                var result = await handler.Handle(command, ct).ConfigureAwait(false);
 
                 return result.Match(
                     success =>

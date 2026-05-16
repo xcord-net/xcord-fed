@@ -60,7 +60,7 @@ public sealed class RemoveGroupDmMemberHandler(
             return Error.NotFound("NOT_MEMBER", "User is not a member of this DM channel");
         }
 
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -96,8 +96,8 @@ public sealed class RemoveGroupDmMemberHandler(
                 }
             }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
             // Notify all members (including removed user) after save
             var memberRemovedPayload = new
@@ -108,7 +108,7 @@ public sealed class RemoveGroupDmMemberHandler(
             };
             foreach (var memberId in allMemberIds)
             {
-                await notificationService.NotifyUserAsync(memberId, "Notify_DmMemberRemoved", memberRemovedPayload);
+                await notificationService.NotifyUserAsync(memberId, "Notify_DmMemberRemoved", memberRemovedPayload, cancellationToken).ConfigureAwait(false);
             }
 
             logger.LogInformation(
@@ -119,7 +119,7 @@ public sealed class RemoveGroupDmMemberHandler(
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
     }

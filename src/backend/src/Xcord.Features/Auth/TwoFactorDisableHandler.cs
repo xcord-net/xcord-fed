@@ -32,7 +32,7 @@ public sealed class TwoFactorDisableHandler(AppDbContext dbContext)
     public async Task<Result<bool>> Handle(TwoFactorDisableInternalRequest request, CancellationToken cancellationToken)
     {
         // Find user
-        var user = await dbContext.Users.FindAsync(new object[] { request.UserId }, cancellationToken);
+        var user = await dbContext.Users.FindAsync(new object[] { request.UserId }, cancellationToken).ConfigureAwait(false);
         if (user == null)
         {
             return Error.NotFound("USER_NOT_FOUND", "User not found");
@@ -53,7 +53,7 @@ public sealed class TwoFactorDisableHandler(AppDbContext dbContext)
             .ToListAsync(cancellationToken);
         dbContext.TwoFactorBackupCodes.RemoveRange(backupCodes);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return true;
     }
@@ -72,7 +72,7 @@ public sealed class TwoFactorDisableHandler(AppDbContext dbContext)
                 var userId = userIdResult.Value;
 
                 var command = new TwoFactorDisableInternalRequest(userId, request.CurrentPassword);
-                return await handler.ExecuteAsync(command, ct, success => Results.Ok(new { disabled = true }));
+                return await handler.ExecuteAsync(command, ct, success => Results.Ok(new { disabled = true })).ConfigureAwait(false);
             })
             .RequireAnyAuthorization(Policies.User, Policies.Bot)
             .WithName("TwoFactorDisable")

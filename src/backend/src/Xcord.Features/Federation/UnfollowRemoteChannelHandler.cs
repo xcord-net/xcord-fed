@@ -43,7 +43,7 @@ public sealed class UnfollowRemoteChannelHandler(
 
         follow.SoftDelete();
         follow.IsActive = false;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation("User {UserId} unfollowed federation follow {FollowId}", userId, request.FollowId);
 
@@ -56,7 +56,7 @@ public sealed class UnfollowRemoteChannelHandler(
             [FromServices] UnfollowRemoteChannelHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new UnfollowRemoteChannelRequest(followId), ct);
+            return await handler.ExecuteAsync(new UnfollowRemoteChannelRequest(followId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User)
         .WithName("UnfollowRemoteChannel")

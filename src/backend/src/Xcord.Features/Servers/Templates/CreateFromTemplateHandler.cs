@@ -32,7 +32,7 @@ public sealed class CreateFromTemplateHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        var template = await dbContext.ServerTemplates.FirstOrDefaultAsync(t => t.Id == request.TemplateId, ct);
+        var template = await dbContext.ServerTemplates.FirstOrDefaultAsync(t => t.Id == request.TemplateId, ct).ConfigureAwait(false);
         if (template == null) return Error.NotFound("TEMPLATE_NOT_FOUND", "Template not found");
 
         var now = DateTimeOffset.UtcNow;
@@ -58,7 +58,7 @@ public sealed class CreateFromTemplateHandler(
         dbContext.Channels.Add(defaultChannel);
 
         template.UsageCount++;
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
         return new CreateFromTemplateResponse(server.Id, server.Name);
     }

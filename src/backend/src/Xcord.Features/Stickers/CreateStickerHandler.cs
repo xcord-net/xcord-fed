@@ -150,7 +150,7 @@ public sealed class CreateStickerHandler(
         };
 
         dbContext.Stickers.Add(sticker);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} created sticker {StickerName} (ID: {StickerId}) in pack {PackId} for server {ServerId}",
@@ -183,7 +183,7 @@ public sealed class CreateStickerHandler(
                 AttachmentId: request.AttachmentId
             );
 
-            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{serverId}/sticker-packs/{packId}/stickers/{success.Id}", success));
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{serverId}/sticker-packs/{packId}/stickers/{success.Id}", success)).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateSticker")

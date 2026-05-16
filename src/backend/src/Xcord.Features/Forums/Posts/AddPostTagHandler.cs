@@ -94,7 +94,7 @@ public sealed class AddPostTagHandler(
         };
 
         dbContext.ForumPostTags.Add(postTag);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} added tag {TagId} to forum post {ThreadId}",
@@ -118,7 +118,7 @@ public sealed class AddPostTagHandler(
                 TagId: tagId
             );
 
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("AddPostTag")

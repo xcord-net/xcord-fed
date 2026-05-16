@@ -1,7 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, waitFor } from '@solidjs/testing-library';
 
-// Stub heavy sub-panels that pull in livekit-client at module load.
+/**
+ * Scope: orchestrator smoke test.
+ *
+ * `BroadcastChannel` is a pure router that picks one of four sub-panels based
+ * on broadcast status + caller permissions. The sub-panels (HostPanel,
+ * GuestPanel, Viewer, GreenRoom) load `livekit-client`, which is impossible
+ * to drive under jsdom and has its own dedicated tests. So this file
+ * deliberately mocks each child with a marker `<div data-testid="mock-*">`
+ * and asserts only the dispatch decision: given some broadcast/auth state,
+ * which child was chosen. No behavior is asserted on the mocks beyond
+ * presence (and, for the host panel, a single `mode` prop forwarded so we
+ * can verify idle vs live transitions).
+ */
 vi.mock('./BroadcastHostPanel', () => ({
   default: (props: { mode: string }) => (
     <div data-testid="mock-host-panel">host:{props.mode}</div>

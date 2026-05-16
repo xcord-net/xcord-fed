@@ -22,11 +22,11 @@ public sealed class ClearActivityHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        var activity = await dbContext.UserActivities.FirstOrDefaultAsync(a => a.UserId == userId, ct);
+        var activity = await dbContext.UserActivities.FirstOrDefaultAsync(a => a.UserId == userId, ct).ConfigureAwait(false);
         if (activity != null)
         {
             activity.SoftDelete();
-            await dbContext.SaveChangesAsync(ct);
+            await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
         }
         return new ClearActivityResponse(true);
     }

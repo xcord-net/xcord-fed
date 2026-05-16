@@ -25,7 +25,7 @@ public sealed class ListGroupsHandler(
         var userId = userIdResult.Value;
 
         // Check if user is a member of the server
-        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken);
+        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken).ConfigureAwait(false);
         if (memberCheck.IsFailure) return memberCheck.Error;
 
         // Get all groups for the server, ordered by position
@@ -58,7 +58,7 @@ public sealed class ListGroupsHandler(
             CancellationToken ct) =>
         {
             var query = new ListGroupsQuery(serverId);
-            return await handler.ExecuteAsync(query, ct);
+            return await handler.ExecuteAsync(query, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithTags("Groups")

@@ -1,9 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { api } from '../api/client';
-import type {
-  ButtonStyle,
-} from '../components/MessageComponents';
-import { buttonStyleClasses, isValidButtonStyle } from '../components/MessageComponents';
+import { isValidButtonStyle } from '../components/MessageComponents';
 
 // ---- Tests ----
 
@@ -12,61 +9,6 @@ describe('MessageComponents', () => {
     vi.clearAllMocks();
     localStorage.clear();
     api.setAuthenticated(true);
-  });
-
-  // ---- ButtonStyle classes ----
-
-  describe('buttonStyleClasses', () => {
-    it('Primary style includes brand background', () => {
-      // Act
-      const classes = buttonStyleClasses('Primary');
-
-      // Assert
-      expect(classes).toContain('xcord-brand');
-    });
-
-    it('Danger style includes red background', () => {
-      // Act
-      const classes = buttonStyleClasses('Danger');
-
-      // Assert
-      expect(classes).toContain('red');
-    });
-
-    it('Success style includes green background', () => {
-      // Act
-      const classes = buttonStyleClasses('Success');
-
-      // Assert
-      expect(classes).toContain('green');
-    });
-
-    it('Secondary style does not include brand or destructive colors', () => {
-      // Act
-      const classes = buttonStyleClasses('Secondary');
-
-      // Assert
-      expect(classes).not.toContain('red');
-      expect(classes).not.toContain('green');
-    });
-
-    it('Link style includes underline styling', () => {
-      // Act
-      const classes = buttonStyleClasses('Link');
-
-      // Assert
-      expect(classes).toContain('underline');
-    });
-
-    it('all valid styles return a non-empty class string', () => {
-      // Arrange
-      const styles: ButtonStyle[] = ['Primary', 'Secondary', 'Success', 'Danger', 'Link'];
-
-      // Assert
-      for (const style of styles) {
-        expect(buttonStyleClasses(style).length).toBeGreaterThan(0);
-      }
-    });
   });
 
   // ---- isValidButtonStyle ----

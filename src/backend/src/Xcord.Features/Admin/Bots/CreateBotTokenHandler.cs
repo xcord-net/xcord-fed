@@ -96,7 +96,7 @@ public sealed class CreateBotTokenHandler(
         };
 
         dbContext.BotTokens.Add(botToken);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "Created bot token {TokenName} (ID: {TokenId}) for bot {BotId}",
@@ -140,7 +140,7 @@ public sealed class CreateBotTokenHandler(
                 Roles: requestBody.Roles
             );
 
-            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/admin/bots/{command.BotId}/tokens/{success.TokenId}", success));
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/admin/bots/{command.BotId}/tokens/{success.TokenId}", success)).ConfigureAwait(false);
         })
         .RequireAuthorization(Policies.Admin)
         .WithName("CreateBotToken")

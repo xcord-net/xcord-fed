@@ -34,7 +34,7 @@ public sealed class UpdateActivityHandler(
         if (!Enum.TryParse<ActivityType>(request.ActivityType, true, out var activityType))
             return Error.Validation("INVALID_TYPE", "Invalid activity type");
 
-        var existing = await dbContext.UserActivities.FirstOrDefaultAsync(a => a.UserId == userId, ct);
+        var existing = await dbContext.UserActivities.FirstOrDefaultAsync(a => a.UserId == userId, ct).ConfigureAwait(false);
         var now = DateTimeOffset.UtcNow;
 
         if (existing != null)
@@ -58,7 +58,7 @@ public sealed class UpdateActivityHandler(
             };
             dbContext.UserActivities.Add(existing);
         }
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
         return new ActivityResponse(existing.Id, userId, existing.ActivityType.ToString(), existing.Name,
             existing.Details, existing.State, existing.LargeImageUrl, existing.SmallImageUrl, existing.StartedAt);

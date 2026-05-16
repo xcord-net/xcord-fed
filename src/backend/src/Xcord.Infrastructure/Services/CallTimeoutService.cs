@@ -44,7 +44,7 @@ public sealed class CallTimeoutService(
         // Collect notification data before save
         var callNotifications = new List<(long CallId, long DmChannelId, long CallerId, long? RecipientId)>();
 
-        using var transaction = await dbContext.Database.BeginTransactionAsync(ct);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
 
         try
         {
@@ -61,12 +61,12 @@ public sealed class CallTimeoutService(
                 Logger.LogInformation("Call {CallId} marked as missed (timeout)", call.Id);
             }
 
-            await dbContext.SaveChangesAsync(ct);
-            await transaction.CommitAsync(ct);
+            await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+            await transaction.CommitAsync(ct).ConfigureAwait(false);
         }
         catch
         {
-            await transaction.RollbackAsync(ct);
+            await transaction.RollbackAsync(ct).ConfigureAwait(false);
             throw;
         }
 
@@ -82,11 +82,11 @@ public sealed class CallTimeoutService(
                 Status = CallStatus.Missed
             };
 
-            await notificationService.NotifyUserAsync(callerId, "Notify_CallEnded", payload);
+            await notificationService.NotifyUserAsync(callerId, "Notify_CallEnded", payload, ct).ConfigureAwait(false);
 
             if (recipientId.HasValue)
             {
-                await notificationService.NotifyUserAsync(recipientId.Value, "Notify_CallEnded", payload);
+                await notificationService.NotifyUserAsync(recipientId.Value, "Notify_CallEnded", payload, ct).ConfigureAwait(false);
             }
         }
     }

@@ -66,14 +66,14 @@ public sealed class BulkDeleteMessagesHandler(
         var now = DateTimeOffset.UtcNow;
         messages.ForEach(message => message.DeletedAt = now);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Notify conversation after save
         await notificationService.NotifyConversationAsync(request.ConversationId, "Chat_BulkMessageDeleted", new
         {
             messageIds = messages.Select(m => m.Id).ToArray(),
             conversationId = request.ConversationId
-        });
+        }, cancellationToken);
 
         logger.LogInformation(
             "User {UserId} bulk deleted {Count} messages in conversation {ConversationId}",
@@ -95,7 +95,7 @@ public sealed class BulkDeleteMessagesHandler(
                 MessageIds: bodyRequest.MessageIds
             );
 
-            return await handler.ExecuteAsync(request, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(request, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("BulkDeleteMessages")

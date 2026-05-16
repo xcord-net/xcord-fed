@@ -45,7 +45,7 @@ public sealed class EgressWebhookHandler : IEndpoint
             using (var reader = new StreamReader(
                 httpRequest.Body, Encoding.UTF8, leaveOpen: true))
             {
-                body = await reader.ReadToEndAsync(ct);
+                body = await reader.ReadToEndAsync(ct).ConfigureAwait(false);
                 httpRequest.Body.Position = 0;
             }
 
@@ -191,7 +191,7 @@ public sealed class EgressWebhookHandler : IEndpoint
 
             if (broadcastChanged)
             {
-                await dbContext.SaveChangesAsync(ct);
+                await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
                 await notificationService.NotifyConversationAsync(
                     broadcast.Channel.ConversationId,
                     "Broadcast_StatusChanged",
@@ -201,7 +201,7 @@ public sealed class EgressWebhookHandler : IEndpoint
                         channelId = broadcast.ChannelId,
                         status = broadcast.Status.ToString(),
                         endedAt = broadcast.EndedAt
-                    });
+                    }, ct);
             }
 
             return Results.Ok();
@@ -376,7 +376,7 @@ public sealed class EgressWebhookHandler : IEndpoint
         if (changed.Count == 0)
             return;
 
-        await db.SaveChangesAsync(ct);
+        await db.SaveChangesAsync(ct).ConfigureAwait(false);
 
         foreach (var bot in changed)
         {
@@ -390,7 +390,7 @@ public sealed class EgressWebhookHandler : IEndpoint
                     streambotId = bot.StreamBotId,
                     status = bot.Status.ToString(),
                     lastError = bot.LastError
-                });
+                }, ct);
         }
     }
 

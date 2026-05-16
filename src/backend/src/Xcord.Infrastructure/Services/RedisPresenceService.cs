@@ -39,7 +39,7 @@ public sealed class RedisPresenceService : IPresenceService
     {
         var db = _redis.GetDatabase();
         var key = GetUserPresenceKey(userId);
-        var statusValue = await db.HashGetAsync(key, "status");
+        var statusValue = await db.HashGetAsync(key, "status").ConfigureAwait(false);
 
         if (statusValue.IsNullOrEmpty)
         {
@@ -55,7 +55,7 @@ public sealed class RedisPresenceService : IPresenceService
     {
         var db = _redis.GetDatabase();
         var key = GetUserPresenceKey(userId);
-        var lastSeenValue = await db.HashGetAsync(key, "lastSeen");
+        var lastSeenValue = await db.HashGetAsync(key, "lastSeen").ConfigureAwait(false);
 
         if (lastSeenValue.IsNullOrEmpty)
         {
@@ -73,7 +73,7 @@ public sealed class RedisPresenceService : IPresenceService
 
         // Update lastSeen in user presence hash
         var userKey = GetUserPresenceKey(userId);
-        await db.HashSetAsync(userKey, "lastSeen", now);
+        await db.HashSetAsync(userKey, "lastSeen", now).ConfigureAwait(false);
 
         // Update scores in all server sorted sets
         var tasks = serverIds.Select(serverId =>
@@ -82,7 +82,7 @@ public sealed class RedisPresenceService : IPresenceService
             return db.SortedSetAddAsync(serverKey, userId, now);
         });
 
-        await Task.WhenAll(tasks);
+        await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
     public async Task<Dictionary<long, PresenceStatus>> GetBulkStatusAsync(IEnumerable<long> userIds)
@@ -92,11 +92,11 @@ public sealed class RedisPresenceService : IPresenceService
 
         var tasks = userIds.Select(async userId =>
         {
-            var status = await GetStatusAsync(userId);
+            var status = await GetStatusAsync(userId).ConfigureAwait(false);
             return (userId, status);
         });
 
-        var statuses = await Task.WhenAll(tasks);
+        var statuses = await Task.WhenAll(tasks).ConfigureAwait(false);
 
         foreach (var (userId, status) in statuses)
         {
@@ -120,7 +120,7 @@ public sealed class RedisPresenceService : IPresenceService
         });
 
         // Remove connectionId field if present
-        await db.HashDeleteAsync(userKey, "connectionId");
+        await db.HashDeleteAsync(userKey, "connectionId").ConfigureAwait(false);
 
         // Remove from all server sorted sets
         var tasks = serverIds.Select(serverId =>
@@ -129,7 +129,7 @@ public sealed class RedisPresenceService : IPresenceService
             return db.SortedSetRemoveAsync(serverKey, userId);
         });
 
-        await Task.WhenAll(tasks);
+        await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
     private string GetUserPresenceKey(long userId) => $"{_prefix}:presence:user:{userId}";

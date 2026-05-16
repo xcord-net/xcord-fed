@@ -134,7 +134,7 @@ public sealed class EditMessageHandler(
             .AnyAsync(bt => bt.UserId == userId, cancellationToken);
 
         // Re-process message
-        var processingResult = await messageProcessor.ProcessAsync(message, context.ServerId, context.ChannelId, authorGroupIds, isBot);
+        var processingResult = await messageProcessor.ProcessAsync(message, context.ServerId, context.ChannelId, authorGroupIds, isBot).ConfigureAwait(false);
         if (processingResult.IsFailure)
         {
             return processingResult.Error;
@@ -149,18 +149,18 @@ public sealed class EditMessageHandler(
             dbContext.Mentions.Add(mention);
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Notify conversation after save - include full message data so clients can update their
         // message store immediately without a separate API fetch.
         await notificationService.NotifyConversationAsync(request.ConversationId, "Chat_MessageUpdated",
-            MessageEventPayloads.ForCreated(message, message.Author?.Username, message.Author?.AvatarUrl, message.EditedAt));
+            MessageEventPayloads.ForCreated(message, message.Author?.Username, message.Author?.AvatarUrl, message.EditedAt), cancellationToken);
 
         // Execute deferred automod actions after save
         var deferredActions = processingResult.Value.DeferredActions;
         if (deferredActions.Any())
         {
-            await automodActionExecutor.ExecuteDeferredActionsAsync(message.Id, context.ServerId, context.ChannelId, userId, deferredActions, cancellationToken);
+            await automodActionExecutor.ExecuteDeferredActionsAsync(message.Id, context.ServerId, context.ChannelId, userId, deferredActions, cancellationToken).ConfigureAwait(false);
         }
 
         logger.LogInformation(
@@ -198,7 +198,7 @@ public sealed class EditMessageHandler(
                 Content: bodyRequest.Content
             );
 
-            return await handler.ExecuteAsync(request, ct);
+            return await handler.ExecuteAsync(request, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("EditMessage")

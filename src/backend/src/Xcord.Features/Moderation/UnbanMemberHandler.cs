@@ -68,7 +68,7 @@ public sealed class UnbanMemberHandler(
             reason: null,
             createdAt: now);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "Moderator {ModeratorId} unbanned user {UserId} from server {ServerId}",
@@ -90,7 +90,7 @@ public sealed class UnbanMemberHandler(
                 UserId: userId
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("UnbanMember")

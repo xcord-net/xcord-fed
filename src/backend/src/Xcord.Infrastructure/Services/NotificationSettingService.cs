@@ -36,7 +36,7 @@ public sealed class NotificationSettingService : INotificationSettingService
         // Try to get from cache first
         var cacheKey = GetCacheKey(userId, serverId, channelId);
         var db = _redis.GetDatabase();
-        var cached = await db.StringGetAsync(cacheKey);
+        var cached = await db.StringGetAsync(cacheKey).ConfigureAwait(false);
 
         if (!cached.IsNullOrEmpty && Enum.TryParse<NotificationLevel>(cached.ToString(), out var cachedLevel))
         {
@@ -88,7 +88,7 @@ public sealed class NotificationSettingService : INotificationSettingService
         }
 
         // Cache for 5 minutes
-        await db.StringSetAsync(cacheKey, level.ToString(), TimeSpan.FromMinutes(5));
+        await db.StringSetAsync(cacheKey, level.ToString(), TimeSpan.FromMinutes(5)).ConfigureAwait(false);
 
         return level;
     }
@@ -96,7 +96,7 @@ public sealed class NotificationSettingService : INotificationSettingService
     public async Task<bool> ShouldNotifyAsync(long userId, long? serverId, long? channelId, bool isEveryone, bool isRoleMention)
     {
         // Get the effective notification level
-        var level = await ResolveAsync(userId, serverId, channelId);
+        var level = await ResolveAsync(userId, serverId, channelId).ConfigureAwait(false);
 
         // If level is None, never notify
         if (level == NotificationLevel.None)
@@ -105,7 +105,7 @@ public sealed class NotificationSettingService : INotificationSettingService
         }
 
         // Get the most specific setting to check suppression flags
-        var setting = await GetMostSpecificSettingAsync(userId, serverId, channelId);
+        var setting = await GetMostSpecificSettingAsync(userId, serverId, channelId).ConfigureAwait(false);
 
         // Check suppression flags
         if (setting != null)

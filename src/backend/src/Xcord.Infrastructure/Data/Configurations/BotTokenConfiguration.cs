@@ -24,8 +24,12 @@ public sealed class BotTokenConfiguration : IEntityTypeConfiguration<BotToken>
             .IsRequired()
             .HasMaxLength(128);
 
-        // Index on TokenHash for fast lookups
-        builder.HasIndex(bt => bt.TokenHash);
+        // Index on TokenHash for fast lookups. Filtered to live rows because every bot
+        // request authenticates by hashing the bearer token and looking it up here, and
+        // the global soft-delete filter excludes revoked-then-deleted tokens. Keeping the
+        // index over live rows only avoids paging through tombstones on every bot call.
+        builder.HasIndex(bt => bt.TokenHash)
+            .HasFilter("\"DeletedAt\" IS NULL");
 
         // UserId foreign key (Restrict delete - prevent deletion of bot user while token exists)
         builder.HasOne(bt => bt.User)
@@ -72,8 +76,10 @@ public sealed class BotTokenConfiguration : IEntityTypeConfiguration<BotToken>
         // Soft delete (DeletedAt, implements ISoftDeletable)
         builder.Property(bt => bt.DeletedAt);
 
-        // Index on UserId for querying all tokens for a bot user
-        builder.HasIndex(bt => bt.UserId);
+        // Index on UserId for querying all tokens for a bot user. Filtered to live rows
+        // because list-tokens-for-bot is always wrapped by the soft-delete filter.
+        builder.HasIndex(bt => bt.UserId)
+            .HasFilter("\"DeletedAt\" IS NULL");
 
         // Soft delete query filter is applied globally in AppDbContext
     }

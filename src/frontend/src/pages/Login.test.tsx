@@ -44,10 +44,10 @@ describe('Login', () => {
       'GET /api/v1/config': () => ({ status: 200, body: { registrationEnabled: false } }),
       'GET /api/v1/users/@me/servers': () => ({ status: 200, body: { servers: [] } }),
     });
-    const { findByTestId, container } = renderWithRouter(() => <Login />);
+    const { findByTestId } = renderWithRouter(() => <Login />);
     fireEvent.input(await findByTestId('login-email-input'), { target: { value: 'a@b.c' } });
     fireEvent.input(await findByTestId('login-password-input'), { target: { value: 'secret11' } });
-    fireEvent.submit(container.querySelector('form')!);
+    fireEvent.submit(await findByTestId('login-form'));
     await waitFor(() => expect(mockAuth.login).toHaveBeenCalledWith({ email: 'a@b.c', password: 'secret11' }));
   });
 
@@ -56,10 +56,10 @@ describe('Login', () => {
       'GET /api/v1/config': () => ({ status: 200, body: { registrationEnabled: false } }),
     });
     mockAuth.login = vi.fn().mockRejectedValue(new Error('Invalid credentials'));
-    const { findByTestId, container } = renderWithRouter(() => <Login />);
+    const { findByTestId } = renderWithRouter(() => <Login />);
     fireEvent.input(await findByTestId('login-email-input'), { target: { value: 'a@b.c' } });
     fireEvent.input(await findByTestId('login-password-input'), { target: { value: 'wrong' } });
-    fireEvent.submit(container.querySelector('form')!);
+    fireEvent.submit(await findByTestId('login-form'));
     expect(await findByTestId('login-error')).toHaveTextContent('Invalid credentials');
   });
 
@@ -72,10 +72,10 @@ describe('Login', () => {
       requiresTwoFactor: true,
       twoFactorToken: 'tok-1',
     });
-    const { findByTestId, container } = renderWithRouter(() => <Login />);
+    const { findByTestId } = renderWithRouter(() => <Login />);
     fireEvent.input(await findByTestId('login-email-input'), { target: { value: 'a@b.c' } });
     fireEvent.input(await findByTestId('login-password-input'), { target: { value: 'secret11' } });
-    fireEvent.submit(container.querySelector('form')!);
+    fireEvent.submit(await findByTestId('login-form'));
     expect(await findByTestId('2fa-challenge-form')).toBeInTheDocument();
     expect(await findByTestId('2fa-login-code-input')).toBeInTheDocument();
   });
@@ -89,10 +89,10 @@ describe('Login', () => {
       requiresTwoFactor: true,
       twoFactorToken: 'tok-1',
     });
-    const { findByTestId, container } = renderWithRouter(() => <Login />);
+    const { findByTestId } = renderWithRouter(() => <Login />);
     fireEvent.input(await findByTestId('login-email-input'), { target: { value: 'a@b.c' } });
     fireEvent.input(await findByTestId('login-password-input'), { target: { value: 'secret11' } });
-    fireEvent.submit(container.querySelector('form')!);
+    fireEvent.submit(await findByTestId('login-form'));
     fireEvent.click(await findByTestId('2fa-login-back-button'));
     expect(await findByTestId('login-heading')).toBeInTheDocument();
   });

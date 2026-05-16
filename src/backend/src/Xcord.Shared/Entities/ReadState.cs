@@ -4,6 +4,11 @@ namespace Xcord.Entities;
 /// Represents read state tracking for a user in a conversation.
 /// Composite PK: UserId + ConversationId.
 /// NOT soft-deleted - hard-deleted when user leaves conversation.
+/// Concurrency control: a PostgreSQL xmin system column (configured in
+/// ReadStateConfiguration as a shadow property) acts as the optimistic
+/// concurrency token. The recommended write path for UnreadCount/MentionCount
+/// is an atomic ExecuteUpdateAsync (UPDATE ... SET UnreadCount = UnreadCount + 1)
+/// which sidesteps the read-modify-write race entirely.
 /// </summary>
 public sealed class ReadState
 {

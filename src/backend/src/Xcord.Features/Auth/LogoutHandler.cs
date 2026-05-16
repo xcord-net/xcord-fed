@@ -28,7 +28,7 @@ public sealed class LogoutHandler(AppDbContext dbContext)
         if (refreshToken != null)
         {
             dbContext.RefreshTokens.Remove(refreshToken);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
         return true;
@@ -45,7 +45,7 @@ public sealed class LogoutHandler(AppDbContext dbContext)
                     !string.IsNullOrWhiteSpace(refreshTokenValue))
                 {
                     var handler = httpContext.RequestServices.GetRequiredService<LogoutHandler>();
-                    await handler.HandleWithToken(refreshTokenValue, ct);
+                    await handler.HandleWithToken(refreshTokenValue, ct).ConfigureAwait(false);
                 }
 
                 // Clear both cookies regardless

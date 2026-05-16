@@ -140,11 +140,11 @@ public sealed class StartBroadcastHandler(
             });
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Build outputs & template URL, then fire the egress. If it fails we leave the
         // broadcast row in Starting status - the caller can retry or end it.
-        var outputs = await egressBuilder.BuildOutputsAsync(broadcastId, cancellationToken);
+        var outputs = await egressBuilder.BuildOutputsAsync(broadcastId, cancellationToken).ConfigureAwait(false);
         var templateUrl = egressBuilder.BuildTemplateUrl(
             broadcastId, preset,
             slots: Array.Empty<BroadcastStageSlot>(),
@@ -172,7 +172,7 @@ public sealed class StartBroadcastHandler(
                 bs.EndedAt = DateTimeOffset.UtcNow;
                 bs.LastError = "Failed to start egress";
             }
-            await dbContext.SaveChangesAsync(CancellationToken.None);
+            await dbContext.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
 
             return Error.Failure(
                 "EGRESS_START_FAILED",
@@ -180,7 +180,7 @@ public sealed class StartBroadcastHandler(
         }
 
         broadcast.EgressJobId = egressJobId;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Publish token for the host - 30m TTL matching voice channel tokens.
         // Limitation: there is no broadcast token refresh endpoint yet, so broadcasts
@@ -212,7 +212,7 @@ public sealed class StartBroadcastHandler(
                 hlsUrl,
                 roomName,
                 startedAt = now
-            });
+            }, cancellationToken);
 
         logger.LogInformation(
             "User {UserId} started broadcast {BroadcastId} on channel {ChannelId} (egress={EgressId})",

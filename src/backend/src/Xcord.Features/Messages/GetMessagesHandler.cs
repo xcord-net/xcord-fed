@@ -131,20 +131,20 @@ public sealed class GetMessagesHandler(
             .SelectMany(m => m.Attachments.Select(a => (MessageId: m.Message.Id, Attachment: a)))
             .Select(async pair =>
             {
-                var downloadUrl = await storageService.GenerateDownloadUrlAsync(pair.Attachment.S3Key, TimeSpan.FromHours(1));
+                var downloadUrl = await storageService.GenerateDownloadUrlAsync(pair.Attachment.S3Key, TimeSpan.FromHours(1)).ConfigureAwait(false);
 
                 // Empty string is a sentinel meaning "not applicable" (non-image).
                 string? thumbnailUrl = null;
                 if (!string.IsNullOrEmpty(pair.Attachment.ThumbnailS3Key))
                 {
-                    thumbnailUrl = await storageService.GenerateDownloadUrlAsync(pair.Attachment.ThumbnailS3Key, TimeSpan.FromHours(1));
+                    thumbnailUrl = await storageService.GenerateDownloadUrlAsync(pair.Attachment.ThumbnailS3Key, TimeSpan.FromHours(1)).ConfigureAwait(false);
                 }
 
                 return (pair.MessageId, pair.Attachment, DownloadUrl: downloadUrl, ThumbnailUrl: thumbnailUrl);
             })
             .ToList();
 
-        var resolvedUrls = await Task.WhenAll(urlTasks);
+        var resolvedUrls = await Task.WhenAll(urlTasks).ConfigureAwait(false);
 
         // Group resolved attachments by message ID for fast lookup.
         var attachmentsByMessage = resolvedUrls
@@ -214,7 +214,7 @@ public sealed class GetMessagesHandler(
                 Limit: limit ?? 50
             );
 
-            return await handler.ExecuteAsync(request, ct);
+            return await handler.ExecuteAsync(request, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("GetMessages")

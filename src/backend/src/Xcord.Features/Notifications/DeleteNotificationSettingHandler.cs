@@ -20,9 +20,21 @@ public sealed class DeleteNotificationSettingHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
     IConnectionMultiplexer redis,
-    IOptions<RedisOptions> redisOptions) : IRequestHandler<DeleteNotificationSettingRequest, Result<bool>>
+    IOptions<RedisOptions> redisOptions)
+    : IRequestHandler<DeleteNotificationSettingRequest, Result<bool>>,
+      IValidatable<DeleteNotificationSettingRequest>
 {
     private readonly string _prefix = redisOptions.Value.ChannelPrefix;
+
+    public Error? Validate(DeleteNotificationSettingRequest request)
+    {
+        if (request.SettingId <= 0)
+        {
+            return Error.Validation("VALIDATION_ERROR", "SettingId must be greater than zero");
+        }
+
+        return null;
+    }
 
     public async Task<Result<bool>> Handle(DeleteNotificationSettingRequest request, CancellationToken cancellationToken)
     {
@@ -47,10 +59,10 @@ public sealed class DeleteNotificationSettingHandler(
 
         // Delete the setting
         dbContext.NotificationSettings.Remove(setting);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Invalidate cache
-        await InvalidateCacheAsync(userId, setting.ServerId, setting.ChannelId);
+        await InvalidateCacheAsync(userId, setting.ServerId, setting.ChannelId).ConfigureAwait(false);
 
         return true;
     }
@@ -59,7 +71,7 @@ public sealed class DeleteNotificationSettingHandler(
     {
         var db = redis.GetDatabase();
         var cacheKey = $"{_prefix}:notif:{userId}:{serverId ?? 0}:{channelId ?? 0}";
-        await db.KeyDeleteAsync(cacheKey);
+        await db.KeyDeleteAsync(cacheKey).ConfigureAwait(false);
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app) =>
@@ -68,7 +80,7 @@ public sealed class DeleteNotificationSettingHandler(
             [FromServices] DeleteNotificationSettingHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new DeleteNotificationSettingRequest(settingId), ct);
+            return await handler.ExecuteAsync(new DeleteNotificationSettingRequest(settingId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("DeleteNotificationSetting")

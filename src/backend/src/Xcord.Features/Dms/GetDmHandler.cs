@@ -78,7 +78,7 @@ public sealed class GetDmHandler(
             [FromServices] GetDmHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new GetDmRequest(dmChannelId), ct);
+            return await handler.ExecuteAsync(new GetDmRequest(dmChannelId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("GetDm")

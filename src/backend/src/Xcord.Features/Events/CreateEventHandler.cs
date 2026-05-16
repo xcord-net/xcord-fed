@@ -130,7 +130,7 @@ public sealed class CreateEventHandler(
         };
 
         dbContext.ScheduledEvents.Add(scheduledEvent);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} created event {EventName} (ID: {EventId}) in server {ServerId}",
@@ -172,7 +172,7 @@ public sealed class CreateEventHandler(
                 ScheduledEndTime: request.ScheduledEndTime
             );
 
-            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{serverId}/events/{success.Id}", success));
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{serverId}/events/{success.Id}", success)).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateEvent")

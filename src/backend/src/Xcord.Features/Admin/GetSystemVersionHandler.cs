@@ -27,8 +27,8 @@ public sealed class GetSystemVersionHandler(IHubClient hubClient)
             ? $"{version.Major}.{version.Minor}.{version.Build}"
             : "0.0.0-dev";
 
-        var versions = await hubClient.GetVersionsAsync(cancellationToken);
-        var history = await hubClient.GetUpgradeHistoryAsync(cancellationToken);
+        var versions = await hubClient.GetVersionsAsync(cancellationToken).ConfigureAwait(false);
+        var history = await hubClient.GetUpgradeHistoryAsync(cancellationToken).ConfigureAwait(false);
 
         return new SystemVersionResponse(
             currentVersion,
@@ -45,7 +45,7 @@ public sealed class GetSystemVersionHandler(IHubClient hubClient)
             GetSystemVersionHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new GetSystemVersionQuery(), ct);
+            return await handler.ExecuteAsync(new GetSystemVersionQuery(), ct).ConfigureAwait(false);
         })
         .RequireAuthorization(Policies.Admin)
         .Produces<SystemVersionResponse>(200)

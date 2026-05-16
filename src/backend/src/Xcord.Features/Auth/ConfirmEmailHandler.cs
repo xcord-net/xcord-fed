@@ -42,10 +42,10 @@ public sealed partial class ConfirmEmailHandler(
         // Rate-limit confirmation attempts per user
         var attemptKey = $"{redisOptions.Value.ChannelPrefix}:email-confirm-attempts:{request.UserId}";
         var db = redis.GetDatabase();
-        var currentCount = (long?)await db.StringGetAsync(attemptKey);
+        var currentCount = (long?)await db.StringGetAsync(attemptKey).ConfigureAwait(false);
         if (currentCount >= MaxAttempts)
         {
-            var ttl = await db.KeyTimeToLiveAsync(attemptKey);
+            var ttl = await db.KeyTimeToLiveAsync(attemptKey).ConfigureAwait(false);
             var retryAfter = ttl.HasValue ? (int)Math.Ceiling(ttl.Value.TotalSeconds) : (int)AttemptWindow.TotalSeconds;
             return Error.RateLimited("CONFIRM_EMAIL_RATE_LIMITED", retryAfter.ToString());
         }
@@ -57,8 +57,8 @@ public sealed partial class ConfirmEmailHandler(
         if (token == null)
         {
             // Increment attempt counter on failure
-            var count = await db.StringIncrementAsync(attemptKey);
-            if (count == 1) await db.KeyExpireAsync(attemptKey, AttemptWindow);
+            var count = await db.StringIncrementAsync(attemptKey).ConfigureAwait(false);
+            if (count == 1) await db.KeyExpireAsync(attemptKey, AttemptWindow).ConfigureAwait(false);
             return Error.Validation("INVALID_CODE", "Invalid confirmation code");
         }
 
@@ -66,12 +66,12 @@ public sealed partial class ConfirmEmailHandler(
         if (token.ExpiresAt < DateTimeOffset.UtcNow)
         {
             dbContext.EmailConfirmationTokens.Remove(token);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return Error.Validation("CODE_EXPIRED", "Confirmation code has expired");
         }
 
         // Update user email confirmed status
-        var user = await dbContext.Users.FindAsync(new object[] { request.UserId }, cancellationToken);
+        var user = await dbContext.Users.FindAsync(new object[] { request.UserId }, cancellationToken).ConfigureAwait(false);
         if (user == null)
         {
             return Error.NotFound("USER_NOT_FOUND", "User not found");
@@ -82,7 +82,7 @@ public sealed partial class ConfirmEmailHandler(
         // Hard-delete the token
         dbContext.EmailConfirmationTokens.Remove(token);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return true;
     }
@@ -104,7 +104,7 @@ public sealed partial class ConfirmEmailHandler(
                 var userId = userIdResult.Value;
 
                 var command = new ConfirmEmailRequest(userId, code);
-                return await handler.ExecuteAsync(command, ct, success => Results.Ok(new { confirmed = success }));
+                return await handler.ExecuteAsync(command, ct, success => Results.Ok(new { confirmed = success })).ConfigureAwait(false);
             })
             .RequireAuthorization()
             .WithName("ConfirmEmail")

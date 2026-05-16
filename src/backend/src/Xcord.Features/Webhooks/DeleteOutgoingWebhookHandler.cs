@@ -67,7 +67,7 @@ public sealed class DeleteOutgoingWebhookHandler(
 
         // Soft delete
         webhook.SoftDelete();
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} deleted outgoing webhook {WebhookId} for server {ServerId}",
@@ -88,7 +88,7 @@ public sealed class DeleteOutgoingWebhookHandler(
                 ServerId: serverId,
                 WebhookId: webhookId
             );
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAuthorization(Policies.User)
         .WithName("DeleteOutgoingWebhook")

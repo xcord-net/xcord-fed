@@ -104,7 +104,7 @@ public sealed class GetThreadHandler(
                 ThreadId: threadId
             );
 
-            return await handler.ExecuteAsync(request, ct);
+            return await handler.ExecuteAsync(request, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("GetThread")

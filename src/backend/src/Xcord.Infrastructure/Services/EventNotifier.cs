@@ -36,14 +36,14 @@ public sealed class EventNotifier : BackgroundService
         {
             try
             {
-                await SendEventNotificationsAsync(stoppingToken);
+                await SendEventNotificationsAsync(stoppingToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending event notifications");
             }
 
-            await Task.Delay(_interval, stoppingToken);
+            await Task.Delay(_interval, stoppingToken).ConfigureAwait(false);
         }
 
         _logger.LogInformation("EventNotifier background service stopped");
@@ -82,7 +82,7 @@ public sealed class EventNotifier : BackgroundService
 
         if (eventsToNotify.Count > 0)
         {
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
             // Send notifications after save
             foreach (var (scheduledEvent, rsvpUserIds) in eventNotifications)
@@ -98,7 +98,7 @@ public sealed class EventNotifier : BackgroundService
 
                 foreach (var userId in rsvpUserIds)
                 {
-                    await notificationService.NotifyUserAsync(userId, "Notify_EventStarting", payload);
+                    await notificationService.NotifyUserAsync(userId, "Notify_EventStarting", payload, cancellationToken).ConfigureAwait(false);
                 }
             }
 

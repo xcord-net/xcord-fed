@@ -25,7 +25,7 @@ public sealed class TwoFactorEnableHandler(
     public async Task<Result<bool>> Handle(TwoFactorEnableRequest request, CancellationToken cancellationToken)
     {
         // Find user
-        var user = await dbContext.Users.FindAsync(new object[] { request.UserId }, cancellationToken);
+        var user = await dbContext.Users.FindAsync(new object[] { request.UserId }, cancellationToken).ConfigureAwait(false);
         if (user == null)
         {
             return Error.NotFound("USER_NOT_FOUND", "User not found");
@@ -61,13 +61,13 @@ public sealed class TwoFactorEnableHandler(
         // Decrypt user email to send the code
         var plaintextEmail = encryptionService.Decrypt(user.Email);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Send 2FA setup code via email
         await notificationService.SendEmailAsync(
             plaintextEmail,
             "Your two-factor authentication setup code",
-            $"<p>Your two-factor authentication setup code is: <strong>{code}</strong></p><p>This code expires in 10 minutes. If you did not request this, you can ignore this message.</p>");
+            $"<p>Your two-factor authentication setup code is: <strong>{code}</strong></p><p>This code expires in 10 minutes. If you did not request this, you can ignore this message.</p>", cancellationToken);
 
         logger.LogInformation("2FA enable code sent for user {UserId}", request.UserId);
 
@@ -92,7 +92,7 @@ public sealed class TwoFactorEnableHandler(
                 var userId = userIdResult.Value;
 
                 var command = new TwoFactorEnableRequest(userId);
-                return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+                return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
             })
             .RequireAnyAuthorization(Policies.User, Policies.Bot)
             .WithName("TwoFactorEnable")

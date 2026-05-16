@@ -54,7 +54,7 @@ public sealed class RemoveStageSlotHandler(
             return Error.NotFound("SLOT_NOT_FOUND", "User is not on the broadcast stage");
 
         dbContext.BroadcastStageSlots.Remove(slot);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         var remainingSlots = broadcast.StageSlots
             .Where(s => s.Id != slot.Id)
@@ -64,7 +64,7 @@ public sealed class RemoveStageSlotHandler(
         var roomName = egressBuilder.BuildRoomName(broadcast.ChannelId);
         var templateUrl = egressBuilder.BuildTemplateUrl(
             broadcast.Id, broadcast.LayoutPreset, remainingSlots, roomName);
-        var outputs = await egressBuilder.BuildOutputsAsync(broadcast.Id, cancellationToken);
+        var outputs = await egressBuilder.BuildOutputsAsync(broadcast.Id, cancellationToken).ConfigureAwait(false);
 
         string newEgressId;
         try
@@ -87,7 +87,7 @@ public sealed class RemoveStageSlotHandler(
         }
 
         broadcast.EgressJobId = newEgressId;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         await notificationService.NotifyConversationAsync(
             broadcast.Channel.ConversationId,
@@ -99,7 +99,7 @@ public sealed class RemoveStageSlotHandler(
                 stageSlots = remainingSlots
                     .Select(s => new BroadcastStageSlotDto(s.UserId, s.SlotIndex))
                     .ToArray()
-            });
+            }, cancellationToken);
 
         logger.LogInformation(
             "User {ActorId} removed user {UserId} from broadcast {BroadcastId}",
@@ -117,7 +117,7 @@ public sealed class RemoveStageSlotHandler(
             CancellationToken ct) =>
         {
             var command = new RemoveStageSlotCommand(broadcastId, userId);
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("RemoveBroadcastStageSlot")

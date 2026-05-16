@@ -30,7 +30,7 @@ RUN dotnet publish src/backend/src/Xcord.Api/Xcord.Api.csproj \
     --no-restore
 
 # ===== Stage 2: Build frontend (client SPA) =====
-FROM node:24-alpine AS build-frontend
+FROM node:24.11.1-alpine3.22 AS build-frontend
 RUN npm install -g npm@latest
 WORKDIR /src
 ARG VERSION=0.0.0-dev
@@ -43,7 +43,7 @@ COPY src/frontend/ ./
 RUN npm run build
 
 # ===== Stage 2b: Build admin SPA =====
-FROM node:24-alpine AS build-admin
+FROM node:24.11.1-alpine3.22 AS build-admin
 RUN npm install -g npm@latest
 WORKDIR /app
 ARG VERSION=0.0.0-dev

@@ -63,7 +63,7 @@ public sealed class UnrsvpEventHandler(
             scheduledEvent.InterestedCount--;
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} removed RSVP from event {EventId} in server {ServerId}",
@@ -81,7 +81,7 @@ public sealed class UnrsvpEventHandler(
             CancellationToken ct) =>
         {
             var command = new UnrsvpEventCommand(serverId, eventId);
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("UnrsvpEvent")

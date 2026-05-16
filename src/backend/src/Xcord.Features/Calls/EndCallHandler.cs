@@ -64,7 +64,7 @@ public sealed class EndCallHandler(
 
         TimeSpan? callDuration = null;
 
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -88,10 +88,10 @@ public sealed class EndCallHandler(
 
                 try
                 {
-                    await liveKitService.RemoveParticipantAsync(roomName, call.CallerId.ToString());
+                    await liveKitService.RemoveParticipantAsync(roomName, call.CallerId.ToString()).ConfigureAwait(false);
                     if (recipientId.HasValue)
                     {
-                        await liveKitService.RemoveParticipantAsync(roomName, recipientId.Value.ToString());
+                        await liveKitService.RemoveParticipantAsync(roomName, recipientId.Value.ToString()).ConfigureAwait(false);
                     }
                 }
                 catch (Exception ex)
@@ -121,12 +121,12 @@ public sealed class EndCallHandler(
                 dbContext.Messages.Add(message);
             }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
 
@@ -136,7 +136,7 @@ public sealed class EndCallHandler(
         {
             var minId = Math.Min(call.CallerId, recipientId.Value);
             var maxId = Math.Max(call.CallerId, recipientId.Value);
-            await redis.GetDatabase().KeyDeleteAsync($"{_channelPrefix}:callinit:{minId}:{maxId}");
+            await redis.GetDatabase().KeyDeleteAsync($"{_channelPrefix}:callinit:{minId}:{maxId}").ConfigureAwait(false);
         }
 
         // Notify both participants after the transaction is committed
@@ -149,10 +149,10 @@ public sealed class EndCallHandler(
             Status = CallStatus.Ended,
             DurationSeconds = callDuration.HasValue ? (int)callDuration.Value.TotalSeconds : 0
         };
-        await notificationService.NotifyUserAsync(call.CallerId, "Notify_CallEnded", callPayload);
+        await notificationService.NotifyUserAsync(call.CallerId, "Notify_CallEnded", callPayload, cancellationToken).ConfigureAwait(false);
         if (recipientId.HasValue)
         {
-            await notificationService.NotifyUserAsync(recipientId.Value, "Notify_CallEnded", callPayload);
+            await notificationService.NotifyUserAsync(recipientId.Value, "Notify_CallEnded", callPayload, cancellationToken).ConfigureAwait(false);
         }
 
         logger.LogInformation(
@@ -168,7 +168,7 @@ public sealed class EndCallHandler(
             [FromServices] EndCallHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new EndCallRequest(callId), ct);
+            return await handler.ExecuteAsync(new EndCallRequest(callId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("EndCall")

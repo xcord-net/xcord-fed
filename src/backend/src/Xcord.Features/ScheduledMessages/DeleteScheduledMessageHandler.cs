@@ -53,7 +53,7 @@ public sealed class DeleteScheduledMessageHandler(
 
         // Soft delete
         scheduledMessage.SoftDelete();
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} cancelled scheduled message {ScheduledMessageId} in channel {ChannelId}",
@@ -75,7 +75,7 @@ public sealed class DeleteScheduledMessageHandler(
                 ScheduledMessageId: id
             );
 
-            return await handler.ExecuteAsync(request, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(request, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("DeleteScheduledMessage")

@@ -11,7 +11,4 @@ public sealed class JwtOptions
 
     [Required]
     public string Audience { get; set; } = string.Empty;
-
-    [Range(1, 1440)]
-    public int AccessTokenExpirationMinutes { get; set; } = 15;
 }

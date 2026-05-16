@@ -28,6 +28,10 @@ public class TicketAuthHandler : AuthenticationHandler<AuthenticationSchemeOptio
         _channelPrefix = redisOptions.Value.ChannelPrefix;
     }
 
+    // No CancellationToken parameter: the AuthenticationHandler<T> base contract does not
+    // expose one for HandleAuthenticateAsync, and overriding the signature would break the
+    // framework's authentication pipeline. Request abort is observable via Context.RequestAborted
+    // if a future change needs to propagate cancellation to downstream awaits.
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         // Check for ticket in query string

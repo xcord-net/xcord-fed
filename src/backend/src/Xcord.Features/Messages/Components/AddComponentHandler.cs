@@ -46,7 +46,7 @@ public sealed class AddComponentHandler(
             Row = request.Row, Position = request.Position, CreatedAt = now
         };
         dbContext.MessageComponents.Add(component);
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
         return new ComponentResponse(component.Id, component.MessageId, component.ComponentType.ToString(),
             component.CustomId, component.Label, component.Style, component.OptionsJson,

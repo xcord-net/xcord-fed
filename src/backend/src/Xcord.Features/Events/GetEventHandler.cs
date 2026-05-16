@@ -68,7 +68,7 @@ public sealed class GetEventHandler(
             CancellationToken ct) =>
         {
             var query = new GetEventQuery(serverId, eventId);
-            return await handler.ExecuteAsync(query, ct);
+            return await handler.ExecuteAsync(query, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("GetEvent")

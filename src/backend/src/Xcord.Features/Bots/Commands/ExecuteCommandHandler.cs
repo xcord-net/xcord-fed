@@ -38,7 +38,7 @@ public sealed class ExecuteCommandHandler(
             .FirstOrDefaultAsync(c => c.Id == request.CommandId && c.ServerId == request.ServerId, ct);
         if (cmd == null) return Error.NotFound("COMMAND_NOT_FOUND", "Command not found");
 
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
         // Forward interaction event directly to the bot's endpoint after save.
         var payload = new
@@ -52,7 +52,7 @@ public sealed class ExecuteCommandHandler(
             timestamp = DateTimeOffset.UtcNow
         };
         var json = JsonSerializer.Serialize(payload, SerializerOptions);
-        await botInteractionForwarder.ForwardAsync("Bot_CommandExecuted", json, ct);
+        await botInteractionForwarder.ForwardAsync("Bot_CommandExecuted", json, ct).ConfigureAwait(false);
 
         return new ExecuteCommandResponse(cmd.Id, "dispatched");
     }

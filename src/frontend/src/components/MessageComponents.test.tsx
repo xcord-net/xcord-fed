@@ -2,7 +2,6 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent, waitFor } from '@solidjs/testing-library';
 import MessageComponents, {
   buttonStyleClass,
-  buttonStyleClasses,
   isValidButtonStyle,
   type ActionRow,
 } from './MessageComponents';
@@ -19,14 +18,10 @@ describe('isValidButtonStyle', () => {
   });
 });
 
-describe('buttonStyleClass / buttonStyleClasses', () => {
+describe('buttonStyleClass', () => {
   it('returns a CSS module class for each style', () => {
     expect(typeof buttonStyleClass('Primary')).toBe('string');
     expect(typeof buttonStyleClass('Link')).toBe('string');
-  });
-
-  it('falls back to secondary tailwind classes for unknown style (deprecated helper)', () => {
-    expect(buttonStyleClasses('UnknownStyle' as never)).toContain('xcord-bg-tertiary');
   });
 });
 

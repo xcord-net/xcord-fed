@@ -1046,8 +1046,6 @@ namespace Xcord.Infrastructure.Migrations
                     MemberCount = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
                     PreferredLocale = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true),
                     VanitySlug = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: true),
-                    BoostLevel = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
-                    BoostCount = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
                     SystemChannelId = table.Column<long>(type: "bigint", nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
@@ -1472,59 +1470,6 @@ namespace Xcord.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "server_billing_configs",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false),
-                    ServerId = table.Column<long>(type: "bigint", nullable: false),
-                    StripeConnectedAccountId = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    RevenueSharePercent = table.Column<int>(type: "integer", nullable: false),
-                    PayoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_server_billing_configs", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_server_billing_configs_servers_ServerId",
-                        column: x => x.ServerId,
-                        principalTable: "servers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "server_boosts",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false),
-                    ServerId = table.Column<long>(type: "bigint", nullable: false),
-                    UserId = table.Column<long>(type: "bigint", nullable: false),
-                    StartedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    ExpiresAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_server_boosts", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_server_boosts_servers_ServerId",
-                        column: x => x.ServerId,
-                        principalTable: "servers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_server_boosts_users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "server_insight_snapshots",
                 columns: table => new
                 {
@@ -1651,33 +1596,6 @@ namespace Xcord.Infrastructure.Migrations
                     table.PrimaryKey("PK_sticker_packs", x => x.Id);
                     table.ForeignKey(
                         name: "FK_sticker_packs_servers_ServerId",
-                        column: x => x.ServerId,
-                        principalTable: "servers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "tiers",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false),
-                    ServerId = table.Column<long>(type: "bigint", nullable: false),
-                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    PriceMonthly = table.Column<int>(type: "integer", nullable: false),
-                    Currency = table.Column<string>(type: "character varying(3)", maxLength: 3, nullable: false),
-                    GroupIdsJson = table.Column<string>(type: "jsonb", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    Position = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_tiers", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_tiers_servers_ServerId",
                         column: x => x.ServerId,
                         principalTable: "servers",
                         principalColumn: "Id",
@@ -2015,45 +1933,6 @@ namespace Xcord.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "member_subscriptions",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false),
-                    UserId = table.Column<long>(type: "bigint", nullable: false),
-                    ServerId = table.Column<long>(type: "bigint", nullable: false),
-                    TierId = table.Column<long>(type: "bigint", nullable: false),
-                    StripeSubscriptionId = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    StripeCustomerId = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    CurrentPeriodEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    CancelledAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_member_subscriptions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_member_subscriptions_servers_ServerId",
-                        column: x => x.ServerId,
-                        principalTable: "servers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_member_subscriptions_tiers_TierId",
-                        column: x => x.TierId,
-                        principalTable: "tiers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_member_subscriptions_users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "welcome_screen_channels",
                 columns: table => new
                 {
@@ -2317,12 +2196,14 @@ namespace Xcord.Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_bot_tokens_TokenHash",
                 table: "bot_tokens",
-                column: "TokenHash");
+                column: "TokenHash",
+                filter: "\"DeletedAt\" IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_bot_tokens_UserId",
                 table: "bot_tokens",
-                column: "UserId");
+                column: "UserId",
+                filter: "\"DeletedAt\" IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_calls_CallerId",
@@ -2379,7 +2260,8 @@ namespace Xcord.Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_channels_ServerId_Position",
                 table: "channels",
-                columns: new[] { "ServerId", "Position" });
+                columns: new[] { "ServerId", "Position" },
+                filter: "\"DeletedAt\" IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_crosspost_subscriptions_SourceChannelId_TargetChannelId",
@@ -2570,28 +2452,6 @@ namespace Xcord.Infrastructure.Migrations
                 column: "GroupId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_member_subscriptions_ServerId",
-                table: "member_subscriptions",
-                column: "ServerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_member_subscriptions_StripeSubscriptionId",
-                table: "member_subscriptions",
-                column: "StripeSubscriptionId",
-                filter: "\"StripeSubscriptionId\" IS NOT NULL");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_member_subscriptions_TierId",
-                table: "member_subscriptions",
-                column: "TierId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_member_subscriptions_UserId_ServerId",
-                table: "member_subscriptions",
-                columns: new[] { "UserId", "ServerId" },
-                filter: "\"DeletedAt\" IS NULL");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_mentions_MentionedGroupId",
                 table: "mentions",
                 column: "MentionedGroupId");
@@ -2625,7 +2485,8 @@ namespace Xcord.Infrastructure.Migrations
                 name: "IX_messages_ConversationId_CreatedAt",
                 table: "messages",
                 columns: new[] { "ConversationId", "CreatedAt" },
-                descending: new[] { false, true });
+                descending: new[] { false, true },
+                filter: "\"DeletedAt\" IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_messages_ReplyToId",
@@ -2847,28 +2708,6 @@ namespace Xcord.Infrastructure.Migrations
                 columns: new[] { "ScheduledAt", "SentAt" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_server_billing_configs_ServerId",
-                table: "server_billing_configs",
-                column: "ServerId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_server_boosts_ServerId",
-                table: "server_boosts",
-                column: "ServerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_server_boosts_ServerId_UserId",
-                table: "server_boosts",
-                columns: new[] { "ServerId", "UserId" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_server_boosts_UserId",
-                table: "server_boosts",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_server_insight_snapshots_ServerId_Date",
                 table: "server_insight_snapshots",
                 columns: new[] { "ServerId", "Date" },
@@ -2959,11 +2798,6 @@ namespace Xcord.Infrastructure.Migrations
                 column: "ParentMessageId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_tiers_ServerId",
-                table: "tiers",
-                column: "ServerId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_timeouts_ExpiresAt",
                 table: "timeouts",
                 column: "ExpiresAt");
@@ -3042,7 +2876,8 @@ namespace Xcord.Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_webhooks_ChannelId",
                 table: "webhooks",
-                column: "ChannelId");
+                column: "ChannelId",
+                filter: "\"DeletedAt\" IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_webhooks_CreatedByUserId",
@@ -3053,7 +2888,8 @@ namespace Xcord.Infrastructure.Migrations
                 name: "IX_webhooks_Token",
                 table: "webhooks",
                 column: "Token",
-                unique: true);
+                unique: true,
+                filter: "\"DeletedAt\" IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_welcome_screen_channels_ChannelId",
@@ -3228,9 +3064,6 @@ namespace Xcord.Infrastructure.Migrations
                 name: "member_groups");
 
             migrationBuilder.DropTable(
-                name: "member_subscriptions");
-
-            migrationBuilder.DropTable(
                 name: "mentions");
 
             migrationBuilder.DropTable(
@@ -3271,12 +3104,6 @@ namespace Xcord.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "scheduled_messages");
-
-            migrationBuilder.DropTable(
-                name: "server_billing_configs");
-
-            migrationBuilder.DropTable(
-                name: "server_boosts");
 
             migrationBuilder.DropTable(
                 name: "server_insight_snapshots");
@@ -3343,9 +3170,6 @@ namespace Xcord.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "server_members");
-
-            migrationBuilder.DropTable(
-                name: "tiers");
 
             migrationBuilder.DropTable(
                 name: "onboarding_configs");

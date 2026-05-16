@@ -56,7 +56,7 @@ public sealed class DeleteBotHandler(
             token.IsRevoked = true;
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "Deleted bot user {BotId} ({Username}) and revoked {TokenCount} tokens",
@@ -77,7 +77,7 @@ public sealed class DeleteBotHandler(
         {
             var command = new DeleteBotCommand(botId);
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAuthorization(Policies.Admin)
         .WithName("DeleteBot")

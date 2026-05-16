@@ -16,7 +16,6 @@ public sealed class TierOptions
     public bool CanUseHdVideo { get; set; }
     public bool CanUseSimulcast { get; set; }
     public bool CanUseRecording { get; set; }
-    public bool CanUseMemberTiers { get; set; } = true;
 
     // Resource limits - 0 means unlimited (for standalone instances)
     public int MaxUsers { get; set; }

@@ -71,7 +71,7 @@ public sealed class ListPinnedMessagesHandler(
             [FromServices] ListPinnedMessagesHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new ListPinnedMessagesRequest(conversationId), ct);
+            return await handler.ExecuteAsync(new ListPinnedMessagesRequest(conversationId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("ListPinnedMessages")

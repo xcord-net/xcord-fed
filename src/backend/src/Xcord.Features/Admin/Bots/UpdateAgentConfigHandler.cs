@@ -93,7 +93,7 @@ public sealed class UpdateAgentConfigHandler(
         };
 
         dbContext.BotTokens.Add(newAgentToken);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         var isRunning = false;
 
@@ -140,7 +140,7 @@ public sealed class UpdateAgentConfigHandler(
             CancellationToken ct) =>
         {
             var command = new UpdateAgentConfigCommand(botId, requestBody.Parameters);
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAuthorization(Policies.Admin)
         .WithName("UpdateBotAgentConfig")

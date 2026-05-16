@@ -28,7 +28,7 @@ public sealed class DeleteInviteHandler(
         var userId = userIdResult.Value;
 
         // Check CreateInvite permission (controls invite management)
-        var permResult = await roleService.EnsureServerRole(userId, request.ServerId, Role.CreateInvite);
+        var permResult = await roleService.EnsureServerRole(userId, request.ServerId, Role.CreateInvite).ConfigureAwait(false);
         if (permResult.IsFailure)
         {
             return Error.Forbidden("MISSING_PERMISSION", "You do not have permission to manage invites");
@@ -45,7 +45,7 @@ public sealed class DeleteInviteHandler(
 
         // Soft delete
         invite.SoftDelete();
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} revoked invite {Code} for server {ServerId}",
@@ -63,7 +63,7 @@ public sealed class DeleteInviteHandler(
             CancellationToken ct) =>
         {
             var command = new DeleteInviteCommand(serverId, code);
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("DeleteInvite")

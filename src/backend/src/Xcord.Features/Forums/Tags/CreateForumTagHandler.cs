@@ -103,7 +103,7 @@ public sealed class CreateForumTagHandler(
         };
 
         dbContext.ForumTags.Add(forumTag);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} created forum tag {TagName} (ID: {TagId}) in channel {ChannelId}",
@@ -137,7 +137,7 @@ public sealed class CreateForumTagHandler(
                 Position: request.Position
             );
 
-            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/channels/{success.ChannelId}/tags/{success.Id}", success));
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/channels/{success.ChannelId}/tags/{success.Id}", success)).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateForumTag")

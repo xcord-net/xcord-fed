@@ -33,18 +33,18 @@ public sealed class SetVanityUrlHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        var perm = await roleService.EnsureServerRole(userId, request.ServerId, Role.ManageServer);
+        var perm = await roleService.EnsureServerRole(userId, request.ServerId, Role.ManageServer).ConfigureAwait(false);
         if (perm.IsFailure) return Error.Forbidden("MISSING_PERMISSIONS", "You do not have permission to manage this server");
 
         var slug = request.Slug.ToLowerInvariant();
-        var existing = await dbContext.Servers.AsNoTracking().AnyAsync(s => s.VanitySlug == slug && s.Id != request.ServerId, ct);
+        var existing = await dbContext.Servers.AsNoTracking().AnyAsync(s => s.VanitySlug == slug && s.Id != request.ServerId, ct).ConfigureAwait(false);
         if (existing) return Error.Conflict("SLUG_TAKEN", "This vanity URL is already in use");
 
-        var server = await dbContext.Servers.FirstOrDefaultAsync(s => s.Id == request.ServerId, ct);
+        var server = await dbContext.Servers.FirstOrDefaultAsync(s => s.Id == request.ServerId, ct).ConfigureAwait(false);
         if (server == null) return Error.NotFound("SERVER_NOT_FOUND", "Server not found");
 
         server.VanitySlug = slug;
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
         return new VanityUrlResponse(server.Id, slug, $"/invite/{slug}");
     }

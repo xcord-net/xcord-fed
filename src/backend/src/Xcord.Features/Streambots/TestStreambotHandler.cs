@@ -74,7 +74,7 @@ public sealed class TestStreambotHandler(
         try
         {
             using var tcp = new TcpClient();
-            await tcp.ConnectAsync(host, port, timeoutCts.Token);
+            await tcp.ConnectAsync(host, port, timeoutCts.Token).ConfigureAwait(false);
 
             logger.LogInformation(
                 "User {UserId} tested streambot {StreamBotId}: TCP connect to {Host}:{Port} succeeded",
@@ -117,7 +117,7 @@ public sealed class TestStreambotHandler(
             CancellationToken ct) =>
         {
             var command = new TestStreambotCommand(id);
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("TestStreambot")

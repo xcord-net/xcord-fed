@@ -68,7 +68,7 @@ public sealed class OutgoingWebhookDeliveryService : BackgroundService
         {
             try
             {
-                await ProcessBatchAsync(stoppingToken);
+                await ProcessBatchAsync(stoppingToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -79,7 +79,7 @@ public sealed class OutgoingWebhookDeliveryService : BackgroundService
                 _logger.LogError(ex, "Error processing outgoing webhook deliveries");
             }
 
-            await Task.Delay(PollInterval, stoppingToken);
+            await Task.Delay(PollInterval, stoppingToken).ConfigureAwait(false);
         }
 
         _logger.LogInformation("OutgoingWebhookDeliveryService stopped");
@@ -115,10 +115,10 @@ public sealed class OutgoingWebhookDeliveryService : BackgroundService
             if (cancellationToken.IsCancellationRequested)
                 break;
 
-            await DeliverAsync(delivery, httpClient, encryptionService, now, cancellationToken);
+            await DeliverAsync(delivery, httpClient, encryptionService, now, cancellationToken).ConfigureAwait(false);
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private async Task DeliverAsync(
@@ -176,7 +176,7 @@ public sealed class OutgoingWebhookDeliveryService : BackgroundService
                 return;
             }
 
-            var addresses = await Dns.GetHostAddressesAsync(targetUri.Host);
+            var addresses = await Dns.GetHostAddressesAsync(targetUri.Host).ConfigureAwait(false);
             foreach (var addr in addresses)
             {
                 if (SsrfSafeHttpClient.IsPrivateOrLocalIp(addr))
@@ -215,7 +215,7 @@ public sealed class OutgoingWebhookDeliveryService : BackgroundService
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(TimeSpan.FromSeconds(15));
 
-            using var response = await httpClient.SendAsync(request, cts.Token);
+            using var response = await httpClient.SendAsync(request, cts.Token).ConfigureAwait(false);
             var statusCode = (int)response.StatusCode;
 
             delivery.LastAttemptAt = now;

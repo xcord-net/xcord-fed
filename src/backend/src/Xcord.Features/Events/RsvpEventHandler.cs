@@ -68,7 +68,7 @@ public sealed class RsvpEventHandler(
         // Increment interested count
         scheduledEvent.InterestedCount++;
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} RSVP'd to event {EventId} in server {ServerId}",
@@ -86,7 +86,7 @@ public sealed class RsvpEventHandler(
             CancellationToken ct) =>
         {
             var command = new RsvpEventCommand(serverId, eventId);
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("RsvpEvent")

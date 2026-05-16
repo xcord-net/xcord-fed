@@ -76,7 +76,7 @@ public sealed class GetBroadcastHandler(
             [FromServices] GetBroadcastHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new GetBroadcastCommand(broadcastId), ct);
+            return await handler.ExecuteAsync(new GetBroadcastCommand(broadcastId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("GetBroadcast")

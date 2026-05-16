@@ -158,7 +158,7 @@ public sealed class SendMessageHandler(
 
             var isBot = author?.IsBot ?? false;
 
-            var processingResult = await messageProcessor.ProcessAsync(message, serverId, channelId, authorGroupIds, isBot);
+            var processingResult = await messageProcessor.ProcessAsync(message, serverId, channelId, authorGroupIds, isBot).ConfigureAwait(false);
             if (processingResult.IsFailure)
             {
                 return processingResult.Error;
@@ -185,7 +185,7 @@ public sealed class SendMessageHandler(
         }
 
         // Begin transaction to persist message and mentions
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -251,7 +251,7 @@ public sealed class SendMessageHandler(
             }
 
             // Flush message + mentions to DB so FKs are satisfied
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
             // Notify each non-author member of their updated unread count after save.
             var affectedReadStates = await dbContext.ReadStates
@@ -267,7 +267,7 @@ public sealed class SendMessageHandler(
                     conversationId = request.ConversationId,
                     count = rs.UnreadCount,
                     lastMessageId = message.Id
-                });
+                }, cancellationToken);
             }
 
             // Link attachments to this message (must happen after SaveChanges
@@ -300,20 +300,20 @@ public sealed class SendMessageHandler(
                     {
                         var urlTasks = linkedAttachments.Select(async a =>
                         {
-                            var downloadUrl = await storageService.GenerateDownloadUrlAsync(a.S3Key, TimeSpan.FromHours(1));
+                            var downloadUrl = await storageService.GenerateDownloadUrlAsync(a.S3Key, TimeSpan.FromHours(1)).ConfigureAwait(false);
                             string? thumbnailUrl = null;
                             if (!string.IsNullOrEmpty(a.ThumbnailS3Key))
                             {
-                                thumbnailUrl = await storageService.GenerateDownloadUrlAsync(a.ThumbnailS3Key, TimeSpan.FromHours(1));
+                                thumbnailUrl = await storageService.GenerateDownloadUrlAsync(a.ThumbnailS3Key, TimeSpan.FromHours(1)).ConfigureAwait(false);
                             }
                             return new AttachmentDto(a.Id, a.FileName, a.ContentType, a.FileSize, a.Width, a.Height, downloadUrl, thumbnailUrl);
                         });
-                        attachmentDtos = (await Task.WhenAll(urlTasks)).ToList();
+                        attachmentDtos = (await Task.WhenAll(urlTasks).ConfigureAwait(false)).ToList();
                     }
                 }
             }
 
-            await transaction.CommitAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
             // Notify conversation of new message after commit - include full message data
             // (including attachments) so the client can render immediately.
@@ -331,7 +331,7 @@ public sealed class SendMessageHandler(
 
             await notificationService.NotifyConversationAsync(request.ConversationId, "Chat_MessageCreated",
                 MessageEventPayloads.ForCreated(message, authorForResponse.Username, authorForResponse.AvatarUrl,
-                    attachments: notifyAttachments));
+                    attachments: notifyAttachments), cancellationToken);
 
             logger.LogInformation(
                 "User {UserId} sent message {MessageId} in conversation {ConversationId}",
@@ -340,7 +340,7 @@ public sealed class SendMessageHandler(
             // Execute deferred automod actions after commit
             if (deferredActions.Any())
             {
-                await automodActionExecutor.ExecuteDeferredActionsAsync(messageId, serverId, channelId, userId, deferredActions, cancellationToken);
+                await automodActionExecutor.ExecuteDeferredActionsAsync(messageId, serverId, channelId, userId, deferredActions, cancellationToken).ConfigureAwait(false);
             }
 
             return new SendMessageResponse(
@@ -361,7 +361,7 @@ public sealed class SendMessageHandler(
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
     }
@@ -391,7 +391,7 @@ public sealed class SendMessageHandler(
                     title: validationError.Code,
                     detail: validationError.Message);
 
-            var result = await handler.Handle(request, ct);
+            var result = await handler.Handle(request, ct).ConfigureAwait(false);
             return result.Match(
                 success => Results.Created(
                     $"/api/v1/conversations/{conversationId}/messages/{success.Id}", success),

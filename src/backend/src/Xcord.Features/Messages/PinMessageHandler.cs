@@ -60,14 +60,14 @@ public sealed class PinMessageHandler(
         message.IsPinned = true;
         message.PinnedAt = DateTimeOffset.UtcNow;
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Notify conversation after save
         await notificationService.NotifyConversationAsync(request.ConversationId, "Chat_MessageUpdated", new
         {
             conversationId = request.ConversationId,
             messageId = request.MessageId
-        });
+        }, cancellationToken);
 
         return new MessageDto(
             Id: message.Id,
@@ -92,7 +92,7 @@ public sealed class PinMessageHandler(
             [FromServices] PinMessageHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new PinMessageRequest(conversationId, messageId), ct);
+            return await handler.ExecuteAsync(new PinMessageRequest(conversationId, messageId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("PinMessage")

@@ -100,7 +100,7 @@ public sealed class ReviewReportHandler(
             reason: $"Status changed to {request.NewStatus}",
             createdAt: now);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {ReviewerId} reviewed report {ReportId} in server {ServerId}, new status: {Status}",
@@ -130,7 +130,7 @@ public sealed class ReviewReportHandler(
                 ReviewNotes: requestBody.ReviewNotes
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("ReviewReport")

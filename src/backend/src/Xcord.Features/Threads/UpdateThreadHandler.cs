@@ -123,7 +123,7 @@ public sealed class UpdateThreadHandler(
             thread.AutoArchiveDurationMinutes = request.AutoArchiveDurationMinutes.Value;
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} updated thread {ThreadId}",
@@ -162,7 +162,7 @@ public sealed class UpdateThreadHandler(
                 AutoArchiveDurationMinutes: bodyRequest.AutoArchiveDurationMinutes
             );
 
-            return await handler.ExecuteAsync(request, ct);
+            return await handler.ExecuteAsync(request, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("UpdateThread")

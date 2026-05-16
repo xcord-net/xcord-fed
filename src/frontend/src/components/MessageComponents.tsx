@@ -80,27 +80,6 @@ export function buttonStyleClass(style: ButtonStyle): string {
   }
 }
 
-/**
- * @deprecated Use buttonStyleClass instead (returns a CSS module class name).
- * Kept for any callers that relied on Tailwind strings.
- */
-export function buttonStyleClasses(style: ButtonStyle): string {
-  switch (style) {
-    case 'Primary':
-      return 'bg-xcord-brand text-white hover:bg-xcord-brand-hover';
-    case 'Secondary':
-      return 'bg-xcord-bg-tertiary text-xcord-text-primary hover:bg-xcord-bg-primary';
-    case 'Success':
-      return 'bg-green-600 text-white hover:bg-green-700';
-    case 'Danger':
-      return 'bg-red-600 text-white hover:bg-red-700';
-    case 'Link':
-      return 'bg-transparent text-xcord-brand underline hover:text-xcord-brand/80';
-    default:
-      return 'bg-xcord-bg-tertiary text-xcord-text-primary hover:bg-xcord-bg-primary';
-  }
-}
-
 export function isValidButtonStyle(style: string): style is ButtonStyle {
   return ['Primary', 'Secondary', 'Success', 'Danger', 'Link'].includes(style);
 }

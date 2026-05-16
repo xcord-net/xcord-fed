@@ -90,7 +90,7 @@ public sealed class SendFriendRequestHandler(
 
         dbContext.Friendships.Add(friendship);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Notify receiver directly after save
         await notificationService.NotifyUserAsync(request.UserId, "Notify_FriendRequest", new
@@ -98,7 +98,7 @@ public sealed class SendFriendRequestHandler(
             friendshipId = friendship.Id,
             senderId = userId,
             receiverId = request.UserId
-        });
+        }, cancellationToken);
 
         logger.LogInformation(
             "User {UserId} sent friend request to user {TargetUserId}",
@@ -125,7 +125,7 @@ public sealed class SendFriendRequestHandler(
             IRequestHandler<SendFriendRequestRequest, Result<FriendshipDto>> handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(request, ct);
+            return await handler.ExecuteAsync(request, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("SendFriendRequest")

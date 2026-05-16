@@ -163,7 +163,7 @@ public sealed class RequestUploadHandler(
         };
 
         dbContext.Attachments.Add(attachment);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Return proxy upload URL - the frontend uploads through the backend,
         // avoiding browser-inaccessible presigned S3 URLs.

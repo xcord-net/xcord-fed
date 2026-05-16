@@ -104,7 +104,7 @@ public sealed class AssignAgentHandler(
         };
 
         dbContext.BotTokens.Add(agentToken);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Start the bot process
         var baseUrl = $"https://{instanceOptions.Value.Domain}";
@@ -146,7 +146,7 @@ public sealed class AssignAgentHandler(
             CancellationToken ct) =>
         {
             var command = new AssignAgentCommand(botId, requestBody.AgentId, requestBody.Parameters);
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAuthorization(Policies.Admin)
         .WithName("AssignBotAgent")

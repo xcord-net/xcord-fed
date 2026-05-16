@@ -28,7 +28,7 @@ public sealed class RemoveReactionHandler(
             return Error.NotFound("REACTION_NOT_FOUND", "Reaction not found");
 
         dbContext.Reactions.Remove(reaction);
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
         return true;
     }
@@ -40,7 +40,7 @@ public sealed class RemoveReactionHandler(
             CancellationToken ct) =>
         {
             var request = new RemoveReactionCommand(conversationId, messageId, Uri.UnescapeDataString(emoji));
-            return await handler.ExecuteAsync(request, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(request, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAuthorization(Policies.User)
         .WithName("RemoveReaction").WithTags("Reactions");

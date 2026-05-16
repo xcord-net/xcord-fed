@@ -23,7 +23,7 @@ public sealed class UpdateOnboardingHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        var perm = await roleService.EnsureServerRole(userId, request.ServerId, Role.ManageServer);
+        var perm = await roleService.EnsureServerRole(userId, request.ServerId, Role.ManageServer).ConfigureAwait(false);
         if (perm.IsFailure) return Error.Forbidden("MISSING_PERMISSIONS", "You do not have permission");
 
         var now = DateTimeOffset.UtcNow;
@@ -62,7 +62,7 @@ public sealed class UpdateOnboardingHandler(
             });
         }
 
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
         return new OnboardingResponse(config.Id, config.ServerId, config.IsEnabled, config.DefaultChannelIds, config.RulesText, request.Prompts);
     }
 

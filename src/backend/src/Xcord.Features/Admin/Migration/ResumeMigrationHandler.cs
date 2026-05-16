@@ -62,7 +62,7 @@ public sealed class ResumeMigrationHandler(
 
         migration.Status = "Running";
         migration.ErrorMessage = null;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "Resuming Discord migration {MigrationId} from phase {Phase}",
@@ -77,10 +77,10 @@ public sealed class ResumeMigrationHandler(
             var orchestrator = scope.ServiceProvider.GetRequiredService<DiscordMigrationOrchestrator>();
             var scopedDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-            var migrationToRun = await scopedDb.DiscordMigrations.FindAsync([migrationId]);
+            var migrationToRun = await scopedDb.DiscordMigrations.FindAsync([migrationId]).ConfigureAwait(false);
             if (migrationToRun == null) return;
 
-            await orchestrator.RunAsync(migrationToRun, botToken, CancellationToken.None);
+            await orchestrator.RunAsync(migrationToRun, botToken, CancellationToken.None).ConfigureAwait(false);
         }, CancellationToken.None);
 
         return new ResumeMigrationResponse(

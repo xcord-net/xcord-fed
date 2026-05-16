@@ -120,7 +120,7 @@ public sealed class TimeoutMemberHandler(
         // Create audit log
         dbContext.AuditLogs.AddEntry(snowflakeGenerator, request.ServerId, moderatorId, "MemberTimeout", request.UserId, request.Reason, now);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Notify after save
         await notificationService.NotifyServerAsync(request.ServerId, "Notify_MemberTimedOut", new
@@ -130,10 +130,10 @@ public sealed class TimeoutMemberHandler(
             ModeratorId = moderatorId,
             ExpiresAt = expiresAt,
             Reason = request.Reason
-        });
+        }, cancellationToken);
 
         // Cache timeout in Redis
-        await timeoutService.SetTimeoutAsync(request.UserId, request.ServerId, expiresAt, cancellationToken);
+        await timeoutService.SetTimeoutAsync(request.UserId, request.ServerId, expiresAt, cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "Moderator {ModeratorId} timed out user {UserId} in server {ServerId} until {ExpiresAt}",
@@ -166,7 +166,7 @@ public sealed class TimeoutMemberHandler(
                 Reason: requestBody.Reason
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("TimeoutMember")

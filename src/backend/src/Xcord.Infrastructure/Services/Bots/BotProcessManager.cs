@@ -83,7 +83,7 @@ public sealed class BotProcessManager : IDisposable
         process.BeginErrorReadLine();
 
         // Send config via stdin (avoids token in process args)
-        await process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(config));
+        await process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(config)).ConfigureAwait(false);
         process.StandardInput.Close();
 
         var info = new BotProcessInfo
@@ -135,7 +135,10 @@ public sealed class BotProcessManager : IDisposable
                 }
                 kvp.Value.Process.Dispose();
             }
-            catch { /* shutdown cleanup */ }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Bot disposal failed for {BotTokenId}", kvp.Key);
+            }
         }
         _processes.Clear();
     }

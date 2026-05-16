@@ -108,7 +108,7 @@ public sealed class GetAuditLogHandler(
                 Limit: limit ?? 50
             );
 
-            return await handler.ExecuteAsync(query, ct);
+            return await handler.ExecuteAsync(query, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("GetAuditLog")

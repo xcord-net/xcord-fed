@@ -57,7 +57,7 @@ public sealed class DeleteForumTagHandler(
 
         dbContext.ForumPostTags.RemoveRange(postTags);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation("User {UserId} deleted forum tag {TagId}", userId, request.TagId);
 
@@ -77,7 +77,7 @@ public sealed class DeleteForumTagHandler(
                 TagId: tagId
             );
 
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("DeleteForumTag")

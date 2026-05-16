@@ -193,7 +193,7 @@ public sealed class CreatePollHandler(
         }
 
         // Begin transaction
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -229,8 +229,8 @@ public sealed class CreatePollHandler(
                 }
             }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
             // Notify after save
             await notificationService.NotifyConversationAsync(message.ConversationId, "Poll_Created", new
@@ -250,7 +250,7 @@ public sealed class CreatePollHandler(
                     VoteCount = o.VoteCount,
                     Position = o.Position
                 }).ToList()
-            });
+            }, cancellationToken);
 
             logger.LogInformation(
                 "User {UserId} created poll {PollId} in conversation {ConversationId}",
@@ -275,7 +275,7 @@ public sealed class CreatePollHandler(
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
     }

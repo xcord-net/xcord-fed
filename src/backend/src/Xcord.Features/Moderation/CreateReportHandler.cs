@@ -123,7 +123,7 @@ public sealed class CreateReportHandler(
             reason: request.Reason,
             createdAt: now);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Notify after save
         await notificationService.NotifyServerAsync(request.ServerId, "Notify_Report", new
@@ -131,7 +131,7 @@ public sealed class CreateReportHandler(
             ServerId = request.ServerId,
             ReportId = reportId,
             ReporterId = reporterId
-        });
+        }, cancellationToken);
 
         logger.LogInformation(
             "User {ReporterId} created report {ReportId} in server {ServerId}",
@@ -164,7 +164,7 @@ public sealed class CreateReportHandler(
                 Reason: requestBody.Reason
             );
 
-            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{success.ServerId}/reports/{success.Id}", success));
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{success.ServerId}/reports/{success.Id}", success)).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateReport")

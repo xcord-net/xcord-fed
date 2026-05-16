@@ -63,7 +63,7 @@ public sealed class EndPollHandler(
 
             if (channel != null)
             {
-                var channelPerms = await roleService.GetChannelRoles(userId, channel.Id);
+                var channelPerms = await roleService.GetChannelRoles(userId, channel.Id).ConfigureAwait(false);
                 hasManagePermission = (channelPerms & (long)Role.ManageMessages) != 0;
             }
         }
@@ -75,7 +75,7 @@ public sealed class EndPollHandler(
 
             if (thread != null)
             {
-                var channelPerms = await roleService.GetChannelRoles(userId, thread.ChannelId);
+                var channelPerms = await roleService.GetChannelRoles(userId, thread.ChannelId).ConfigureAwait(false);
                 hasManagePermission = (channelPerms & (long)Role.ManageMessages) != 0;
             }
         }
@@ -86,21 +86,21 @@ public sealed class EndPollHandler(
         }
 
         // Begin transaction
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
             poll.IsClosed = true;
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
             // Notify after save
             await notificationService.NotifyConversationAsync(poll.Message.ConversationId, "Poll_Ended", new
             {
                 PollId = poll.Id,
                 ConversationId = poll.Message.ConversationId
-            });
+            }, cancellationToken);
 
             logger.LogInformation(
                 "User {UserId} ended poll {PollId}",
@@ -113,7 +113,7 @@ public sealed class EndPollHandler(
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
     }
@@ -126,7 +126,7 @@ public sealed class EndPollHandler(
             CancellationToken ct) =>
         {
             var command = new EndPollCommand(PollId: pollId);
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("EndPoll")

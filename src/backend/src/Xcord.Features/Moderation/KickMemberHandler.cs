@@ -100,7 +100,7 @@ public sealed class KickMemberHandler(
             snowflakeGenerator, server,
             request.UserId, moderatorId, MessageType.MemberKick, request.Reason, now, cancellationToken);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Notify after save
         await notificationService.NotifyServerAsync(request.ServerId, "Member_Kicked", new
@@ -109,7 +109,7 @@ public sealed class KickMemberHandler(
             UserId = request.UserId,
             ModeratorId = moderatorId,
             Reason = request.Reason
-        });
+        }, cancellationToken);
 
         if (systemMsg != null)
         {
@@ -118,7 +118,7 @@ public sealed class KickMemberHandler(
                 MessageId = systemMsg.MessageId,
                 ConversationId = systemMsg.ConversationId,
                 AuthorId = (long?)null
-            });
+            }, cancellationToken);
         }
 
         logger.LogInformation(
@@ -149,7 +149,7 @@ public sealed class KickMemberHandler(
                 Reason: reason
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("KickMember")

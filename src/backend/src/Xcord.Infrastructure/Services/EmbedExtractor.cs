@@ -33,20 +33,20 @@ public sealed class EmbedExtractor : BackgroundService
         _logger.LogInformation("EmbedExtractor starting with polling interval {PollingIntervalSeconds} seconds", PollingIntervalSeconds);
 
         // Wait a bit before starting to allow the application to fully initialize
-        await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+        await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
 
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                await ProcessPendingEmbedsAsync(stoppingToken);
+                await ProcessPendingEmbedsAsync(stoppingToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing embeds");
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(PollingIntervalSeconds), stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(PollingIntervalSeconds), stoppingToken).ConfigureAwait(false);
         }
 
         _logger.LogInformation("EmbedExtractor stopping");
@@ -109,7 +109,7 @@ public sealed class EmbedExtractor : BackgroundService
             }
         }
 
-        await context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Send notifications after save
         foreach (var (messageId, conversationId) in messagesWithEmbeds)
@@ -117,7 +117,7 @@ public sealed class EmbedExtractor : BackgroundService
             await notificationService.NotifyConversationAsync(
                 conversationId,
                 "Chat_MessageEmbedded",
-                new { messageId, conversationId });
+                new { messageId, conversationId }, cancellationToken);
         }
     }
 
@@ -158,7 +158,7 @@ public sealed class EmbedExtractor : BackgroundService
                 cancellationToken))
             .ToList();
 
-        var embedResults = await Task.WhenAll(extractionTasks);
+        var embedResults = await Task.WhenAll(extractionTasks).ConfigureAwait(false);
 
         var embeds = embedResults
             .Where(e => e != null)
@@ -187,7 +187,7 @@ public sealed class EmbedExtractor : BackgroundService
     {
         try
         {
-            return await ExtractEmbedAsync(url, messageId, position, snowflakeGenerator, storageService, httpClient, ogParser, cancellationToken);
+            return await ExtractEmbedAsync(url, messageId, position, snowflakeGenerator, storageService, httpClient, ogParser, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -212,7 +212,7 @@ public sealed class EmbedExtractor : BackgroundService
         try
         {
             // Fetch HTML content
-            var html = await httpClient.GetAsync(url);
+            var html = await httpClient.GetAsync(url).ConfigureAwait(false);
 
             // Parse OpenGraph metadata
             var ogData = ogParser.Parse(html);
@@ -244,7 +244,7 @@ public sealed class EmbedExtractor : BackgroundService
             {
                 try
                 {
-                    var imageBytes = await httpClient.DownloadImageAsync(ogData.ImageUrl);
+                    var imageBytes = await httpClient.DownloadImageAsync(ogData.ImageUrl).ConfigureAwait(false);
 
                     // Determine file extension from content
                     var extension = GetImageExtension(imageBytes);
@@ -256,10 +256,10 @@ public sealed class EmbedExtractor : BackgroundService
 
                         // Upload to S3
                         var contentType = GetImageContentType(extension);
-                        await storageService.UploadAsync(s3Key, imageBytes, contentType);
+                        await storageService.UploadAsync(s3Key, imageBytes, contentType).ConfigureAwait(false);
 
                         // Generate download URL (valid for 7 days)
-                        var imageUrl = await storageService.GenerateDownloadUrlAsync(s3Key, TimeSpan.FromDays(7));
+                        var imageUrl = await storageService.GenerateDownloadUrlAsync(s3Key, TimeSpan.FromDays(7)).ConfigureAwait(false);
 
                         embed.ImageS3Key = s3Key;
                         embed.ImageUrl = TruncateString(imageUrl, 512);
@@ -296,55 +296,30 @@ public sealed class EmbedExtractor : BackgroundService
 
     /// <summary>
     /// Detect image file extension from byte signature.
+    /// Thin wrapper around <see cref="ImageFormatDetector"/>; kept private so
+    /// the existing call sites in <see cref="EmbedExtractor"/> don't need to
+    /// change shape. See kanban #124.
     /// </summary>
     private static string? GetImageExtension(byte[] imageBytes)
     {
-        if (imageBytes.Length < 4)
-        {
-            return null;
-        }
-
-        // PNG: 89 50 4E 47
-        if (imageBytes[0] == 0x89 && imageBytes[1] == 0x50 && imageBytes[2] == 0x4E && imageBytes[3] == 0x47)
-        {
-            return ".png";
-        }
-
-        // JPEG: FF D8 FF
-        if (imageBytes[0] == 0xFF && imageBytes[1] == 0xD8 && imageBytes[2] == 0xFF)
-        {
-            return ".jpg";
-        }
-
-        // GIF: 47 49 46
-        if (imageBytes[0] == 0x47 && imageBytes[1] == 0x49 && imageBytes[2] == 0x46)
-        {
-            return ".gif";
-        }
-
-        // WEBP: 52 49 46 46 ... 57 45 42 50
-        if (imageBytes.Length >= 12 &&
-            imageBytes[0] == 0x52 && imageBytes[1] == 0x49 && imageBytes[2] == 0x46 && imageBytes[3] == 0x46 &&
-            imageBytes[8] == 0x57 && imageBytes[9] == 0x45 && imageBytes[10] == 0x42 && imageBytes[11] == 0x50)
-        {
-            return ".webp";
-        }
-
-        return null;
+        var format = ImageFormatDetector.Detect(imageBytes);
+        return ImageFormatDetector.GetExtension(format);
     }
 
     /// <summary>
-    /// Get content type for image extension.
+    /// Get content type for an image file extension (with leading dot).
+    /// Mirrors <see cref="ImageFormatDetector.GetContentType"/> but keyed on
+    /// the extension produced by <see cref="GetImageExtension"/>.
     /// </summary>
     private static string GetImageContentType(string extension)
     {
         return extension switch
         {
-            ".png" => "image/png",
-            ".jpg" => "image/jpeg",
-            ".gif" => "image/gif",
-            ".webp" => "image/webp",
-            _ => "application/octet-stream"
+            ".png" => ImageFormatDetector.GetContentType(ImageFormat.Png),
+            ".jpg" => ImageFormatDetector.GetContentType(ImageFormat.Jpeg),
+            ".gif" => ImageFormatDetector.GetContentType(ImageFormat.Gif),
+            ".webp" => ImageFormatDetector.GetContentType(ImageFormat.Webp),
+            _ => ImageFormatDetector.GetContentType(ImageFormat.Unknown),
         };
     }
 

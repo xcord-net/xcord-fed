@@ -158,7 +158,7 @@ public sealed class BotInteractionForwarder
 
         var db = _redis.GetDatabase();
         var redisKey = $"{_redisPrefix}{InteractionKeyPrefix}{interactionToken}";
-        await db.StringSetAsync(redisKey, pendingPayload, InteractionTokenTtl);
+        await db.StringSetAsync(redisKey, pendingPayload, InteractionTokenTtl).ConfigureAwait(false);
 
         // Build the outgoing payload by augmenting the original with the interaction token.
         // We embed the token so the bot knows which token to use for its callback.
@@ -208,12 +208,12 @@ public sealed class BotInteractionForwarder
         HttpResponseMessage response;
         try
         {
-            response = await _httpClient.SendAsync(request, cancellationToken);
+            response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
         }
         catch (HttpRequestException ex)
         {
             // Clean up the Redis token since the delivery failed.
-            await db.KeyDeleteAsync(redisKey);
+            await db.KeyDeleteAsync(redisKey).ConfigureAwait(false);
 
             // Throw so the outbox dispatcher increments the retry counter.
             throw new InvalidOperationException(
@@ -230,12 +230,12 @@ public sealed class BotInteractionForwarder
                 _logger.LogError(
                     "Bot interaction endpoint returned non-retryable {StatusCode} for event {EventType} to {Url}",
                     status, eventType, MaskUrl(endpointUrl));
-                await db.KeyDeleteAsync(redisKey);
+                await db.KeyDeleteAsync(redisKey).ConfigureAwait(false);
                 return;
             }
 
             // 5xx and 429 are retryable - delete the token and throw so the outbox backs off.
-            await db.KeyDeleteAsync(redisKey);
+            await db.KeyDeleteAsync(redisKey).ConfigureAwait(false);
             throw new InvalidOperationException(
                 $"Bot interaction delivery returned {status} for event {eventType} to {MaskUrl(endpointUrl)}");
         }

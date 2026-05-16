@@ -101,7 +101,7 @@ public sealed class UpdateServerHandler(
             server.PreferredLocale = request.PreferredLocale;
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} updated server {ServerId}",
@@ -137,7 +137,7 @@ public sealed class UpdateServerHandler(
                 PreferredLocale: request.PreferredLocale
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("UpdateServer")

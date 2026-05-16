@@ -52,7 +52,7 @@ public sealed class DeleteEventHandler(
         // Soft delete
         scheduledEvent.SoftDelete();
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} deleted event {EventId} in server {ServerId}",
@@ -70,7 +70,7 @@ public sealed class DeleteEventHandler(
             CancellationToken ct) =>
         {
             var command = new DeleteEventCommand(serverId, eventId);
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("DeleteEvent")

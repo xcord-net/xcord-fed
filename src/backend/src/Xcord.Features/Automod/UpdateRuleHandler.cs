@@ -114,7 +114,7 @@ public sealed class UpdateRuleHandler(
             rule.ChannelId = request.ChannelId.Value;
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} updated automod rule {RuleName} (ID: {RuleId}) for server {ServerId}",
@@ -162,7 +162,7 @@ public sealed class UpdateRuleHandler(
                 ClearChannelId: request.ClearChannelId
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("UpdateAutomodRule")

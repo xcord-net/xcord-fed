@@ -20,11 +20,11 @@ public sealed class DeleteServerTemplateHandler(AppDbContext dbContext, ICurrent
         var userIdResult = currentUserService.GetCurrentUserId();
         if (userIdResult.IsFailure) return userIdResult.Error;
 
-        var template = await dbContext.ServerTemplates.FirstOrDefaultAsync(t => t.Id == request.TemplateId, ct);
+        var template = await dbContext.ServerTemplates.FirstOrDefaultAsync(t => t.Id == request.TemplateId, ct).ConfigureAwait(false);
         if (template == null) return Error.NotFound("TEMPLATE_NOT_FOUND", "Template not found");
 
         template.SoftDelete();
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
         return new DeleteServerTemplateResponse(true);
     }
 

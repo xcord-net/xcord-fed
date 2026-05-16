@@ -107,10 +107,10 @@ public sealed class UpdateGroupHandler(
         }
 
         // Role hierarchy check: caller cannot modify groups above their level
-        var callerRoles = await roleService.GetServerRoles(userId, request.ServerId);
+        var callerRoles = await roleService.GetServerRoles(userId, request.ServerId).ConfigureAwait(false);
         if (callerRoles != long.MaxValue) // Owner bypasses all checks
         {
-            var callerHighestPosition = await roleService.GetHighestGroupPosition(userId, request.ServerId);
+            var callerHighestPosition = await roleService.GetHighestGroupPosition(userId, request.ServerId).ConfigureAwait(false);
 
             // Cannot modify a group at or above caller's highest position
             if (group.Position >= callerHighestPosition)
@@ -164,7 +164,7 @@ public sealed class UpdateGroupHandler(
             group.LimitsJson = request.LimitsJson;
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} updated group {GroupName} (ID: {GroupId}) in server {ServerId}",
@@ -172,7 +172,7 @@ public sealed class UpdateGroupHandler(
 
         // Invalidate server and channel role cache for every member who holds this group -
         // the group's role bitfield (or position) may have changed, affecting their resolved roles.
-        await roleService.InvalidateGroupMembersRolesAsync(request.GroupId, request.ServerId, cancellationToken);
+        await roleService.InvalidateGroupMembersRolesAsync(request.GroupId, request.ServerId, cancellationToken).ConfigureAwait(false);
 
         return new GroupDto(
             Id: group.Id,
@@ -206,7 +206,7 @@ public sealed class UpdateGroupHandler(
                 LimitsJson: request.LimitsJson
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithTags("Groups")

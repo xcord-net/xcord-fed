@@ -31,7 +31,7 @@ public sealed class TimeoutService : ITimeoutService
         var key = $"{_redisPrefix}:timeout:{serverId}:{userId}";
 
         // Check Redis first
-        var cachedExpiry = await db.StringGetAsync(key);
+        var cachedExpiry = await db.StringGetAsync(key).ConfigureAwait(false);
         if (cachedExpiry.HasValue)
         {
             if (DateTimeOffset.TryParse(cachedExpiry!, out var expiresAt))
@@ -53,7 +53,7 @@ public sealed class TimeoutService : ITimeoutService
             var ttl = timeout.ExpiresAt - DateTimeOffset.UtcNow;
             if (ttl.TotalSeconds > 0)
             {
-                await db.StringSetAsync(key, timeout.ExpiresAt.ToString("O"), ttl);
+                await db.StringSetAsync(key, timeout.ExpiresAt.ToString("O"), ttl).ConfigureAwait(false);
                 return true;
             }
         }
@@ -69,7 +69,7 @@ public sealed class TimeoutService : ITimeoutService
         var ttl = expiresAt - DateTimeOffset.UtcNow;
         if (ttl.TotalSeconds > 0)
         {
-            await db.StringSetAsync(key, expiresAt.ToString("O"), ttl);
+            await db.StringSetAsync(key, expiresAt.ToString("O"), ttl).ConfigureAwait(false);
         }
     }
 
@@ -78,6 +78,6 @@ public sealed class TimeoutService : ITimeoutService
         var db = _redis.GetDatabase();
         var key = $"{_redisPrefix}:timeout:{serverId}:{userId}";
 
-        await db.KeyDeleteAsync(key);
+        await db.KeyDeleteAsync(key).ConfigureAwait(false);
     }
 }

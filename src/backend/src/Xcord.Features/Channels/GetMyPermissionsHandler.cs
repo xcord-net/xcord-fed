@@ -30,7 +30,7 @@ public sealed class GetMyPermissionsHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        var perms = await roleService.GetChannelRoles(userId, request.ChannelId);
+        var perms = await roleService.GetChannelRoles(userId, request.ChannelId).ConfigureAwait(false);
         return new MyChannelPermissionsDto(perms);
     }
 
@@ -44,7 +44,7 @@ public sealed class GetMyPermissionsHandler(
                 CancellationToken ct) =>
             {
                 var query = new GetMyPermissionsQuery(channelId);
-                return await handler.ExecuteAsync(query, ct);
+                return await handler.ExecuteAsync(query, ct).ConfigureAwait(false);
             })
             .RequireAnyAuthorization(Policies.User, Policies.Bot)
             .WithTags("Channels")

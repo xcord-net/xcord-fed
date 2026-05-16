@@ -67,7 +67,7 @@ public sealed class UpdateLayoutHandler(
             return true; // no-op
 
         broadcast.LayoutPreset = newPreset;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         var roomName = egressBuilder.BuildRoomName(broadcast.ChannelId);
 
@@ -75,7 +75,7 @@ public sealed class UpdateLayoutHandler(
         // re-decrypt stream keys fresh so no plaintext copies linger between restarts.
         var templateUrl = egressBuilder.BuildTemplateUrl(
             broadcast.Id, newPreset, broadcast.StageSlots, roomName);
-        var outputs = await egressBuilder.BuildOutputsAsync(broadcast.Id, cancellationToken);
+        var outputs = await egressBuilder.BuildOutputsAsync(broadcast.Id, cancellationToken).ConfigureAwait(false);
 
         string newEgressId;
         try
@@ -98,7 +98,7 @@ public sealed class UpdateLayoutHandler(
         }
 
         broadcast.EgressJobId = newEgressId;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         await notificationService.NotifyConversationAsync(
             broadcast.Channel.ConversationId,
@@ -108,7 +108,7 @@ public sealed class UpdateLayoutHandler(
                 broadcastId = broadcast.Id,
                 channelId = broadcast.ChannelId,
                 newPreset = newPreset.ToString()
-            });
+            }, cancellationToken);
 
         logger.LogInformation(
             "User {UserId} changed broadcast {BroadcastId} layout to {Preset} (egress={EgressId})",
@@ -126,7 +126,7 @@ public sealed class UpdateLayoutHandler(
             CancellationToken ct) =>
         {
             var command = new UpdateLayoutCommand(broadcastId, request.Preset);
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("UpdateBroadcastLayout")

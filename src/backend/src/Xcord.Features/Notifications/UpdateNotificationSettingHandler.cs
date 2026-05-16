@@ -39,9 +39,42 @@ public sealed class UpdateNotificationSettingHandler(
     ICurrentUserService currentUserService,
     SnowflakeIdGenerator snowflakeIdGenerator,
     IConnectionMultiplexer redis,
-    IOptions<RedisOptions> redisOptions) : IRequestHandler<UpdateNotificationSettingRequest, Result<UpdateNotificationSettingResponse>>
+    IOptions<RedisOptions> redisOptions)
+    : IRequestHandler<UpdateNotificationSettingRequest, Result<UpdateNotificationSettingResponse>>,
+      IValidatable<UpdateNotificationSettingRequest>
 {
     private readonly string _prefix = redisOptions.Value.ChannelPrefix;
+
+    public Error? Validate(UpdateNotificationSettingRequest request)
+    {
+        // Optional IDs, when provided, must be positive Snowflake IDs. A zero
+        // or negative value can only come from a malformed client and would
+        // otherwise reach the DB layer as a silent miss.
+        if (request.ServerId.HasValue && request.ServerId.Value <= 0)
+        {
+            return Error.Validation("VALIDATION_ERROR", "ServerId must be greater than zero");
+        }
+
+        if (request.ChannelId.HasValue && request.ChannelId.Value <= 0)
+        {
+            return Error.Validation("VALIDATION_ERROR", "ChannelId must be greater than zero");
+        }
+
+        if (!Enum.IsDefined(typeof(NotificationLevel), request.Level))
+        {
+            return Error.Validation("VALIDATION_ERROR", "Level must be a defined NotificationLevel value");
+        }
+
+        // A MuteUntil in the distant past is meaningless. Reject anything
+        // earlier than 1 minute ago to allow tiny clock skew but block bad input.
+        if (request.MuteUntil.HasValue &&
+            request.MuteUntil.Value < DateTimeOffset.UtcNow.AddMinutes(-1))
+        {
+            return Error.Validation("VALIDATION_ERROR", "MuteUntil must not be in the past");
+        }
+
+        return null;
+    }
 
     public async Task<Result<UpdateNotificationSettingResponse>> Handle(UpdateNotificationSettingRequest request, CancellationToken cancellationToken)
     {
@@ -49,37 +82,43 @@ public sealed class UpdateNotificationSettingHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        // Handle global MuteAll toggle (stored on User entity)
-        if (request.MuteAll.HasValue)
-        {
-            var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-            if (user != null)
-            {
-                user.MuteAll = request.MuteAll.Value;
-                await dbContext.SaveChangesAsync(cancellationToken);
-            }
-        }
-
-        // Validate that server/channel exist if provided
+        // Validate that server/channel exist if provided. These reads do not mutate state,
+        // so they happen outside the transaction.
         if (request.ServerId.HasValue)
         {
-            var serverExists = await dbContext.Servers.AnyAsync(s => s.Id == request.ServerId.Value, cancellationToken);
+            var serverExists = await dbContext.Servers.AnyAsync(s => s.Id == request.ServerId.Value, cancellationToken).ConfigureAwait(false);
             if (!serverExists)
             {
                 return Error.NotFound("SERVER_NOT_FOUND", "Server not found");
             }
 
             // Check if user is a member
-            var memberCheck = await dbContext.EnsureMembership(request.ServerId.Value, userId, cancellationToken);
+            var memberCheck = await dbContext.EnsureMembership(request.ServerId.Value, userId, cancellationToken).ConfigureAwait(false);
             if (memberCheck.IsFailure) return memberCheck.Error;
         }
 
         if (request.ChannelId.HasValue)
         {
-            var channelExists = await dbContext.Channels.AnyAsync(c => c.Id == request.ChannelId.Value, cancellationToken);
+            var channelExists = await dbContext.Channels.AnyAsync(c => c.Id == request.ChannelId.Value, cancellationToken).ConfigureAwait(false);
             if (!channelExists)
             {
                 return Error.NotFound("CHANNEL_NOT_FOUND", "Channel not found");
+            }
+        }
+
+        // Wrap both writes (User.MuteAll toggle + NotificationSetting upsert) in a single
+        // transaction so a failure in either rolls back the other. Without this, a successful
+        // MuteAll flip could persist while the per-channel setting fails to save, leaving the
+        // user in an inconsistent state.
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        // Handle global MuteAll toggle (stored on User entity)
+        if (request.MuteAll.HasValue)
+        {
+            var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken).ConfigureAwait(false);
+            if (user != null)
+            {
+                user.MuteAll = request.MuteAll.Value;
             }
         }
 
@@ -121,10 +160,12 @@ public sealed class UpdateNotificationSettingHandler(
             setting.MuteUntil = request.MuteUntil;
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
-        // Invalidate cache
-        await InvalidateCacheAsync(userId, request.ServerId, request.ChannelId);
+        // Invalidate cache after a successful commit so readers do not re-populate it from
+        // pre-commit state.
+        await InvalidateCacheAsync(userId, request.ServerId, request.ChannelId).ConfigureAwait(false);
 
         return new UpdateNotificationSettingResponse(
             Id: setting.Id,
@@ -142,7 +183,7 @@ public sealed class UpdateNotificationSettingHandler(
     {
         var db = redis.GetDatabase();
         var cacheKey = $"{_prefix}:notif:{userId}:{serverId ?? 0}:{channelId ?? 0}";
-        await db.KeyDeleteAsync(cacheKey);
+        await db.KeyDeleteAsync(cacheKey).ConfigureAwait(false);
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app) =>

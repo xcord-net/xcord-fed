@@ -125,7 +125,7 @@ public sealed class GetEditHistoryHandler(
                 MessageId: messageId
             );
 
-            return await handler.ExecuteAsync(request, ct);
+            return await handler.ExecuteAsync(request, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("GetEditHistory")

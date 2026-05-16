@@ -47,6 +47,16 @@ public sealed class ReadStateConfiguration : IEntityTypeConfiguration<ReadState>
             .IsRequired()
             .HasDefaultValue(0);
 
+        // PostgreSQL xmin system column as the optimistic concurrency token. This
+        // surfaces lost-update races on UnreadCount / MentionCount as
+        // DbUpdateConcurrencyException, which writers can either retry or sidestep
+        // entirely by using an atomic ExecuteUpdateAsync (the preferred path for
+        // count increments, since the server applies the delta atomically).
+        builder.Property<uint>("xmin")
+            .HasColumnType("xid")
+            .IsConcurrencyToken()
+            .ValueGeneratedOnAddOrUpdate();
+
         // Index on UserId for total unread queries
         builder.HasIndex(rs => rs.UserId);
 

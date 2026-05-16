@@ -1,4 +1,4 @@
-import { For, Show } from 'solid-js';
+import { For, Show, createMemo } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
 import { useChannels } from '../stores/channel.store';
 import { useServers } from '../stores/server.store';
@@ -52,12 +52,13 @@ export default function ChannelDirectory(props: ChannelDirectoryProps) {
 
   const server = () => serverStore.servers.find(s => s.id === props.serverId);
 
-  const uncategorizedChannels = () =>
+  const uncategorizedChannels = createMemo(() =>
     channelStore.channels
       .filter(c => !c.categoryId)
-      .sort((a, b) => a.position - b.position);
+      .sort((a, b) => a.position - b.position)
+  );
 
-  const categoriesWithChannels = () => {
+  const categoriesWithChannels = createMemo(() => {
     const cats = [...channelStore.categories].sort((a, b) => a.position - b.position);
     return cats.map(cat => ({
       category: cat,
@@ -65,7 +66,7 @@ export default function ChannelDirectory(props: ChannelDirectoryProps) {
         .filter(c => c.categoryId === cat.id)
         .sort((a, b) => a.position - b.position),
     })).filter(g => g.channels.length > 0);
-  };
+  });
 
   const handleChannelClick = (channelId: string) => {
     navigate(`/channels/${props.serverId}/${channelId}`);

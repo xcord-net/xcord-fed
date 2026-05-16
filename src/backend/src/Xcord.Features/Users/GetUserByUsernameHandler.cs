@@ -40,7 +40,7 @@ public sealed class GetUserByUsernameHandler(AppDbContext dbContext)
             [FromServices] GetUserByUsernameHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new GetUserByUsernameRequest(username), ct);
+            return await handler.ExecuteAsync(new GetUserByUsernameRequest(username), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("GetUserByUsername")

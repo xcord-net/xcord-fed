@@ -34,7 +34,7 @@ public sealed class SubmitOnboardingHandler(
             UserId = userId, CompletedAt = DateTimeOffset.UtcNow, ResponseDataJson = request.ResponseDataJson
         };
         dbContext.OnboardingCompletions.Add(completion);
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
         return new SubmitOnboardingResult(true);
     }
 

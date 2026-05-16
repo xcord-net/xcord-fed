@@ -86,7 +86,7 @@ public sealed class ListEmojisHandler(
             CancellationToken ct) =>
         {
             var query = new ListEmojisQuery(serverId);
-            return await handler.ExecuteAsync(query, ct);
+            return await handler.ExecuteAsync(query, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("ListEmojis")

@@ -63,7 +63,7 @@ public sealed class TwoFactorVerifyHandler(
         var userId = tokenResult.Value;
 
         // Check cumulative 2FA failure lockout before attempting verification
-        var user = await dbContext.Users.FindAsync(new object[] { userId }, cancellationToken);
+        var user = await dbContext.Users.FindAsync(new object[] { userId }, cancellationToken).ConfigureAwait(false);
         if (user == null)
         {
             return Error.NotFound("USER_NOT_FOUND", "User not found");
@@ -81,7 +81,7 @@ public sealed class TwoFactorVerifyHandler(
             // Lockout has expired - reset counters
             user.TwoFactorFailureCount = 0;
             user.TwoFactorLockedAt = null;
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
         // Determine whether this is a backup code attempt
@@ -91,11 +91,11 @@ public sealed class TwoFactorVerifyHandler(
         Result<TwoFactorVerifyResponse> result;
         if (isBackupCode)
         {
-            result = await HandleBackupCode(userId, normalized, cancellationToken);
+            result = await HandleBackupCode(userId, normalized, cancellationToken).ConfigureAwait(false);
         }
         else
         {
-            result = await HandleOtpCode(userId, request.Code, cancellationToken);
+            result = await HandleOtpCode(userId, request.Code, cancellationToken).ConfigureAwait(false);
         }
 
         // Track cumulative failures across all 2FA attempts
@@ -105,19 +105,19 @@ public sealed class TwoFactorVerifyHandler(
             if (user.TwoFactorFailureCount >= MaxCumulativeTwoFactorFailures)
             {
                 user.TwoFactorLockedAt = DateTimeOffset.UtcNow;
-                await dbContext.SaveChangesAsync(cancellationToken);
+                await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                 return Error.Forbidden("TWO_FACTOR_LOCKED",
                     "Account is temporarily locked due to too many failed 2FA attempts. Please try again later.");
             }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
         else if (result.IsSuccess)
         {
             // Successful verification - reset cumulative counter
             user.TwoFactorFailureCount = 0;
             user.TwoFactorLockedAt = null;
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
         return result;
@@ -138,7 +138,7 @@ public sealed class TwoFactorVerifyHandler(
         if (twoFactorCode.ExpiresAt < DateTimeOffset.UtcNow)
         {
             dbContext.TwoFactorCodes.Remove(twoFactorCode);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return Error.Validation("CODE_EXPIRED", "2FA code has expired");
         }
 
@@ -149,18 +149,18 @@ public sealed class TwoFactorVerifyHandler(
             if (twoFactorCode.FailedAttempts >= 5)
             {
                 dbContext.TwoFactorCodes.Remove(twoFactorCode);
-                await dbContext.SaveChangesAsync(cancellationToken);
+                await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                 return Error.Validation("TOO_MANY_ATTEMPTS", "Too many failed attempts. Please request a new code.");
             }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return Error.Validation("INVALID_CODE", "Invalid 2FA code");
         }
 
         // Hard-delete the 2FA code
         dbContext.TwoFactorCodes.Remove(twoFactorCode);
 
-        return await CompleteLogin(userId, cancellationToken);
+        return await CompleteLogin(userId, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<Result<TwoFactorVerifyResponse>> HandleBackupCode(long userId, string normalizedCode, CancellationToken cancellationToken)
@@ -194,13 +194,13 @@ public sealed class TwoFactorVerifyHandler(
         // Hard-delete only this specific backup code (single-use)
         dbContext.TwoFactorBackupCodes.Remove(matchedCode);
 
-        return await CompleteLogin(userId, cancellationToken);
+        return await CompleteLogin(userId, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<Result<TwoFactorVerifyResponse>> CompleteLogin(long userId, CancellationToken cancellationToken)
     {
         // Find user
-        var user = await dbContext.Users.FindAsync(new object[] { userId }, cancellationToken);
+        var user = await dbContext.Users.FindAsync(new object[] { userId }, cancellationToken).ConfigureAwait(false);
         if (user == null)
         {
             return Error.NotFound("USER_NOT_FOUND", "User not found");
@@ -221,7 +221,7 @@ public sealed class TwoFactorVerifyHandler(
         };
 
         dbContext.RefreshTokens.Add(refreshToken);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Generate JWT access token
         var accessToken = jwtService.GenerateAccessToken(user.Id, user.IsAdmin, user.EmailConfirmed, user.IsBot);
@@ -244,7 +244,7 @@ public sealed class TwoFactorVerifyHandler(
                         return Results.Problem(statusCode: validationError.StatusCode, title: validationError.Code, detail: validationError.Message);
                 }
 
-                var result = await handler.Handle(command, ct);
+                var result = await handler.Handle(command, ct).ConfigureAwait(false);
 
                 return result.Match(
                     success =>

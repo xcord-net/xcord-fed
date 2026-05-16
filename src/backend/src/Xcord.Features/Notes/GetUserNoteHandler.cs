@@ -45,7 +45,7 @@ public sealed class GetUserNoteHandler(
             [FromServices] GetUserNoteHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new GetUserNoteRequest(targetUserId), ct);
+            return await handler.ExecuteAsync(new GetUserNoteRequest(targetUserId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("GetUserNote")

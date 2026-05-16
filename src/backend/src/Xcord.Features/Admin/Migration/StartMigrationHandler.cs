@@ -53,7 +53,7 @@ public sealed class StartMigrationHandler(
         try
         {
             discordClient.SetToken(request.BotToken);
-            guild = await discordClient.GetGuildAsync(request.GuildId, cancellationToken);
+            guild = await discordClient.GetGuildAsync(request.GuildId, cancellationToken).ConfigureAwait(false);
         }
         catch (UnauthorizedAccessException)
         {
@@ -112,7 +112,7 @@ public sealed class StartMigrationHandler(
         };
 
         dbContext.DiscordMigrations.Add(migration);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "Starting Discord migration {MigrationId} for guild {GuildId}",
@@ -126,10 +126,10 @@ public sealed class StartMigrationHandler(
             var orchestrator = scope.ServiceProvider.GetRequiredService<DiscordMigrationOrchestrator>();
             var scopedDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-            var migrationToRun = await scopedDb.DiscordMigrations.FindAsync([migrationId]);
+            var migrationToRun = await scopedDb.DiscordMigrations.FindAsync([migrationId]).ConfigureAwait(false);
             if (migrationToRun == null) return;
 
-            await orchestrator.RunAsync(migrationToRun, botToken, CancellationToken.None);
+            await orchestrator.RunAsync(migrationToRun, botToken, CancellationToken.None).ConfigureAwait(false);
         }, CancellationToken.None);
 
         return new StartMigrationResponse(

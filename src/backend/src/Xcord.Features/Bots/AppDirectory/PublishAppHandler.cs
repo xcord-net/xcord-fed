@@ -29,7 +29,7 @@ public sealed class PublishAppHandler(
         var userIdResult = currentUserService.GetCurrentUserId();
         if (userIdResult.IsFailure) return userIdResult.Error;
 
-        var exists = await dbContext.AppListings.AsNoTracking().AnyAsync(a => a.BotTokenId == request.BotTokenId, ct);
+        var exists = await dbContext.AppListings.AsNoTracking().AnyAsync(a => a.BotTokenId == request.BotTokenId, ct).ConfigureAwait(false);
         if (exists) return Error.Conflict("ALREADY_PUBLISHED", "This bot already has a listing");
 
         var now = DateTimeOffset.UtcNow;
@@ -41,7 +41,7 @@ public sealed class PublishAppHandler(
             IsPublished = true, CreatedAt = now
         };
         dbContext.AppListings.Add(listing);
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
         return new AppDetailResponse(listing.Id, listing.Name, listing.Description, listing.ShortDescription,
             listing.IconUrl, listing.Category, listing.Tags, 0, false, now, null, 0);

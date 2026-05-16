@@ -19,7 +19,7 @@ public sealed class DbHealthCheck : IHealthCheck
     {
         try
         {
-            await _dbContext.Database.CanConnectAsync(cancellationToken);
+            await _dbContext.Database.CanConnectAsync(cancellationToken).ConfigureAwait(false);
             return HealthCheckResult.Healthy("Database connection is healthy");
         }
         catch (Exception ex)

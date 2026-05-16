@@ -76,7 +76,7 @@ public sealed class KeyRotationService : IKeyRotationService
             // two active rows simultaneously when the new row is inserted.
             if (currentActive.Count > 0)
             {
-                await _db.SaveChangesAsync(cancellationToken);
+                await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }
 
             _db.EncryptedDataKeys.Add(new EncryptedDataKey
@@ -87,12 +87,12 @@ public sealed class KeyRotationService : IKeyRotationService
                 CreatedAt = now
             });
 
-            await _db.SaveChangesAsync(cancellationToken);
-            await tx.CommitAsync(cancellationToken);
+            await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
         catch
         {
-            await tx.RollbackAsync(cancellationToken);
+            await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
 

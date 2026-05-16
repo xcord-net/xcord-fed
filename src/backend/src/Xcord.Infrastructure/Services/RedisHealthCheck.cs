@@ -19,7 +19,7 @@ public sealed class RedisHealthCheck : IHealthCheck
         try
         {
             var db = _redis.GetDatabase();
-            await db.PingAsync();
+            await db.PingAsync().ConfigureAwait(false);
             return HealthCheckResult.Healthy("Redis connection is healthy");
         }
         catch (Exception ex)

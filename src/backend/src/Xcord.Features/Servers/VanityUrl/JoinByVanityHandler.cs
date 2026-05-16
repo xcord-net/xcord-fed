@@ -23,10 +23,10 @@ public sealed class JoinByVanityHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        var server = await dbContext.Servers.FirstOrDefaultAsync(s => s.VanitySlug == request.Slug.ToLowerInvariant(), ct);
+        var server = await dbContext.Servers.FirstOrDefaultAsync(s => s.VanitySlug == request.Slug.ToLowerInvariant(), ct).ConfigureAwait(false);
         if (server == null) return Error.NotFound("SERVER_NOT_FOUND", "No server with this vanity URL");
 
-        var isBanned = await dbContext.Bans.AsNoTracking().AnyAsync(b => b.ServerId == server.Id && b.UserId == userId, ct);
+        var isBanned = await dbContext.Bans.AsNoTracking().AnyAsync(b => b.ServerId == server.Id && b.UserId == userId, ct).ConfigureAwait(false);
         if (isBanned) return Error.Forbidden("BANNED", "You are banned from this server");
 
         var alreadyMember = await dbContext.ServerMembers.AsNoTracking()
@@ -71,7 +71,7 @@ public sealed class JoinByVanityHandler(
                 });
             }
 
-            await dbContext.SaveChangesAsync(ct);
+            await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
         }
 
         return new JoinByVanityResponse(server.Id, server.Name);

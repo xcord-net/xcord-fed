@@ -121,7 +121,7 @@ public sealed class UpdateEventHandler(
             scheduledEvent.Status = request.Status.Value;
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} updated event {EventId} in server {ServerId}",
@@ -165,7 +165,7 @@ public sealed class UpdateEventHandler(
                 Status: request.Status
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("UpdateEvent")

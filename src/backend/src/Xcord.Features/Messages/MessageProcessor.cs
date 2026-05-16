@@ -71,16 +71,16 @@ public sealed class MessageProcessor : IMessageProcessor
         }
 
         // Step 4: Validate and sanitize custom emoji
-        await ValidateCustomEmoji(message, serverId);
+        await ValidateCustomEmoji(message, serverId).ConfigureAwait(false);
 
         // Step 5: Parse mentions
-        await ParseMentions(message, serverId);
+        await ParseMentions(message, serverId).ConfigureAwait(false);
 
         // Step 6: Extract URLs for future embed processing
         ExtractUrls(message);
 
         // Step 7: Slowmode enforcement
-        var slowmodeResult = await EnforceSlowmodeAsync(message, channelId, isBot);
+        var slowmodeResult = await EnforceSlowmodeAsync(message, channelId, isBot).ConfigureAwait(false);
         if (slowmodeResult.IsFailure)
         {
             return slowmodeResult.Error;
@@ -351,7 +351,7 @@ public sealed class MessageProcessor : IMessageProcessor
         var authorId = message.AuthorId ?? 0;
         if (authorId > 0)
         {
-            var channelPermissions = await _roleService.GetChannelRoles(authorId, channelId);
+            var channelPermissions = await _roleService.GetChannelRoles(authorId, channelId).ConfigureAwait(false);
             var bypassPermissions = (long)(Role.ManageMessages | Role.ManageChannels);
             if ((channelPermissions & bypassPermissions) != 0)
             {

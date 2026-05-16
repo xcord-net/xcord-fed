@@ -27,7 +27,7 @@ public sealed class DeleteCommandHandler(
         if (cmd == null) return Error.NotFound("COMMAND_NOT_FOUND", "Command not found");
 
         cmd.SoftDelete();
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
         return new DeleteCommandResponse(true);
     }
 

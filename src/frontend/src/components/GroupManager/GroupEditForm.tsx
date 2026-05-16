@@ -1,6 +1,7 @@
 import { For, Show } from 'solid-js';
 import { hasRole, toggleRole } from './GroupManager';
 import styles from './GroupEditForm.module.css';
+import { GROUP_COLOR_PALETTE } from '../../constants/colors';
 
 const ROLE_FLAGS: { label: string; bit: number }[] = [
   { label: 'View Channels', bit: 1 << 0 },
@@ -36,11 +37,7 @@ const ROLE_FLAGS: { label: string; bit: number }[] = [
   { label: 'Manage Webhooks', bit: 1 << 30 },
 ];
 
-const PRESET_COLORS = [
-  '#d4943a', '#3ba55d', '#f0b232', '#e06a8a', '#ed4245',
-  '#3a8fd4', '#2ecc71', '#c47a2e', '#8a5db8', '#1abc9c',
-  '#cf5050', '#e0a44a', '#8a8ea0', '#ffffff', '#000000',
-];
+const PRESET_COLORS = GROUP_COLOR_PALETTE;
 
 interface GroupEditFormProps {
   editName: string;

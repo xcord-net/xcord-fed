@@ -25,7 +25,7 @@ public sealed class ResendConfirmationHandler(
     public async Task<Result<bool>> Handle(ResendConfirmationRequest request, CancellationToken cancellationToken)
     {
         // Find user
-        var user = await dbContext.Users.FindAsync(new object[] { request.UserId }, cancellationToken);
+        var user = await dbContext.Users.FindAsync(new object[] { request.UserId }, cancellationToken).ConfigureAwait(false);
         if (user == null)
         {
             return Error.NotFound("USER_NOT_FOUND", "User not found");
@@ -66,13 +66,13 @@ public sealed class ResendConfirmationHandler(
         // Decrypt email for sending
         var decryptedEmail = encryptionService.Decrypt(user.Email);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Send email confirmation
         await notificationService.SendEmailAsync(
             decryptedEmail,
             "Confirm your email address",
-            $"<p>Your confirmation code is: <strong>{confirmationCode}</strong></p><p>This code expires in 15 minutes.</p>");
+            $"<p>Your confirmation code is: <strong>{confirmationCode}</strong></p><p>This code expires in 15 minutes.</p>", cancellationToken);
 
         logger.LogInformation("Email confirmation code sent for user {UserId}", request.UserId);
 
@@ -97,7 +97,7 @@ public sealed class ResendConfirmationHandler(
                 var userId = userIdResult.Value;
 
                 var command = new ResendConfirmationRequest(userId);
-                return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+                return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
             })
             .RequireAuthorization()
             .WithName("ResendConfirmation")

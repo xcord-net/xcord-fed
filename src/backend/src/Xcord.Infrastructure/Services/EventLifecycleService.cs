@@ -63,7 +63,7 @@ public sealed class EventLifecycleService(
                 eventsToComplete.Count);
         }
 
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
         // Send notifications after save
         foreach (var scheduledEvent in eventsToActivate)
@@ -76,7 +76,7 @@ public sealed class EventLifecycleService(
                     EventId = scheduledEvent.Id,
                     ServerId = scheduledEvent.ServerId,
                     Name = scheduledEvent.Name
-                });
+                }, ct);
         }
 
         foreach (var scheduledEvent in eventsToComplete)
@@ -89,7 +89,7 @@ public sealed class EventLifecycleService(
                     EventId = scheduledEvent.Id,
                     ServerId = scheduledEvent.ServerId,
                     Name = scheduledEvent.Name
-                });
+                }, ct);
         }
     }
 }

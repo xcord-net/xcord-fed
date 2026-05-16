@@ -79,7 +79,7 @@ public sealed class DeleteStickerHandler(
 
         // Soft delete
         sticker.SoftDelete();
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} deleted sticker {StickerName} (ID: {StickerId}) from server {ServerId}",
@@ -97,7 +97,7 @@ public sealed class DeleteStickerHandler(
             CancellationToken ct) =>
         {
             var command = new DeleteStickerCommand(serverId, stickerId);
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("DeleteSticker")

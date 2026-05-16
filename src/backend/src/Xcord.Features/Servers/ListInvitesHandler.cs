@@ -31,7 +31,7 @@ public sealed class ListInvitesHandler(
         }
 
         // Check if user is a member of the server
-        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken);
+        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken).ConfigureAwait(false);
         if (memberCheck.IsFailure) return memberCheck.Error;
 
         // Get all active invites for the server
@@ -61,7 +61,7 @@ public sealed class ListInvitesHandler(
             CancellationToken ct) =>
         {
             var query = new ListInvitesQuery(id);
-            return await handler.ExecuteAsync(query, ct);
+            return await handler.ExecuteAsync(query, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("ListInvites")

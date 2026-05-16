@@ -18,9 +18,8 @@ describe('ConfirmEmail', () => {
   });
 
   it('enables submit button when code is exactly 6 chars', async () => {
-    const { container, getByTestId } = renderWithRouter(() => <ConfirmEmail />, { path: '/confirm-email' });
-    const input = container.querySelector('#confirmation-code') as HTMLInputElement;
-    fireEvent.input(input, { target: { value: '123456' } });
+    const { getByTestId } = renderWithRouter(() => <ConfirmEmail />, { path: '/confirm-email' });
+    fireEvent.input(getByTestId('confirmation-code-input'), { target: { value: '123456' } });
     const btn = getByTestId('confirm-email-submit-button') as HTMLButtonElement;
     await waitFor(() => expect(btn.disabled).toBe(false));
   });
@@ -29,12 +28,10 @@ describe('ConfirmEmail', () => {
     mockFetch({
       'POST /api/v1/auth/confirm-email': () => ({ status: 400, body: { message: 'Invalid code' } }),
     });
-    const { container, getByTestId, findByText } = renderWithRouter(() => <ConfirmEmail />, { path: '/confirm-email' });
-    const input = container.querySelector('#confirmation-code') as HTMLInputElement;
-    fireEvent.input(input, { target: { value: '123456' } });
-    const form = container.querySelector('form')!;
-    fireEvent.submit(form);
-    expect(await findByText(/Invalid code|Invalid confirmation code/)).toBeInTheDocument();
+    const { getByTestId, findByTestId } = renderWithRouter(() => <ConfirmEmail />, { path: '/confirm-email' });
+    fireEvent.input(getByTestId('confirmation-code-input'), { target: { value: '123456' } });
+    fireEvent.submit(getByTestId('confirm-email-form'));
+    expect(await findByTestId('confirm-email-error')).toHaveTextContent(/Invalid code|Invalid confirmation code/);
     // Submit button should be visible again after the error.
     expect(getByTestId('confirm-email-submit-button')).toBeInTheDocument();
   });

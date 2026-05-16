@@ -7,6 +7,7 @@ import PresenceDot from './PresenceDot';
 import Modal from './ui/Modal';
 import Menu from './ui/Menu';
 import styles from './MemberList.module.css';
+import { DEFAULT_GROUP_COLOR } from '../constants/colors';
 
 interface ServerGroup {
   id: string;
@@ -30,6 +31,7 @@ export default function MemberList(props: MemberListProps) {
   const [showGroupAssignment, setShowGroupAssignment] = createSignal(false);
   const [serverGroups, setServerGroups] = createSignal<ServerGroup[]>([]);
   const [groupAssignmentLoading, setGroupAssignmentLoading] = createSignal(false);
+  const [groupActionError, setGroupActionError] = createSignal('');
   const [showBanConfirm, setShowBanConfirm] = createSignal(false);
   const [pendingBanUserId, setPendingBanUserId] = createSignal<string | null>(null);
   let groupAssignmentPanelRef!: HTMLDivElement;
@@ -95,11 +97,13 @@ export default function MemberList(props: MemberListProps) {
     const serverId = serverStore.selectedServerId;
     if (!serverId) return;
     setGroupAssignmentLoading(true);
+    setGroupActionError('');
     try {
       const groups = await api.get<ServerGroup[]>(`/api/v1/servers/${serverId}/groups`);
       setServerGroups(groups.map((g) => ({ ...g, id: String(g.id) })));
-    } catch {
-      // Failed to load groups
+    } catch (err) {
+      console.error('[MemberList] failed to load groups for server', serverId, err);
+      setGroupActionError('Failed to load groups. Please try again.');
     } finally {
       setGroupAssignmentLoading(false);
     }
@@ -118,6 +122,7 @@ export default function MemberList(props: MemberListProps) {
     const userId = contextMenuUserId();
     if (!serverId || !userId) return;
     setGroupAssignmentLoading(true);
+    setGroupActionError('');
     try {
       if (memberHasGroup(groupId)) {
         await memberStore.removeGroup(serverId, userId, groupId);
@@ -125,8 +130,9 @@ export default function MemberList(props: MemberListProps) {
         await memberStore.assignGroup(serverId, userId, groupId);
       }
       await memberStore.fetchMembers(serverId);
-    } catch {
-      // Group assignment failed
+    } catch (err) {
+      console.error('[MemberList] group assignment failed for user', userId, 'group', groupId, err);
+      setGroupActionError('Failed to update group assignment. Please try again.');
     } finally {
       setGroupAssignmentLoading(false);
     }
@@ -245,6 +251,11 @@ export default function MemberList(props: MemberListProps) {
             <Show when={showGroupAssignment()}>
               <div ref={groupAssignmentPanelRef} class={styles.groupAssignPanel} aria-label="Assign groups">
                 <p class={styles.groupAssignHeading}>Groups</p>
+                <Show when={groupActionError()}>
+                  <div class={styles.groupAssignError} role="alert">
+                    {groupActionError()}
+                  </div>
+                </Show>
                 <Show when={groupAssignmentLoading() && serverGroups().length === 0}>
                   <p class={styles.groupAssignLoading}>Loading...</p>
                 </Show>
@@ -262,7 +273,7 @@ export default function MemberList(props: MemberListProps) {
                       />
                       <span
                         class={styles.groupColorDot}
-                        style={{ 'background-color': group.color || '#d4943a' }}
+                        style={{ 'background-color': group.color || DEFAULT_GROUP_COLOR }}
                         aria-hidden="true"
                       />
                       <span class={styles.groupAssignName}>{group.name}</span>

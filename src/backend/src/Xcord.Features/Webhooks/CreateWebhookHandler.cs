@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using Xcord.Entities;
 using Xcord.Features.Authorization;
+using Xcord.Features.Moderation;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
@@ -140,7 +141,12 @@ public sealed class CreateWebhookHandler(
         };
 
         dbContext.Webhooks.Add(webhook);
-        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Audit log for webhook creation (webhooks deliver to external URLs, so creation is a sensitive op).
+        dbContext.AuditLogs.AddEntry(
+            snowflakeGenerator, request.ServerId, userId, "WebhookCreate", webhookId, request.Name, now);
+
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} created webhook {WebhookId} in channel {ChannelId}",
@@ -176,7 +182,7 @@ public sealed class CreateWebhookHandler(
                 AvatarUrl: request.AvatarUrl
             );
 
-            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{serverId}/webhooks/{success.Id}", success));
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{serverId}/webhooks/{success.Id}", success)).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateWebhook")

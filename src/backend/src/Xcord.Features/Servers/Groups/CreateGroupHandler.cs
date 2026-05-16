@@ -101,7 +101,7 @@ public sealed class CreateGroupHandler(
         }
 
         // Role hierarchy check: caller cannot create a group with roles they don't have
-        var callerRoles = await roleService.GetServerRoles(userId, request.ServerId);
+        var callerRoles = await roleService.GetServerRoles(userId, request.ServerId).ConfigureAwait(false);
         if (callerRoles != long.MaxValue) // Owner bypasses all checks
         {
             // Cannot grant roles the caller doesn't possess
@@ -113,7 +113,7 @@ public sealed class CreateGroupHandler(
             }
 
             // Cannot create a group at or above caller's highest group position
-            var callerHighestPosition = await roleService.GetHighestGroupPosition(userId, request.ServerId);
+            var callerHighestPosition = await roleService.GetHighestGroupPosition(userId, request.ServerId).ConfigureAwait(false);
             if (request.Position >= callerHighestPosition)
             {
                 return Error.Forbidden("ROLE_HIERARCHY",
@@ -139,7 +139,7 @@ public sealed class CreateGroupHandler(
         };
 
         dbContext.Groups.Add(group);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} created group {GroupName} (ID: {GroupId}) in server {ServerId}",

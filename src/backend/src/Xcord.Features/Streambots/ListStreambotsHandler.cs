@@ -80,7 +80,7 @@ public sealed class ListStreambotsHandler(
             CancellationToken ct) =>
         {
             var command = new ListStreambotsCommand(channelId);
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("ListStreambots")

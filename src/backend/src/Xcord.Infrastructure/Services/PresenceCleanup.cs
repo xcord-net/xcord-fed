@@ -43,8 +43,8 @@ public sealed class PresenceCleanup : BackgroundService
         {
             try
             {
-                await Task.Delay(TimeSpan.FromSeconds(IntervalSeconds), stoppingToken);
-                await CleanupStalePresenceAsync(stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(IntervalSeconds), stoppingToken).ConfigureAwait(false);
+                await CleanupStalePresenceAsync(stoppingToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -116,10 +116,10 @@ public sealed class PresenceCleanup : BackgroundService
                     continue;
 
                 // Set user to Offline
-                await presenceService.SetStatusAsync(userId, PresenceStatus.Offline);
+                await presenceService.SetStatusAsync(userId, PresenceStatus.Offline).ConfigureAwait(false);
 
                 // Remove from server sorted set
-                await db.SortedSetRemoveAsync(key, userId);
+                await db.SortedSetRemoveAsync(key, userId).ConfigureAwait(false);
 
                 // Notify the server group
                 await presenceNotifier.NotifyPresenceChangedAsync(

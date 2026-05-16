@@ -55,7 +55,7 @@ public sealed class RemoveGroupHandler(
 
         // Remove the group assignment
         dbContext.MemberGroups.Remove(memberGroup);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} removed group {GroupId} from user {TargetUserId} in server {ServerId}",
@@ -63,7 +63,7 @@ public sealed class RemoveGroupHandler(
 
         // Invalidate server and channel role cache for the target user - their effective
         // roles have changed now that a group has been removed from them.
-        await roleService.InvalidateUserRolesAsync(request.TargetUserId, request.ServerId, cancellationToken);
+        await roleService.InvalidateUserRolesAsync(request.TargetUserId, request.ServerId, cancellationToken).ConfigureAwait(false);
 
         return true;
     }
@@ -78,7 +78,7 @@ public sealed class RemoveGroupHandler(
             CancellationToken ct) =>
         {
             var command = new RemoveGroupCommand(serverId, userId, groupId);
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithTags("Groups")

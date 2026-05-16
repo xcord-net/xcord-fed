@@ -16,7 +16,6 @@ vi.mock('./EmojiManager', () => ({ default: () => <div data-testid="stub-emoji" 
 vi.mock('./StickerPicker', () => ({ default: () => <div data-testid="stub-stickers" /> }));
 vi.mock('./VanityInvite', () => ({ default: () => <div data-testid="stub-vanity" /> }));
 vi.mock('./ServerTemplates', () => ({ default: () => <div data-testid="stub-templates" /> }));
-vi.mock('./ServerBoost', () => ({ default: () => <div data-testid="stub-boost" /> }));
 vi.mock('./ServerInsights', () => ({ default: () => <div data-testid="stub-insights" /> }));
 vi.mock('./InviteManager', () => ({ default: () => <div data-testid="stub-invites" /> }));
 vi.mock('./AppDirectory', () => ({ default: () => <div data-testid="stub-app-directory" /> }));

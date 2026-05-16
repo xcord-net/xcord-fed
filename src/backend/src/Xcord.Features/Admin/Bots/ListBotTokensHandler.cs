@@ -64,7 +64,7 @@ public sealed class ListBotTokensHandler(
         {
             var query = new ListBotTokensQuery(botId);
 
-            return await handler.ExecuteAsync(query, ct);
+            return await handler.ExecuteAsync(query, ct).ConfigureAwait(false);
         })
         .RequireAuthorization(Policies.Admin)
         .WithName("ListBotTokens")

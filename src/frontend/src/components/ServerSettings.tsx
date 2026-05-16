@@ -12,7 +12,6 @@ import EmojiManager from './EmojiManager';
 import StickerPicker from './StickerPicker';
 import VanityInvite from './VanityInvite';
 import ServerTemplates from './ServerTemplates';
-import ServerBoost from './ServerBoost';
 import ServerInsights from './ServerInsights';
 import InviteManager from './InviteManager';
 import AppDirectory from './AppDirectory';
@@ -31,7 +30,7 @@ interface ServerSettingsProps {
 }
 
 type NotificationLevel = 'AllMessages' | 'OnlyMentions' | 'Nothing';
-type SettingsTab = 'overview' | 'automod' | 'bans' | 'audit-log' | 'emoji' | 'stickers' | 'vanity-url' | 'templates' | 'boost' | 'insights' | 'invites' | 'app-directory' | 'bots' | 'welcome-screen' | 'updates';
+type SettingsTab = 'overview' | 'automod' | 'bans' | 'audit-log' | 'emoji' | 'stickers' | 'vanity-url' | 'templates' | 'insights' | 'invites' | 'app-directory' | 'bots' | 'welcome-screen' | 'updates';
 
 const NOTIFICATION_OPTIONS: { label: string; value: NotificationLevel }[] = [
   { label: 'All Messages', value: 'AllMessages' },
@@ -48,7 +47,6 @@ const TABS: { id: SettingsTab; label: string; ownerOnly?: boolean }[] = [
   { id: 'stickers', label: 'Stickers' },
   { id: 'vanity-url', label: 'Vanity URL', ownerOnly: true },
   { id: 'templates', label: 'Templates', ownerOnly: true },
-  { id: 'boost', label: 'Boost' },
   { id: 'insights', label: 'Insights', ownerOnly: true },
   { id: 'invites', label: 'Invites', ownerOnly: true },
   { id: 'app-directory', label: 'App Directory' },
@@ -232,7 +230,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
                   </For>
                 </select>
                 <p class={styles.fieldHint}>
-                  Channel where join/leave and server boost messages are sent.
+                  Channel where join/leave messages are sent.
                 </p>
               </div>
             </section>
@@ -356,11 +354,6 @@ export default function ServerSettings(props: ServerSettingsProps) {
         {/* Templates tab */}
         <Show when={activeTab() === 'templates'}>
           <ServerTemplates serverId={props.serverId} isOwner={true} />
-        </Show>
-
-        {/* Boost tab */}
-        <Show when={activeTab() === 'boost'}>
-          <ServerBoost serverId={props.serverId} />
         </Show>
 
         {/* Insights tab */}

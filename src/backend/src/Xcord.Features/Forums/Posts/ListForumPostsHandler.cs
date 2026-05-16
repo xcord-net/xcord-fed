@@ -100,7 +100,7 @@ public sealed class ListForumPostsHandler(
             _ => query.OrderByDescending(t => t.LastActivityAt)
         };
 
-        var threads = await query.ToListAsync(cancellationToken);
+        var threads = await query.ToListAsync(cancellationToken).ConfigureAwait(false);
 
         var threadIds = threads.Select(t => t.Id).ToList();
         var conversationIds = threads.Select(t => t.ConversationId).ToList();
@@ -187,7 +187,7 @@ public sealed class ListForumPostsHandler(
                 Archived: archived
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("ListForumPosts")

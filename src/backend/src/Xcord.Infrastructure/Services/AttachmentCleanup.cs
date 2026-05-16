@@ -20,8 +20,8 @@ public sealed class AttachmentCleanup(
 
     protected override async Task ProcessAsync(CancellationToken ct)
     {
-        await CleanupOrphanedAttachmentsAsync(ct);
-        await CleanupSoftDeletedAttachmentsAsync(ct);
+        await CleanupOrphanedAttachmentsAsync(ct).ConfigureAwait(false);
+        await CleanupSoftDeletedAttachmentsAsync(ct).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -53,7 +53,7 @@ public sealed class AttachmentCleanup(
             try
             {
                 // Delete from S3
-                await storageService.DeleteAsync(attachment.S3Key);
+                await storageService.DeleteAsync(attachment.S3Key).ConfigureAwait(false);
 
                 // Hard delete from database
                 context.Attachments.Remove(attachment);
@@ -64,7 +64,7 @@ public sealed class AttachmentCleanup(
             }
         }
 
-        await context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         Logger.LogInformation("Cleaned up {Count} orphaned attachments", orphanedAttachments.Count);
     }
 
@@ -97,12 +97,12 @@ public sealed class AttachmentCleanup(
             try
             {
                 // Delete from S3
-                await storageService.DeleteAsync(attachment.S3Key);
+                await storageService.DeleteAsync(attachment.S3Key).ConfigureAwait(false);
 
                 // Delete thumbnail if exists
                 if (!string.IsNullOrEmpty(attachment.ThumbnailS3Key))
                 {
-                    await storageService.DeleteAsync(attachment.ThumbnailS3Key);
+                    await storageService.DeleteAsync(attachment.ThumbnailS3Key).ConfigureAwait(false);
                 }
 
                 // Hard delete from database
@@ -114,7 +114,7 @@ public sealed class AttachmentCleanup(
             }
         }
 
-        await context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         Logger.LogInformation("Cleaned up {Count} soft-deleted attachments", deletedAttachments.Count);
     }
 }

@@ -104,7 +104,7 @@ public sealed class ListWebhooksHandler(
             CancellationToken ct) =>
         {
             var command = new ListWebhooksCommand(ServerId: serverId);
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("ListWebhooks")

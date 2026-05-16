@@ -186,80 +186,6 @@ public sealed class CreateServerHandler(
         };
         dbContext.Groups.Add(botGroup);
 
-        // Create default tiers for monetized servers
-        if (tierOptions.Value.CanUseMemberTiers)
-        {
-            // Create Pro group for tier subscribers
-            var proGroupId = snowflakeGenerator.NextId();
-            var proGroup = new Group
-            {
-                Id = proGroupId,
-                ServerId = serverId,
-                Name = "Pro",
-                Color = "#f1c40f",
-                Roles = memberGroup.Roles | (long)(Role.CreatePrivateThreads | Role.ShareScreen),
-                Position = 4,
-                LimitsJson = """{"CreatePrivateThreads": 5}""",
-                CreatedAt = now
-            };
-            dbContext.Groups.Add(proGroup);
-
-            // Create VIP group
-            var vipGroupId = snowflakeGenerator.NextId();
-            var vipGroup = new Group
-            {
-                Id = vipGroupId,
-                ServerId = serverId,
-                Name = "VIP",
-                Color = "#9b59b6",
-                Roles = proGroup.Roles,
-                Position = 5,
-                LimitsJson = """{"CreateEncryptedChannel": 3, "MaxFileUploadMb": 50}""",
-                CreatedAt = now
-            };
-            dbContext.Groups.Add(vipGroup);
-
-            // Create default tiers
-            var supporterTier = new Tier
-            {
-                Id = snowflakeGenerator.NextId(),
-                ServerId = serverId,
-                Name = "Supporter",
-                Description = "Support the server and get the Member group",
-                PriceMonthly = 499,
-                GroupIdsJson = System.Text.Json.JsonSerializer.Serialize(new[] { memberGroupId }),
-                Position = 0,
-                CreatedAt = now
-            };
-            dbContext.Tiers.Add(supporterTier);
-
-            var proTier = new Tier
-            {
-                Id = snowflakeGenerator.NextId(),
-                ServerId = serverId,
-                Name = "Pro",
-                Description = "Pro features including private threads and screen sharing",
-                PriceMonthly = 999,
-                GroupIdsJson = System.Text.Json.JsonSerializer.Serialize(new[] { memberGroupId, proGroupId }),
-                Position = 1,
-                CreatedAt = now
-            };
-            dbContext.Tiers.Add(proTier);
-
-            var vipTier = new Tier
-            {
-                Id = snowflakeGenerator.NextId(),
-                ServerId = serverId,
-                Name = "VIP",
-                Description = "All Pro features plus encrypted channels and larger uploads",
-                PriceMonthly = 1999,
-                GroupIdsJson = System.Text.Json.JsonSerializer.Serialize(new[] { memberGroupId, proGroupId, vipGroupId }),
-                Position = 2,
-                CreatedAt = now
-            };
-            dbContext.Tiers.Add(vipTier);
-        }
-
         // Create "General" category
         var generalCategoryId = snowflakeGenerator.NextId();
         var generalCategory = new Category
@@ -316,14 +242,14 @@ public sealed class CreateServerHandler(
             MentionCount = 0
         });
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Set the general channel as the system channel after both server and channel are persisted.
         // This must happen in a second SaveChanges to avoid a circular FK constraint violation:
         // servers.SystemChannelId -> channels.Id, but channels.ServerId -> servers.Id.
         server.SystemChannelId = generalChannelId;
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} created server {ServerName} (ID: {ServerId})",
@@ -349,7 +275,7 @@ public sealed class CreateServerHandler(
             IRequestHandler<CreateServerCommand, Result<CreateServerResponse>> handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(request, ct, success => Results.Created($"/api/v1/servers/{success.Id}", success));
+            return await handler.ExecuteAsync(request, ct, success => Results.Created($"/api/v1/servers/{success.Id}", success)).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateServer")

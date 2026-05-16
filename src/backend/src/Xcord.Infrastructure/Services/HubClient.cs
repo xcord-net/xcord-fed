@@ -35,10 +35,10 @@ public sealed class HubClient : IHubClient
         try
         {
             var request = CreateRequest(HttpMethod.Get, "versions");
-            var response = await _httpClient.SendAsync(request, ct);
+            var response = await _httpClient.SendAsync(request, ct).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode) return null;
 
-            var content = await response.Content.ReadAsStringAsync(ct);
+            var content = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
             return JsonSerializer.Deserialize<HubVersionsResponse>(content, JsonOptions);
         }
         catch (Exception ex)
@@ -58,7 +58,7 @@ public sealed class HubClient : IHubClient
             var body = JsonSerializer.Serialize(new { targetVersion }, JsonOptions);
             request.Content = new StringContent(body, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.SendAsync(request, ct);
+            var response = await _httpClient.SendAsync(request, ct).ConfigureAwait(false);
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
@@ -78,7 +78,7 @@ public sealed class HubClient : IHubClient
             var body = JsonSerializer.Serialize(new { enabled }, JsonOptions);
             request.Content = new StringContent(body, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.SendAsync(request, ct);
+            var response = await _httpClient.SendAsync(request, ct).ConfigureAwait(false);
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
@@ -95,10 +95,10 @@ public sealed class HubClient : IHubClient
         try
         {
             var request = CreateRequest(HttpMethod.Get, "upgrade-history");
-            var response = await _httpClient.SendAsync(request, ct);
+            var response = await _httpClient.SendAsync(request, ct).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode) return null;
 
-            var content = await response.Content.ReadAsStringAsync(ct);
+            var content = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
             return JsonSerializer.Deserialize<HubUpgradeHistoryResponse>(content, JsonOptions);
         }
         catch (Exception ex)

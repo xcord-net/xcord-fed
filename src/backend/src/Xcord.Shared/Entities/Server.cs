@@ -23,16 +23,6 @@ public sealed class Server : ISoftDeletable
     public string? VanitySlug { get; set; }
 
     /// <summary>
-    /// Current boost level (0-3) based on boost count.
-    /// </summary>
-    public int BoostLevel { get; set; }
-
-    /// <summary>
-    /// Current number of active boosts.
-    /// </summary>
-    public int BoostCount { get; set; }
-
-    /// <summary>
     /// The channel ID used for system messages (join/leave notifications).
     /// Null means system messages are disabled.
     /// </summary>

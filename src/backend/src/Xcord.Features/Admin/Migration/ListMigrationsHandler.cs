@@ -45,7 +45,7 @@ public sealed class ListMigrationsHandler(AppDbContext dbContext)
             ListMigrationsHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new ListMigrationsQuery(), ct);
+            return await handler.ExecuteAsync(new ListMigrationsQuery(), ct).ConfigureAwait(false);
         })
         .RequireAuthorization(Policies.Admin)
         .Produces<List<MigrationStatusResponse>>(200)

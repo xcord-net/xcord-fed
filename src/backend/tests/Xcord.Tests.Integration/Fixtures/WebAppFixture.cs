@@ -162,6 +162,13 @@ public class WebAppFixture : IAsyncLifetime
 
 public class TestWebApplicationFactory : WebApplicationFactory<Program>
 {
+    // The dev/test domain. All test URLs are routed to fakes (NullStorageService,
+    // FakeLiveKitService, etc.) so these values never make a real network call,
+    // but they must still be syntactically valid URLs that pass config validation.
+    // Using xcord-dev.net (the project's dev domain) prevents accidental collisions
+    // with other processes on the developer's loopback ports.
+    private const string TestHost = "xcord-dev.net";
+
     private readonly string _postgresConnectionString;
     private readonly string _redisConnectionString;
     private readonly string _rsaPublicKeyBase64;
@@ -181,18 +188,18 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseSetting("Redis:ChannelPrefix", "xcord-test");
         builder.UseSetting("Jwt:Issuer", "xcord-test");
         builder.UseSetting("Jwt:Audience", "xcord-test-users");
-        builder.UseSetting("Jwt:AccessTokenExpirationMinutes", "15");
-        builder.UseSetting("Storage:Endpoint", "http://localhost:9000");
+        builder.UseSetting("Auth:JwtAccessTokenMinutes", "15");
+        builder.UseSetting("Storage:Endpoint", $"http://{TestHost}:9000");
         builder.UseSetting("Storage:AccessKey", "test-access-key");
         builder.UseSetting("Storage:SecretKey", "test-secret-key");
         builder.UseSetting("Storage:Bucket", "test-bucket");
         builder.UseSetting("LiveKit:ApiKey", "test-key");
         builder.UseSetting("LiveKit:ApiSecret", "test-secret-that-is-long-enough-for-hmac");
-        builder.UseSetting("LiveKit:Host", "ws://localhost:7880");
-        builder.UseSetting("LiveKit:HlsBaseUrl", "https://test.xcord.local/hls");
-        builder.UseSetting("LiveKit:EgressTemplateBaseUrl", "https://test.xcord.local");
-        builder.UseSetting("LiveKit:EgressServiceUrl", "http://localhost:7980");
-        builder.UseSetting("Instance:Domain", "test.xcord.local");
+        builder.UseSetting("LiveKit:Host", $"ws://{TestHost}:7880");
+        builder.UseSetting("LiveKit:HlsBaseUrl", $"https://test.{TestHost}/hls");
+        builder.UseSetting("LiveKit:EgressTemplateBaseUrl", $"https://test.{TestHost}");
+        builder.UseSetting("LiveKit:EgressServiceUrl", $"http://{TestHost}:7980");
+        builder.UseSetting("Instance:Domain", $"test.{TestHost}");
         builder.UseSetting("Instance:Name", "Test Instance");
         builder.UseSetting("Snowflake:WorkerId", "1");
         builder.UseSetting("Encryption:EncryptionKey", "test-encryption-key-for-integration-tests");
@@ -206,15 +213,15 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseSetting("Outbox:CleanupIntervalMinutes", "60");
         builder.UseSetting("Outbox:RetentionMinutes", "1440");
         builder.UseSetting("Hub:Enabled", "false");
-        builder.UseSetting("Hub:Url", "http://localhost");
+        builder.UseSetting("Hub:Url", $"https://{TestHost}");
         builder.UseSetting("Gif:Provider", "none");
         builder.UseSetting("Gif:ApiKey", "");
-        builder.UseSetting("Email:SmtpHost", "localhost");
+        builder.UseSetting("Email:SmtpHost", TestHost);
         builder.UseSetting("Email:SmtpPort", "25");
-        builder.UseSetting("Email:FromAddress", "test@xcord.local");
+        builder.UseSetting("Email:FromAddress", $"test@{TestHost}");
         builder.UseSetting("Email:FromName", "Xcord Test");
         builder.UseSetting("Auth:BcryptWorkFactor", "4");
-        builder.UseSetting("Cors:AllowedOrigins:0", "http://localhost:3000");
+        builder.UseSetting("Cors:AllowedOrigins:0", $"https://{TestHost}");
         builder.UseSetting("InternalApi:Key", "test-internal-api-key-for-integration");
         builder.UseSetting("Federation:RequireSignatureVerification", "false");
         builder.UseSetting("Tier:MaxStorageMb", "50");

@@ -29,7 +29,7 @@ public sealed class UpdateFavoriteChannelsHandler(
             return Error.NotFound("NOT_A_MEMBER", "You are not a member of this server");
 
         member.FavoriteChannelIds = request.FavoriteChannelIds;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return new GetFavoriteChannelsResponse(member.FavoriteChannelIds);
     }

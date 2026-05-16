@@ -48,7 +48,7 @@ public sealed class RemoveTimeoutHandler(
         var now = DateTimeOffset.UtcNow;
 
         // Remove from Redis cache
-        await timeoutService.RemoveTimeoutAsync(request.UserId, request.ServerId, cancellationToken);
+        await timeoutService.RemoveTimeoutAsync(request.UserId, request.ServerId, cancellationToken).ConfigureAwait(false);
 
         // Expire any active timeout records in the database so that the fallback
         // DB check in IsTimedOutAsync no longer finds an active timeout for this user
@@ -69,7 +69,7 @@ public sealed class RemoveTimeoutHandler(
             targetId: request.UserId,
             reason: null,
             createdAt: now);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "Moderator {ModeratorId} removed timeout for user {UserId} in server {ServerId}",
@@ -91,7 +91,7 @@ public sealed class RemoveTimeoutHandler(
                 UserId: userId
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("RemoveTimeout")

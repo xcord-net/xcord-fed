@@ -130,7 +130,7 @@ public sealed class CreateEmojiHandler(
         };
 
         dbContext.CustomEmojis.Add(emoji);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} created emoji {EmojiName} (ID: {EmojiId}) in server {ServerId}",
@@ -162,7 +162,7 @@ public sealed class CreateEmojiHandler(
                 IsAnimated: request.IsAnimated
             );
 
-            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{serverId}/emojis/{success.Id}", success));
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{serverId}/emojis/{success.Id}", success)).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateEmoji")

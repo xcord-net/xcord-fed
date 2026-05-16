@@ -54,14 +54,14 @@ public sealed class UnpinMessageHandler(
         message.IsPinned = false;
         message.PinnedAt = null;
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Notify conversation after save
         await notificationService.NotifyConversationAsync(request.ConversationId, "Chat_MessageUpdated", new
         {
             conversationId = request.ConversationId,
             messageId = request.MessageId
-        });
+        }, cancellationToken);
 
         return new MessageDto(
             Id: message.Id,
@@ -86,7 +86,7 @@ public sealed class UnpinMessageHandler(
             [FromServices] UnpinMessageHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new UnpinMessageRequest(conversationId, messageId), ct);
+            return await handler.ExecuteAsync(new UnpinMessageRequest(conversationId, messageId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("UnpinMessage")

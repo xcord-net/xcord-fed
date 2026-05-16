@@ -52,10 +52,10 @@ public sealed class AssignGroupHandler(
         }
 
         // Role hierarchy check: caller cannot assign groups at or above their level
-        var callerRoles = await roleService.GetServerRoles(userId, request.ServerId);
+        var callerRoles = await roleService.GetServerRoles(userId, request.ServerId).ConfigureAwait(false);
         if (callerRoles != long.MaxValue) // Owner bypasses all checks
         {
-            var callerHighestPosition = await roleService.GetHighestGroupPosition(userId, request.ServerId);
+            var callerHighestPosition = await roleService.GetHighestGroupPosition(userId, request.ServerId).ConfigureAwait(false);
 
             // Cannot assign a group at or above caller's highest position
             if (group.Position >= callerHighestPosition)
@@ -105,7 +105,7 @@ public sealed class AssignGroupHandler(
         };
 
         dbContext.MemberGroups.Add(memberGroup);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} assigned group {GroupId} to user {TargetUserId} in server {ServerId}",
@@ -113,7 +113,7 @@ public sealed class AssignGroupHandler(
 
         // Invalidate server and channel role cache for the target user - their effective
         // roles have changed now that a new group has been assigned to them.
-        await roleService.InvalidateUserRolesAsync(request.TargetUserId, request.ServerId, cancellationToken);
+        await roleService.InvalidateUserRolesAsync(request.TargetUserId, request.ServerId, cancellationToken).ConfigureAwait(false);
 
         return true;
     }
@@ -128,7 +128,7 @@ public sealed class AssignGroupHandler(
             CancellationToken ct) =>
         {
             var command = new AssignGroupCommand(serverId, userId, groupId);
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithTags("Groups")

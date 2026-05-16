@@ -82,7 +82,7 @@ public sealed class ListRulesHandler(
             CancellationToken ct) =>
         {
             var query = new ListRulesQuery(ServerId: serverId);
-            return await handler.ExecuteAsync(query, ct);
+            return await handler.ExecuteAsync(query, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("ListAutomodRules")

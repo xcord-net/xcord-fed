@@ -125,12 +125,12 @@ public sealed class UpdateActiveStreambotsHandler(
             }
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         var roomName = egressBuilder.BuildRoomName(broadcast.ChannelId);
         var templateUrl = egressBuilder.BuildTemplateUrl(
             broadcast.Id, broadcast.LayoutPreset, broadcast.StageSlots, roomName);
-        var outputs = await egressBuilder.BuildOutputsAsync(broadcast.Id, cancellationToken);
+        var outputs = await egressBuilder.BuildOutputsAsync(broadcast.Id, cancellationToken).ConfigureAwait(false);
 
         string newEgressId;
         try
@@ -153,7 +153,7 @@ public sealed class UpdateActiveStreambotsHandler(
         }
 
         broadcast.EgressJobId = newEgressId;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Snapshot the current streambots for the event payload. Clients use this to
         // replace their local state without a follow-up GET.
@@ -176,7 +176,7 @@ public sealed class UpdateActiveStreambotsHandler(
                 broadcastId = broadcast.Id,
                 channelId = broadcast.ChannelId,
                 streambots = payload
-            });
+            }, cancellationToken);
 
         logger.LogInformation(
             "User {UserId} updated active streambots for broadcast {BroadcastId} ({Count} active)",
@@ -195,7 +195,7 @@ public sealed class UpdateActiveStreambotsHandler(
         {
             var command = new UpdateActiveStreambotsCommand(
                 broadcastId, request.StreambotIds ?? Array.Empty<long>());
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("UpdateBroadcastStreambots")

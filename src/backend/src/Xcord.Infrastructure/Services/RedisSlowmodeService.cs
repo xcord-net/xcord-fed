@@ -45,7 +45,7 @@ public sealed class RedisSlowmodeService : ISlowmodeService
 
         // Key already existed - the user is still in cooldown.
         // Calculate remaining seconds from the key TTL.
-        var ttl = await db.KeyTimeToLiveAsync(key);
+        var ttl = await db.KeyTimeToLiveAsync(key).ConfigureAwait(false);
         var remaining = ttl.HasValue ? (int)Math.Ceiling(ttl.Value.TotalSeconds) : slowModeSeconds;
         return Math.Max(1, remaining);
     }

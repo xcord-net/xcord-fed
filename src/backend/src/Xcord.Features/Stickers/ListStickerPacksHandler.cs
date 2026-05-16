@@ -100,7 +100,7 @@ public sealed class ListStickerPacksHandler(
             CancellationToken ct) =>
         {
             var query = new ListStickerPacksQuery(serverId);
-            return await handler.ExecuteAsync(query, ct);
+            return await handler.ExecuteAsync(query, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("ListStickerPacks")

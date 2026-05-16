@@ -170,7 +170,7 @@ public sealed class GetChannelPermissionsHandler(
                 CancellationToken ct) =>
             {
                 var query = new GetChannelPermissionsQuery(serverId, channelId);
-                return await handler.ExecuteAsync(query, ct);
+                return await handler.ExecuteAsync(query, ct).ConfigureAwait(false);
             })
             .RequireAnyAuthorization(Policies.User)
             .WithTags("Channels")

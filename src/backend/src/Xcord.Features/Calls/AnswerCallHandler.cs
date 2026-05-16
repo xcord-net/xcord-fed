@@ -105,7 +105,7 @@ public sealed class AnswerCallHandler(
             ttl: TimeSpan.FromMinutes(30),
             qualityConstraints: qualityConstraints);
 
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -113,12 +113,12 @@ public sealed class AnswerCallHandler(
             call.Status = CallStatus.Active;
             call.AnsweredAt = DateTimeOffset.UtcNow;
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
 
@@ -132,8 +132,8 @@ public sealed class AnswerCallHandler(
             CallerToken = callerToken,
             RoomName = roomName
         };
-        await notificationService.NotifyUserAsync(call.CallerId, "Notify_CallAnswered", callPayload);
-        await notificationService.NotifyUserAsync(currentUserId, "Notify_CallAnswered", callPayload);
+        await notificationService.NotifyUserAsync(call.CallerId, "Notify_CallAnswered", callPayload, cancellationToken).ConfigureAwait(false);
+        await notificationService.NotifyUserAsync(currentUserId, "Notify_CallAnswered", callPayload, cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} answered call {CallId} in DM channel {DmChannelId}",
@@ -149,7 +149,7 @@ public sealed class AnswerCallHandler(
             [FromServices] AnswerCallHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new AnswerCallRequest(callId), ct);
+            return await handler.ExecuteAsync(new AnswerCallRequest(callId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("AnswerCall")

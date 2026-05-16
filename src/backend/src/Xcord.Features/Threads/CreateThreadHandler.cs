@@ -119,7 +119,7 @@ public sealed class CreateThreadHandler(
 
         var now = DateTimeOffset.UtcNow;
 
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -185,8 +185,8 @@ public sealed class CreateThreadHandler(
                 dbContext.Messages.Add(systemMessage);
             }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
             logger.LogInformation(
                 "User {UserId} created thread {ThreadId} in channel {ChannelId}",
@@ -209,7 +209,7 @@ public sealed class CreateThreadHandler(
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
     }

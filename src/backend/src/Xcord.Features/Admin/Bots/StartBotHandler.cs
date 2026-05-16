@@ -78,7 +78,7 @@ public sealed class StartBotHandler(
         };
 
         dbContext.BotTokens.Add(newAgentToken);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         JsonElement? parameters = null;
         if (agentToken.AgentConfigJson != null)

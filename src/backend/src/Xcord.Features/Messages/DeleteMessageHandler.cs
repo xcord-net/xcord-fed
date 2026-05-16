@@ -75,14 +75,14 @@ public sealed class DeleteMessageHandler(
         // Soft delete the message
         message.SoftDelete();
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Notify conversation after save
         await notificationService.NotifyConversationAsync(request.ConversationId, "Chat_MessageDeleted", new
         {
             messageId = message.Id,
             conversationId = request.ConversationId
-        });
+        }, cancellationToken);
 
         logger.LogInformation(
             "User {UserId} deleted message {MessageId} in conversation {ConversationId}",
@@ -104,7 +104,7 @@ public sealed class DeleteMessageHandler(
                 MessageId: messageId
             );
 
-            return await handler.ExecuteAsync(request, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(request, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("DeleteMessage")

@@ -20,7 +20,7 @@ public sealed class RequestUpgradeHandler(IHubClient hubClient)
     public async Task<Result<bool>> Handle(
         RequestUpgradeCommand request, CancellationToken cancellationToken)
     {
-        var success = await hubClient.RequestUpgradeAsync(request.TargetVersion, cancellationToken);
+        var success = await hubClient.RequestUpgradeAsync(request.TargetVersion, cancellationToken).ConfigureAwait(false);
         if (!success)
             return Error.Failure("HUB_UNAVAILABLE", "Unable to request upgrade from hub");
 

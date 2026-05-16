@@ -66,7 +66,7 @@ public sealed class UpsertUserNoteHandler(
             existing.Content = request.Content;
             existing.UpdatedAt = now;
 
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
             logger.LogInformation("User {UserId} updated note about user {TargetUserId}", userId, request.TargetUserId);
 
@@ -89,7 +89,7 @@ public sealed class UpsertUserNoteHandler(
         };
 
         dbContext.UserNotes.Add(note);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation("User {UserId} created note about user {TargetUserId}", userId, request.TargetUserId);
 
@@ -109,7 +109,7 @@ public sealed class UpsertUserNoteHandler(
             CancellationToken ct) =>
         {
             var request = new UpsertUserNoteRequest(targetUserId, body.Content);
-            return await handler.ExecuteAsync(request, ct);
+            return await handler.ExecuteAsync(request, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("UpsertUserNote")

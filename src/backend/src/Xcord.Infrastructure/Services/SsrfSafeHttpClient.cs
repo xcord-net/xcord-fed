@@ -60,7 +60,7 @@ public sealed class SsrfSafeHttpClient
         }
 
         // Resolve hostname to IP addresses
-        var hostEntry = await Dns.GetHostEntryAsync(uri.Host);
+        var hostEntry = await Dns.GetHostEntryAsync(uri.Host).ConfigureAwait(false);
 
         // Check all resolved IPs for SSRF risks
         foreach (var ipAddress in hostEntry.AddressList)
@@ -73,7 +73,7 @@ public sealed class SsrfSafeHttpClient
         }
 
         // Fetch content with size limit
-        using var response = await _httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await _httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
 
         // Validate content type (only allow HTML)
         var contentType = response.Content.Headers.ContentType?.MediaType;
@@ -93,11 +93,11 @@ public sealed class SsrfSafeHttpClient
         response.EnsureSuccessStatusCode();
 
         // Read content with size limit
-        using var stream = await response.Content.ReadAsStreamAsync();
+        using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
         using var limitedStream = new LimitedStream(stream, maxSize);
         using var reader = new StreamReader(limitedStream);
 
-        return await reader.ReadToEndAsync();
+        return await reader.ReadToEndAsync().ConfigureAwait(false);
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public sealed class SsrfSafeHttpClient
         }
 
         // Resolve hostname to IP addresses
-        var hostEntry = await Dns.GetHostEntryAsync(uri.Host);
+        var hostEntry = await Dns.GetHostEntryAsync(uri.Host).ConfigureAwait(false);
 
         // Check all resolved IPs for SSRF risks
         foreach (var ipAddress in hostEntry.AddressList)
@@ -129,7 +129,7 @@ public sealed class SsrfSafeHttpClient
         }
 
         // Fetch image with size limit
-        using var response = await _httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await _httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
 
         // Validate content type (only allow images)
         var contentType = response.Content.Headers.ContentType?.MediaType;
@@ -148,11 +148,11 @@ public sealed class SsrfSafeHttpClient
         response.EnsureSuccessStatusCode();
 
         // Read image bytes with size limit
-        using var stream = await response.Content.ReadAsStreamAsync();
+        using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
         using var limitedStream = new LimitedStream(stream, maxSize);
         using var memoryStream = new MemoryStream();
 
-        await limitedStream.CopyToAsync(memoryStream);
+        await limitedStream.CopyToAsync(memoryStream).ConfigureAwait(false);
         return memoryStream.ToArray();
     }
 
@@ -246,7 +246,7 @@ public sealed class SsrfSafeHttpClient
             }
 
             var remainingBytes = (int)Math.Min(count, _maxSize - _totalRead);
-            var bytesRead = await _baseStream.ReadAsync(buffer.AsMemory(offset, remainingBytes), cancellationToken);
+            var bytesRead = await _baseStream.ReadAsync(buffer.AsMemory(offset, remainingBytes), cancellationToken).ConfigureAwait(false);
             _totalRead += bytesRead;
 
             return bytesRead;

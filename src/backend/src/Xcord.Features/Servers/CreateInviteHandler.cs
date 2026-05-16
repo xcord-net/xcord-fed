@@ -57,11 +57,11 @@ public sealed class CreateInviteHandler(
         }
 
         // Check if user is a member of the server
-        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken);
+        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken).ConfigureAwait(false);
         if (memberCheck.IsFailure) return memberCheck.Error;
 
         // Check CreateInvite permission
-        var permResult = await roleService.EnsureServerRole(userId, request.ServerId, Role.CreateInvite);
+        var permResult = await roleService.EnsureServerRole(userId, request.ServerId, Role.CreateInvite).ConfigureAwait(false);
         if (permResult.IsFailure)
         {
             return Error.Forbidden("MISSING_PERMISSION", "You do not have permission to create invites");
@@ -71,7 +71,7 @@ public sealed class CreateInviteHandler(
         if (request.GroupId.HasValue)
         {
             // Require ManageGroups permission to set invite auto-assignment
-            var groupPermResult = await roleService.EnsureServerRole(userId, request.ServerId, Role.ManageGroups);
+            var groupPermResult = await roleService.EnsureServerRole(userId, request.ServerId, Role.ManageGroups).ConfigureAwait(false);
             if (groupPermResult.IsFailure)
             {
                 return Error.Forbidden("MISSING_PERMISSION", "You need ManageGroups permission to assign a group to an invite");
@@ -114,7 +114,7 @@ public sealed class CreateInviteHandler(
                 return Error.Failure("INVITE_CODE_GENERATION_FAILED", "Failed to generate unique invite code");
             }
         }
-        while (await dbContext.Invites.AnyAsync(i => i.Code == code, cancellationToken));
+        while (await dbContext.Invites.AnyAsync(i => i.Code == code, cancellationToken).ConfigureAwait(false));
 
         var now = DateTimeOffset.UtcNow;
 
@@ -132,7 +132,7 @@ public sealed class CreateInviteHandler(
         };
 
         dbContext.Invites.Add(invite);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} created invite {Code} for server {ServerId}",
@@ -183,7 +183,7 @@ public sealed class CreateInviteHandler(
                 ChannelId: request.ChannelId
             );
 
-            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{success.ServerId}/invites/{success.Code}", success));
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{success.ServerId}/invites/{success.Code}", success)).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateInvite")

@@ -39,41 +39,41 @@ public sealed class NotificationService : INotificationService
         _logger = logger;
     }
 
-    public async Task NotifyConversationAsync(long conversationId, string method, object payload)
+    public async Task NotifyConversationAsync(long conversationId, string method, object payload, CancellationToken cancellationToken = default)
     {
         var json = JsonSerializer.Serialize(payload, SerializerOptions);
         var data = JsonDocument.Parse(json).RootElement.Clone();
 
         _logger.LogDebug("Dispatching {Method} to conversation:{ConversationId}", method, conversationId);
-        await _hubContext.Clients.Group($"conversation:{conversationId}").SendAsync(method, data);
-        await EnqueueWebhookIfSupportedAsync(method, json);
+        await _hubContext.Clients.Group($"conversation:{conversationId}").SendAsync(method, data, cancellationToken);
+        await EnqueueWebhookIfSupportedAsync(method, json, cancellationToken);
     }
 
-    public async Task NotifyUserAsync(long userId, string method, object payload)
+    public async Task NotifyUserAsync(long userId, string method, object payload, CancellationToken cancellationToken = default)
     {
         var data = JsonSerializer.SerializeToElement(payload, SerializerOptions);
 
         _logger.LogDebug("Dispatching {Method} to user:{UserId}", method, userId);
-        await _hubContext.Clients.Group($"user:{userId}").SendAsync(method, data);
+        await _hubContext.Clients.Group($"user:{userId}").SendAsync(method, data, cancellationToken);
     }
 
-    public async Task NotifyServerAsync(long serverId, string method, object payload)
+    public async Task NotifyServerAsync(long serverId, string method, object payload, CancellationToken cancellationToken = default)
     {
         var json = JsonSerializer.Serialize(payload, SerializerOptions);
         var data = JsonDocument.Parse(json).RootElement.Clone();
 
         _logger.LogDebug("Dispatching {Method} to server:{ServerId}", method, serverId);
-        await _hubContext.Clients.Group($"server:{serverId}").SendAsync(method, data);
-        await EnqueueWebhookIfSupportedAsync(method, json);
+        await _hubContext.Clients.Group($"server:{serverId}").SendAsync(method, data, cancellationToken);
+        await EnqueueWebhookIfSupportedAsync(method, json, cancellationToken);
     }
 
-    public async Task SendEmailAsync(string to, string subject, string htmlBody)
+    public async Task SendEmailAsync(string to, string subject, string htmlBody, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Sending email to {To}", to);
-        await _emailService.SendAsync(to, subject, htmlBody);
+        await _emailService.SendAsync(to, subject, htmlBody, cancellationToken);
     }
 
-    private async Task EnqueueWebhookIfSupportedAsync(string method, string json)
+    private async Task EnqueueWebhookIfSupportedAsync(string method, string json, CancellationToken cancellationToken)
     {
         // Only enqueue event types that outgoing webhooks support
         var eventType = method switch
@@ -87,7 +87,7 @@ public sealed class NotificationService : INotificationService
 
         if (eventType != null)
         {
-            await _webhookQueue.EnqueueAsync(eventType, json);
+            await _webhookQueue.EnqueueAsync(eventType, json, cancellationToken);
         }
     }
 }

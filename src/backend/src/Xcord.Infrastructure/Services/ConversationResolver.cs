@@ -140,7 +140,7 @@ public sealed class ConversationResolver : IConversationResolver
             // Check if thread is locked - only users with ManageMessages can interact with locked threads
             if (thread.IsLocked)
             {
-                var channelPerms = await _roleService.GetChannelRoles(userId, channelId);
+                var channelPerms = await _roleService.GetChannelRoles(userId, channelId).ConfigureAwait(false);
                 var hasManagePermission = (channelPerms & (long)Role.ManageMessages) != 0;
 
                 if (!hasManagePermission)

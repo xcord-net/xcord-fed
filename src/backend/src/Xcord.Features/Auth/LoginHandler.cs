@@ -29,13 +29,16 @@ public sealed class LoginHandler(
     ILogger<LoginHandler> logger,
     IConnectionMultiplexer redis,
     IOptions<RedisOptions> redisOptions,
+    IOptions<AuthOptions> authOptions,
     INotificationService notificationService)
     : IRequestHandler<LoginRequest, Result<object>>, IValidatable<LoginRequest>
 {
-    private const int MaxFailedAttempts = 5;
     private const int Max2FaCodesPerWindow = 3;
-    private static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
     private static readonly TimeSpan TwoFactorIssueWindow = TimeSpan.FromMinutes(5);
+
+    private readonly int _maxFailedAttempts = authOptions.Value.MaxLoginAttemptsPerWindow;
+    private readonly TimeSpan _lockoutDuration = TimeSpan.FromMinutes(authOptions.Value.LoginAttemptWindowMinutes);
+    private readonly int _refreshTokenDays = authOptions.Value.JwtRefreshTokenDays;
 
     public Error? Validate(LoginRequest request)
     {
@@ -60,11 +63,11 @@ public sealed class LoginHandler(
 
         // Check brute-force counter BEFORE verifying the password
         var db = redis.GetDatabase();
-        var currentCount = (long?)await db.StringGetAsync(redisKey);
-        if (currentCount >= MaxFailedAttempts)
+        var currentCount = (long?)await db.StringGetAsync(redisKey).ConfigureAwait(false);
+        if (currentCount >= _maxFailedAttempts)
         {
-            var ttl = await db.KeyTimeToLiveAsync(redisKey);
-            var retryAfterSeconds = ttl.HasValue ? (int)Math.Ceiling(ttl.Value.TotalSeconds) : (int)LockoutDuration.TotalSeconds;
+            var ttl = await db.KeyTimeToLiveAsync(redisKey).ConfigureAwait(false);
+            var retryAfterSeconds = ttl.HasValue ? (int)Math.Ceiling(ttl.Value.TotalSeconds) : (int)_lockoutDuration.TotalSeconds;
             return Error.RateLimited("LOGIN_RATE_LIMITED", retryAfterSeconds.ToString());
         }
 
@@ -74,19 +77,19 @@ public sealed class LoginHandler(
         if (user == null)
         {
             // Increment counter to prevent email enumeration via timing
-            await IncrementAttemptCounterAsync(db, redisKey);
+            await IncrementAttemptCounterAsync(db, redisKey, _lockoutDuration).ConfigureAwait(false);
             return Error.Validation("INVALID_CREDENTIALS", "Invalid email or password");
         }
 
         // Verify password - offloaded to Task.Run to avoid thread pool starvation
         if (!await Task.Run(() => BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash)))
         {
-            await IncrementAttemptCounterAsync(db, redisKey);
+            await IncrementAttemptCounterAsync(db, redisKey, _lockoutDuration).ConfigureAwait(false);
             return Error.Validation("INVALID_CREDENTIALS", "Invalid email or password");
         }
 
         // Successful login - clear the brute-force counter
-        await db.KeyDeleteAsync(redisKey);
+        await db.KeyDeleteAsync(redisKey).ConfigureAwait(false);
 
         // Check if account is disabled
         if (user.IsDisabled)
@@ -102,10 +105,10 @@ public sealed class LoginHandler(
         {
             // Per-user rate limit on 2FA code issuance: max 3 codes per 5-minute window
             var twoFactorRateLimitKey = $"{redisOptions.Value.ChannelPrefix}:2fa_codes:{user.Id}";
-            var issueCount = await db.StringIncrementAsync(twoFactorRateLimitKey);
+            var issueCount = await db.StringIncrementAsync(twoFactorRateLimitKey).ConfigureAwait(false);
             if (issueCount == 1)
             {
-                await db.KeyExpireAsync(twoFactorRateLimitKey, TwoFactorIssueWindow);
+                await db.KeyExpireAsync(twoFactorRateLimitKey, TwoFactorIssueWindow).ConfigureAwait(false);
             }
             if (issueCount > Max2FaCodesPerWindow)
             {
@@ -130,13 +133,13 @@ public sealed class LoginHandler(
 
             var plaintextEmail = encryptionService.Decrypt(user.Email);
 
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
             // Send 2FA code via email
             await notificationService.SendEmailAsync(
                 plaintextEmail,
                 "Your sign-in verification code",
-                $"<p>Your sign-in verification code is: <strong>{twoFactorCode}</strong></p><p>This code expires in 10 minutes. If you did not attempt to sign in, please change your password immediately.</p>");
+                $"<p>Your sign-in verification code is: <strong>{twoFactorCode}</strong></p><p>This code expires in 10 minutes. If you did not attempt to sign in, please change your password immediately.</p>", cancellationToken);
 
             // Log that 2FA code was generated (code itself is not logged for security)
             logger.LogInformation("2FA code generated for user {Username}", user.Username);
@@ -157,12 +160,12 @@ public sealed class LoginHandler(
             Id = snowflakeGenerator.NextId(),
             TokenHash = refreshTokenHash,
             UserId = user.Id,
-            ExpiresAt = now2.AddDays(30),
+            ExpiresAt = now2.AddDays(_refreshTokenDays),
             CreatedAt = now2
         };
 
         dbContext.RefreshTokens.Add(refreshToken);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Generate JWT access token
         var accessToken = jwtService.GenerateAccessToken(user.Id, user.IsAdmin, user.EmailConfirmed, user.IsBot);
@@ -175,13 +178,13 @@ public sealed class LoginHandler(
         return RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
     }
 
-    private static async Task IncrementAttemptCounterAsync(IDatabase db, string key)
+    private static async Task IncrementAttemptCounterAsync(IDatabase db, string key, TimeSpan lockoutDuration)
     {
-        var count = await db.StringIncrementAsync(key);
+        var count = await db.StringIncrementAsync(key).ConfigureAwait(false);
         if (count == 1)
         {
             // First failure - set the TTL so the lockout window starts now
-            await db.KeyExpireAsync(key, LockoutDuration);
+            await db.KeyExpireAsync(key, lockoutDuration).ConfigureAwait(false);
         }
     }
 
@@ -191,6 +194,7 @@ public sealed class LoginHandler(
                 [FromBody] LoginRequest command,
                 HttpContext httpContext,
                 [FromServices] LoginHandler handler,
+                [FromServices] IOptions<AuthOptions> authOpts,
                 CancellationToken ct) =>
             {
                 if (handler is IValidatable<LoginRequest> validatable)
@@ -200,7 +204,7 @@ public sealed class LoginHandler(
                         return Results.Problem(statusCode: validationError.StatusCode, title: validationError.Code, detail: validationError.Message);
                 }
 
-                var result = await handler.Handle(command, ct);
+                var result = await handler.Handle(command, ct).ConfigureAwait(false);
 
                 return result.Match(
                     success =>
@@ -215,7 +219,7 @@ public sealed class LoginHandler(
                         var loginResponse = (LoginResponse)success;
 
                         // Set httpOnly cookies for both tokens
-                        AuthCookieHelper.SetAccessTokenCookie(httpContext, loginResponse.AccessToken, 15);
+                        AuthCookieHelper.SetAccessTokenCookie(httpContext, loginResponse.AccessToken, authOpts.Value.JwtAccessTokenMinutes);
                         AuthCookieHelper.SetRefreshTokenCookie(httpContext, loginResponse.RefreshToken);
 
                         // POST-Redirect-GET (303) is not applicable here: this is a JSON API consumed

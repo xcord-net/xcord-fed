@@ -138,7 +138,7 @@ public sealed class GetPollHandler(
             CancellationToken ct) =>
         {
             var query = new GetPollQuery(PollId: pollId);
-            return await handler.ExecuteAsync(query, ct);
+            return await handler.ExecuteAsync(query, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("GetPoll")

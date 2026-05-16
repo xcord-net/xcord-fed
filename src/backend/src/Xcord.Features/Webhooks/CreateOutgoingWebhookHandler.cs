@@ -124,7 +124,7 @@ public sealed class CreateOutgoingWebhookHandler(
         };
 
         dbContext.OutgoingWebhooks.Add(webhook);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} created outgoing webhook {WebhookId} for server {ServerId}",
@@ -156,7 +156,7 @@ public sealed class CreateOutgoingWebhookHandler(
                 TargetUrl: request.TargetUrl,
                 EventTypes: request.EventTypes
             );
-            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{serverId}/outgoing-webhooks/{success.Id}", success));
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{serverId}/outgoing-webhooks/{success.Id}", success)).ConfigureAwait(false);
         })
         .RequireAuthorization(Policies.User)
         .WithName("CreateOutgoingWebhook")

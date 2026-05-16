@@ -24,16 +24,23 @@ public sealed class WebhookConfiguration : IEntityTypeConfiguration<Webhook>
             .IsRequired()
             .HasMaxLength(128);
 
-        // Unique index on Token for fast lookups
+        // Unique index on Token for fast lookups. Filtered to live rows so a webhook can
+        // be soft-deleted and a new one created with the same token without colliding on
+        // the unique constraint (tokens are 128-char random and almost never recycled,
+        // but the filter is correct in principle).
         builder.HasIndex(w => w.Token)
-            .IsUnique();
+            .IsUnique()
+            .HasFilter("\"DeletedAt\" IS NULL");
 
         // ChannelId (required - FK will be added when Channel entity exists)
         builder.Property(w => w.ChannelId)
             .IsRequired();
 
-        // Index on ChannelId for querying all webhooks for a channel
-        builder.HasIndex(w => w.ChannelId);
+        // Index on ChannelId for querying all webhooks for a channel. Filtered to live
+        // rows because the list-webhooks-for-channel hot path always applies the soft-
+        // delete filter and the index only needs to cover non-deleted webhooks.
+        builder.HasIndex(w => w.ChannelId)
+            .HasFilter("\"DeletedAt\" IS NULL");
 
         // Name (required, max 80)
         builder.Property(w => w.Name)

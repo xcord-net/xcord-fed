@@ -69,7 +69,7 @@ public sealed class ListActiveBroadcastsHandler(
             CancellationToken ct) =>
         {
             var command = new ListBroadcastsCommand(channelId, ActiveOnly: active == true);
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("ListChannelBroadcasts")

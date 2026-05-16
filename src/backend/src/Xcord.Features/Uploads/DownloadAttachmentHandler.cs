@@ -84,7 +84,7 @@ public sealed class DownloadAttachmentHandler : IEndpoint
             }
 
             // Stream the file bytes directly from S3 to avoid presigned URL TTL issues.
-            var data = await storageService.DownloadAsync(attachment.S3Key);
+            var data = await storageService.DownloadAsync(attachment.S3Key).ConfigureAwait(false);
 
             AttachmentResponseHeaders.ApplyDownloadHeaders(httpContext.Response, attachment.ContentType, attachment.FileName);
             return Results.File(data, attachment.ContentType);

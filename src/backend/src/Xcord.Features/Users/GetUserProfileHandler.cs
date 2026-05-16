@@ -59,7 +59,7 @@ public sealed class GetUserProfileHandler(
             [FromServices] GetUserProfileHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new GetUserProfileRequest(), ct);
+            return await handler.ExecuteAsync(new GetUserProfileRequest(), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User)
         .WithName("GetUserProfile")

@@ -37,7 +37,7 @@ public sealed class ImageSharpThumbnailService : IThumbnailService
         using var inputStream = new MemoryStream(imageBytes);
 
         // Load image - ImageSharp handles JPEG, PNG, GIF (first frame), and WebP transparently.
-        using var image = await Image.LoadAsync(inputStream);
+        using var image = await Image.LoadAsync(inputStream).ConfigureAwait(false);
 
         // Compute thumbnail dimensions preserving aspect ratio.
         var (thumbWidth, thumbHeight) = ComputeThumbnailSize(image.Width, image.Height, maxWidth, maxHeight);
@@ -62,7 +62,7 @@ public sealed class ImageSharpThumbnailService : IThumbnailService
         // Encode as JPEG for efficient storage regardless of source format.
         using var outputStream = new MemoryStream();
         var encoder = new JpegEncoder { Quality = 85 };
-        await image.SaveAsJpegAsync(outputStream, encoder);
+        await image.SaveAsJpegAsync(outputStream, encoder).ConfigureAwait(false);
 
         _logger.LogDebug(
             "Generated thumbnail: {Width}x{Height} from source {SourceWidth}x{SourceHeight}",

@@ -113,7 +113,7 @@ public sealed class UpdateStreambotHandler(
             streambot.IsDefault = request.IsDefault.Value;
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} updated streambot {StreamBotId}",
@@ -147,7 +147,7 @@ public sealed class UpdateStreambotHandler(
                 IsDefault: request.IsDefault
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("UpdateStreambot")

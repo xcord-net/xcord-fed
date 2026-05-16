@@ -1,10 +1,25 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import { render, fireEvent, waitFor } from '@solidjs/testing-library';
 import ForumPostList, { addTag, removeTag, formatRelativeTime } from './ForumPostList';
 import { useForums } from '../stores/forum.store';
 import { mockFetch } from '../tests/helpers/mockFetch';
 
+// Pin "now" to a fixed instant so any test that relies on relative timestamps
+// (e.g. asserting "2h ago") doesn't drift as wall-clock advances. The fixture
+// timestamps below are precomputed offsets from this instant.
+const FIXED_NOW = new Date('2026-01-01T12:00:00Z');
+const TWO_HOURS_BEFORE_NOW = new Date(FIXED_NOW.getTime() - 2 * 60 * 60 * 1000).toISOString();
+
 describe('ForumPostList pure helpers', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(FIXED_NOW);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('addTag appends a new tag and ignores duplicates / blanks', () => {
     expect(addTag(['bug'], 'feature')).toEqual(['bug', 'feature']);
     expect(addTag(['bug'], 'bug')).toEqual(['bug']);
@@ -20,14 +35,19 @@ describe('ForumPostList pure helpers', () => {
   });
 
   it('formatRelativeTime formats hours-ago timestamps', () => {
-    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
-    expect(formatRelativeTime(twoHoursAgo)).toBe('2h ago');
+    expect(formatRelativeTime(TWO_HOURS_BEFORE_NOW)).toBe('2h ago');
   });
 });
 
 describe('ForumPostList', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(FIXED_NOW);
     useForums().reset();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('renders the Forum Posts header and New Post button', async () => {
@@ -70,8 +90,8 @@ describe('ForumPostList', () => {
               messageCount: 3,
               isArchived: false,
               isLocked: false,
-              lastActivityAt: new Date().toISOString(),
-              createdAt: new Date().toISOString(),
+              lastActivityAt: FIXED_NOW.toISOString(),
+              createdAt: FIXED_NOW.toISOString(),
             },
           ],
         },
@@ -132,7 +152,7 @@ describe('ForumPostList', () => {
           authorUsername: 'me',
           firstMessageId: 'm-1',
           tags: [],
-          createdAt: new Date().toISOString(),
+          createdAt: FIXED_NOW.toISOString(),
         },
       }),
     });

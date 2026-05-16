@@ -58,12 +58,12 @@ public sealed class TwoFactorConfirmEnableHandler(AppDbContext dbContext, Snowfl
         if (twoFactorCode.ExpiresAt < DateTimeOffset.UtcNow)
         {
             dbContext.TwoFactorCodes.Remove(twoFactorCode);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return Error.Validation("CODE_EXPIRED", "2FA code has expired");
         }
 
         // Find user
-        var user = await dbContext.Users.FindAsync(new object[] { request.UserId }, cancellationToken);
+        var user = await dbContext.Users.FindAsync(new object[] { request.UserId }, cancellationToken).ConfigureAwait(false);
         if (user == null)
         {
             return Error.NotFound("USER_NOT_FOUND", "User not found");
@@ -92,7 +92,7 @@ public sealed class TwoFactorConfirmEnableHandler(AppDbContext dbContext, Snowfl
             plaintextCodes.Add(formatted);
 
             // Hash without hyphen - offloaded to Task.Run to avoid thread pool starvation
-            var codeHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(rawCode, _authOptions.BcryptWorkFactor));
+            var codeHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(rawCode, _authOptions.BcryptWorkFactor)).ConfigureAwait(false);
 
             dbContext.TwoFactorBackupCodes.Add(new TwoFactorBackupCode
             {
@@ -103,7 +103,7 @@ public sealed class TwoFactorConfirmEnableHandler(AppDbContext dbContext, Snowfl
             });
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return new TwoFactorConfirmEnableResponse(true, plaintextCodes);
     }

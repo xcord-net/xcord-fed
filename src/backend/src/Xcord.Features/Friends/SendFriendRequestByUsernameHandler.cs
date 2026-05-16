@@ -26,7 +26,7 @@ public sealed class SendFriendRequestByUsernameHandler(
         if (user == null)
             return Error.NotFound("USER_NOT_FOUND", "User not found");
 
-        return await sendFriendRequestHandler.Handle(new SendFriendRequestRequest(user.Id), cancellationToken);
+        return await sendFriendRequestHandler.Handle(new SendFriendRequestRequest(user.Id), cancellationToken).ConfigureAwait(false);
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app) =>
@@ -35,7 +35,7 @@ public sealed class SendFriendRequestByUsernameHandler(
             [FromServices] SendFriendRequestByUsernameHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(request, ct);
+            return await handler.ExecuteAsync(request, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("SendFriendRequestByUsername")

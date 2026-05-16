@@ -93,7 +93,7 @@ public sealed class CreateDmHandler(
             }
         }
 
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -136,8 +136,8 @@ public sealed class CreateDmHandler(
                 dbContext.DmChannelMembers.Add(member);
             }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
             // Notify each member directly after save
             var dmCreatedPayload = new
@@ -148,7 +148,7 @@ public sealed class CreateDmHandler(
             };
             foreach (var memberId in memberIds.Distinct())
             {
-                await notificationService.NotifyUserAsync(memberId, "Notify_DmCreated", dmCreatedPayload);
+                await notificationService.NotifyUserAsync(memberId, "Notify_DmCreated", dmCreatedPayload, cancellationToken).ConfigureAwait(false);
             }
 
             logger.LogInformation(
@@ -177,7 +177,7 @@ public sealed class CreateDmHandler(
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
     }

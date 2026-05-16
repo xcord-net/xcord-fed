@@ -41,7 +41,7 @@ public sealed class AddReactionHandler(
             CreatedAt = now
         };
         dbContext.Reactions.Add(reaction);
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
         return new ReactionResponse(reaction.MessageId, userId, reaction.Emoji, now);
     }

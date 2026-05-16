@@ -41,7 +41,7 @@ public sealed class ListMembersHandler(
         var userId = userIdResult.Value;
 
         // Verify requesting user is a member of the server
-        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken);
+        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken).ConfigureAwait(false);
         if (memberCheck.IsFailure) return memberCheck.Error;
 
         // Query members with user and group data
@@ -80,7 +80,7 @@ public sealed class ListMembersHandler(
             [FromServices] ListMembersHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new ListMembersRequest(serverId), ct);
+            return await handler.ExecuteAsync(new ListMembersRequest(serverId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("ListMembers")

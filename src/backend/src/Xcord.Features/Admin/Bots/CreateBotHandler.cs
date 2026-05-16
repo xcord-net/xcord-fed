@@ -128,7 +128,7 @@ public sealed class CreateBotHandler(
 
         dbContext.BotTokens.Add(botToken);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "Created bot user {Username} (ID: {UserId}) with token {TokenName} (ID: {TokenId})",

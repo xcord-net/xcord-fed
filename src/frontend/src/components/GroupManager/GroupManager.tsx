@@ -6,6 +6,7 @@ import GroupCreateForm from './GroupCreateForm';
 import GroupEditForm from './GroupEditForm';
 import DeleteGroupModal from './DeleteGroupModal';
 import styles from './GroupManager.module.css';
+import { DEFAULT_GROUP_COLOR } from '../../constants/colors';
 
 interface Group {
   id: string;
@@ -39,7 +40,7 @@ export default function GroupManager(props: GroupManagerProps) {
   // Selected group for editing
   const [selectedGroupId, setSelectedGroupId] = createSignal<string | null>(null);
   const [editName, setEditName] = createSignal('');
-  const [editColor, setEditColor] = createSignal('#d4943a');
+  const [editColor, setEditColor] = createSignal(DEFAULT_GROUP_COLOR);
   const [editRoles, setEditRoles] = createSignal(0);
   const [isSaving, setIsSaving] = createSignal(false);
   const [saveSuccess, setSaveSuccess] = createSignal('');
@@ -72,7 +73,7 @@ export default function GroupManager(props: GroupManagerProps) {
   function selectGroup(group: Group) {
     setSelectedGroupId(group.id);
     setEditName(group.name);
-    setEditColor(group.color || '#d4943a');
+    setEditColor(group.color || DEFAULT_GROUP_COLOR);
     setEditRoles(group.roles);
     setSaveSuccess('');
     setSaveError('');

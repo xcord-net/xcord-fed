@@ -43,7 +43,7 @@ public sealed class RegisterCommandHandler(
             OptionsJson = request.OptionsJson ?? "[]", CreatedAt = now
         };
         dbContext.SlashCommands.Add(cmd);
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
         return new SlashCommandResponse(cmd.Id, cmd.ServerId, cmd.Name, cmd.Description, cmd.OptionsJson, cmd.CreatedAt);
     }

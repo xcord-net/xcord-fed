@@ -39,7 +39,7 @@ public sealed class CancelAccountDeletionHandler(
 
         user.ScheduledDeletionAt = null;
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return true;
     }

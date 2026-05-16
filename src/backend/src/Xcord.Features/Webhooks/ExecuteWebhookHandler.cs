@@ -100,11 +100,11 @@ public sealed class ExecuteWebhookHandler(
         var rateLimitKey = $"{_channelPrefix}:webhook:rate:{request.WebhookId}";
         var db = redis.GetDatabase();
 
-        var currentCount = await db.StringIncrementAsync(rateLimitKey);
+        var currentCount = await db.StringIncrementAsync(rateLimitKey).ConfigureAwait(false);
         if (currentCount == 1)
         {
             // First request in this window, set expiry
-            await db.KeyExpireAsync(rateLimitKey, TimeSpan.FromMinutes(1));
+            await db.KeyExpireAsync(rateLimitKey, TimeSpan.FromMinutes(1)).ConfigureAwait(false);
         }
 
         if (currentCount > 30)
@@ -153,28 +153,30 @@ public sealed class ExecuteWebhookHandler(
         };
 
         // Begin transaction
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
             dbContext.Messages.Add(message);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-            // Update read states: increment UnreadCount for all users
-            var readStatesToUpdate = await dbContext.ReadStates
+            // Atomic UPDATE: increment UnreadCount in a single SQL statement so concurrent
+            // webhook deliveries to the same conversation cannot lose increments. This
+            // replaces the previous read-modify-write loop where each request loaded the
+            // ReadStates, incremented in memory, then saved -- which lost updates whenever
+            // two requests overlapped. Webhook messages have no author so every member of
+            // the conversation is a recipient (no senderUserId exclusion).
+            await dbContext.ReadStates
                 .Where(rs => rs.ConversationId == channel.ConversationId)
-                .ToListAsync(cancellationToken);
+                .ExecuteUpdateAsync(
+                    setters => setters.SetProperty(rs => rs.UnreadCount, rs => rs.UnreadCount + 1),
+                    cancellationToken);
 
-            foreach (var readState in readStatesToUpdate)
-            {
-                readState.UnreadCount++;
-            }
-
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
 
@@ -183,7 +185,7 @@ public sealed class ExecuteWebhookHandler(
             MessageId = message.Id,
             ConversationId = message.ConversationId,
             AuthorId = (long?)null
-        });
+        }, cancellationToken);
 
         logger.LogInformation(
             "Webhook {WebhookId} posted message {MessageId} to conversation {ConversationId}",
@@ -214,7 +216,7 @@ public sealed class ExecuteWebhookHandler(
                 AvatarUrl: request.AvatarUrl
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .AllowAnonymous()
         .WithName("ExecuteWebhook")

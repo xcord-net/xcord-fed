@@ -213,13 +213,22 @@ export function parseMarkdown(content: string): RenderedToken[] {
 
 function SpoilerSpan(props: { value: string }) {
   const [revealed, setRevealed] = createSignal(false);
+  const reveal = () => setRevealed(true);
   return (
     <span
+      role="button"
+      tabIndex={0}
       classList={{
         [styles.spoilerRevealed]: revealed(),
         [styles.spoiler]: !revealed(),
       }}
-      onClick={() => setRevealed(true)}
+      onClick={reveal}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          reveal();
+        }
+      }}
     >
       {props.value}
     </span>

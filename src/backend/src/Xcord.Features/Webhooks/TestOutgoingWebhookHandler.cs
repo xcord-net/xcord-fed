@@ -118,7 +118,7 @@ public sealed class TestOutgoingWebhookHandler(
         {
             try
             {
-                var hostEntry = await Dns.GetHostEntryAsync(targetUri.Host, cancellationToken);
+                var hostEntry = await Dns.GetHostEntryAsync(targetUri.Host, cancellationToken).ConfigureAwait(false);
                 foreach (var ip in hostEntry.AddressList)
                 {
                     if (SsrfSafeHttpClient.IsPrivateOrLocalIp(ip))
@@ -153,7 +153,7 @@ public sealed class TestOutgoingWebhookHandler(
             httpRequest.Headers.Add("X-Xcord-Event", "ping");
             httpRequest.Headers.Add("X-Xcord-Delivery", request.WebhookId.ToString());
 
-            using var response = await client.SendAsync(httpRequest, cancellationToken);
+            using var response = await client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
             var isSuccess = response.IsSuccessStatusCode;
             var statusCode = (int)response.StatusCode;
 
@@ -183,7 +183,7 @@ public sealed class TestOutgoingWebhookHandler(
             CancellationToken ct) =>
         {
             var command = new TestOutgoingWebhookCommand(ServerId: serverId, WebhookId: webhookId);
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAuthorization(Policies.User)
         .WithName("TestOutgoingWebhook")

@@ -163,7 +163,7 @@ public sealed class LiveKitService : ILiveKitService
 
         request.Headers.Add("Authorization", $"Bearer {serviceToken}");
 
-        var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
     }
 

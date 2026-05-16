@@ -56,7 +56,7 @@ public sealed class ListFederationFollowsHandler(
             [FromServices] ListFederationFollowsHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new ListFederationFollowsRequest(channelId), ct);
+            return await handler.ExecuteAsync(new ListFederationFollowsRequest(channelId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User)
         .WithName("ListFederationFollows")

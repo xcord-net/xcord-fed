@@ -109,7 +109,7 @@ public sealed class CreateRuleHandler(
         };
 
         dbContext.AutomodRules.Add(rule);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} created automod rule {RuleName} (ID: {RuleId}) for server {ServerId}",
@@ -154,7 +154,7 @@ public sealed class CreateRuleHandler(
                 ChannelId: request.ChannelId
             );
 
-            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{serverId}/automod-rules/{success.Id}", success));
+            return await handler.ExecuteAsync(command, ct, success => Results.Created($"/api/v1/servers/{serverId}/automod-rules/{success.Id}", success)).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("CreateAutomodRule")

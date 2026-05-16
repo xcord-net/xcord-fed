@@ -30,7 +30,7 @@ public sealed class ReviewAppHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        var appExists = await dbContext.AppListings.AsNoTracking().AnyAsync(a => a.Id == request.AppId && a.IsPublished, ct);
+        var appExists = await dbContext.AppListings.AsNoTracking().AnyAsync(a => a.Id == request.AppId && a.IsPublished, ct).ConfigureAwait(false);
         if (!appExists) return Error.NotFound("APP_NOT_FOUND", "App not found");
 
         var existingReview = await dbContext.AppReviews.AsNoTracking()
@@ -44,7 +44,7 @@ public sealed class ReviewAppHandler(
             UserId = userId, Rating = request.Rating, Content = request.Content, CreatedAt = now
         };
         dbContext.AppReviews.Add(review);
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
         return new ReviewResponse(review.Id, review.AppListingId, userId, review.Rating, review.Content, review.CreatedAt);
     }

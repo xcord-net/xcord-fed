@@ -66,7 +66,7 @@ public sealed class MarkAsReadHandler(
         }
 
         // Begin transaction
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -96,8 +96,8 @@ public sealed class MarkAsReadHandler(
                 readState.MentionCount = 0;
             }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
             // Notify the conversation group directly after save
             await notificationService.NotifyConversationAsync(request.ConversationId, "ReadState_Updated", new
@@ -105,7 +105,7 @@ public sealed class MarkAsReadHandler(
                 UserId = userId,
                 ConversationId = request.ConversationId,
                 LastReadMessageId = request.MessageId
-            });
+            }, cancellationToken);
 
             return new MarkAsReadResponse(
                 ConversationId: readState.ConversationId,
@@ -116,7 +116,7 @@ public sealed class MarkAsReadHandler(
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
     }
@@ -128,7 +128,7 @@ public sealed class MarkAsReadHandler(
             [FromServices] MarkAsReadHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new MarkAsReadRequest(conversationId, request.MessageId), ct);
+            return await handler.ExecuteAsync(new MarkAsReadRequest(conversationId, request.MessageId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("MarkAsRead")

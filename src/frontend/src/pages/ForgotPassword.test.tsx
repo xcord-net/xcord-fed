@@ -27,11 +27,9 @@ describe('ForgotPassword', () => {
     mockFetch({
       'POST /api/v1/auth/forgot-password': () => ({ status: 204, body: null }),
     });
-    const { container, findByTestId } = renderWithRouter(() => <ForgotPassword />, { path: '/forgot-password' });
-    const input = container.querySelector('#forgot-email') as HTMLInputElement;
-    fireEvent.input(input, { target: { value: 'user@example.com' } });
-    const form = container.querySelector('form')!;
-    fireEvent.submit(form);
+    const { getByTestId, findByTestId } = renderWithRouter(() => <ForgotPassword />, { path: '/forgot-password' });
+    fireEvent.input(getByTestId('forgot-password-email-input'), { target: { value: 'user@example.com' } });
+    fireEvent.submit(getByTestId('forgot-password-form'));
     expect(await findByTestId('forgot-password-success')).toBeInTheDocument();
   });
 
@@ -39,11 +37,9 @@ describe('ForgotPassword', () => {
     mockFetch({
       'POST /api/v1/auth/forgot-password': () => { throw new Error('boom'); },
     });
-    const { container, findByTestId } = renderWithRouter(() => <ForgotPassword />, { path: '/forgot-password' });
-    const input = container.querySelector('#forgot-email') as HTMLInputElement;
-    fireEvent.input(input, { target: { value: 'user@example.com' } });
-    const form = container.querySelector('form')!;
-    fireEvent.submit(form);
+    const { getByTestId, findByTestId } = renderWithRouter(() => <ForgotPassword />, { path: '/forgot-password' });
+    fireEvent.input(getByTestId('forgot-password-email-input'), { target: { value: 'user@example.com' } });
+    fireEvent.submit(getByTestId('forgot-password-form'));
     expect(await findByTestId('forgot-password-error')).toHaveTextContent(/Network error/);
   });
 });

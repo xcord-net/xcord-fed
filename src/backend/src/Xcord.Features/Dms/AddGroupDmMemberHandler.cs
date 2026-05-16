@@ -72,7 +72,7 @@ public sealed class AddGroupDmMemberHandler(
             return Error.Validation("MAX_MEMBERS", "Group DM channels cannot have more than 10 members");
         }
 
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -89,8 +89,8 @@ public sealed class AddGroupDmMemberHandler(
 
             dbContext.DmChannelMembers.Add(member);
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
             // Notify all members (including new member) after save
             var memberAddedPayload = new
@@ -101,7 +101,7 @@ public sealed class AddGroupDmMemberHandler(
             };
             foreach (var memberId in allMemberIds)
             {
-                await notificationService.NotifyUserAsync(memberId, "Notify_DmMemberAdded", memberAddedPayload);
+                await notificationService.NotifyUserAsync(memberId, "Notify_DmMemberAdded", memberAddedPayload, cancellationToken).ConfigureAwait(false);
             }
 
             logger.LogInformation(
@@ -112,7 +112,7 @@ public sealed class AddGroupDmMemberHandler(
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
     }

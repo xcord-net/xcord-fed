@@ -55,12 +55,12 @@ public sealed class ResetPasswordHandler(AppDbContext dbContext, IOptions<AuthOp
         if (resetToken.ExpiresAt < DateTimeOffset.UtcNow)
         {
             dbContext.PasswordResetTokens.Remove(resetToken);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return Error.Validation("INVALID_TOKEN", "Invalid or expired reset token");
         }
 
         // Hash new password (BCrypt, configurable work factor) - offloaded to Task.Run to avoid thread pool starvation
-        resetToken.User.PasswordHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(request.NewPassword, _authOptions.BcryptWorkFactor));
+        resetToken.User.PasswordHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(request.NewPassword, _authOptions.BcryptWorkFactor)).ConfigureAwait(false);
 
         // Delete ALL refresh tokens for the user (force re-login everywhere)
         var refreshTokens = await dbContext.RefreshTokens
@@ -72,7 +72,7 @@ public sealed class ResetPasswordHandler(AppDbContext dbContext, IOptions<AuthOp
         // Hard-delete the reset token
         dbContext.PasswordResetTokens.Remove(resetToken);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return true;
     }

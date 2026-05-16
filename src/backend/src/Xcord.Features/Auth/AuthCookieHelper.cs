@@ -18,7 +18,7 @@ public static class AuthCookieHelper
         });
     }
 
-    public static void SetRefreshTokenCookie(HttpContext httpContext, string refreshToken)
+    public static void SetRefreshTokenCookie(HttpContext httpContext, string refreshToken, int expirationDays = 30)
     {
         var (sameSite, secure) = GetCookiePolicy(httpContext);
 
@@ -27,7 +27,7 @@ public static class AuthCookieHelper
             HttpOnly = true,
             Secure = secure,
             SameSite = sameSite,
-            Expires = DateTimeOffset.UtcNow.AddDays(30),
+            Expires = DateTimeOffset.UtcNow.AddDays(expirationDays),
             Path = "/"
         });
     }

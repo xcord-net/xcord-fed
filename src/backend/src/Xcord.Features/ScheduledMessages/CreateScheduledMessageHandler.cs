@@ -90,7 +90,7 @@ public sealed class CreateScheduledMessageHandler(
         };
 
         dbContext.ScheduledMessages.Add(scheduledMessage);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} scheduled message {MessageId} in channel {ChannelId} for {ScheduledAt}",

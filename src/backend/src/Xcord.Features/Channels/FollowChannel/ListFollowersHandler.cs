@@ -32,7 +32,7 @@ public sealed class ListFollowersHandler(
         var userId = userIdResult.Value;
 
         // Caller must be a member of the source server
-        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken);
+        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken).ConfigureAwait(false);
         if (memberCheck.IsFailure) return memberCheck.Error;
 
         // Check channel exists and belongs to server
@@ -69,7 +69,7 @@ public sealed class ListFollowersHandler(
             CancellationToken ct) =>
         {
             var command = new ListFollowersCommand(serverId, channelId);
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User)
         .WithName("ListChannelFollowers")

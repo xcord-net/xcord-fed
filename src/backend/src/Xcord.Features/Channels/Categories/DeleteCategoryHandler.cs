@@ -50,7 +50,7 @@ public sealed class DeleteCategoryHandler(
         // Soft delete category (channels in this category get CategoryId set to null via SetNull FK behavior)
         category.SoftDelete();
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} deleted category {CategoryId} in server {ServerId}",
@@ -68,7 +68,7 @@ public sealed class DeleteCategoryHandler(
             CancellationToken ct) =>
         {
             var command = new DeleteCategoryCommand(serverId, categoryId);
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("DeleteCategory")

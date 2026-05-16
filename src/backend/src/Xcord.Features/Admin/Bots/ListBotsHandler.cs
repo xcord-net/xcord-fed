@@ -39,7 +39,7 @@ public sealed class ListBotsHandler(
             [FromServices] ListBotsHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new ListBotsQuery(), ct);
+            return await handler.ExecuteAsync(new ListBotsQuery(), ct).ConfigureAwait(false);
         })
         .RequireAuthorization(Policies.Admin)
         .WithName("ListBots")

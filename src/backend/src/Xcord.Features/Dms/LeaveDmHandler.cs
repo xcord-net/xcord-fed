@@ -44,7 +44,7 @@ public sealed class LeaveDmHandler(
             return Error.NotFound("NOT_MEMBER", "You are not a member of this DM channel");
         }
 
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -80,8 +80,8 @@ public sealed class LeaveDmHandler(
                 }
             }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
             // Notify all members (including the user who left) after save
             var memberRemovedPayload = new
@@ -92,7 +92,7 @@ public sealed class LeaveDmHandler(
             };
             foreach (var memberId in allMemberIds)
             {
-                await notificationService.NotifyUserAsync(memberId, "Notify_DmMemberRemoved", memberRemovedPayload);
+                await notificationService.NotifyUserAsync(memberId, "Notify_DmMemberRemoved", memberRemovedPayload, cancellationToken).ConfigureAwait(false);
             }
 
             logger.LogInformation(
@@ -103,7 +103,7 @@ public sealed class LeaveDmHandler(
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
     }

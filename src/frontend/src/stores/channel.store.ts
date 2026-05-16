@@ -5,14 +5,14 @@ import type { Channel, Category } from '../types/channel';
 import { parseCapabilities } from '../types/channel';
 
 function normalizeChannel(c: Channel): Channel {
-  const normalized = normalizeIds(c as unknown as Record<string, unknown>, 'id', 'serverId', 'conversationId', 'categoryId') as unknown as Channel;
+  const normalized = normalizeIds(c, 'id', 'serverId', 'conversationId', 'categoryId');
   // API returns capabilities as string enum names ("Chat", "Chat, Forum"); convert to bitfield
   normalized.capabilities = parseCapabilities(normalized.capabilities as unknown as string | number);
   return normalized;
 }
 
 function normalizeCategory(cat: Category): Category {
-  return normalizeIds(cat as unknown as Record<string, unknown>, 'id', 'serverId') as unknown as Category;
+  return normalizeIds(cat, 'id', 'serverId');
 }
 
 const store = createRoot(() => {

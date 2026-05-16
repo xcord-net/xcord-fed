@@ -61,7 +61,7 @@ public sealed class CreateDmByUsernameHandler(
             return Error.Forbidden("USER_BLOCKED", "Cannot open a DM with a blocked user");
 
         // Delegate to the ID-based handler
-        var result = await createDmHandler.Handle(new CreateDmRequest([recipient.Id]), cancellationToken);
+        var result = await createDmHandler.Handle(new CreateDmRequest([recipient.Id]), cancellationToken).ConfigureAwait(false);
 
         if (!result.IsSuccess)
             return result.Error;

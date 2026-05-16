@@ -55,7 +55,7 @@ public sealed class DeclineCallHandler(
             return Error.Forbidden("FORBIDDEN", "You are not a member of this DM channel");
         }
 
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -63,12 +63,12 @@ public sealed class DeclineCallHandler(
             call.Status = CallStatus.Declined;
             call.EndedAt = DateTimeOffset.UtcNow;
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
 
@@ -81,8 +81,8 @@ public sealed class DeclineCallHandler(
             RecipientId = currentUserId,
             Status = CallStatus.Declined
         };
-        await notificationService.NotifyUserAsync(call.CallerId, "Notify_CallEnded", callPayload);
-        await notificationService.NotifyUserAsync(currentUserId, "Notify_CallEnded", callPayload);
+        await notificationService.NotifyUserAsync(call.CallerId, "Notify_CallEnded", callPayload, cancellationToken).ConfigureAwait(false);
+        await notificationService.NotifyUserAsync(currentUserId, "Notify_CallEnded", callPayload, cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} declined call {CallId} in DM channel {DmChannelId}",
@@ -97,7 +97,7 @@ public sealed class DeclineCallHandler(
             [FromServices] DeclineCallHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new DeclineCallRequest(callId), ct);
+            return await handler.ExecuteAsync(new DeclineCallRequest(callId), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("DeclineCall")

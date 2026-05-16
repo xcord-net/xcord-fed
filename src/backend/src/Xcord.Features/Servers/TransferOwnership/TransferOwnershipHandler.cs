@@ -74,7 +74,7 @@ public sealed class TransferOwnershipHandler(
 
         server.OwnerId = request.TargetUserId;
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return new TransferOwnershipResponse(
             ServerId: server.Id,

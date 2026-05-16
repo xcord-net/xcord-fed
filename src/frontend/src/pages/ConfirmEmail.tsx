@@ -29,16 +29,17 @@ export default function ConfirmEmail() {
 
   return (
     <div class={styles.pageWrapper}>
-      <form onSubmit={handleSubmit} class={styles.card}>
+      <form data-testid="confirm-email-form" onSubmit={handleSubmit} class={styles.card}>
         <h1 data-testid="confirm-email-heading" class={styles.heading}>Confirm your email</h1>
         <p class={styles.description}>
           We sent a 6-digit code to your email address. Enter it below to verify your account.
         </p>
-        {error() && <p class={styles.errorText}>{error()}</p>}
+        {error() && <p data-testid="confirm-email-error" class={styles.errorText}>{error()}</p>}
         <div class={styles.fieldGroup}>
           <label for="confirmation-code" class={styles.label}>Confirmation Code</label>
           <input
             id="confirmation-code"
+            data-testid="confirmation-code-input"
             type="text"
             inputMode="numeric"
             maxLength={6}

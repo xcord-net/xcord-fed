@@ -91,7 +91,7 @@ public sealed class UpdateCategoryHandler(
         if (request.Name != null) category.Name = request.Name;
         if (request.Position.HasValue) category.Position = request.Position.Value;
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} updated category {CategoryId} in server {ServerId}",
@@ -122,7 +122,7 @@ public sealed class UpdateCategoryHandler(
                 Position: request.Position
             );
 
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("UpdateCategory")

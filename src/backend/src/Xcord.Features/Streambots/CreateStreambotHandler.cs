@@ -133,7 +133,7 @@ public sealed class CreateStreambotHandler(
         };
 
         dbContext.StreamBots.Add(streambot);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} created streambot {StreamBotId} ({Platform}) in channel {ChannelId}",

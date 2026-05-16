@@ -16,11 +16,11 @@ public sealed class InstallAppHandler(AppDbContext dbContext)
 {
     public async Task<Result<InstallAppResponse>> Handle(InstallAppCommand request, CancellationToken ct)
     {
-        var app = await dbContext.AppListings.FirstOrDefaultAsync(a => a.Id == request.AppId && a.IsPublished, ct);
+        var app = await dbContext.AppListings.FirstOrDefaultAsync(a => a.Id == request.AppId && a.IsPublished, ct).ConfigureAwait(false);
         if (app == null) return Error.NotFound("APP_NOT_FOUND", "App not found");
 
         app.InstallCount++;
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
         return new InstallAppResponse(app.Id, "installed");
     }
 

@@ -9,6 +9,7 @@ using Xcord.Entities;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Options;
 using Xcord.Infrastructure.Services;
+using Xcord.Shared.Extensions;
 
 namespace Xcord.Features.Federation;
 
@@ -107,11 +108,11 @@ public sealed class AcceptFederationFollowHandler(
             dbContext.FederationFollows.Add(follow);
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "Accepted federation follow from {RemoteUrl} for channel {LocalChannelId}",
-            normalizedUrl, localChannelId);
+            normalizedUrl.SafeForLog(), localChannelId);
 
         return new AcceptFederationFollowResponse(true);
     }

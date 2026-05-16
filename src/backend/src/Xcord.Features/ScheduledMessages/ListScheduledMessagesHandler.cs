@@ -72,7 +72,7 @@ public sealed class ListScheduledMessagesHandler(
             CancellationToken ct) =>
         {
             var request = new ListScheduledMessagesRequest(ChannelId: channelId);
-            return await handler.ExecuteAsync(request, ct);
+            return await handler.ExecuteAsync(request, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("ListScheduledMessages")

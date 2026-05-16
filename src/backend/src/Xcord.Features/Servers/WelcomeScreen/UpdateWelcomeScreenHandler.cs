@@ -23,7 +23,7 @@ public sealed class UpdateWelcomeScreenHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        var perm = await roleService.EnsureServerRole(userId, request.ServerId, Role.ManageServer);
+        var perm = await roleService.EnsureServerRole(userId, request.ServerId, Role.ManageServer).ConfigureAwait(false);
         if (perm.IsFailure) return Error.Forbidden("MISSING_PERMISSIONS", "You do not have permission");
 
         var now = DateTimeOffset.UtcNow;
@@ -60,7 +60,7 @@ public sealed class UpdateWelcomeScreenHandler(
             });
         }
 
-        await dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
         var channels = request.Channels;
         return new WelcomeScreenResponse(screen.Id, screen.ServerId, screen.Description, screen.IsEnabled, channels);

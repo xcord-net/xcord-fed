@@ -44,7 +44,7 @@ public sealed class RemoveFriendHandler(
         // Soft delete the friendship
         friendship.SoftDelete();
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} removed friendship {FriendshipId}",
@@ -59,7 +59,7 @@ public sealed class RemoveFriendHandler(
             [FromServices] RemoveFriendHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(new RemoveFriendRequest(id), ct);
+            return await handler.ExecuteAsync(new RemoveFriendRequest(id), ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("RemoveFriend")

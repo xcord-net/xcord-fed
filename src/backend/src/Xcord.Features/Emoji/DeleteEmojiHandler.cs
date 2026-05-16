@@ -73,7 +73,7 @@ public sealed class DeleteEmojiHandler(
 
         // Soft delete
         emoji.SoftDelete();
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
             "User {UserId} deleted emoji {EmojiName} (ID: {EmojiId}) from server {ServerId}",
@@ -91,7 +91,7 @@ public sealed class DeleteEmojiHandler(
             CancellationToken ct) =>
         {
             var command = new DeleteEmojiCommand(serverId, emojiId);
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("DeleteEmoji")

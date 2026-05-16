@@ -43,7 +43,7 @@ public sealed class RetractVoteHandler(
         }
 
         // Begin transaction
-        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -74,8 +74,8 @@ public sealed class RetractVoteHandler(
                 option.VoteCount--;
             }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
             // Notify after save
             await notificationService.NotifyConversationAsync(poll.Message.ConversationId, "Poll_Voted", new
@@ -87,7 +87,7 @@ public sealed class RetractVoteHandler(
                     Id = o.Id,
                     VoteCount = o.VoteCount
                 }).ToList()
-            });
+            }, cancellationToken);
 
             logger.LogInformation(
                 "User {UserId} retracted vote on poll {PollId}",
@@ -103,7 +103,7 @@ public sealed class RetractVoteHandler(
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
     }
@@ -116,7 +116,7 @@ public sealed class RetractVoteHandler(
             CancellationToken ct) =>
         {
             var command = new RetractVoteCommand(PollId: pollId);
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("RetractVote")

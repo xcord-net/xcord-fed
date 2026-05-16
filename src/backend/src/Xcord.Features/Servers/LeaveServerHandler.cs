@@ -94,7 +94,7 @@ public sealed class LeaveServerHandler(
             }
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Notify after save
         if (systemMessageConversationId.HasValue && systemMessageId.HasValue)
@@ -104,14 +104,14 @@ public sealed class LeaveServerHandler(
                 MessageId = systemMessageId.Value,
                 ConversationId = systemMessageConversationId.Value,
                 AuthorId = (long?)null
-            });
+            }, cancellationToken);
         }
 
         await notificationService.NotifyServerAsync(request.ServerId, "Member_Left", new
         {
             ServerId = request.ServerId,
             UserId = userId
-        });
+        }, cancellationToken);
 
         logger.LogInformation(
             "User {UserId} left server {ServerId}",
@@ -128,7 +128,7 @@ public sealed class LeaveServerHandler(
             CancellationToken ct) =>
         {
             var command = new LeaveServerCommand(id);
-            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent());
+            return await handler.ExecuteAsync(command, ct, _ => Results.NoContent()).ConfigureAwait(false);
         })
         .RequireAnyAuthorization(Policies.User, Policies.Bot)
         .WithName("LeaveServer")

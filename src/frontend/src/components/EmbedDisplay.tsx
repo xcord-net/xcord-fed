@@ -1,6 +1,7 @@
 import { Show } from 'solid-js';
 import type { MessageEmbed } from '../types/message';
 import styles from './EmbedDisplay.module.css';
+import { DEFAULT_GROUP_COLOR } from '../constants/colors';
 
 interface EmbedDisplayProps {
   embed: MessageEmbed;
@@ -11,7 +12,7 @@ const HEX_COLOR_RE = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/;
 export default function EmbedDisplay(props: EmbedDisplayProps) {
   const borderColor = () => {
     const c = props.embed.color;
-    return c && HEX_COLOR_RE.test(c) ? c : '#d4943a';
+    return c && HEX_COLOR_RE.test(c) ? c : DEFAULT_GROUP_COLOR;
   };
 
   return (

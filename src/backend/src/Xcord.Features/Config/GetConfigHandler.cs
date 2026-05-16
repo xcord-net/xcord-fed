@@ -18,7 +18,9 @@ public sealed class GetConfigHandler : IEndpoint
             [FromServices] IOptions<HubOptions> hubOptions) =>
         {
             var hubUrl = hubOptions.Value.Enabled ? hubOptions.Value.Origin : null;
-            return Results.Ok(new GetConfigResponse(authOptions.Value.RegistrationEnabled, hubUrl));
+            return Results.Ok(new GetConfigResponse(
+                authOptions.Value.RegistrationEnabled,
+                hubUrl));
         })
         .AllowAnonymous()
         .WithName("GetConfig")

@@ -15,7 +15,7 @@ public sealed class UpdateBatchPreferenceHandler(IHubClient hubClient)
     public async Task<Result<UpdateBatchPreferenceResponse>> Handle(
         UpdateBatchPreferenceCommand request, CancellationToken cancellationToken)
     {
-        var success = await hubClient.UpdateBatchPreferenceAsync(request.Enabled, cancellationToken);
+        var success = await hubClient.UpdateBatchPreferenceAsync(request.Enabled, cancellationToken).ConfigureAwait(false);
         if (!success)
             return Error.Failure("HUB_UNAVAILABLE", "Unable to update batch preference on hub");
 
@@ -29,7 +29,7 @@ public sealed class UpdateBatchPreferenceHandler(IHubClient hubClient)
             UpdateBatchPreferenceHandler handler,
             CancellationToken ct) =>
         {
-            return await handler.ExecuteAsync(command, ct);
+            return await handler.ExecuteAsync(command, ct).ConfigureAwait(false);
         })
         .RequireAuthorization(Policies.Admin)
         .Produces<UpdateBatchPreferenceResponse>(200)
