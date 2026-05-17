@@ -20,6 +20,8 @@ import { useUnread } from './unread.store';
 import { useBroadcast } from './broadcast.store';
 import { useStreambot } from './streambot.store';
 import { useSignalR } from './signalr.store';
+import { useTiers } from './tier.store';
+import { useSubscriptions } from './subscription.store';
 
 /**
  * Resets all application stores to their initial state.
@@ -51,4 +53,6 @@ export async function resetAllStores(): Promise<void> {
   useUnread().reset();
   useBroadcast().reset();
   useStreambot().reset();
+  useTiers().reset();
+  useSubscriptions().reset();
 }

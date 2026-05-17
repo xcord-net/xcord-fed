@@ -2,7 +2,7 @@ import { createSignal, createRoot } from 'solid-js';
 import type { ForumPost } from '../types/forum';
 
 export type SettingsTab = 'profile' | 'blocks' | 'notifications' | 'notes';
-export type ServerSettingsTab = 'overview' | 'automod' | 'bans' | 'audit-log' | 'emoji' | 'stickers' | 'vanity-url' | 'templates' | 'insights' | 'invites' | 'app-directory' | 'bots' | 'welcome-screen' | 'updates';
+export type ServerSettingsTab = 'overview' | 'channels-admin' | 'automod' | 'bans' | 'audit-log' | 'emoji' | 'stickers' | 'vanity-url' | 'templates' | 'insights' | 'invites' | 'app-directory' | 'bots' | 'welcome-screen' | 'updates' | 'tiers';
 
 const store = createRoot(() => {
   const [showSearch, setShowSearch] = createSignal(false);

@@ -19,6 +19,8 @@ import BotsTab from './BotsTab';
 import OwnershipTransfer from './OwnershipTransfer';
 import WelcomeScreen from './WelcomeScreen';
 import UpdatesTab from './UpdatesTab';
+import TierManager from './TierManager';
+import ChannelReorder from './ChannelReorder';
 import Modal from './ui/Modal';
 import { getErrorMessage } from '../utils/errors';
 import styles from './ServerSettings.module.css';
@@ -30,7 +32,7 @@ interface ServerSettingsProps {
 }
 
 type NotificationLevel = 'AllMessages' | 'OnlyMentions' | 'Nothing';
-type SettingsTab = 'overview' | 'automod' | 'bans' | 'audit-log' | 'emoji' | 'stickers' | 'vanity-url' | 'templates' | 'insights' | 'invites' | 'app-directory' | 'bots' | 'welcome-screen' | 'updates';
+type SettingsTab = 'overview' | 'channels-admin' | 'automod' | 'bans' | 'audit-log' | 'emoji' | 'stickers' | 'vanity-url' | 'templates' | 'insights' | 'invites' | 'app-directory' | 'bots' | 'welcome-screen' | 'updates' | 'tiers';
 
 const NOTIFICATION_OPTIONS: { label: string; value: NotificationLevel }[] = [
   { label: 'All Messages', value: 'AllMessages' },
@@ -38,8 +40,17 @@ const NOTIFICATION_OPTIONS: { label: string; value: NotificationLevel }[] = [
   { label: 'Nothing', value: 'Nothing' },
 ];
 
-const TABS: { id: SettingsTab; label: string; ownerOnly?: boolean }[] = [
+interface TabDef {
+  id: SettingsTab;
+  label: string;
+  ownerOnly?: boolean;
+  /** When set, tab is hidden unless this config flag is true. */
+  requiresFlag?: 'canUseMemberTiers';
+}
+
+const TABS: TabDef[] = [
   { id: 'overview', label: 'Overview' },
+  { id: 'channels-admin', label: 'Channel Order', ownerOnly: true },
   { id: 'automod', label: 'Automod', ownerOnly: true },
   { id: 'bans', label: 'Bans', ownerOnly: true },
   { id: 'audit-log', label: 'Audit Log', ownerOnly: true },
@@ -49,6 +60,7 @@ const TABS: { id: SettingsTab; label: string; ownerOnly?: boolean }[] = [
   { id: 'templates', label: 'Templates', ownerOnly: true },
   { id: 'insights', label: 'Insights', ownerOnly: true },
   { id: 'invites', label: 'Invites', ownerOnly: true },
+  { id: 'tiers', label: 'Tiers', ownerOnly: true, requiresFlag: 'canUseMemberTiers' },
   { id: 'app-directory', label: 'App Directory' },
   { id: 'bots', label: 'Bots', ownerOnly: true },
   { id: 'welcome-screen', label: 'Welcome Screen' },
@@ -68,7 +80,14 @@ export default function ServerSettings(props: ServerSettingsProps) {
     const userId = auth.user?.id;
     return !!server && !!userId && server.ownerId === userId;
   };
-  const visibleTabs = () => TABS.filter((tab) => !tab.ownerOnly || isOwner());
+  const [canUseMemberTiers, setCanUseMemberTiers] = createSignal(false);
+  const isFlagEnabled = (flag: TabDef['requiresFlag']): boolean => {
+    if (!flag) return true;
+    if (flag === 'canUseMemberTiers') return canUseMemberTiers();
+    return false;
+  };
+  const visibleTabs = () =>
+    TABS.filter((tab) => (!tab.ownerOnly || isOwner()) && isFlagEnabled(tab.requiresFlag));
 
   const [activeTab, setActiveTab] = createSignal<SettingsTab>(props.initialTab ?? 'overview');
   const [name, setName] = createSignal('');
@@ -90,6 +109,14 @@ export default function ServerSettings(props: ServerSettingsProps) {
     if (server) {
       setName(server.name);
       setDescription(server.description ?? '');
+    }
+    // Fetch instance config to determine whether the Tiers tab is available.
+    // The flag is also surfaced on the public /api/v1/config payload.
+    try {
+      const config = await api.get<{ canUseMemberTiers?: boolean }>('/api/v1/config');
+      setCanUseMemberTiers(!!config.canUseMemberTiers);
+    } catch {
+      // Treat as disabled on failure; the Tiers tab simply won't appear.
     }
   });
 
@@ -389,6 +416,18 @@ export default function ServerSettings(props: ServerSettingsProps) {
           <div class={styles.tabPadding}>
             <UpdatesTab />
           </div>
+        </Show>
+
+        {/* Channel Order (drag-and-drop) tab */}
+        <Show when={activeTab() === 'channels-admin'}>
+          <div class={styles.tabPadding}>
+            <ChannelReorder serverId={props.serverId} />
+          </div>
+        </Show>
+
+        {/* Tiers tab */}
+        <Show when={activeTab() === 'tiers'}>
+          <TierManager serverId={props.serverId} />
         </Show>
       </Modal>
 

@@ -14,12 +14,16 @@ import InviteModal from '../InviteModal';
 import ServerSettings from '../ServerSettings';
 import VoicePanel from '../VoicePanel';
 import Menu from '../ui/Menu';
+import Modal from '../ui/Modal';
+import CreateServerModal from '../CreateServerModal';
+import MembershipPanel from '../MembershipPanel';
 import ServerHeader from './ServerHeader';
 import ChannelList from './ChannelList';
 import UserStatusBar from './UserStatusBar';
 import LeaveServerModal from './LeaveServerModal';
 import CreateChannelModal from './CreateChannelModal';
 import { makeChannelListKeyDown, toggleFavoriteChannel } from './helpers';
+import Flexbox from '../ui/Flexbox';
 import styles from './Sidebar.module.css';
 
 export default function Sidebar() {
@@ -46,6 +50,9 @@ export default function Sidebar() {
   const [contextMenuChannelId, setContextMenuChannelId] = createSignal<string | null>(null);
   const [contextMenuPos, setContextMenuPos] = createSignal<{ x: number; y: number }>({ x: 0, y: 0 });
   const [favorites, setFavorites] = createSignal<Set<string>>(new Set());
+  const [showCreateServerModal, setShowCreateServerModal] = createSignal(false);
+  const [showMembershipModal, setShowMembershipModal] = createSignal(false);
+  const [canUseMemberTiers, setCanUseMemberTiers] = createSignal(false);
 
   onMount(async () => {
     try {
@@ -54,6 +61,22 @@ export default function Sidebar() {
     } catch {
       // Best-effort
     }
+    // Fetch the public config flag so we know whether to surface the Membership menu item.
+    try {
+      const config = await api.get<{ canUseMemberTiers?: boolean }>('/api/v1/config');
+      setCanUseMemberTiers(!!config.canUseMemberTiers);
+    } catch {
+      // Best-effort
+    }
+  });
+
+  /** Membership is shown to members (non-owners) on instances that have the tier feature enabled. */
+  const canShowMembership = createMemo(() => {
+    if (!canUseMemberTiers()) return false;
+    const server = currentServer();
+    const userId = authStore.user?.id;
+    if (!server || !userId) return false;
+    return server.ownerId !== userId;
   });
 
   const currentServer = createMemo(() =>
@@ -132,7 +155,8 @@ export default function Sidebar() {
   const closeServerMenu = () => { setShowServerMenu(false); setIsLocked(false); };
 
   return (
-    <div
+    <Flexbox
+      direction="vertical"
       class={`sidebar ${styles.sidebar}`}
       classList={{ 'sidebar-locked': isLocked() }}
     >
@@ -143,6 +167,7 @@ export default function Sidebar() {
             server={server()}
             selectedServerId={serverStore.selectedServerId}
             showServerMenu={showServerMenu()}
+            canShowMembership={canShowMembership()}
             onMenuOpen={() => { setShowServerMenu(!showServerMenu()); setIsLocked(true); }}
             onMenuClose={closeServerMenu}
             onNavigateToServer={navigateToServer}
@@ -150,6 +175,7 @@ export default function Sidebar() {
             onOpenServerSettings={() => modals.openServerSettings()}
             onOpenInvite={() => setShowInviteModal(true)}
             onToggleEvents={() => modals.toggleEvents()}
+            onOpenMembership={() => setShowMembershipModal(true)}
             onLeaveServer={() => setShowLeaveConfirm(true)}
           />
         )}
@@ -199,6 +225,19 @@ export default function Sidebar() {
       <div class={`expanded-only ${styles.voicePanelWrapper}`}>
         <VoicePanel />
       </div>
+
+      {/* Create-server affordance for users on instances without a hub iframe.
+       *  When the hub overlay is present, server creation typically happens at
+       *  the hub level; this button is still safe to show because it just
+       *  triggers POST /api/v1/servers locally. */}
+      <button
+        data-testid="sidebar-create-server-button"
+        type="button"
+        class={`expanded-only ${styles.menuItem}`}
+        onClick={() => setShowCreateServerModal(true)}
+      >
+        + Create Server
+      </button>
 
       {/* Bottom user panel */}
       <UserStatusBar
@@ -253,6 +292,24 @@ export default function Sidebar() {
         onClose={() => { setShowCreateChannel(false); resetCreateChannelForm(); }}
         onSubmit={handleCreateChannel}
       />
-    </div>
+
+      {/* Create server modal */}
+      <Show when={showCreateServerModal()}>
+        <CreateServerModal onClose={() => setShowCreateServerModal(false)} />
+      </Show>
+
+      {/* Membership modal (member-facing tier subscription) */}
+      <Show when={showMembershipModal() && serverStore.selectedServerId}>
+        <Modal
+          data-testid="membership-modal"
+          open={true}
+          onClose={() => setShowMembershipModal(false)}
+          title="Server Membership"
+          size="md"
+        >
+          <MembershipPanel serverId={serverStore.selectedServerId!} />
+        </Modal>
+      </Show>
+    </Flexbox>
   );
 }

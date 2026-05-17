@@ -3,6 +3,7 @@ import Menu from '../ui/Menu';
 import { tooltip } from '../../directives/tooltip';
 import { ChevronDownIcon, PlusIcon } from './icons';
 import sharedStyles from './Sidebar.module.css';
+import Flexbox from '../ui/Flexbox';
 import styles from './ServerHeader.module.css';
 
 // Ensure the directive is not tree-shaken
@@ -12,6 +13,10 @@ export interface ServerHeaderProps {
   server: { id: string; name: string; iconUrl?: string };
   selectedServerId: string | null;
   showServerMenu: boolean;
+  /** When true, render the Membership menu item. Gated by caller on
+   *  `canUseMemberTiers` flag AND the current user NOT being the server owner
+   *  (owners manage tiers via TierManager; they don't subscribe to their own server). */
+  canShowMembership?: boolean;
   onMenuOpen: () => void;
   onMenuClose: () => void;
   onNavigateToServer: (serverId: string) => void;
@@ -19,6 +24,7 @@ export interface ServerHeaderProps {
   onOpenServerSettings: () => void;
   onOpenInvite: () => void;
   onToggleEvents: () => void;
+  onOpenMembership?: () => void;
   onLeaveServer: () => void;
 }
 
@@ -29,7 +35,7 @@ export default function ServerHeader(props: ServerHeaderProps) {
     name.length <= 4 ? name : name.split(/\s+/).map(w => w[0]).join('').slice(0, 3).toUpperCase();
 
   return (
-    <div class={styles.serverHeader}>
+    <Flexbox align="center" gap={0.5} class={styles.serverHeader}>
       <button
         data-testid="nav-server-icon"
         aria-label={props.server.name}
@@ -106,6 +112,17 @@ export default function ServerHeader(props: ServerHeaderProps) {
         >
           Scheduled Events
         </button>
+        <Show when={props.canShowMembership}>
+          <button
+            data-testid="server-menu-membership"
+            type="button"
+            role="menuitem"
+            onClick={() => { props.onOpenMembership?.(); props.onMenuClose(); }}
+            class={sharedStyles.menuItem}
+          >
+            Membership
+          </button>
+        </Show>
         <div class={sharedStyles.menuDivider} />
         <button
           data-testid="server-menu-leave"
@@ -117,6 +134,6 @@ export default function ServerHeader(props: ServerHeaderProps) {
           Leave Server
         </button>
       </Menu>
-    </div>
+    </Flexbox>
   );
 }

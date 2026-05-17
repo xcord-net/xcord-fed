@@ -1,0 +1,144 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.heading {
+  color: white;
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.errorBanner,
+.disabledBanner {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-danger-bg);
+  color: var(--color-xcord-danger-text);
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.disabledBanner {
+  background-color: var(--color-xcord-warn-bg, #3a2e0a);
+  color: var(--color-xcord-warn-text, #f0c674);
+  border: 1px solid var(--color-xcord-warn-border, #6e5418);
+}
+
+.currentSubscription {
+  padding: 1rem;
+  background-color: var(--color-xcord-bg-primary);
+  border: 1px solid var(--color-xcord-border);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.subscriptionTitle {
+  color: white;
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+.subscriptionMeta {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.statusActive {
+  background-color: var(--color-xcord-success, #43b581);
+  color: white;
+}
+
+.statusPastDue {
+  background-color: var(--color-xcord-warn-bg, #f0a020);
+  color: white;
+}
+
+.statusInactive {
+  background-color: var(--color-xcord-text-muted);
+  color: white;
+}
+
+.cancelButton {
+  align-self: flex-start;
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  color: var(--color-xcord-danger-text);
+  border: 1px solid var(--color-xcord-danger-border, var(--color-xcord-border));
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.tierGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tierCard {
+  padding: 0.75rem 1rem;
+  background-color: var(--color-xcord-bg-primary);
+  border: 1px solid var(--color-xcord-border);
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tierInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.tierName {
+  color: white;
+  font-weight: 600;
+}
+
+.tierPrice {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.tierDescription {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+}
+
+.subscribeButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-xcord-accent);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.subscribeButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.emptyState {
+  text-align: center;
+  color: var(--color-xcord-text-muted);
+  padding: 2rem;
+}
