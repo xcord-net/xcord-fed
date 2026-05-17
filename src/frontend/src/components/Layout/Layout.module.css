@@ -1,14 +1,11 @@
 /* ===== Root layout ===== */
 .root {
   height: 100vh;
-  display: flex;
-  flex-direction: column;
   background-color: var(--color-xcord-bg-primary);
   color: var(--color-xcord-text-primary);
 }
 
 .mainRow {
-  display: flex;
   flex: 1;
   min-height: 0;
 }
@@ -16,9 +13,6 @@
 /* ===== Loading / empty state ===== */
 .emptyState {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .emptyStateText {
@@ -28,15 +22,12 @@
 /* ===== Channel view wrapper ===== */
 .channelView {
   flex: 1;
-  display: flex;
-  flex-direction: column;
   min-width: 0;
 }
 
 /* ===== Messages + right panels row ===== */
 .contentRow {
   flex: 1;
-  display: flex;
   min-height: 0;
 }
 

@@ -2,6 +2,7 @@ import { createSignal, Show } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import Modal from './ui/Modal';
+import Flexbox from './ui/Flexbox';
 import styles from './AccountDeletion.module.css';
 
 interface AccountDeletionProps {
@@ -152,7 +153,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
             />
           </div>
 
-          <div class={styles.modalActions}>
+          <Flexbox gap={0.75}>
             <button
               data-testid="delete-account-confirm-button"
               class={styles.confirmDeleteButton}
@@ -173,7 +174,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
             >
               Cancel
             </button>
-          </div>
+          </Flexbox>
         </div>
       </Modal>
     </div>

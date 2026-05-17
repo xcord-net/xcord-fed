@@ -1,6 +1,7 @@
 import { createSignal, onMount } from 'solid-js';
 import { api } from '../api/client';
 import Modal from './ui/Modal';
+import Flexbox from './ui/Flexbox';
 import { getErrorMessage } from '../utils/errors';
 import styles from './InviteModal.module.css';
 
@@ -182,7 +183,7 @@ export default function InviteModal(props: InviteModalProps) {
         )}
 
         {/* Actions */}
-        <div class={styles.actionsRow}>
+        <Flexbox justify="between" align="center">
           <button
             data-testid="invite-generate-button"
             type="button"
@@ -200,7 +201,7 @@ export default function InviteModal(props: InviteModalProps) {
           >
             Done
           </button>
-        </div>
+        </Flexbox>
       </div>
     </Modal>
   );

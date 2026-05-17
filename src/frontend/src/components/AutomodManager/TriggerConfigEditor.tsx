@@ -1,4 +1,5 @@
 import { Show } from 'solid-js';
+import Flexbox from '../ui/Flexbox';
 import styles from './TriggerConfigEditor.module.css';
 import type { TriggerType } from './helpers';
 
@@ -63,7 +64,7 @@ export default function TriggerConfigEditor(props: TriggerConfigEditorProps) {
             placeholder="badword, spam, etc."
           />
         </div>
-        <label class={styles.checkboxLabel}>
+        <Flexbox as="label" align="center" gap={0.5} class={styles.checkboxLabel}>
           <input
             type="checkbox"
             aria-label="Match whole word only"
@@ -71,7 +72,7 @@ export default function TriggerConfigEditor(props: TriggerConfigEditorProps) {
             onChange={(e) => setField('matchWholeWord', e.currentTarget.checked)}
           />
           Match whole word only
-        </label>
+        </Flexbox>
       </Show>
 
       <Show when={props.triggerType === 'Regex'}>
@@ -86,7 +87,7 @@ export default function TriggerConfigEditor(props: TriggerConfigEditorProps) {
             placeholder="e.g. (buy|sell)\s+crypto"
           />
         </div>
-        <label class={styles.checkboxLabel}>
+        <Flexbox as="label" align="center" gap={0.5} class={styles.checkboxLabel}>
           <input
             type="checkbox"
             aria-label="Case sensitive"
@@ -94,7 +95,7 @@ export default function TriggerConfigEditor(props: TriggerConfigEditorProps) {
             onChange={(e) => setField('caseSensitive', e.currentTarget.checked)}
           />
           Case sensitive
-        </label>
+        </Flexbox>
       </Show>
 
       <Show when={props.triggerType === 'MentionSpam'}>

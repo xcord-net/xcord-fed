@@ -1,3 +1,4 @@
+import Flexbox from '../ui/Flexbox';
 import styles from './GroupCreateForm.module.css';
 
 interface GroupCreateFormProps {
@@ -27,7 +28,7 @@ export default function GroupCreateForm(props: GroupCreateFormProps) {
           placeholder="New Group"
         />
       </div>
-      <div class={styles.formActions}>
+      <Flexbox gap={0.5} class={styles.formActions}>
         <button
           type="submit"
           data-testid="create-group-submit-button"
@@ -43,7 +44,7 @@ export default function GroupCreateForm(props: GroupCreateFormProps) {
         >
           Cancel
         </button>
-      </div>
+      </Flexbox>
     </form>
   );
 }

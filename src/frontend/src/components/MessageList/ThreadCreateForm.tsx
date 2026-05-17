@@ -1,3 +1,4 @@
+import Flexbox from '../ui/Flexbox';
 import styles from './ThreadCreateForm.module.css';
 
 interface ThreadCreateFormProps {
@@ -10,7 +11,7 @@ interface ThreadCreateFormProps {
 /** Inline form rendered below a message for creating a thread anchored at it. */
 export default function ThreadCreateForm(props: ThreadCreateFormProps) {
   return (
-    <div data-testid="thread-create-form" class={styles.threadCreateForm}>
+    <Flexbox align="center" gap={0.5} data-testid="thread-create-form" class={styles.threadCreateForm}>
       <input
         id="thread-name"
         data-testid="thread-name-input"
@@ -37,6 +38,6 @@ export default function ThreadCreateForm(props: ThreadCreateFormProps) {
       >
         Cancel
       </button>
-    </div>
+    </Flexbox>
   );
 }

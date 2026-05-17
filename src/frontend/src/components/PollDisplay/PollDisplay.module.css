@@ -15,7 +15,5 @@
 }
 
 .optionList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  /* layout via Flexbox */
 }

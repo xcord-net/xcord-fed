@@ -3,6 +3,7 @@ import type { Broadcast, BroadcastLayoutPreset } from '../../stores/broadcast.st
 import StageSlot from '../StageSlot';
 import StreambotStatusBadge from '../StreambotStatusBadge';
 import { LAYOUTS } from './constants';
+import Flexbox from '../ui/Flexbox';
 import styles from './LivePanel.module.css';
 
 interface Streambot {
@@ -44,12 +45,12 @@ interface LivePanelProps {
 
 export default function LivePanel(props: LivePanelProps) {
   return (
-    <div class={styles.liveWrap}>
-      <div class={styles.liveHeader}>
-        <div class={styles.liveTitleWrap}>
+    <Flexbox direction="vertical" class={styles.liveWrap}>
+      <Flexbox align="center" justify="between" class={styles.liveHeader}>
+        <Flexbox align="center" gap={0.5} class={styles.liveTitleWrap}>
           <span class={styles.liveDot} aria-hidden="true" />
           <h2 class={styles.liveTitle}>Broadcasting</h2>
-        </div>
+        </Flexbox>
         <button
           type="button"
           class={styles.endButton}
@@ -59,10 +60,10 @@ export default function LivePanel(props: LivePanelProps) {
         >
           {props.ending ? 'Ending...' : 'End Broadcast'}
         </button>
-      </div>
+      </Flexbox>
 
       <div class={styles.liveBody}>
-        <div class={styles.previewCol}>
+        <Flexbox direction="vertical" gap={0.75} class={styles.previewCol}>
           <div class={styles.previewWrap}>
             <video
               ref={(el) => props.setPreviewRef(el)}
@@ -71,7 +72,7 @@ export default function LivePanel(props: LivePanelProps) {
               playsinline
               class={styles.previewVideo}
             />
-            <div class={styles.previewControls}>
+            <Flexbox gap={0.5} class={styles.previewControls}>
               <button
                 type="button"
                 class={`${styles.controlButton} ${props.isMuted ? styles.controlButtonActive : ''}`}
@@ -90,11 +91,11 @@ export default function LivePanel(props: LivePanelProps) {
               >
                 {props.isCameraOff ? 'Camera On' : 'Camera Off'}
               </button>
-            </div>
+            </Flexbox>
           </div>
 
           <Show when={props.broadcast.streambots.length > 0}>
-            <div class={styles.streambotStatuses}>
+            <Flexbox wrap="wrap" gap={0.375} class={styles.streambotStatuses}>
               <For each={props.broadcast.streambots}>
                 {(sb) => (
                   <StreambotStatusBadge
@@ -104,14 +105,14 @@ export default function LivePanel(props: LivePanelProps) {
                   />
                 )}
               </For>
-            </div>
+            </Flexbox>
           </Show>
-        </div>
+        </Flexbox>
 
-        <div class={styles.controlCol}>
-          <section class={styles.section}>
+        <Flexbox direction="vertical" gap={1} class={styles.controlCol}>
+          <Flexbox as="section" direction="vertical" gap={0.75} class={styles.section}>
             <h3 class={styles.sectionHeading}>Layout</h3>
-            <div class={styles.layoutRow}>
+            <Flexbox wrap="wrap" gap={0.375} class={styles.layoutRow}>
               <For each={LAYOUTS}>
                 {(layout) => (
                   <button
@@ -124,10 +125,10 @@ export default function LivePanel(props: LivePanelProps) {
                   </button>
                 )}
               </For>
-            </div>
-          </section>
+            </Flexbox>
+          </Flexbox>
 
-          <section class={styles.section}>
+          <Flexbox as="section" direction="vertical" gap={0.75} class={styles.section}>
             <h3 class={styles.sectionHeading}>Stage</h3>
             <div class={styles.stageGrid}>
               <For each={props.slots}>
@@ -146,18 +147,18 @@ export default function LivePanel(props: LivePanelProps) {
                 }}
               </For>
             </div>
-          </section>
+          </Flexbox>
 
-          <section class={styles.section}>
+          <Flexbox as="section" direction="vertical" gap={0.75} class={styles.section}>
             <h3 class={styles.sectionHeading}>Active Streambots</h3>
             <Show
               when={props.streambots.length > 0}
               fallback={<p class={styles.emptyText}>No streambots configured.</p>}
             >
-              <div class={styles.streambotList}>
+              <Flexbox direction="vertical" gap={0.375} class={styles.streambotList}>
                 <For each={props.streambots}>
                   {(bot) => (
-                    <label class={styles.streambotRow}>
+                    <Flexbox as="label" align="center" gap={0.5} class={styles.streambotRow}>
                       <input
                         type="checkbox"
                         checked={props.selectedStreambotIds.has(bot.id)}
@@ -166,18 +167,18 @@ export default function LivePanel(props: LivePanelProps) {
                       />
                       <span class={styles.streambotName}>{bot.name}</span>
                       <span class={styles.streambotPlatform}>{bot.platform}</span>
-                    </label>
+                    </Flexbox>
                   )}
                 </For>
-              </div>
+              </Flexbox>
             </Show>
-          </section>
-        </div>
+          </Flexbox>
+        </Flexbox>
       </div>
 
       <Show when={props.error}>
         <div role="alert" class={styles.errorMsg}>{props.error}</div>
       </Show>
-    </div>
+    </Flexbox>
   );
 }

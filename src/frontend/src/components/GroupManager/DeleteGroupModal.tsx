@@ -1,4 +1,5 @@
 import Modal from '../ui/Modal';
+import Flexbox from '../ui/Flexbox';
 import styles from './DeleteGroupModal.module.css';
 
 interface DeleteGroupModalProps {
@@ -22,7 +23,7 @@ export default function DeleteGroupModal(props: DeleteGroupModalProps) {
         <p class={styles.dialogText}>
           Are you sure you want to delete the group "{props.groupName}"? Members with this group will lose its roles.
         </p>
-        <div class={styles.dialogActions}>
+        <Flexbox justify="end" gap={0.75} class={styles.dialogActions}>
           <button
             class={styles.dialogCancelButton}
             onClick={props.onClose}
@@ -36,7 +37,7 @@ export default function DeleteGroupModal(props: DeleteGroupModalProps) {
           >
             {props.isDeleting ? 'Deleting...' : 'Delete'}
           </button>
-        </div>
+        </Flexbox>
       </div>
     </Modal>
   );

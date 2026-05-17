@@ -5,6 +5,7 @@ import Modal from '../ui/Modal';
 import UserNotes from '../UserNotes';
 import UserProfileEditor from '../UserProfileEditor';
 import { useModals } from '../../stores/modal.store';
+import Flexbox from '../ui/Flexbox';
 import styles from './SettingsModal.module.css';
 
 export default function SettingsModal() {
@@ -13,7 +14,7 @@ export default function SettingsModal() {
   return (
     <Modal data-testid="user-settings-modal" open={modals.showSettings !== null} onClose={() => modals.closeSettings()} aria-label="User Settings" size="lg">
       <div id="settings-modal-panel">
-        <div class={styles.settingsTabs}>
+        <Flexbox class={styles.settingsTabs}>
           <button
             data-testid="settings-tab-profile"
             class={`${styles.settingsTab}${modals.showSettings === 'profile' ? ` ${styles.settingsTabActive}` : ''}`}
@@ -40,7 +41,7 @@ export default function SettingsModal() {
           >
             User Notes
           </button>
-        </div>
+        </Flexbox>
         <Show when={modals.showSettings === 'profile'}><UserProfileEditor /></Show>
         <Show when={modals.showSettings === 'notifications'}><NotificationSettings /></Show>
         <Show when={modals.showSettings === 'blocks'}><BlockList /></Show>

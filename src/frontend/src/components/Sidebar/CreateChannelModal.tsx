@@ -1,4 +1,5 @@
 import Modal from '../ui/Modal';
+import Flexbox from '../ui/Flexbox';
 import { Capability, hasCapability } from '../../types/channel';
 import sharedStyles from './Sidebar.module.css';
 import styles from './CreateChannelModal.module.css';
@@ -23,8 +24,8 @@ export default function CreateChannelModal(props: CreateChannelModalProps) {
       title="Create Channel"
       size="sm"
     >
-      <div class={styles.createModalBody}>
-        <div class={styles.createModalField}>
+      <Flexbox direction="vertical" gap={1} class={styles.createModalBody}>
+        <Flexbox direction="vertical" gap={0.375}>
           <label for="new-channel-name" class={styles.createModalLabel}>Channel Name</label>
           <input
             id="new-channel-name"
@@ -36,10 +37,10 @@ export default function CreateChannelModal(props: CreateChannelModalProps) {
             class={styles.createModalInput}
             onKeyPress={(e) => { if (e.key === 'Enter') props.onSubmit(); }}
           />
-        </div>
-        <div class={styles.createModalField}>
+        </Flexbox>
+        <Flexbox direction="vertical" gap={0.375}>
           <span class={styles.createModalLabel}>Capabilities</span>
-          <div class={styles.createModalCheckboxes}>
+          <Flexbox direction="vertical" gap={0.5}>
             <label class={styles.createModalCheckbox}>
               <input data-testid="capability-checkbox-chat" type="checkbox" checked={hasCapability(props.capabilities, Capability.Chat)} onChange={() => props.onToggleCapability(Capability.Chat)} />
               Chat
@@ -64,9 +65,9 @@ export default function CreateChannelModal(props: CreateChannelModalProps) {
               <input data-testid="capability-checkbox-streaming" type="checkbox" checked={hasCapability(props.capabilities, Capability.Streaming)} onChange={() => props.onToggleCapability(Capability.Streaming)} />
               Streaming
             </label>
-          </div>
-        </div>
-        <div class={styles.createModalActions}>
+          </Flexbox>
+        </Flexbox>
+        <Flexbox justify="end" gap={0.75} class={styles.createModalActions}>
           <button
             data-testid="create-channel-cancel-button"
             type="button"
@@ -83,8 +84,8 @@ export default function CreateChannelModal(props: CreateChannelModalProps) {
           >
             Create Channel
           </button>
-        </div>
-      </div>
+        </Flexbox>
+      </Flexbox>
     </Modal>
   );
 }

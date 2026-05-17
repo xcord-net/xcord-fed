@@ -11,6 +11,7 @@ import type { Message } from '../../types/message';
 import MessageRow from './MessageRow';
 import DeleteMessageModal from './DeleteMessageModal';
 import { MANAGE_MESSAGES_BIT, shouldGroupWithPrevious } from './helpers';
+import Flexbox from '../ui/Flexbox';
 import styles from './MessageList.module.css';
 
 interface MessageListProps {
@@ -182,21 +183,21 @@ export default function MessageList(props: MessageListProps) {
     >
       {/* Loading indicator while fetching initial messages */}
       <Show when={messageStore.isLoading && messageStore.messages.length === 0}>
-        <div class={styles.loadingCenter}>
-          <div class={styles.bounceDots}>
+        <Flexbox direction="vertical" align="center" justify="center" gap={0.75} class={styles.loadingCenter}>
+          <Flexbox gap={0.25} class={styles.bounceDots}>
             <div class={styles.bounceDot} />
             <div class={styles.bounceDot} />
             <div class={styles.bounceDot} />
-          </div>
+          </Flexbox>
           <p data-testid="messages-loading" class={styles.loadingText}>Loading messages...</p>
-        </div>
+        </Flexbox>
       </Show>
 
       {/* Load-more spinner shown at top when fetching older messages */}
       <Show when={messageStore.isLoading && messageStore.messages.length > 0}>
-        <div class={styles.loadMoreSpinner}>
+        <Flexbox align="center" justify="center" class={styles.loadMoreSpinner}>
           <div class={styles.spinner} />
-        </div>
+        </Flexbox>
       </Show>
 
       {/* Virtual scroll container */}

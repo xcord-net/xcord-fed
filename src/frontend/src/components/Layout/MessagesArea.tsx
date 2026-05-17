@@ -9,6 +9,7 @@ import { useChannels } from '../../stores/channel.store';
 import { useMessages } from '../../stores/message.store';
 import { useModals } from '../../stores/modal.store';
 import { Capability, hasCapability } from '../../types/channel';
+import Flexbox from '../ui/Flexbox';
 import styles from './MessagesArea.module.css';
 
 interface MessagesAreaProps {
@@ -26,7 +27,7 @@ export default function MessagesArea(props: MessagesAreaProps) {
     channelStore.channels.find((c) => c.id === channelStore.selectedChannelId);
 
   return (
-    <div class={styles.messagesArea}>
+    <Flexbox direction="vertical" class={styles.messagesArea}>
       <Show when={currentChannel()?.capabilities && hasCapability(currentChannel()!.capabilities, Capability.Streaming)}>
         <BroadcastChannel
           channelId={props.channelId!}
@@ -43,9 +44,9 @@ export default function MessagesArea(props: MessagesAreaProps) {
         </Show>
         <Show when={modals.selectedForumPost}>
           {(post) => (
-            <div data-testid="forum-thread-view" class={styles.forumThreadView}>
+            <Flexbox direction="vertical" data-testid="forum-thread-view" class={styles.forumThreadView}>
               {/* Thread header with back button */}
-              <div class={styles.forumThreadHeader}>
+              <Flexbox align="center" class={styles.forumThreadHeader}>
                 <button
                   data-testid="forum-back-button"
                   class={styles.forumBackButton}
@@ -55,10 +56,10 @@ export default function MessagesArea(props: MessagesAreaProps) {
                   &larr; Back
                 </button>
                 <h3 class={styles.forumPostTitle}>{post().title}</h3>
-              </div>
+              </Flexbox>
               <MessageList conversationId={post().conversationId} />
               <MessageCompose conversationId={post().conversationId} channelId={props.channelId} />
-            </div>
+            </Flexbox>
           )}
         </Show>
       </Show>
@@ -75,7 +76,7 @@ export default function MessagesArea(props: MessagesAreaProps) {
         >
           {/* Edit bar replaces compose while editing */}
           <div class={styles.editBarWrapper}>
-            <div class={styles.editBarInner}>
+            <Flexbox direction="vertical" gap={0.25} class={styles.editBarInner}>
               <div class={styles.editBarLabel}>Editing message</div>
               <textarea
                 data-testid="message-edit-textarea"
@@ -92,10 +93,10 @@ export default function MessagesArea(props: MessagesAreaProps) {
                 rows={2}
               />
               <div class={styles.editBarHint}>Enter to save, Escape to cancel</div>
-            </div>
+            </Flexbox>
           </div>
         </Show>
       </Show>
-    </div>
+    </Flexbox>
   );
 }

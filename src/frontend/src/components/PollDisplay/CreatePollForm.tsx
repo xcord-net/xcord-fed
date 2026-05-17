@@ -1,4 +1,5 @@
 import { For, Show, createSignal } from 'solid-js';
+import Flexbox from '../ui/Flexbox';
 import styles from './CreatePollForm.module.css';
 
 interface PollOption_Draft {
@@ -63,11 +64,11 @@ export default function CreatePollForm(props: CreatePollFormProps) {
   };
 
   return (
-    <div class={styles.createPollForm}>
+    <Flexbox direction="vertical" gap={0.75} class={styles.createPollForm}>
       <h4 class={styles.createPollTitle}>Create Poll</h4>
 
       {/* Question */}
-      <div class={styles.fieldGroup}>
+      <Flexbox direction="vertical" class={styles.fieldGroup}>
         <label class={styles.fieldLabel}>
           Question
         </label>
@@ -79,17 +80,17 @@ export default function CreatePollForm(props: CreatePollFormProps) {
           value={question()}
           onInput={(e) => setQuestion(e.currentTarget.value)}
         />
-      </div>
+      </Flexbox>
 
       {/* Options */}
-      <div class={styles.fieldGroup}>
+      <Flexbox direction="vertical" class={styles.fieldGroup}>
         <label class={styles.fieldLabel}>
           Options ({options().length}/10)
         </label>
-        <div class={styles.optionInputList}>
+        <Flexbox direction="vertical" gap={0.5} class={styles.optionInputList}>
           <For each={options()}>
             {(opt, index) => (
-              <div class={styles.optionInputRow}>
+              <Flexbox align="center" gap={0.5} class={styles.optionInputRow}>
                 <input
                   data-testid={`poll-option-input-${index()}`}
                   type="text"
@@ -107,10 +108,10 @@ export default function CreatePollForm(props: CreatePollFormProps) {
                     ✕
                   </button>
                 </Show>
-              </div>
+              </Flexbox>
             )}
           </For>
-        </div>
+        </Flexbox>
         <Show when={options().length < 10}>
           <button
             data-testid="poll-add-option-button"
@@ -120,12 +121,12 @@ export default function CreatePollForm(props: CreatePollFormProps) {
             + Add option
           </button>
         </Show>
-      </div>
+      </Flexbox>
 
       {/* Settings row */}
-      <div class={styles.settingsRow}>
+      <Flexbox align="center" gap={1.5} class={styles.settingsRow}>
         {/* Multi-select toggle */}
-        <label class={styles.checkboxLabel}>
+        <Flexbox as="label" align="center" gap={0.5} class={styles.checkboxLabel}>
           <input
             type="checkbox"
             class={styles.checkboxInput}
@@ -133,10 +134,10 @@ export default function CreatePollForm(props: CreatePollFormProps) {
             onChange={(e) => setAllowMultiSelect(e.currentTarget.checked)}
           />
           <span class={styles.checkboxText}>Allow multiple selections</span>
-        </label>
+        </Flexbox>
 
         {/* Duration */}
-        <div class={styles.durationGroup}>
+        <Flexbox align="center" gap={0.5} class={styles.durationGroup}>
           <label class={styles.durationLabel}>Duration</label>
           <select
             class={styles.durationSelect}
@@ -154,14 +155,14 @@ export default function CreatePollForm(props: CreatePollFormProps) {
             <option value="72">3 days</option>
             <option value="168">1 week</option>
           </select>
-        </div>
-      </div>
+        </Flexbox>
+      </Flexbox>
 
       <Show when={validationError()}>
         <p class={styles.validationError}>{validationError()}</p>
       </Show>
 
-      <div class={styles.formActions}>
+      <Flexbox gap={0.5} class={styles.formActions}>
         <button
           data-testid="poll-submit-button"
           class={styles.submitButton}
@@ -176,7 +177,7 @@ export default function CreatePollForm(props: CreatePollFormProps) {
         >
           Cancel
         </button>
-      </div>
-    </div>
+      </Flexbox>
+    </Flexbox>
   );
 }

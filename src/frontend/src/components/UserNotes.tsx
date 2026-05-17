@@ -1,5 +1,6 @@
 import { Show, createSignal, onMount } from 'solid-js';
 import { api } from '../api/client';
+import Flexbox from './ui/Flexbox';
 import styles from './UserNotes.module.css';
 
 // ---- Types ----
@@ -102,7 +103,7 @@ export default function UserNotes() {
   };
 
   return (
-    <div class={styles.container}>
+    <Flexbox direction="vertical" class={styles.container}>
       {/* Header */}
       <div class={styles.header}>
         <h2 class={styles.heading}>User Notes</h2>
@@ -114,7 +115,7 @@ export default function UserNotes() {
       {/* User lookup */}
       <div class={styles.lookupSection}>
         <label class={styles.lookupLabel}>Look up user by username</label>
-        <div class={styles.lookupRow}>
+        <Flexbox gap={0.5}>
           <input
             id="note-username-input"
             type="text"
@@ -132,7 +133,7 @@ export default function UserNotes() {
           >
             {isLooking() ? 'Looking...' : 'Find'}
           </button>
-        </div>
+        </Flexbox>
         <Show when={lookupError()}>
           <p class={styles.lookupError}>{lookupError()}</p>
         </Show>
@@ -170,7 +171,7 @@ export default function UserNotes() {
               <p class={styles.saveError}>{saveError()}</p>
             </Show>
 
-            <div class={styles.actionRow}>
+            <Flexbox align="center" gap={0.5} class={styles.actionRow}>
               <button
                 id="user-notes-save-btn"
                 class={styles.saveButton}
@@ -197,10 +198,10 @@ export default function UserNotes() {
               <Show when={deleteSuccess()}>
                 <span id="user-notes-delete-status" class={styles.deleteSuccessText}>Note deleted.</span>
               </Show>
-            </div>
+            </Flexbox>
           </div>
         )}
       </Show>
-    </div>
+    </Flexbox>
   );
 }

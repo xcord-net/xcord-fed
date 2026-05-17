@@ -1,11 +1,5 @@
 /* ChannelReorder.module.css */
 
-.container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-}
-
 .channelRow {
   display: flex;
   align-items: center;
@@ -70,9 +64,6 @@
 
 .categoryChannels {
   padding-left: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
 }
 
 .emptyState {

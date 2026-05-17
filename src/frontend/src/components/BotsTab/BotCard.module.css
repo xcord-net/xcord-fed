@@ -6,17 +6,10 @@
 }
 
 .botCardTop {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
+  /* layout via Flexbox */
 }
 
 .botIdentity {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
   min-width: 0;
 }
 
@@ -69,10 +62,6 @@
 }
 
 .botActions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
   flex-shrink: 0;
 }
 
@@ -142,9 +131,7 @@
 }
 
 .assignAgentRow {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  /* layout via Flexbox */
 }
 
 .assignSelect {
@@ -266,10 +253,6 @@
 }
 
 .tokenRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
   background-color: var(--color-xcord-bg-primary);
   border-radius: 0.25rem;
   padding: 0.5rem 0.75rem;
@@ -295,8 +278,6 @@
 }
 
 .tokenDates {
-  display: flex;
-  gap: 0.75rem;
   margin-top: 0.125rem;
   color: var(--color-xcord-text-muted);
   font-size: 0.75rem;

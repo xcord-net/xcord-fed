@@ -1,6 +1,7 @@
 import { onMount, onCleanup, createSignal, Show } from 'solid-js';
 import Hls from 'hls.js';
 import type { Broadcast } from '../stores/broadcast.store';
+import Flexbox from './ui/Flexbox';
 import styles from './BroadcastViewer.module.css';
 
 interface Props {
@@ -59,7 +60,7 @@ export default function BroadcastViewer(props: Props) {
   });
 
   return (
-    <div class={styles.container} data-testid="broadcast-viewer">
+    <Flexbox align="center" justify="center" class={styles.container} data-testid="broadcast-viewer">
       <div class={styles.liveBadge}>LIVE</div>
       <video
         ref={videoRef}
@@ -72,6 +73,6 @@ export default function BroadcastViewer(props: Props) {
       <Show when={error()}>
         <div class={styles.error}>{error()}</div>
       </Show>
-    </div>
+    </Flexbox>
   );
 }

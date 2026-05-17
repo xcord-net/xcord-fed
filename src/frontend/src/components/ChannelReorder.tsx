@@ -2,6 +2,7 @@ import { For, Show, createSignal, createMemo } from 'solid-js';
 import { useChannels } from '../stores/channel.store';
 import { api } from '../api/client';
 import type { Channel, Category } from '../types/channel';
+import Flexbox from './ui/Flexbox';
 import styles from './ChannelReorder.module.css';
 
 interface ChannelReorderProps {
@@ -143,8 +144,9 @@ export default function ChannelReorder(props: ChannelReorderProps) {
   };
 
   return (
-    <div
-      class={styles.container}
+    <Flexbox
+      direction="vertical"
+      gap={0.125}
       onDragEnd={handleDragEnd}
     >
       {/* Uncategorized channels */}
@@ -200,7 +202,7 @@ export default function ChannelReorder(props: ChannelReorderProps) {
             </div>
 
             {/* Channels within category */}
-            <div class={styles.categoryChannels}>
+            <Flexbox direction="vertical" gap={0.125} class={styles.categoryChannels}>
               <For each={channelsByCategory(category.id)}>
                 {(channel) => (
                   <div
@@ -226,7 +228,7 @@ export default function ChannelReorder(props: ChannelReorderProps) {
                   </div>
                 )}
               </For>
-            </div>
+            </Flexbox>
           </div>
         )}
       </For>
@@ -235,6 +237,6 @@ export default function ChannelReorder(props: ChannelReorderProps) {
       <Show when={channelStore.channels.length === 0 && channelStore.categories.length === 0}>
         <p class={styles.emptyState}>No channels to reorder.</p>
       </Show>
-    </div>
+    </Flexbox>
   );
 }

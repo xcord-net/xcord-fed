@@ -49,8 +49,7 @@
 }
 
 .formActions {
-  display: flex;
-  gap: 0.5rem;
+  /* layout via Flexbox */
 }
 
 .submitButton {

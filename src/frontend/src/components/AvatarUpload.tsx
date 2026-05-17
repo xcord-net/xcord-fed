@@ -1,6 +1,7 @@
 import { createSignal, Show } from 'solid-js';
 import { api } from '../api/client';
 import type { UserProfile } from '../types/profile';
+import Flexbox from './ui/Flexbox';
 import styles from './AvatarUpload.module.css';
 
 const MAX_FILE_SIZE = 8 * 1024 * 1024; // 8 MB
@@ -149,7 +150,7 @@ export default function AvatarUpload(props: AvatarUploadProps) {
   const currentAvatarUrl = () => preview() ?? props.profile.avatarUrl ?? null;
 
   return (
-    <div class={styles.container}>
+    <Flexbox direction="vertical" gap={1}>
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
@@ -170,22 +171,22 @@ export default function AvatarUpload(props: AvatarUploadProps) {
 
       {/* Upload progress */}
       <Show when={uploading()}>
-        <div class={styles.progressWrapper} aria-live="polite" data-testid="avatar-upload-progress">
-          <div class={styles.progressHeader}>
+        <Flexbox direction="vertical" gap={0.25} aria-live="polite" data-testid="avatar-upload-progress">
+          <Flexbox align="center" justify="between" class={styles.progressHeader}>
             <span>Uploading avatar...</span>
             <span>{uploadProgress()}%</span>
-          </div>
+          </Flexbox>
           <div class={styles.progressTrack}>
             <div
               class={styles.progressFill}
               style={{ width: `${uploadProgress()}%` }}
             />
           </div>
-        </div>
+        </Flexbox>
       </Show>
 
       {/* Avatar button - circular, clickable */}
-      <div class={styles.avatarSection}>
+      <Flexbox direction="vertical" align="center" gap={0.75}>
         <button
           type="button"
           class={styles.avatarButton}
@@ -220,7 +221,7 @@ export default function AvatarUpload(props: AvatarUploadProps) {
           <p class={styles.username}>@{props.profile.username}</p>
           <p class={styles.hint}>Images only, max 8 MB</p>
         </div>
-      </div>
-    </div>
+      </Flexbox>
+    </Flexbox>
   );
 }

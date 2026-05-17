@@ -1,6 +1,7 @@
 import { For, Show } from 'solid-js';
 import type { Bot, BotAgent } from './types';
 import { ParamField } from './ParamField';
+import Flexbox from '../ui/Flexbox';
 import styles from './ConfigureBotModal.module.css';
 
 export interface ConfigureBotModalProps {
@@ -19,7 +20,9 @@ export interface ConfigureBotModalProps {
 
 export function ConfigureBotModal(props: ConfigureBotModalProps) {
   return (
-    <div
+    <Flexbox
+      align="center"
+      justify="center"
       data-testid="configure-bot-modal-backdrop"
       class={styles.modalBackdrop}
       onClick={(e) => {
@@ -27,7 +30,7 @@ export function ConfigureBotModal(props: ConfigureBotModalProps) {
       }}
     >
       <div data-testid="configure-bot-modal" class={styles.modalPanel}>
-        <div class={styles.modalHeader}>
+        <Flexbox align="center" justify="between" class={styles.modalHeader}>
           <h3 class={styles.modalTitle}>Configure {props.bot.displayName}</h3>
           <button
             data-testid="configure-bot-modal-close"
@@ -37,7 +40,7 @@ export function ConfigureBotModal(props: ConfigureBotModalProps) {
           >
             &#10005;
           </button>
-        </div>
+        </Flexbox>
 
         <form onSubmit={(e) => props.onSave(e)} class={styles.modalBody}>
           <Show
@@ -76,7 +79,7 @@ export function ConfigureBotModal(props: ConfigureBotModalProps) {
             </div>
           </Show>
 
-          <div class={styles.modalFooter}>
+          <Flexbox justify="end" gap={0.75} class={styles.modalFooter}>
             <button
               type="button"
               onClick={() => props.onClose()}
@@ -92,10 +95,10 @@ export function ConfigureBotModal(props: ConfigureBotModalProps) {
             >
               {props.isSaving ? 'Saving...' : 'Save'}
             </button>
-          </div>
+          </Flexbox>
         </form>
       </div>
-    </div>
+    </Flexbox>
   );
 }
 

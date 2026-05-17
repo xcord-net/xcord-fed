@@ -8,17 +8,10 @@
 }
 
 .sidebarLoading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   height: 6rem;
 }
 
 .sidebarEmpty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   padding: 2rem 0;
   text-align: center;
 }
@@ -34,6 +27,7 @@
   align-items: center;
   gap: 0.625rem;
   padding: 0.625rem 0.75rem;
+  /* button kept as flex for icon+text alignment */
   text-align: left;
   background: none;
   border: none;

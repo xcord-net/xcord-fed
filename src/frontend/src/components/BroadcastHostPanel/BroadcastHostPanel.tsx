@@ -10,6 +10,7 @@ import IdlePanel from './IdlePanel';
 import LivePanel from './LivePanel';
 import { slotCountFor } from './constants';
 import { useHostRoom } from './useHostRoom';
+import Flexbox from '../ui/Flexbox';
 import styles from './BroadcastHostPanel.module.css';
 
 interface Props {
@@ -160,7 +161,7 @@ export default function BroadcastHostPanel(props: Props) {
   };
 
   return (
-    <div class={styles.panel} data-testid="broadcast-host-panel" data-mode={props.mode}>
+    <Flexbox direction="vertical" class={styles.panel} data-testid="broadcast-host-panel" data-mode={props.mode}>
       <Show when={props.mode === 'idle'}>
         <IdlePanel
           selectedLayout={selectedLayout()}
@@ -196,6 +197,6 @@ export default function BroadcastHostPanel(props: Props) {
           onEnd={handleEnd}
         />
       </Show>
-    </div>
+    </Flexbox>
   );
 }

@@ -1,7 +1,4 @@
 .replyPreview {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding: 0.5rem 0.75rem;
   background-color: var(--color-xcord-bg-primary);
   border-top-left-radius: 0.5rem;

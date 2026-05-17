@@ -1,7 +1,4 @@
 .sectionHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   margin-bottom: 1rem;
 }
 
@@ -33,9 +30,6 @@
 }
 
 .spinnerContainer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 2rem 0;
 }
 

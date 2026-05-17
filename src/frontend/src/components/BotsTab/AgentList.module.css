@@ -7,9 +7,6 @@
 }
 
 .spinnerSmall {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 1.5rem 0;
 }
 
@@ -45,11 +42,7 @@
 }
 
 .agentCardInner {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
+  /* layout via Flexbox */
 }
 
 .agentInfo {
@@ -58,10 +51,7 @@
 }
 
 .agentNameRow {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  /* layout via Flexbox */
 }
 
 .agentName {
@@ -111,10 +101,7 @@
 }
 
 .agentAssignRow {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  /* layout via Flexbox */
 }
 
 .assignSelect {

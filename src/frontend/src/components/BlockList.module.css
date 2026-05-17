@@ -1,6 +1,4 @@
 .container {
-  display: flex;
-  flex-direction: column;
   height: 100%;
   background-color: var(--color-xcord-bg-secondary);
 }
@@ -17,8 +15,6 @@
 
 .inputRow {
   margin-top: 0.75rem;
-  display: flex;
-  gap: 0.5rem;
 }
 
 .usernameInput {
@@ -73,16 +69,10 @@
 }
 
 .loadingState {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   height: 8rem;
 }
 
 .emptyState {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   height: 8rem;
 }
 

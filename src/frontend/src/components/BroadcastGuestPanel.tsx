@@ -5,6 +5,7 @@ import {
   type Broadcast,
 } from '../stores/broadcast.store';
 import { useAuth } from '../stores/auth.store';
+import Flexbox from './ui/Flexbox';
 import styles from './BroadcastGuestPanel.module.css';
 
 interface Props {
@@ -116,15 +117,15 @@ export default function BroadcastGuestPanel(props: Props) {
   };
 
   return (
-    <div class={styles.panel} data-testid="broadcast-guest-panel">
-      <div class={styles.header}>
+    <Flexbox direction="vertical" gap={1} class={styles.panel} data-testid="broadcast-guest-panel">
+      <Flexbox align="center" justify="between" gap={0.75} class={styles.header}>
         <h2 class={styles.title}>Guest Booth</h2>
         <Show when={connected()}>
           <span class={`${styles.stageIndicator} ${onStage() ? styles.stageIndicatorOn : styles.stageIndicatorOff}`}>
             {onStage() ? 'On Stage' : 'Off Stage'}
           </span>
         </Show>
-      </div>
+      </Flexbox>
 
       <div class={styles.previewWrap}>
         <video
@@ -135,11 +136,11 @@ export default function BroadcastGuestPanel(props: Props) {
           class={styles.previewVideo}
         />
         <Show when={!connected()}>
-          <div class={styles.previewOverlay}>
+          <Flexbox align="center" justify="center" class={styles.previewOverlay}>
             <p class={styles.previewHint}>
               Join as a guest to publish your camera and mic.
             </p>
-          </div>
+          </Flexbox>
         </Show>
       </div>
 
@@ -147,7 +148,7 @@ export default function BroadcastGuestPanel(props: Props) {
         <div role="alert" class={styles.errorMsg}>{error()}</div>
       </Show>
 
-      <div class={styles.actions}>
+      <Flexbox gap={0.5} justify="center" class={styles.actions}>
         <Show
           when={connected()}
           fallback={
@@ -187,7 +188,7 @@ export default function BroadcastGuestPanel(props: Props) {
             Leave
           </button>
         </Show>
-      </div>
-    </div>
+      </Flexbox>
+    </Flexbox>
   );
 }

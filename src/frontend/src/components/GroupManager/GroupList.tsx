@@ -1,4 +1,5 @@
 import { For, Show } from 'solid-js';
+import Flexbox from '../ui/Flexbox';
 import styles from './GroupList.module.css';
 import { DEFAULT_GROUP_COLOR } from '../../constants/colors';
 
@@ -25,15 +26,15 @@ export default function GroupList(props: GroupListProps) {
   return (
     <div data-testid="group-list-sidebar" class={styles.sidebar}>
       <Show when={props.isLoading}>
-        <div class={styles.sidebarLoading}>
+        <Flexbox align="center" justify="center" class={styles.sidebarLoading}>
           <p class={styles.mutedText}>Loading groups...</p>
-        </div>
+        </Flexbox>
       </Show>
 
       <Show when={!props.isLoading && props.groups.length === 0}>
-        <div class={styles.sidebarEmpty}>
+        <Flexbox direction="vertical" align="center" justify="center" class={styles.sidebarEmpty}>
           <p class={styles.mutedText}>No groups yet.</p>
-        </div>
+        </Flexbox>
       </Show>
 
       <For each={props.groups}>

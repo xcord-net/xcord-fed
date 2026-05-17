@@ -20,6 +20,11 @@
  *     {tags().map(t => <Tag>{t}</Tag>)}
  *   </Flexbox>
  *
+ *   // Render as a semantic element (form, label, button, section, etc.)
+ *   <Flexbox as="form" onSubmit={handleSubmit} gap={0.5}>
+ *     <input /> <button>Send</button>
+ *   </Flexbox>
+ *
  *   // Flexbox.Item for individual child control
  *   <Flexbox align="center">
  *     <Flexbox.Item grow>
@@ -30,12 +35,13 @@
  *     </Flexbox.Item>
  *   </Flexbox>
  *
- *   // Pass-through HTML div props (className, onClick, data-testid, etc.) work on both
+ *   // Pass-through HTML props (className, onClick, data-testid, etc.) work on both
  *   <Flexbox class={styles.toolbar} data-testid="toolbar" gap={1}>
  *     ...
  *   </Flexbox>
  *
  * Props:
+ *   as         - HTML element tag ('div' default); accepts 'form' | 'label' | 'button' | 'section' | etc.
  *   direction  - 'horizontal' (default) | 'vertical'
  *   align      - align-items: 'start' | 'center' | 'end' | 'stretch' | 'baseline'
  *   justify    - justify-content: 'start' | 'center' | 'end' | 'between' | 'around' | 'evenly'
@@ -44,6 +50,7 @@
  *   inline     - renders as inline-flex when true
  *
  * Flexbox.Item props:
+ *   as         - HTML element tag ('div' default)
  *   grow       - flex-grow: number or true (shorthand for 1)
  *   shrink     - flex-shrink: number
  *   basis      - flex-basis: CSS string
@@ -51,6 +58,7 @@
  */
 import type { JSX } from 'solid-js';
 import { splitProps } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 
 type Direction = 'horizontal' | 'vertical';
 type Align = 'start' | 'center' | 'end' | 'stretch' | 'baseline';
@@ -74,7 +82,16 @@ const alignMap: Record<Align, string> = {
   baseline: 'baseline',
 };
 
-interface FlexboxProps extends JSX.HTMLAttributes<HTMLDivElement> {
+// Common HTML elements that make sense as flex containers. Not exhaustive --
+// add to this union if a real use case appears.
+type ElementTag =
+  | 'div' | 'span' | 'section' | 'article' | 'header' | 'footer' | 'main' | 'aside' | 'nav'
+  | 'form' | 'label' | 'button' | 'fieldset'
+  | 'ul' | 'ol' | 'li'
+  | 'dl' | 'dt' | 'dd';
+
+interface FlexboxProps extends JSX.HTMLAttributes<HTMLElement> {
+  as?: ElementTag;
   direction?: Direction;
   align?: Align;
   justify?: Justify;
@@ -86,6 +103,7 @@ interface FlexboxProps extends JSX.HTMLAttributes<HTMLDivElement> {
 
 export default function Flexbox(props: FlexboxProps) {
   const [local, rest] = splitProps(props, [
+    'as',
     'direction',
     'align',
     'justify',
@@ -115,13 +133,14 @@ export default function Flexbox(props: FlexboxProps) {
   };
 
   return (
-    <div {...rest} style={computedStyle()}>
+    <Dynamic component={local.as ?? 'div'} {...rest} style={computedStyle()}>
       {local.children}
-    </div>
+    </Dynamic>
   );
 }
 
-interface ItemProps extends JSX.HTMLAttributes<HTMLDivElement> {
+interface ItemProps extends JSX.HTMLAttributes<HTMLElement> {
+  as?: ElementTag;
   grow?: number | boolean;
   shrink?: number;
   basis?: string;
@@ -131,6 +150,7 @@ interface ItemProps extends JSX.HTMLAttributes<HTMLDivElement> {
 
 function Item(props: ItemProps) {
   const [local, rest] = splitProps(props, [
+    'as',
     'grow',
     'shrink',
     'basis',
@@ -154,9 +174,9 @@ function Item(props: ItemProps) {
   };
 
   return (
-    <div {...rest} style={computedStyle()}>
+    <Dynamic component={local.as ?? 'div'} {...rest} style={computedStyle()}>
       {local.children}
-    </div>
+    </Dynamic>
   );
 }
 

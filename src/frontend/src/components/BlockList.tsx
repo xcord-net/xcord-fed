@@ -1,6 +1,7 @@
 import { For, Show, onMount, createSignal } from 'solid-js';
 import { useBlocks } from '../stores/block.store';
 import { getErrorMessage } from '../utils/errors';
+import Flexbox from './ui/Flexbox';
 import styles from './BlockList.module.css';
 
 export default function BlockList() {
@@ -26,10 +27,10 @@ export default function BlockList() {
   };
 
   return (
-    <div class={styles.container} data-testid="block-list-container">
+    <Flexbox direction="vertical" class={styles.container} data-testid="block-list-container">
       <div class={styles.header}>
         <h2 class={styles.heading}>Blocked Users</h2>
-        <div class={styles.inputRow}>
+        <Flexbox gap={0.5} class={styles.inputRow}>
           <input
             id="block-user-input"
             data-testid="block-user-input"
@@ -48,7 +49,7 @@ export default function BlockList() {
           >
             Block
           </button>
-        </div>
+        </Flexbox>
         <Show when={blockMessage()}>
           <p id="block-user-status" data-testid="block-user-status" class={blockError() ? styles.statusError : styles.statusSuccess}>
             {blockMessage()}
@@ -58,15 +59,15 @@ export default function BlockList() {
 
       <div class={styles.listArea}>
         <Show when={blockStore.isLoading}>
-          <div class={styles.loadingState}>
+          <Flexbox align="center" justify="center" class={styles.loadingState}>
             <p class={styles.mutedText}>Loading...</p>
-          </div>
+          </Flexbox>
         </Show>
 
         <Show when={!blockStore.isLoading && blockStore.blockedUsers.length === 0}>
-          <div id="blocked-users-empty" data-testid="block-list-empty-state" class={styles.emptyState}>
+          <Flexbox align="center" justify="center" id="blocked-users-empty" data-testid="block-list-empty-state" class={styles.emptyState}>
             <p class={styles.mutedText}>No blocked users</p>
-          </div>
+          </Flexbox>
         </Show>
 
         <For each={blockStore.blockedUsers}>
@@ -100,6 +101,6 @@ export default function BlockList() {
           )}
         </For>
       </div>
-    </div>
+    </Flexbox>
   );
 }

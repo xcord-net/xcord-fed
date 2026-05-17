@@ -1,6 +1,7 @@
 import { For, Show } from 'solid-js';
 import type { BotAgent } from './types';
 import { ParamField } from './ParamField';
+import Flexbox from '../ui/Flexbox';
 import styles from './CreateBotModal.module.css';
 
 export interface CreateBotModalProps {
@@ -34,7 +35,9 @@ export function CreateBotModal(props: CreateBotModalProps) {
   }
 
   return (
-    <div
+    <Flexbox
+      align="center"
+      justify="center"
       data-testid="create-bot-modal-backdrop"
       class={styles.modalBackdrop}
       onClick={(e) => {
@@ -42,7 +45,7 @@ export function CreateBotModal(props: CreateBotModalProps) {
       }}
     >
       <div data-testid="create-bot-modal" class={styles.modalPanel}>
-        <div class={styles.modalHeader}>
+        <Flexbox align="center" justify="between" class={styles.modalHeader}>
           <h3 class={styles.modalTitle}>
             {props.newToken ? 'Bot Created' : 'Create Bot'}
           </h3>
@@ -54,7 +57,7 @@ export function CreateBotModal(props: CreateBotModalProps) {
           >
             &#10005;
           </button>
-        </div>
+        </Flexbox>
 
         {/* Token reveal (post-create) */}
         <Show when={props.newToken}>
@@ -185,7 +188,7 @@ export function CreateBotModal(props: CreateBotModalProps) {
               </div>
             </Show>
 
-            <div class={styles.modalFooter}>
+            <Flexbox justify="end" gap={0.75} class={styles.modalFooter}>
               <button
                 type="button"
                 onClick={() => props.onDismiss()}
@@ -201,11 +204,11 @@ export function CreateBotModal(props: CreateBotModalProps) {
               >
                 {props.isCreating ? 'Creating...' : 'Create Bot'}
               </button>
-            </div>
+            </Flexbox>
           </form>
         </Show>
       </div>
-    </div>
+    </Flexbox>
   );
 }
 

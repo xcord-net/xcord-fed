@@ -2,6 +2,7 @@ import { For, Show } from 'solid-js';
 import type { BroadcastLayoutPreset } from '../../stores/broadcast.store';
 import LayoutThumbnail from './LayoutThumbnail';
 import { LAYOUTS } from './constants';
+import Flexbox from '../ui/Flexbox';
 import styles from './IdlePanel.module.css';
 
 interface Streambot {
@@ -23,13 +24,13 @@ interface IdlePanelProps {
 
 export default function IdlePanel(props: IdlePanelProps) {
   return (
-    <div class={styles.idleWrap}>
+    <Flexbox direction="vertical" gap={1.5} class={styles.idleWrap}>
       <h2 class={styles.heading}>Start a Broadcast</h2>
       <p class={styles.subheading}>
         Choose a layout and restream destinations, then go live.
       </p>
 
-      <section class={styles.section}>
+      <Flexbox as="section" direction="vertical" gap={0.75} class={styles.section}>
         <h3 class={styles.sectionHeading}>Layout</h3>
         <div class={styles.layoutGrid}>
           <For each={LAYOUTS}>
@@ -47,9 +48,9 @@ export default function IdlePanel(props: IdlePanelProps) {
             )}
           </For>
         </div>
-      </section>
+      </Flexbox>
 
-      <section class={styles.section}>
+      <Flexbox as="section" direction="vertical" gap={0.75} class={styles.section}>
         <h3 class={styles.sectionHeading}>Restream Destinations</h3>
         <Show
           when={props.streambots.length > 0}
@@ -59,10 +60,10 @@ export default function IdlePanel(props: IdlePanelProps) {
             </p>
           }
         >
-          <div class={styles.streambotList}>
+          <Flexbox direction="vertical" gap={0.375} class={styles.streambotList}>
             <For each={props.streambots}>
               {(bot) => (
-                <label class={styles.streambotRow}>
+                <Flexbox as="label" align="center" gap={0.5} class={styles.streambotRow}>
                   <input
                     type="checkbox"
                     checked={props.selectedStreambotIds.has(bot.id)}
@@ -71,18 +72,18 @@ export default function IdlePanel(props: IdlePanelProps) {
                   />
                   <span class={styles.streambotName}>{bot.name}</span>
                   <span class={styles.streambotPlatform}>{bot.platform}</span>
-                </label>
+                </Flexbox>
               )}
             </For>
-          </div>
+          </Flexbox>
         </Show>
-      </section>
+      </Flexbox>
 
       <Show when={props.error}>
         <div role="alert" class={styles.errorMsg}>{props.error}</div>
       </Show>
 
-      <div class={styles.actions}>
+      <Flexbox justify="end" class={styles.actions}>
         <button
           type="button"
           class={styles.startButton}
@@ -92,7 +93,7 @@ export default function IdlePanel(props: IdlePanelProps) {
         >
           {props.starting ? 'Starting...' : 'Start Broadcast'}
         </button>
-      </div>
-    </div>
+      </Flexbox>
+    </Flexbox>
   );
 }

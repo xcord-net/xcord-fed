@@ -2,6 +2,7 @@ import { createSignal, createEffect, For, Show } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import Modal from './ui/Modal';
+import Flexbox from './ui/Flexbox';
 import styles from './FollowChannel.module.css';
 
 export interface Channel {
@@ -180,7 +181,7 @@ export default function FollowChannel(props: FollowChannelProps) {
   return (
     <Show when={isAnnouncementChannel()}>
       <div class={styles.container}>
-        <div class={styles.header}>
+        <Flexbox align="center" justify="between" class={styles.header}>
           <h3 class={styles.headerTitle}>
             Channel Followers
           </h3>
@@ -190,22 +191,22 @@ export default function FollowChannel(props: FollowChannelProps) {
           >
             Follow in another channel
           </button>
-        </div>
+        </Flexbox>
 
         <Show when={error()}>
           <div class={styles.errorBanner}>{error()}</div>
         </Show>
 
         <Show when={follows().length === 0}>
-          <div class={styles.emptyState}>
+          <Flexbox direction="vertical" align="center" justify="center" class={styles.emptyState}>
             <p class={styles.emptyStateText}>No channels are following {props.channelName} yet.</p>
-          </div>
+          </Flexbox>
         </Show>
 
         <div class={styles.followList}>
           <For each={follows()}>
             {(follow) => (
-              <div class={styles.followEntry}>
+              <Flexbox align="center" justify="between" class={styles.followEntry}>
                 <div>
                   <p class={styles.followChannelName}>
                     #{follow.targetChannelName}
@@ -221,7 +222,7 @@ export default function FollowChannel(props: FollowChannelProps) {
                 >
                   {isUnfollowing() === follow.id ? 'Removing...' : 'Unfollow'}
                 </button>
-              </div>
+              </Flexbox>
             )}
           </For>
         </div>
@@ -260,7 +261,7 @@ export default function FollowChannel(props: FollowChannelProps) {
               </select>
             </div>
 
-            <div class={styles.actionRow}>
+            <Flexbox gap={0.75}>
               <button
                 class={styles.confirmButton}
                 onClick={handleFollow}
@@ -277,7 +278,7 @@ export default function FollowChannel(props: FollowChannelProps) {
               >
                 Cancel
               </button>
-            </div>
+            </Flexbox>
           </div>
         </Modal>
       </div>

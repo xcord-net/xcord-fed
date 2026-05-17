@@ -1,6 +1,7 @@
 import { For, Show } from 'solid-js';
 import type { Channel } from '../../types/channel';
 import ChannelItem from './ChannelItem';
+import Flexbox from '../ui/Flexbox';
 import styles from './ChannelList.module.css';
 
 export interface ChannelListProps {
@@ -39,7 +40,9 @@ export default function ChannelList(props: ChannelListProps) {
   );
 
   return (
-    <div
+    <Flexbox
+      direction="vertical"
+      gap={0.125}
       class={styles.channelList}
       role="listbox"
       aria-label="Channels"
@@ -50,9 +53,9 @@ export default function ChannelList(props: ChannelListProps) {
       <Show when={props.isLoading && !props.hasAnyChannels}>
         <For each={[0, 1, 2, 3, 4]}>
           {() => (
-            <div class={styles.skeletonRow} aria-hidden="true">
+            <Flexbox align="center" justify="center" class={styles.skeletonRow} aria-hidden="true">
               <div class={styles.skeletonIcon} />
-            </div>
+            </Flexbox>
           )}
         </For>
       </Show>
@@ -70,6 +73,6 @@ export default function ChannelList(props: ChannelListProps) {
       <For each={props.allChannels}>
         {(channel) => renderItem(channel)}
       </For>
-    </div>
+    </Flexbox>
   );
 }

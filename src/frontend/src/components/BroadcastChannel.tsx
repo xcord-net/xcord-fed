@@ -5,6 +5,7 @@ import BroadcastHostPanel from './BroadcastHostPanel';
 import BroadcastGuestPanel from './BroadcastGuestPanel';
 import BroadcastViewer from './BroadcastViewer';
 import BroadcastGreenRoom from './BroadcastGreenRoom';
+import Flexbox from './ui/Flexbox';
 import styles from './BroadcastChannel.module.css';
 
 interface Props {
@@ -37,16 +38,16 @@ export default function BroadcastChannel(props: Props) {
   });
 
   return (
-    <div class={styles.container} data-testid="broadcast-channel">
+    <Flexbox direction="vertical" class={styles.container} data-testid="broadcast-channel">
       <Show
         when={active()}
         fallback={
           <Show
             when={props.canManageBroadcasts}
             fallback={
-              <div class={styles.idle} data-testid="broadcast-idle">
+              <Flexbox align="center" justify="center" class={styles.idle} data-testid="broadcast-idle">
                 No broadcast is live.
-              </div>
+              </Flexbox>
             }
           >
             <BroadcastHostPanel channelId={props.channelId} mode="idle" />
@@ -74,6 +75,6 @@ export default function BroadcastChannel(props: Props) {
           </>
         )}
       </Show>
-    </div>
+    </Flexbox>
   );
 }

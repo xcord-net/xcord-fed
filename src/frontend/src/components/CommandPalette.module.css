@@ -15,9 +15,6 @@
 .paletteHeader {
   padding: 0.5rem 0.75rem;
   border-bottom: 1px solid var(--color-xcord-bg-primary);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 }
 
 .paletteHeaderLabel {
@@ -42,9 +39,6 @@
 }
 
 .loadingState {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 1.5rem 0;
 }
 
@@ -63,15 +57,6 @@
 
 .argForm {
   padding: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.argFormHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .cmdName {
@@ -85,11 +70,6 @@
   font-size: 0.75rem;
 }
 
-.paramList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
 
 .paramLabel {
   display: block;
@@ -135,10 +115,6 @@
   font-size: 0.75rem;
 }
 
-.argActions {
-  display: flex;
-  gap: 0.5rem;
-}
 
 .sendBtn {
   padding: 0.375rem 0.75rem;
@@ -204,11 +180,6 @@
   background-color: rgba(26, 29, 37, 0.5);
 }
 
-.commandHeader {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-}
 
 .commandName {
   color: var(--color-xcord-brand);

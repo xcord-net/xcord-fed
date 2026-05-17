@@ -1,5 +1,6 @@
 import { Show, createMemo } from 'solid-js';
 import { useTyping } from '../stores/typing.store';
+import Flexbox from './ui/Flexbox';
 import styles from './TypingIndicator.module.css';
 
 interface TypingIndicatorProps {
@@ -22,7 +23,7 @@ export default function TypingIndicator(props: TypingIndicatorProps) {
 
   return (
     <Show when={typingUsers().length > 0}>
-      <div id="typing-indicator" class={styles.container}>
+      <Flexbox align="center" gap={0.5} id="typing-indicator" class={styles.container}>
         {/* Animated dots */}
         <span class={styles.dots}>
           <span class={styles.dot} />
@@ -30,7 +31,7 @@ export default function TypingIndicator(props: TypingIndicatorProps) {
           <span class={styles.dot} />
         </span>
         <span class={styles.text}>{typingText()}</span>
-      </div>
+      </Flexbox>
     </Show>
   );
 }

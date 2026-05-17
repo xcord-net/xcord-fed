@@ -60,9 +60,6 @@
 /* Schedule modal */
 .scheduleBody {
   padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
 }
 
 .scheduleLabel {
@@ -111,9 +108,7 @@
 }
 
 .scheduleActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
+  /* layout via Flexbox */
 }
 
 .cancelBtn {

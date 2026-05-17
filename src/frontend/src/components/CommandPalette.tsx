@@ -1,5 +1,6 @@
 import { For, Show, createSignal, createEffect, onCleanup } from 'solid-js';
 import { api } from '../api/client';
+import Flexbox from './ui/Flexbox';
 import styles from './CommandPalette.module.css';
 
 // ---- Types ----
@@ -156,7 +157,7 @@ export default function CommandPalette(props: CommandPaletteProps) {
       aria-label="Command palette"
     >
       {/* Header */}
-      <div class={styles.paletteHeader}>
+      <Flexbox align="center" justify="between" class={styles.paletteHeader}>
         <span class={styles.paletteHeaderLabel}>
           Slash Commands
         </span>
@@ -167,25 +168,25 @@ export default function CommandPalette(props: CommandPaletteProps) {
         >
           ESC
         </button>
-      </div>
+      </Flexbox>
 
       {/* Loading */}
       <Show when={isLoading()}>
-        <div class={styles.loadingState}>
+        <Flexbox align="center" justify="center" class={styles.loadingState}>
           <div class={styles.spinner} />
-        </div>
+        </Flexbox>
       </Show>
 
       {/* Arg entry form */}
       <Show when={selectedCommand()}>
         {(cmd) => (
-          <div class={styles.argForm}>
-            <div class={styles.argFormHeader}>
+          <Flexbox direction="vertical" gap={0.75} class={styles.argForm}>
+            <Flexbox align="center" gap={0.5}>
               <span class={styles.cmdName}>/{cmd().name}</span>
               <span class={styles.cmdDescription}>{cmd().description}</span>
-            </div>
+            </Flexbox>
 
-            <div class={styles.paramList}>
+            <Flexbox direction="vertical" gap={0.5}>
               <For each={cmd().parameters}>
                 {(param) => (
                   <div>
@@ -206,13 +207,13 @@ export default function CommandPalette(props: CommandPaletteProps) {
                   </div>
                 )}
               </For>
-            </div>
+            </Flexbox>
 
             <Show when={argError()}>
               <p class={styles.argError}>{argError()}</p>
             </Show>
 
-            <div class={styles.argActions}>
+            <Flexbox gap={0.5}>
               <button
                 class={styles.sendBtn}
                 onClick={handleSubmitArgs}
@@ -229,8 +230,8 @@ export default function CommandPalette(props: CommandPaletteProps) {
               >
                 Back
               </button>
-            </div>
-          </div>
+            </Flexbox>
+          </Flexbox>
         )}
       </Show>
 
@@ -261,12 +262,12 @@ export default function CommandPalette(props: CommandPaletteProps) {
                   onClick={() => handleCommandSelect(cmd)}
                   onMouseEnter={() => setSelectedIndex(index())}
                 >
-                  <div class={styles.commandHeader}>
+                  <Flexbox align="baseline" gap={0.5}>
                     <span class={styles.commandName}>
                       /{cmd.name}
                     </span>
                     <span class={styles.commandBot}>{cmd.botName}</span>
-                  </div>
+                  </Flexbox>
                   <p class={styles.commandDesc}>{cmd.description}</p>
                   <Show when={cmd.parameters.length > 0}>
                     <p class={styles.commandPreview}>

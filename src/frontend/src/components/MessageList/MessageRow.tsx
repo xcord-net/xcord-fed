@@ -5,6 +5,7 @@ import MessageActionBar from './MessageActionBar';
 import ThreadCreateForm from './ThreadCreateForm';
 import MessageContent from './MessageContent';
 import { formatTime } from './helpers';
+import Flexbox from '../ui/Flexbox';
 import styles from './MessageRow.module.css';
 
 interface MessageRowProps {
@@ -84,7 +85,7 @@ export default function MessageRow(props: MessageRowProps) {
           </div>
         }
       >
-        <div class={styles.messageWithHeader}>
+        <Flexbox gap={0.75} class={styles.messageWithHeader}>
           {/* Avatar */}
           <div class={styles.avatar}>
             <Show
@@ -101,7 +102,7 @@ export default function MessageRow(props: MessageRowProps) {
 
           {/* Message content */}
           <div class={styles.messageBody}>
-            <div class={styles.messageHeader}>
+            <Flexbox align="baseline" gap={0.5} class={styles.messageHeader}>
               {/* Card 170: group color applied inline to username */}
               <span
                 class={styles.authorName}
@@ -110,7 +111,7 @@ export default function MessageRow(props: MessageRowProps) {
                 {props.message.authorUsername || 'Unknown User'}
               </span>
               <span class={styles.messageTimestamp}>{formatTime(props.message.createdAt)}</span>
-            </div>
+            </Flexbox>
 
             <Show when={props.message.replyToId}>
               <div class={styles.replyIndicator}>
@@ -128,7 +129,7 @@ export default function MessageRow(props: MessageRowProps) {
               isAuthor={props.isAuthor}
             />
           </div>
-        </div>
+        </Flexbox>
       </Show>
     </div>
   );

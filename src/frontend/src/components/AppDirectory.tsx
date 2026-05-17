@@ -1,5 +1,6 @@
 import { For, Show, createSignal, createEffect } from 'solid-js';
 import { api } from '../api/client';
+import Flexbox from './ui/Flexbox';
 import styles from './AppDirectory.module.css';
 
 // ---- Types ----
@@ -171,7 +172,7 @@ export default function AppDirectory(props: AppDirectoryProps) {
   };
 
   return (
-    <div class={styles.container}>
+    <Flexbox direction="vertical" class={styles.container}>
       {/* Header */}
       <div class={styles.header}>
         <h2 class={styles.headerTitle}>App Directory</h2>
@@ -181,17 +182,14 @@ export default function AppDirectory(props: AppDirectoryProps) {
       {/* Bot detail view */}
       <Show when={selectedBot()}>
         {(bot) => (
-          <div class={styles.detailArea}>
+          <Flexbox direction="vertical" gap={1} class={styles.detailArea}>
             {/* Back */}
-            <button
-              class={styles.backBtn}
-              onClick={handleBackToList}
-            >
+            <Flexbox as="button" align="center" gap={0.25} class={styles.backBtn} onClick={handleBackToList}>
               &larr; Back to directory
-            </button>
+            </Flexbox>
 
             {/* Bot header */}
-            <div class={styles.botHeader}>
+            <Flexbox align="start" gap={1}>
               <Show when={bot().avatarUrl}>
                 <img
                   src={bot().avatarUrl}
@@ -206,7 +204,7 @@ export default function AppDirectory(props: AppDirectoryProps) {
               </Show>
 
               <div class={styles.botHeaderInfo}>
-                <div class={styles.botNameRow}>
+                <Flexbox align="center" gap={0.5} wrap="wrap">
                   <h3 class={styles.botDetailName}>{bot().name}</h3>
                   <Show when={bot().isVerified}>
                     <span
@@ -219,13 +217,13 @@ export default function AppDirectory(props: AppDirectoryProps) {
                   <span class={styles.categoryBadge}>
                     {bot().category}
                   </span>
-                </div>
+                </Flexbox>
                 <p class={styles.botDeveloper}>by {bot().developerName}</p>
                 <p class={styles.botInstallCount}>
                   {formatInstallCount(bot().installCount)} installs
                 </p>
               </div>
-            </div>
+            </Flexbox>
 
             {/* Description */}
             <div>
@@ -235,7 +233,7 @@ export default function AppDirectory(props: AppDirectoryProps) {
 
             {/* Tags */}
             <Show when={bot().tags.length > 0}>
-              <div class={styles.tagList}>
+              <Flexbox wrap="wrap" gap={0.375}>
                 <For each={bot().tags}>
                   {(tag) => (
                     <span class={styles.tag}>
@@ -243,7 +241,7 @@ export default function AppDirectory(props: AppDirectoryProps) {
                     </span>
                   )}
                 </For>
-              </div>
+              </Flexbox>
             </Show>
 
             {/* Permissions */}
@@ -252,21 +250,21 @@ export default function AppDirectory(props: AppDirectoryProps) {
                 <h4 class={styles.sectionHeading}>
                   Required Permissions
                 </h4>
-                <ul class={styles.permissionList}>
+                <Flexbox as="ul" direction="vertical" gap={0.25} class={styles.permissionList}>
                   <For each={bot().permissions}>
                     {(perm) => (
-                      <li class={styles.permissionItem}>
+                      <Flexbox as="li" align="center" gap={0.375} class={styles.permissionItem}>
                         <span class={styles.permissionDot} />
                         {perm}
-                      </li>
+                      </Flexbox>
                     )}
                   </For>
-                </ul>
+                </Flexbox>
               </div>
             </Show>
 
             {/* Add to server */}
-            <div class={styles.addToServerBox}>
+            <Flexbox direction="vertical" gap={0.75} class={styles.addToServerBox}>
               <h4 class={styles.sectionHeading}>Add to Server</h4>
 
               <Show when={props.availableServerIds.length === 0}>
@@ -314,15 +312,15 @@ export default function AppDirectory(props: AppDirectoryProps) {
                   {installing() ? 'Adding...' : `Add ${bot().name}`}
                 </button>
               </Show>
-            </div>
-          </div>
+            </Flexbox>
+          </Flexbox>
         )}
       </Show>
 
       {/* Bot list view */}
       <Show when={!selectedBot()}>
         {/* Search + filter bar */}
-        <div class={styles.filterBar}>
+        <Flexbox direction="vertical" gap={0.5} class={styles.filterBar}>
           <input
             id="app-directory-search"
             type="search"
@@ -334,7 +332,7 @@ export default function AppDirectory(props: AppDirectoryProps) {
           />
 
           {/* Category filter */}
-          <div class={styles.categoryBar}>
+          <Flexbox gap={0.375} class={styles.categoryBar}>
             <button
               class={selectedCategory() === '' ? `${styles.categoryBtn} ${styles.categoryBtnActive}` : styles.categoryBtn}
               onClick={() => setSelectedCategory('')}
@@ -351,19 +349,19 @@ export default function AppDirectory(props: AppDirectoryProps) {
                 </button>
               )}
             </For>
-          </div>
-        </div>
+          </Flexbox>
+        </Flexbox>
 
         {/* Loading */}
         <Show when={isLoading()}>
-          <div class={styles.loadingCenter}>
+          <Flexbox align="center" justify="center" class={styles.loadingCenter}>
             <div class={styles.spinner} />
-          </div>
+          </Flexbox>
         </Show>
 
         {/* Empty state */}
         <Show when={!isLoading() && displayedBots().length === 0}>
-          <div id="app-directory-empty" class={styles.emptyState}>
+          <Flexbox id="app-directory-empty" direction="vertical" align="center" justify="center" gap={0.75} class={styles.emptyState}>
             <div class={styles.emptyIcon}>🤖</div>
             <p class={styles.emptyText}>No bots found</p>
             <Show when={searchQuery() || selectedCategory()}>
@@ -377,7 +375,7 @@ export default function AppDirectory(props: AppDirectoryProps) {
                 Clear filters
               </button>
             </Show>
-          </div>
+          </Flexbox>
         </Show>
 
         {/* Bot grid */}
@@ -386,7 +384,8 @@ export default function AppDirectory(props: AppDirectoryProps) {
             <div class={styles.botGrid}>
               <For each={displayedBots()}>
                 {(bot) => (
-                  <div
+                  <Flexbox
+                    gap={0.75}
                     class={styles.botCard}
                     onClick={() => handleSelectBot(bot)}
                     role="button"
@@ -410,32 +409,32 @@ export default function AppDirectory(props: AppDirectoryProps) {
 
                     {/* Info */}
                     <div class={styles.botCardInfo}>
-                      <div class={styles.botCardNameRow}>
+                      <Flexbox align="center" gap={0.375} wrap="wrap">
                         <span class={styles.botCardName}>
                           {bot.name}
                         </span>
                         <Show when={bot.isVerified}>
                           <span class={styles.verifiedCheck}>&#10003;</span>
                         </Show>
-                      </div>
+                      </Flexbox>
                       <p class={styles.botCardDesc}>
                         {bot.shortDescription}
                       </p>
-                      <div class={styles.botCardMeta}>
+                      <Flexbox align="center" gap={0.5} class={styles.botCardMeta}>
                         <span class={styles.botCardMetaText}>
                           {formatInstallCount(bot.installCount)} installs
                         </span>
                         <span class={styles.botCardMetaText}>·</span>
                         <span class={styles.botCardMetaText}>{bot.category}</span>
-                      </div>
+                      </Flexbox>
                     </div>
-                  </div>
+                  </Flexbox>
                 )}
               </For>
             </div>
           </div>
         </Show>
       </Show>
-    </div>
+    </Flexbox>
   );
 }

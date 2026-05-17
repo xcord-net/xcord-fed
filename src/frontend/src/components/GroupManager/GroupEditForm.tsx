@@ -1,5 +1,6 @@
 import { For, Show } from 'solid-js';
 import { hasRole, toggleRole } from './GroupManager';
+import Flexbox from '../ui/Flexbox';
 import styles from './GroupEditForm.module.css';
 import { GROUP_COLOR_PALETTE } from '../../constants/colors';
 
@@ -56,7 +57,7 @@ interface GroupEditFormProps {
 export default function GroupEditForm(props: GroupEditFormProps) {
   return (
     <form onSubmit={props.onSubmit} class={styles.editForm}>
-      <div class={styles.editFormHeader}>
+      <Flexbox align="center" justify="between" class={styles.editFormHeader}>
         <h3 class={styles.editFormTitle}>Edit Group</h3>
 
         {/* Delete button */}
@@ -68,7 +69,7 @@ export default function GroupEditForm(props: GroupEditFormProps) {
         >
           Delete Group
         </button>
-      </div>
+      </Flexbox>
 
       {/* Group name */}
       <div class={styles.fieldGroup}>
@@ -93,7 +94,7 @@ export default function GroupEditForm(props: GroupEditFormProps) {
         </label>
 
         {/* Preset color swatches */}
-        <div class={styles.colorSwatches} role="group" aria-label="Preset colors">
+        <Flexbox wrap="wrap" gap={0.5} class={styles.colorSwatches} role="group" aria-label="Preset colors">
           <For each={PRESET_COLORS}>
             {(color) => (
               <button
@@ -106,10 +107,10 @@ export default function GroupEditForm(props: GroupEditFormProps) {
               />
             )}
           </For>
-        </div>
+        </Flexbox>
 
         {/* Hex input */}
-        <div class={styles.hexRow}>
+        <Flexbox align="center" gap={0.5} class={styles.hexRow}>
           <span
             class={styles.colorPreview}
             style={{ 'background-color': props.editColor }}
@@ -128,7 +129,7 @@ export default function GroupEditForm(props: GroupEditFormProps) {
             aria-label="Hex color value"
             class={styles.hexInput}
           />
-        </div>
+        </Flexbox>
       </div>
 
       {/* Roles (permission flags) */}
@@ -139,7 +140,7 @@ export default function GroupEditForm(props: GroupEditFormProps) {
         <div class={styles.rolesList}>
           <For each={ROLE_FLAGS}>
             {(flag) => (
-              <label data-testid={`permission-${flag.label.toLowerCase().replace(/\s+/g, '-')}`} class={styles.roleItem}>
+              <Flexbox as="label" align="center" gap={0.75} data-testid={`permission-${flag.label.toLowerCase().replace(/\s+/g, '-')}`} class={styles.roleItem}>
                 <input
                   type="checkbox"
                   checked={hasRole(props.editRoles, flag.bit)}
@@ -149,7 +150,7 @@ export default function GroupEditForm(props: GroupEditFormProps) {
                 <span class={styles.roleLabel}>
                   {flag.label}
                 </span>
-              </label>
+              </Flexbox>
             )}
           </For>
         </div>
@@ -168,7 +169,7 @@ export default function GroupEditForm(props: GroupEditFormProps) {
       </Show>
 
       {/* Save button */}
-      <div class={styles.saveRow}>
+      <Flexbox justify="end" class={styles.saveRow}>
         <button
           data-testid="group-save-changes-button"
           type="submit"
@@ -177,7 +178,7 @@ export default function GroupEditForm(props: GroupEditFormProps) {
         >
           {props.isSaving ? 'Saving...' : 'Save Changes'}
         </button>
-      </div>
+      </Flexbox>
     </form>
   );
 }

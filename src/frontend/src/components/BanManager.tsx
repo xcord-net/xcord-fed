@@ -2,6 +2,7 @@ import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import ConfirmationButton from './ui/ConfirmationButton';
+import Flexbox from './ui/Flexbox';
 import styles from './BanManager.module.css';
 
 interface BannedUser {
@@ -90,7 +91,7 @@ export default function BanManager(props: BanManagerProps) {
   });
 
   return (
-    <div class={styles.container}>
+    <Flexbox direction="vertical" class={styles.container}>
       <div class={styles.header}>
         <h2 class={styles.headerTitle}>Bans</h2>
         <input
@@ -108,18 +109,18 @@ export default function BanManager(props: BanManagerProps) {
 
       <div class={styles.listArea}>
         <Show when={isLoading()}>
-          <div class={styles.loadingContainer}>
+          <Flexbox align="center" justify="center" class={styles.loadingContainer}>
             <p class={styles.mutedText}>Loading bans...</p>
-          </div>
+          </Flexbox>
         </Show>
 
         <Show when={!isLoading() && filteredBans().length === 0}>
-          <div class={styles.emptyContainer}>
+          <Flexbox direction="vertical" align="center" justify="center" class={styles.emptyContainer}>
             <p class={styles.emptyTitle}>No bans found</p>
             <p class={styles.emptySubtitle}>
               {searchQuery() ? 'Try a different search.' : 'No users are currently banned.'}
             </p>
-          </div>
+          </Flexbox>
         </Show>
 
         <For each={paginatedBans()}>
@@ -160,7 +161,7 @@ export default function BanManager(props: BanManagerProps) {
       </div>
 
       <Show when={!isLoading() && filteredBans().length > PAGE_SIZE}>
-        <div class={styles.pagination}>
+        <Flexbox align="center" justify="between" class={styles.pagination}>
           <button
             class={styles.pageButton}
             disabled={page() <= 1}
@@ -180,8 +181,8 @@ export default function BanManager(props: BanManagerProps) {
           >
             Next
           </button>
-        </div>
+        </Flexbox>
       </Show>
-    </div>
+    </Flexbox>
   );
 }

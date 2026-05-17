@@ -1,5 +1,6 @@
 import { Show } from 'solid-js';
 import type { AgentParameterManifest } from './types';
+import Flexbox from '../ui/Flexbox';
 import styles from './ParamField.module.css';
 
 export interface ParamFieldProps {
@@ -19,7 +20,7 @@ export function ParamField(props: ParamFieldProps) {
         <p class={styles.paramDescription}>{props.param.description}</p>
       </Show>
       <Show when={props.param.type === 'boolean'}>
-        <label class={styles.paramCheckboxLabel}>
+        <Flexbox as="label" align="center" gap={0.5} class={styles.paramCheckboxLabel}>
           <input
             type="checkbox"
             checked={props.value === 'true'}
@@ -27,7 +28,7 @@ export function ParamField(props: ParamFieldProps) {
             class={styles.paramCheckbox}
           />
           <span class={styles.paramCheckboxText}>Enabled</span>
-        </label>
+        </Flexbox>
       </Show>
       <Show when={props.param.type === 'number'}>
         <input

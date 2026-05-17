@@ -1,6 +1,7 @@
 import { For, Show } from 'solid-js';
 import type { Bot, BotAgent } from './types';
 import { formatDate } from './helpers';
+import Flexbox from '../ui/Flexbox';
 import styles from './BotCard.module.css';
 
 export interface BotCardProps {
@@ -25,9 +26,9 @@ export interface BotCardProps {
 export function BotCard(props: BotCardProps) {
   return (
     <div data-testid={`bot-card-${props.bot.id}`} class={styles.botCard}>
-      <div class={styles.botCardTop}>
+      <Flexbox align="start" justify="between" gap={1} wrap="wrap" class={styles.botCardTop}>
         {/* Bot identity */}
-        <div class={styles.botIdentity}>
+        <Flexbox align="center" gap={0.75} class={styles.botIdentity}>
           {/* Running status dot */}
           <span
             data-testid={`bot-status-${props.bot.id}`}
@@ -44,10 +45,10 @@ export function BotCard(props: BotCardProps) {
               </span>
             </p>
           </div>
-        </div>
+        </Flexbox>
 
         {/* Actions */}
-        <div class={styles.botActions}>
+        <Flexbox align="center" gap={0.5} wrap="wrap" class={styles.botActions}>
           {/* Start/Stop - only if agent is assigned */}
           <Show when={props.bot.agentId}>
             <Show when={props.bot.isRunning}>
@@ -89,7 +90,7 @@ export function BotCard(props: BotCardProps) {
           {/* Assign agent dropdown (when no agent) */}
           <Show when={!props.bot.agentId}>
             <Show when={props.assignAgentBotId === props.bot.id}>
-              <div class={styles.assignAgentRow}>
+              <Flexbox align="center" gap={0.5} class={styles.assignAgentRow}>
                 <select
                   data-testid={`bot-assign-select-${props.bot.id}`}
                   value={props.assignAgentId}
@@ -117,7 +118,7 @@ export function BotCard(props: BotCardProps) {
                 >
                   Cancel
                 </button>
-              </div>
+              </Flexbox>
               <Show when={props.assignError}>
                 <p class={styles.assignError}>{props.assignError}</p>
               </Show>
@@ -144,8 +145,8 @@ export function BotCard(props: BotCardProps) {
           >
             Delete
           </button>
-        </div>
-      </div>
+        </Flexbox>
+      </Flexbox>
 
       {/* Token list */}
       <Show when={props.bot.tokens && props.bot.tokens.length > 0}>
@@ -153,14 +154,14 @@ export function BotCard(props: BotCardProps) {
           <p class={styles.tokenSectionLabel}>Tokens</p>
           <For each={props.bot.tokens}>
             {(token) => (
-              <div data-testid={`bot-token-${token.id}`} class={styles.tokenRow}>
+              <Flexbox align="center" justify="between" gap={1} data-testid={`bot-token-${token.id}`} class={styles.tokenRow}>
                 <div class={styles.tokenInfo}>
                   <p class={styles.tokenName}>{token.name}</p>
                   <p class={styles.tokenHash}>{token.tokenHash.slice(0, 12)}...</p>
-                  <div class={styles.tokenDates}>
+                  <Flexbox gap={0.75} class={styles.tokenDates}>
                     <span>Created: {formatDate(token.createdAt)}</span>
                     <span>Last used: {formatDate(token.lastUsedAt)}</span>
-                  </div>
+                  </Flexbox>
                 </div>
                 <button
                   data-testid={`bot-revoke-token-${token.id}`}
@@ -171,7 +172,7 @@ export function BotCard(props: BotCardProps) {
                 >
                   Revoke
                 </button>
-              </div>
+              </Flexbox>
             )}
           </For>
         </div>

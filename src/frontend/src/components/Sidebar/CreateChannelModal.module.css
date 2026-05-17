@@ -1,15 +1,6 @@
 /* Create channel modal */
 .createModalBody {
   padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.createModalField {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
 }
 
 .createModalLabel {
@@ -39,11 +30,6 @@
   box-shadow: 0 0 0 2px var(--color-xcord-brand);
 }
 
-.createModalCheckboxes {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
 
 .createModalCheckbox {
   display: flex;
@@ -60,9 +46,6 @@
 }
 
 .createModalActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
   margin-top: 0.5rem;
 }
 

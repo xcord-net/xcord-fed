@@ -1,6 +1,4 @@
 .container {
-  display: flex;
-  flex-direction: column;
   height: 100%;
   background-color: var(--color-xcord-bg-secondary);
 }
@@ -17,9 +15,7 @@
 }
 
 .filterControls {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  /* layout via Flexbox */
 }
 
 .filterSelect {
@@ -63,7 +59,6 @@
   font-size: 0.875rem;
   border: none;
   cursor: pointer;
-  align-self: flex-end;
   transition: color 150ms, background-color 150ms;
 }
 
@@ -84,10 +79,6 @@
 }
 
 .emptyState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   height: 8rem;
   color: var(--color-xcord-text-muted);
 }
@@ -104,9 +95,6 @@
 
 .entryRow {
   padding: 0.75rem 1rem;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
   border-bottom: 1px solid var(--color-xcord-border);
   transition: color 150ms, background-color 150ms;
 }
@@ -127,9 +115,7 @@
 }
 
 .entryHeadline {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
+  /* layout via Flexbox */
 }
 
 .entryActor {
@@ -165,9 +151,6 @@
 }
 
 .loadingCenter {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
 }
@@ -178,8 +161,6 @@
 
 .loadMoreRow {
   padding: 0.75rem 1rem;
-  display: flex;
-  justify-content: center;
 }
 
 .loadMoreButton {
@@ -200,8 +181,6 @@
 
 .endOfLog {
   padding: 0.75rem 1rem;
-  display: flex;
-  justify-content: center;
 }
 
 .endOfLogText {

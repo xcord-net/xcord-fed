@@ -1,5 +1,6 @@
 import { For, Show } from 'solid-js';
 import type { MessageAttachment } from '../../types/message';
+import Flexbox from '../ui/Flexbox';
 import styles from './AttachmentList.module.css';
 
 interface AttachmentListProps {
@@ -9,7 +10,7 @@ interface AttachmentListProps {
 /** Renders the attachment list for a message, showing image thumbnails and file links. */
 export default function AttachmentList(props: AttachmentListProps) {
   return (
-    <div class={styles.attachmentList}>
+    <Flexbox wrap="wrap" gap={0.5} class={styles.attachmentList}>
       <For each={props.attachments}>
         {(attachment) => (
           <Show
@@ -44,6 +45,6 @@ export default function AttachmentList(props: AttachmentListProps) {
           </Show>
         )}
       </For>
-    </div>
+    </Flexbox>
   );
 }

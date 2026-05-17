@@ -1,6 +1,7 @@
 import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
+import Flexbox from './ui/Flexbox';
 import styles from './AuditLogViewer.module.css';
 
 export interface AuditLogEntry {
@@ -115,10 +116,10 @@ export default function AuditLogViewer(props: AuditLogViewerProps) {
   });
 
   return (
-    <div class={styles.container}>
+    <Flexbox direction="vertical" class={styles.container}>
       <div class={styles.filterHeader}>
         <h2 class={styles.filterTitle}>Audit Log</h2>
-        <div class={styles.filterControls}>
+        <Flexbox direction="vertical" gap={0.5} class={styles.filterControls}>
           <select
             class={styles.filterSelect}
             value={actionFilter()}
@@ -137,13 +138,15 @@ export default function AuditLogViewer(props: AuditLogViewerProps) {
             onInput={(e) => setUserFilter(e.currentTarget.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') applyFilters(); }}
           />
-          <button
-            class={styles.applyButton}
-            onClick={() => applyFilters()}
-          >
-            Apply Filters
-          </button>
-        </div>
+          <Flexbox.Item align="end">
+            <button
+              class={styles.applyButton}
+              onClick={() => applyFilters()}
+            >
+              Apply Filters
+            </button>
+          </Flexbox.Item>
+        </Flexbox>
       </div>
 
       <Show when={error()}>
@@ -152,24 +155,24 @@ export default function AuditLogViewer(props: AuditLogViewerProps) {
 
       <div class={styles.scrollArea}>
         <Show when={!isLoading() && entries().length === 0}>
-          <div class={styles.emptyState}>
+          <Flexbox direction="vertical" align="center" justify="center" class={styles.emptyState}>
             <p class={styles.emptyStateTitle}>No audit log entries</p>
             <p class={styles.emptyStateSubtitle}>No actions recorded yet{actionFilter() ? ' for this filter.' : '.'}</p>
-          </div>
+          </Flexbox>
         </Show>
 
         <For each={entries()}>
           {(entry) => (
-            <div class={styles.entryRow}>
+            <Flexbox align="start" gap={0.75} class={styles.entryRow}>
               <span class={styles.entryIcon} aria-hidden="true">
                 {getActionIcon(entry.actionType)}
               </span>
 
               <div class={styles.entryBody}>
-                <div class={styles.entryHeadline}>
+                <Flexbox align="baseline" gap={0.5} class={styles.entryHeadline}>
                   <span class={styles.entryActor}>{entry.actorUsername}</span>
                   <span class={styles.entryAction}>{entry.actionType}</span>
-                </div>
+                </Flexbox>
 
                 <Show when={entry.targetName || entry.targetId}>
                   <p class={styles.entryTarget}>
@@ -189,34 +192,34 @@ export default function AuditLogViewer(props: AuditLogViewerProps) {
                   {formatTimestamp(entry.createdAt)}
                 </time>
               </div>
-            </div>
+            </Flexbox>
           )}
         </For>
 
         <Show when={isLoading()}>
-          <div class={styles.loadingCenter}>
+          <Flexbox align="center" justify="center" class={styles.loadingCenter}>
             <p class={styles.loadingText}>Loading...</p>
-          </div>
+          </Flexbox>
         </Show>
 
         <Show when={!isLoading() && hasMore() && entries().length > 0}>
-          <div class={styles.loadMoreRow}>
+          <Flexbox justify="center" class={styles.loadMoreRow}>
             <button
               class={styles.loadMoreButton}
               onClick={() => loadEntries(false)}
             >
               Load More
             </button>
-          </div>
+          </Flexbox>
         </Show>
 
         <Show when={!isLoading() && !hasMore() && entries().length > 0}>
-          <div class={styles.endOfLog}>
+          <Flexbox justify="center" class={styles.endOfLog}>
             <p class={styles.endOfLogText}>End of audit log</p>
-          </div>
+          </Flexbox>
         </Show>
       </div>
-    </div>
+    </Flexbox>
   );
 }
 

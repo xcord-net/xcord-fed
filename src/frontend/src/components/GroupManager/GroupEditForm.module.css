@@ -5,9 +5,6 @@
 }
 
 .editFormHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   margin-bottom: 1.25rem;
 }
 
@@ -70,9 +67,6 @@
 
 /* Color picker */
 .colorSwatches {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
   margin-bottom: 0.5rem;
 }
 
@@ -99,9 +93,6 @@
 }
 
 .hexRow {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   margin-top: 0.5rem;
 }
 
@@ -139,9 +130,6 @@
 }
 
 .roleItem {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
   cursor: pointer;
   margin-bottom: 0.5rem;
 }
@@ -194,8 +182,7 @@
 
 /* Save button row */
 .saveRow {
-  display: flex;
-  justify-content: flex-end;
+  /* layout via Flexbox */
 }
 
 .saveButton {

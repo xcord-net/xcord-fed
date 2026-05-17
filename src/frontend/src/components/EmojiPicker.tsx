@@ -2,6 +2,7 @@ import { For, Show, createMemo, createSignal, onMount } from 'solid-js';
 import { useEmojis } from '../stores/emoji.store';
 import { useModals } from '../stores/modal.store';
 import { tooltip } from '../directives/tooltip';
+import Flexbox from './ui/Flexbox';
 import styles from './EmojiPicker.module.css';
 
 // Ensure the directive is not tree-shaken
@@ -100,7 +101,7 @@ export default function EmojiPicker(props: EmojiPickerProps) {
       aria-label="Emoji picker"
       class={styles.picker}
     >
-      <div class={styles.header}>
+      <Flexbox align="center" justify="between" class={styles.header}>
         <h3 class={styles.headerTitle}>Emoji Picker</h3>
         <Show when={props.isAdmin && props.serverId}>
           <button
@@ -111,7 +112,7 @@ export default function EmojiPicker(props: EmojiPickerProps) {
             Manage Emoji
           </button>
         </Show>
-      </div>
+      </Flexbox>
 
       {/* Category bar */}
       <div class={styles.categoryBar}>

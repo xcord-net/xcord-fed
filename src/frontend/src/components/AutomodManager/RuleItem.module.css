@@ -6,10 +6,7 @@
 }
 
 .ruleRow {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.5rem;
+  /* layout via Flexbox */
 }
 
 .ruleInfo {
@@ -18,9 +15,7 @@
 }
 
 .ruleNameRow {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  /* layout via Flexbox */
 }
 
 .ruleName {
@@ -60,9 +55,6 @@
 }
 
 .ruleActions {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
   flex-shrink: 0;
 }
 
@@ -188,18 +180,13 @@
 }
 
 .checkboxLabel {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   font-size: 0.875rem;
   color: var(--color-xcord-text-primary);
   cursor: pointer;
 }
 
 .formActions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
+  /* layout via Flexbox */
 }
 
 .cancelButton {

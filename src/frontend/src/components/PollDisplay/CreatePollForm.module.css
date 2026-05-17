@@ -2,9 +2,6 @@
   background-color: var(--color-xcord-bg-primary);
   border-radius: 0.5rem;
   padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
   border: 1px solid var(--color-xcord-bg-tertiary);
 }
 
@@ -16,8 +13,7 @@
 }
 
 .fieldGroup {
-  display: flex;
-  flex-direction: column;
+  /* layout via Flexbox */
 }
 
 .fieldLabel {
@@ -51,15 +47,11 @@
 }
 
 .optionInputList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  /* layout via Flexbox */
 }
 
 .optionInputRow {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  /* layout via Flexbox */
 }
 
 .optionTextInput {
@@ -110,15 +102,10 @@
 }
 
 .settingsRow {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
+  /* layout via Flexbox */
 }
 
 .checkboxLabel {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   cursor: pointer;
 }
 
@@ -132,9 +119,7 @@
 }
 
 .durationGroup {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  /* layout via Flexbox */
 }
 
 .durationLabel {
@@ -163,8 +148,7 @@
 }
 
 .formActions {
-  display: flex;
-  gap: 0.5rem;
+  /* layout via Flexbox */
 }
 
 .submitButton {

@@ -3,6 +3,7 @@ import { useAuth } from '../../stores/auth.store';
 import { useModals } from '../../stores/modal.store';
 import { tooltip } from '../../directives/tooltip';
 import { GearIcon, PinIcon, SearchIcon, ThreadsIcon } from './icons';
+import Flexbox from '../ui/Flexbox';
 import styles from './ChannelHeader.module.css';
 
 // Ensure the directive is not tree-shaken
@@ -18,7 +19,7 @@ export default function ChannelHeader(props: ChannelHeaderProps) {
   const modals = useModals();
 
   return (
-    <div class={styles.channelHeader}>
+    <Flexbox align="center" class={styles.channelHeader}>
       <h2 class={styles.channelName}>{props.channelName}</h2>
       <Show when={props.channelTopic}>
         <span class={styles.channelTopic}>
@@ -27,7 +28,7 @@ export default function ChannelHeader(props: ChannelHeaderProps) {
       </Show>
 
       {/* Header action buttons */}
-      <div class={styles.headerActions}>
+      <Flexbox align="center" gap={0.25} class={styles.headerActions}>
         <button
           data-testid="pins-button"
           title="Pinned Messages"
@@ -82,7 +83,7 @@ export default function ChannelHeader(props: ChannelHeaderProps) {
             </svg>
           </button>
         </Show>
-      </div>
-    </div>
+      </Flexbox>
+    </Flexbox>
   );
 }

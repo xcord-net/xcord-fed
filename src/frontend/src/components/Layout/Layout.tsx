@@ -18,6 +18,7 @@ import MessagesArea from './MessagesArea';
 import RightPanels from './RightPanels';
 import SettingsModal from './SettingsModal';
 import { useLayoutWiring } from './useLayoutWiring';
+import Flexbox from '../ui/Flexbox';
 import styles from './Layout.module.css';
 
 export default function Layout() {
@@ -52,11 +53,11 @@ export default function Layout() {
   });
 
   return (
-    <div class={styles.root} data-signalr-connected={String(signalR.isConnected)} data-signalr-conversation-joined={String(conversationJoined())}>
+    <Flexbox direction="vertical" class={styles.root} data-signalr-connected={String(signalR.isConnected)} data-signalr-conversation-joined={String(conversationJoined())}>
       <Show when={hubUrl()}>
         <HubHeader hubUrl={hubUrl()!} instanceUrl={window.location.origin} />
       </Show>
-      <div class={styles.mainRow}>
+      <Flexbox class={styles.mainRow}>
         {/* Unified sidebar - always present */}
         <Sidebar />
 
@@ -69,22 +70,22 @@ export default function Layout() {
             when={params.channelId}
             fallback={
               <Show when={params.serverId} fallback={
-                <div class={styles.emptyState}>
+                <Flexbox align="center" justify="center" class={styles.emptyState}>
                   <p class={styles.emptyStateText}>Loading...</p>
-                </div>
+                </Flexbox>
               }>
                 <ChannelDirectory serverId={params.serverId!} />
               </Show>
             }
           >
             {/* Channel selected: show messages */}
-            <div class={styles.channelView}>
+            <Flexbox direction="vertical" class={styles.channelView}>
               <Show
                 when={conversationId()}
                 fallback={
-                  <div class={styles.emptyState}>
+                  <Flexbox align="center" justify="center" class={styles.emptyState}>
                     <p class={styles.emptyStateText}>Select a channel to start chatting</p>
-                  </div>
+                  </Flexbox>
                 }
               >
                 {(convId) => (
@@ -95,7 +96,7 @@ export default function Layout() {
                     />
 
                     {/* Messages + right panels row */}
-                    <div class={styles.contentRow}>
+                    <Flexbox class={styles.contentRow}>
                       <MessagesArea
                         conversationId={convId()}
                         serverId={params.serverId}
@@ -105,14 +106,14 @@ export default function Layout() {
                         conversationId={conversationId()}
                         channelId={params.channelId}
                       />
-                    </div>
+                    </Flexbox>
                   </>
                 )}
               </Show>
-            </div>
+            </Flexbox>
           </Show>
         </Show>
-      </div>{/* end mainRow */}
+      </Flexbox>{/* end mainRow */}
 
       {/* Settings modal */}
       <SettingsModal />
@@ -134,6 +135,6 @@ export default function Layout() {
       </Modal>
 
       {/* Server Settings modal is rendered by Sidebar */}
-    </div>
+    </Flexbox>
   );
 }

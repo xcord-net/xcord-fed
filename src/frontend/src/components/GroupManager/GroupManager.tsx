@@ -5,6 +5,7 @@ import GroupList from './GroupList';
 import GroupCreateForm from './GroupCreateForm';
 import GroupEditForm from './GroupEditForm';
 import DeleteGroupModal from './DeleteGroupModal';
+import Flexbox from '../ui/Flexbox';
 import styles from './GroupManager.module.css';
 import { DEFAULT_GROUP_COLOR } from '../../constants/colors';
 
@@ -145,9 +146,9 @@ export default function GroupManager(props: GroupManagerProps) {
   });
 
   return (
-    <div class={styles.container}>
+    <Flexbox direction="vertical" class={styles.container}>
       {/* Header */}
-      <div class={styles.header}>
+      <Flexbox align="center" justify="between" class={styles.header}>
         <h2 data-testid="group-manager-heading" class={styles.heading}>Groups</h2>
         <button
           data-testid="create-group-button"
@@ -157,7 +158,7 @@ export default function GroupManager(props: GroupManagerProps) {
         >
           Create Group
         </button>
-      </div>
+      </Flexbox>
 
       <Show when={error()}>
         <div role="alert" class={styles.errorBanner}>
@@ -165,7 +166,7 @@ export default function GroupManager(props: GroupManagerProps) {
         </div>
       </Show>
 
-      <div class={styles.body}>
+      <Flexbox class={styles.body}>
         {/* Group list */}
         <GroupList
           groups={groups()}
@@ -206,12 +207,12 @@ export default function GroupManager(props: GroupManagerProps) {
 
           {/* Empty state */}
           <Show when={!selectedGroup() && !showCreateForm()}>
-            <div class={styles.editorEmpty}>
+            <Flexbox direction="vertical" align="center" justify="center" class={styles.editorEmpty}>
               <p class={styles.mutedText}>Select a group to edit, or create a new one.</p>
-            </div>
+            </Flexbox>
           </Show>
         </div>
-      </div>
+      </Flexbox>
 
       <DeleteGroupModal
         open={showDeleteConfirm()}
@@ -223,6 +224,6 @@ export default function GroupManager(props: GroupManagerProps) {
           setShowDeleteConfirm(false);
         }}
       />
-    </div>
+    </Flexbox>
   );
 }

@@ -1,5 +1,6 @@
 import { For, Show } from 'solid-js';
 import type { Bot, BotAgent } from './types';
+import Flexbox from '../ui/Flexbox';
 import styles from './AgentList.module.css';
 
 export interface AgentListProps {
@@ -26,9 +27,9 @@ export function AgentList(props: AgentListProps) {
       </h3>
 
       <Show when={props.isLoading}>
-        <div class={styles.spinnerSmall}>
+        <Flexbox align="center" justify="center" class={styles.spinnerSmall}>
           <div class={styles.spinner} />
-        </div>
+        </Flexbox>
       </Show>
 
       <Show when={!props.isLoading && props.agents.length === 0}>
@@ -42,14 +43,14 @@ export function AgentList(props: AgentListProps) {
           <For each={props.agents}>
             {(agent) => (
               <div data-testid={`agent-card-${agent.id}`} class={styles.agentCard}>
-                <div class={styles.agentCardInner}>
+                <Flexbox align="start" justify="between" gap={1} wrap="wrap" class={styles.agentCardInner}>
                   <div class={styles.agentInfo}>
-                    <div class={styles.agentNameRow}>
+                    <Flexbox align="center" gap={0.5} wrap="wrap" class={styles.agentNameRow}>
                       <p class={styles.agentName}>{agent.name}</p>
                       <Show when={agent.category}>
                         <span class={styles.agentCategory}>{agent.category}</span>
                       </Show>
-                    </div>
+                    </Flexbox>
                     <Show when={agent.description}>
                       <p class={styles.agentDescription}>{agent.description}</p>
                     </Show>
@@ -79,7 +80,7 @@ export function AgentList(props: AgentListProps) {
                       </button>
                     </Show>
                     <Show when={props.assignAgentBotId === agent.id + '-agent'}>
-                      <div class={styles.agentAssignRow}>
+                      <Flexbox align="center" gap={0.5} wrap="wrap" class={styles.agentAssignRow}>
                         <select
                           data-testid={`agent-assign-bot-select-${agent.id}`}
                           onChange={(e) =>
@@ -114,13 +115,13 @@ export function AgentList(props: AgentListProps) {
                         >
                           Cancel
                         </button>
-                      </div>
+                      </Flexbox>
                       <Show when={props.assignError}>
                         <p class={styles.agentAssignError}>{props.assignError}</p>
                       </Show>
                     </Show>
                   </Show>
-                </div>
+                </Flexbox>
               </div>
             )}
           </For>

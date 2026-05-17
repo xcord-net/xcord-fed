@@ -1,4 +1,5 @@
 import { For, Show } from 'solid-js';
+import Flexbox from '../ui/Flexbox';
 import styles from './RuleItem.module.css';
 import TriggerConfigEditor from './TriggerConfigEditor';
 import {
@@ -45,9 +46,9 @@ export default function RuleItem(props: RuleItemProps) {
       <Show
         when={props.isEditing}
         fallback={
-          <div class={styles.ruleRow}>
+          <Flexbox align="start" justify="between" gap={0.5} class={styles.ruleRow}>
             <div class={styles.ruleInfo}>
-              <div class={styles.ruleNameRow}>
+              <Flexbox align="center" gap={0.5} class={styles.ruleNameRow}>
                 <span class={styles.ruleName}>{props.rule.name}</span>
                 <span
                   class={
@@ -58,7 +59,7 @@ export default function RuleItem(props: RuleItemProps) {
                 >
                   {props.rule.enabled ? 'Enabled' : 'Disabled'}
                 </span>
-              </div>
+              </Flexbox>
               <p class={styles.ruleMeta}>
                 {TRIGGER_LABELS[props.rule.triggerType]} &rarr;{' '}
                 {ACTION_LABELS[props.rule.actionType]}
@@ -68,7 +69,7 @@ export default function RuleItem(props: RuleItemProps) {
               </p>
             </div>
 
-            <div class={styles.ruleActions}>
+            <Flexbox align="center" gap={0.375} class={styles.ruleActions}>
               <button
                 type="button"
                 aria-label={`Edit rule ${props.rule.name}`}
@@ -109,8 +110,8 @@ export default function RuleItem(props: RuleItemProps) {
                   Yes
                 </button>
               </Show>
-            </div>
-          </div>
+            </Flexbox>
+          </Flexbox>
         }
       >
         <form
@@ -176,7 +177,7 @@ export default function RuleItem(props: RuleItemProps) {
             onUpdate={props.onEditTriggerConfigChange}
           />
 
-          <label class={styles.checkboxLabel}>
+          <Flexbox as="label" align="center" gap={0.5} class={styles.checkboxLabel}>
             <input
               type="checkbox"
               aria-label="Edit rule enabled"
@@ -184,9 +185,9 @@ export default function RuleItem(props: RuleItemProps) {
               onChange={(e) => props.onEditEnabledChange(e.currentTarget.checked)}
             />
             Enable rule
-          </label>
+          </Flexbox>
 
-          <div class={styles.formActions}>
+          <Flexbox gap={0.5} justify="end" class={styles.formActions}>
             <button
               type="button"
               class={styles.cancelButton}
@@ -201,7 +202,7 @@ export default function RuleItem(props: RuleItemProps) {
             >
               {props.isSavingEdit ? 'Saving...' : 'Save Changes'}
             </button>
-          </div>
+          </Flexbox>
         </form>
       </Show>
     </div>

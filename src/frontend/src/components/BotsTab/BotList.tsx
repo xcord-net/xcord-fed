@@ -1,6 +1,7 @@
 import { For, Show } from 'solid-js';
 import type { Bot, BotAgent } from './types';
 import { BotCard } from './BotCard';
+import Flexbox from '../ui/Flexbox';
 import styles from './BotList.module.css';
 
 export interface BotListProps {
@@ -27,7 +28,7 @@ export interface BotListProps {
 export function BotList(props: BotListProps) {
   return (
     <section>
-      <div class={styles.sectionHeader}>
+      <Flexbox align="center" justify="between" class={styles.sectionHeader}>
         <h3 class={styles.sectionTitle}>Your Bots</h3>
         <button
           data-testid="bots-create-button"
@@ -37,12 +38,12 @@ export function BotList(props: BotListProps) {
         >
           + Create Bot
         </button>
-      </div>
+      </Flexbox>
 
       <Show when={props.isLoading}>
-        <div class={styles.spinnerContainer}>
+        <Flexbox align="center" justify="center" class={styles.spinnerContainer}>
           <div class={styles.spinner} />
-        </div>
+        </Flexbox>
       </Show>
 
       <Show when={!props.isLoading && props.bots.length === 0}>

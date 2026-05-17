@@ -4,13 +4,14 @@ import { AgentList } from './AgentList';
 import { CreateBotModal } from './CreateBotModal';
 import { ConfigureBotModal } from './ConfigureBotModal';
 import { useBotsTab } from './useBotsTab';
+import Flexbox from '../ui/Flexbox';
 import styles from './BotsTab.module.css';
 
 export default function BotsTab() {
   const s = useBotsTab();
 
   return (
-    <div data-testid="bots-tab" class={styles.container}>
+    <Flexbox direction="vertical" gap={1.5} data-testid="bots-tab" class={styles.container}>
       {/* Load error */}
       <Show when={s.loadError()}>
         <div role="alert" class={styles.alertError}>
@@ -101,6 +102,6 @@ export default function BotsTab() {
           />
         )}
       </Show>
-    </div>
+    </Flexbox>
   );
 }

@@ -2,6 +2,7 @@ import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../../api/client';
 import { getErrorMessage } from '../../utils/errors';
 import styles from './AutomodManager.module.css';
+import Flexbox from '../ui/Flexbox';
 import RuleCreateForm from './RuleCreateForm';
 import RuleItem from './RuleItem';
 import {
@@ -158,7 +159,7 @@ export default function AutomodManager(props: AutomodManagerProps) {
 
   return (
     <div class={styles.container}>
-      <div class={styles.header}>
+      <Flexbox align="center" justify="between" class={styles.header}>
         <h2 class={styles.headerTitle}>Automod Rules</h2>
         <button
           type="button"
@@ -171,7 +172,7 @@ export default function AutomodManager(props: AutomodManagerProps) {
         >
           + Add Rule
         </button>
-      </div>
+      </Flexbox>
 
       <Show when={error()}>
         <div role="alert" class={styles.errorBanner}>

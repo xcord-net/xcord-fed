@@ -4,9 +4,6 @@
   z-index: 31;
   margin-top: 0.25rem;
   margin-left: 3.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   padding: 0.5rem;
   background-color: var(--color-xcord-bg-tertiary);
   border-radius: 0.25rem;

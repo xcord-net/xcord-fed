@@ -2,6 +2,7 @@ import { Show } from 'solid-js';
 import StatusPicker from '../StatusPicker';
 import { tooltip } from '../../directives/tooltip';
 import { AdminShieldIcon, GearIcon, LogoutIcon } from './icons';
+import Flexbox from '../ui/Flexbox';
 import styles from './UserStatusBar.module.css';
 
 // Ensure the directive is not tree-shaken
@@ -34,7 +35,7 @@ export default function UserStatusBar(props: UserStatusBarProps) {
 
       <Show when={props.profile}>
         {(profile) => (
-          <div data-testid="nav-user-avatar" id="current-user-bar" class={styles.userBar}>
+          <Flexbox align="center" gap={0.5} data-testid="nav-user-avatar" id="current-user-bar" class={styles.userBar}>
             {/* Avatar */}
             <div class={styles.avatarGroup}>
               <div
@@ -61,7 +62,7 @@ export default function UserStatusBar(props: UserStatusBarProps) {
             <span class={`expanded-only ${styles.username}`}>{profile().displayName || profile().username}</span>
 
             {/* Settings + Logout */}
-            <div class={styles.userActions}>
+            <Flexbox align="center" gap={0.25} class={styles.userActions}>
               <button
                 data-testid="nav-user-settings-button"
                 class={styles.iconButton}
@@ -82,8 +83,8 @@ export default function UserStatusBar(props: UserStatusBarProps) {
               >
                 <LogoutIcon class={styles.smallIcon} />
               </button>
-            </div>
-          </div>
+            </Flexbox>
+          </Flexbox>
         )}
       </Show>
     </div>

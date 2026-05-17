@@ -1,6 +1,7 @@
 import { For, Show, createMemo } from 'solid-js';
 import { useBroadcast, type Broadcast } from '../stores/broadcast.store';
 import { useMembers } from '../stores/member.store';
+import Flexbox from './ui/Flexbox';
 import styles from './BroadcastGreenRoom.module.css';
 
 interface Props {
@@ -38,22 +39,22 @@ export default function BroadcastGreenRoom(props: Props) {
 
   return (
     <div class={styles.panel} data-testid="broadcast-green-room">
-      <div class={styles.header}>
+      <Flexbox align="baseline" justify="between" class={styles.header}>
         <h3 class={styles.title}>Green Room</h3>
         <span class={styles.subtitle}>
           {onStage().length} on stage
         </span>
-      </div>
+      </Flexbox>
       <Show
         when={onStage().length > 0}
         fallback={<p class={styles.emptyText}>No one is on stage yet.</p>}
       >
-        <ul class={styles.list}>
+        <Flexbox as="ul" direction="vertical" gap={0.25} class={styles.list}>
           <For each={onStage()}>
             {(slot) => {
               const info = () => memberLookup().get(slot.userId);
               return (
-                <li class={styles.listItem} data-testid={`green-room-slot-${slot.slotIndex}`}>
+                <Flexbox as="li" align="center" gap={0.5} class={styles.listItem} data-testid={`green-room-slot-${slot.slotIndex}`}>
                   <div class={styles.slotBadge}>#{slot.slotIndex + 1}</div>
                   <div class={styles.avatarWrap}>
                     <Show
@@ -79,11 +80,11 @@ export default function BroadcastGreenRoom(props: Props) {
                   >
                     Remove
                   </button>
-                </li>
+                </Flexbox>
               );
             }}
           </For>
-        </ul>
+        </Flexbox>
       </Show>
     </div>
   );

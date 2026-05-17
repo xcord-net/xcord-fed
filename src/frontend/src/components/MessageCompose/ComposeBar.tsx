@@ -1,6 +1,7 @@
 import { Show } from 'solid-js';
 import { tooltip } from '../../directives/tooltip';
 import { PaperclipIcon, BarChartIcon, SmileIcon, UsersIcon } from './icons';
+import Flexbox from '../ui/Flexbox';
 import styles from './ComposeBar.module.css';
 
 // Ensure the directive is not tree-shaken
@@ -35,7 +36,7 @@ interface ComposeBarProps {
 
 export default function ComposeBar(props: ComposeBarProps) {
   return (
-    <div class={`${styles.bar} ${props.hasTopSection ? styles.barContinued : ''}`}>
+    <Flexbox align="center" gap={0.375} class={`${styles.bar} ${props.hasTopSection ? styles.barContinued : ''}`}>
       <button data-testid="compose-attach-button" class={styles.btn} use:tooltip="Attach file" onClick={props.onAttachmentClick} disabled={props.uploading || props.isSending} aria-label="Attach file" title="Attach file">
         <PaperclipIcon />
       </button>
@@ -75,6 +76,6 @@ export default function ComposeBar(props: ComposeBarProps) {
         <UsersIcon />
         <span>{props.memberCount}</span>
       </button>
-    </div>
+    </Flexbox>
   );
 }

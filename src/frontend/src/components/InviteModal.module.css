@@ -124,11 +124,6 @@
   font-size: 0.875rem;
 }
 
-.actionsRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
 
 .generateButton {
   color: var(--color-xcord-text-secondary);

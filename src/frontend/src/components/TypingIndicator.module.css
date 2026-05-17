@@ -2,9 +2,6 @@
 
 .container {
   padding: 0.25rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   background-color: color-mix(in srgb, var(--color-xcord-bg-secondary) 50%, transparent);
 }
 

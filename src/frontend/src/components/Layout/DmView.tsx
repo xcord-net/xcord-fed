@@ -4,6 +4,7 @@ import FriendList from '../FriendList';
 import MessageCompose from '../MessageCompose';
 import MessageList from '../MessageList';
 import TypingIndicator from '../TypingIndicator';
+import Flexbox from '../ui/Flexbox';
 import styles from './DmView.module.css';
 
 interface DmViewProps {
@@ -16,20 +17,20 @@ export default function DmView(props: DmViewProps) {
     <Show
       when={props.channelId && props.dmConversationId}
       fallback={
-        <div class={styles.channelView}>
+        <Flexbox direction="vertical" class={styles.channelView}>
           <FriendList />
           <DmList />
-        </div>
+        </Flexbox>
       }
     >
       {/* DM conversation view */}
-      <div class={styles.channelView}>
-        <div class={styles.messagesArea}>
+      <Flexbox direction="vertical" class={styles.channelView}>
+        <Flexbox direction="vertical" class={styles.messagesArea}>
           <MessageList conversationId={props.dmConversationId!} />
           <TypingIndicator conversationId={props.dmConversationId!} />
           <MessageCompose conversationId={props.dmConversationId!} channelId={props.channelId} />
-        </div>
-      </div>
+        </Flexbox>
+      </Flexbox>
     </Show>
   );
 }

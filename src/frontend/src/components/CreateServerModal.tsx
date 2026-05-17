@@ -3,6 +3,7 @@ import { useNavigate } from '@solidjs/router';
 import { useServers } from '../stores/server.store';
 import { useChannels } from '../stores/channel.store';
 import Modal from './ui/Modal';
+import Flexbox from './ui/Flexbox';
 import { getErrorMessage } from '../utils/errors';
 import styles from './CreateServerModal.module.css';
 
@@ -38,7 +39,7 @@ export default function CreateServerModal(props: CreateServerModalProps) {
   return (
     <Modal data-testid="create-server-dialog" open={true} onClose={props.onClose} title="Create a Server" size="md">
       <div class={styles.modalBody}>
-        <form class={styles.form} onSubmit={handleCreate}>
+        <form onSubmit={handleCreate}>
           <div class={styles.fieldGroup}>
             <label for="server-name" class={styles.fieldLabel}>
               Server Name
@@ -56,7 +57,7 @@ export default function CreateServerModal(props: CreateServerModalProps) {
           {error() && (
             <div role="alert" class={styles.errorAlert}>{error()}</div>
           )}
-          <div class={styles.buttonRow}>
+          <Flexbox justify="end" gap={0.75}>
             <button
               type="button"
               onClick={() => props.onClose()}
@@ -72,7 +73,7 @@ export default function CreateServerModal(props: CreateServerModalProps) {
             >
               {loading() ? 'Creating...' : 'Create'}
             </button>
-          </div>
+          </Flexbox>
         </form>
       </div>
     </Modal>

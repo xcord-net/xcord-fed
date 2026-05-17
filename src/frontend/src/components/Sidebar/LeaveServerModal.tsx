@@ -1,4 +1,5 @@
 import Modal from '../ui/Modal';
+import Flexbox from '../ui/Flexbox';
 import sharedStyles from './Sidebar.module.css';
 import styles from './LeaveServerModal.module.css';
 
@@ -21,7 +22,7 @@ export default function LeaveServerModal(props: LeaveServerModalProps) {
     >
       <div class={styles.leaveModalBody}>
         <p class={styles.leaveModalText}>Are you sure you want to leave this server?</p>
-        <div class={styles.leaveModalActions}>
+        <Flexbox justify="end" gap={0.75}>
           <button
             data-testid="leave-server-cancel-button"
             type="button"
@@ -38,7 +39,7 @@ export default function LeaveServerModal(props: LeaveServerModalProps) {
           >
             Leave Server
           </button>
-        </div>
+        </Flexbox>
       </div>
     </Modal>
   );

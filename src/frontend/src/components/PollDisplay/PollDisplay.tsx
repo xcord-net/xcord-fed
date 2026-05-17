@@ -5,6 +5,7 @@ import { fetchPollState } from './helpers';
 import PollOptionRow from './PollOptionRow';
 import PollFooter from './PollFooter';
 import EndPollConfirmModal from './EndPollConfirmModal';
+import Flexbox from '../ui/Flexbox';
 import styles from './PollDisplay.module.css';
 
 interface PollDisplayProps {
@@ -123,7 +124,7 @@ export default function PollDisplay(props: PollDisplayProps) {
       <p data-testid="poll-question" class={styles.pollQuestion}>{poll().question}</p>
 
       {/* Options */}
-      <div class={styles.optionList}>
+      <Flexbox direction="vertical" gap={0.5} class={styles.optionList}>
         <For each={poll().options}>
           {(option, index) => (
             <PollOptionRow
@@ -137,7 +138,7 @@ export default function PollDisplay(props: PollDisplayProps) {
             />
           )}
         </For>
-      </div>
+      </Flexbox>
 
       {/* Footer */}
       <PollFooter

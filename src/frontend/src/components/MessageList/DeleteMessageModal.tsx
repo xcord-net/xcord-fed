@@ -1,4 +1,5 @@
 import Modal from '../ui/Modal';
+import Flexbox from '../ui/Flexbox';
 import styles from './DeleteMessageModal.module.css';
 
 interface DeleteMessageModalProps {
@@ -22,7 +23,7 @@ export default function DeleteMessageModal(props: DeleteMessageModalProps) {
         <p class={styles.deleteModalText}>
           Are you sure you want to delete this message? This cannot be undone.
         </p>
-        <div class={styles.deleteModalActions}>
+        <Flexbox justify="end" gap={0.75} class={styles.deleteModalActions}>
           <button
             data-testid="delete-message-cancel-button"
             class={styles.cancelButton}
@@ -37,7 +38,7 @@ export default function DeleteMessageModal(props: DeleteMessageModalProps) {
           >
             Delete
           </button>
-        </div>
+        </Flexbox>
       </div>
     </Modal>
   );

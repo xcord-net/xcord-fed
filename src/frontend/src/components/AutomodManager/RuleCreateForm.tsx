@@ -1,4 +1,5 @@
 import { For } from 'solid-js';
+import Flexbox from '../ui/Flexbox';
 import styles from './RuleCreateForm.module.css';
 import TriggerConfigEditor from './TriggerConfigEditor';
 import {
@@ -106,7 +107,7 @@ export default function RuleCreateForm(props: RuleCreateFormProps) {
         Enable rule immediately
       </label>
 
-      <div class={styles.formActions}>
+      <Flexbox gap={0.5} justify="end">
         <button
           type="button"
           class={styles.cancelButton}
@@ -121,7 +122,7 @@ export default function RuleCreateForm(props: RuleCreateFormProps) {
         >
           {props.isCreating ? 'Creating...' : 'Create Rule'}
         </button>
-      </div>
+      </Flexbox>
     </form>
   );
 }
