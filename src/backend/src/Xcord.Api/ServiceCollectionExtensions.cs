@@ -184,6 +184,9 @@ public static class ServiceCollectionExtensions
 
         services.AddOptions<EncryptionOptions>().Bind(config.GetSection(EncryptionOptions.SectionName));
 
+        // Member billing (per-server subscriptions paid via this instance's own Stripe account)
+        services.AddOptions<MemberBillingOptions>().Bind(config.GetSection(MemberBillingOptions.SectionName));
+
         // Internal API shared secret (used by xcord-hub to call internal endpoints).
         // Optional in standalone deployments; the InternalKey policy fails closed when unset.
         services.AddOptions<InternalAuthOptions>().Bind(config.GetSection(InternalAuthOptions.SectionName));
@@ -226,6 +229,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<BotProcessManager>();
         services.AddSingleton<SsrfSafeHttpClient>();
         services.AddSingleton<OpenGraphParser>();
+        services.AddScoped<IMemberBillingService, MemberBillingService>();
+        services.AddScoped<Xcord.Features.Billing.MemberBillingWebhookHandler>();
         services.AddScoped<Xcord.Features.Broadcasts.BroadcastEgressBuilder>();
 
         // Discord migration

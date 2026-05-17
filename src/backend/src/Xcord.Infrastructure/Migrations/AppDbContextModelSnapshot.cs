@@ -1338,6 +1338,60 @@ namespace Xcord.Infrastructure.Migrations
                     b.ToTable("member_groups", (string)null);
                 });
 
+            modelBuilder.Entity("Xcord.Entities.MemberSubscription", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("CurrentPeriodEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("ServerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("StripeCustomerId")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("StripeSubscriptionId")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<long>("TierId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServerId");
+
+                    b.HasIndex("StripeSubscriptionId")
+                        .HasFilter("\"StripeSubscriptionId\" IS NOT NULL");
+
+                    b.HasIndex("TierId");
+
+                    b.HasIndex("UserId", "ServerId")
+                        .HasFilter("\"DeletedAt\" IS NULL");
+
+                    b.ToTable("member_subscriptions", (string)null);
+                });
+
             modelBuilder.Entity("Xcord.Entities.Mention", b =>
                 {
                     b.Property<long>("Id")
@@ -2181,6 +2235,28 @@ namespace Xcord.Infrastructure.Migrations
                     b.ToTable("servers", (string)null);
                 });
 
+            modelBuilder.Entity("Xcord.Entities.ServerBillingConfig", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("ServerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServerId")
+                        .IsUnique();
+
+                    b.ToTable("server_billing_configs", (string)null);
+                });
+
             modelBuilder.Entity("Xcord.Entities.ServerInsightSnapshot", b =>
                 {
                     b.Property<long>("Id")
@@ -2559,6 +2635,54 @@ namespace Xcord.Infrastructure.Migrations
                     b.HasIndex("ThreadId");
 
                     b.ToTable("thread_members", (string)null);
+                });
+
+            modelBuilder.Entity("Xcord.Entities.Tier", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("GroupIdsJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PriceMonthly")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("ServerId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServerId");
+
+                    b.ToTable("tiers", (string)null);
                 });
 
             modelBuilder.Entity("Xcord.Entities.Timeout", b =>
@@ -3545,6 +3669,33 @@ namespace Xcord.Infrastructure.Migrations
                     b.Navigation("ServerMember");
                 });
 
+            modelBuilder.Entity("Xcord.Entities.MemberSubscription", b =>
+                {
+                    b.HasOne("Xcord.Entities.Server", "Server")
+                        .WithMany()
+                        .HasForeignKey("ServerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Xcord.Entities.Tier", "Tier")
+                        .WithMany("Subscriptions")
+                        .HasForeignKey("TierId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Xcord.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Server");
+
+                    b.Navigation("Tier");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Xcord.Entities.Mention", b =>
                 {
                     b.HasOne("Xcord.Entities.Group", "MentionedGroup")
@@ -3922,6 +4073,17 @@ namespace Xcord.Infrastructure.Migrations
                     b.Navigation("Owner");
                 });
 
+            modelBuilder.Entity("Xcord.Entities.ServerBillingConfig", b =>
+                {
+                    b.HasOne("Xcord.Entities.Server", "Server")
+                        .WithMany()
+                        .HasForeignKey("ServerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Server");
+                });
+
             modelBuilder.Entity("Xcord.Entities.ServerInsightSnapshot", b =>
                 {
                     b.HasOne("Xcord.Entities.Server", "Server")
@@ -4064,6 +4226,17 @@ namespace Xcord.Infrastructure.Migrations
                     b.Navigation("Thread");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Xcord.Entities.Tier", b =>
+                {
+                    b.HasOne("Xcord.Entities.Server", "Server")
+                        .WithMany()
+                        .HasForeignKey("ServerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Server");
                 });
 
             modelBuilder.Entity("Xcord.Entities.Timeout", b =>
@@ -4298,6 +4471,11 @@ namespace Xcord.Infrastructure.Migrations
             modelBuilder.Entity("Xcord.Entities.Thread", b =>
                 {
                     b.Navigation("ThreadMembers");
+                });
+
+            modelBuilder.Entity("Xcord.Entities.Tier", b =>
+                {
+                    b.Navigation("Subscriptions");
                 });
 
             modelBuilder.Entity("Xcord.Entities.WelcomeScreen", b =>

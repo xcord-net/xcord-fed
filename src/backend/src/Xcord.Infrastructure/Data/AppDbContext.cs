@@ -82,6 +82,11 @@ public DbSet<VoiceState> VoiceStates => Set<VoiceState>();
     public DbSet<FederationMessage> FederationMessages => Set<FederationMessage>();
     public DbSet<UserNote> UserNotes => Set<UserNote>();
 
+    // Member subscription billing
+    public DbSet<Tier> Tiers => Set<Tier>();
+    public DbSet<MemberSubscription> MemberSubscriptions => Set<MemberSubscription>();
+    public DbSet<ServerBillingConfig> ServerBillingConfigs => Set<ServerBillingConfig>();
+
     // Outgoing webhooks
     public DbSet<OutgoingWebhook> OutgoingWebhooks => Set<OutgoingWebhook>();
     public DbSet<OutgoingWebhookDelivery> OutgoingWebhookDeliveries => Set<OutgoingWebhookDelivery>();

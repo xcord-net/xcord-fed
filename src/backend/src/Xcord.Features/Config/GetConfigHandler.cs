@@ -7,7 +7,7 @@ using Xcord.Infrastructure.Options;
 
 namespace Xcord.Features.Config;
 
-public sealed record GetConfigResponse(bool RegistrationEnabled, string? HubUrl);
+public sealed record GetConfigResponse(bool RegistrationEnabled, string? HubUrl, bool CanUseMemberTiers);
 
 public sealed class GetConfigHandler : IEndpoint
 {
@@ -15,12 +15,14 @@ public sealed class GetConfigHandler : IEndpoint
     {
         return app.MapGet("/api/v1/config", (
             [FromServices] IOptions<AuthOptions> authOptions,
-            [FromServices] IOptions<HubOptions> hubOptions) =>
+            [FromServices] IOptions<HubOptions> hubOptions,
+            [FromServices] IOptions<TierOptions> tierOptions) =>
         {
             var hubUrl = hubOptions.Value.Enabled ? hubOptions.Value.Origin : null;
             return Results.Ok(new GetConfigResponse(
                 authOptions.Value.RegistrationEnabled,
-                hubUrl));
+                hubUrl,
+                tierOptions.Value.CanUseMemberTiers));
         })
         .AllowAnonymous()
         .WithName("GetConfig")

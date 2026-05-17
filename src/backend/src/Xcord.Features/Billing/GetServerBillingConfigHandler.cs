@@ -1,0 +1,59 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Xcord.Features.Authorization;
+using Xcord.Infrastructure.Data;
+using Xcord.Infrastructure.Options;
+using Xcord.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
+
+namespace Xcord.Features.Billing;
+
+public sealed record GetServerBillingConfigQuery(long ServerId);
+
+public sealed class GetServerBillingConfigHandler(
+    AppDbContext dbContext,
+    ICurrentUserService currentUserService,
+    IOptions<MemberBillingOptions> billingOptions)
+    : IRequestHandler<GetServerBillingConfigQuery, Result<ServerBillingConfigDto>>
+{
+    public async Task<Result<ServerBillingConfigDto>> Handle(
+        GetServerBillingConfigQuery request, CancellationToken cancellationToken)
+    {
+        var userIdResult = currentUserService.GetCurrentUserId();
+        if (userIdResult.IsFailure) return userIdResult.Error;
+        var userId = userIdResult.Value;
+
+        var server = await dbContext.Servers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == request.ServerId, cancellationToken);
+
+        if (server == null)
+            return Error.NotFound("SERVER_NOT_FOUND", "Server not found");
+
+        if (server.OwnerId != userId)
+            return Error.Forbidden("NOT_OWNER", "Only the server owner can view billing configuration");
+
+        return new ServerBillingConfigDto(
+            ServerId: request.ServerId.ToString(),
+            StripeConfigured: billingOptions.Value.IsConfigured
+        );
+    }
+
+    public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
+    {
+        return app.MapGet("/api/v1/servers/{serverId}/billing/dashboard", async (
+            [FromRoute] long serverId,
+            IRequestHandler<GetServerBillingConfigQuery, Result<ServerBillingConfigDto>> handler,
+            CancellationToken ct) =>
+        {
+            return await handler.ExecuteAsync(new GetServerBillingConfigQuery(serverId), ct);
+        })
+        .RequireAuthorization(Policies.User)
+        .WithTags("Billing")
+        .WithName("GetServerBillingConfig")
+        .Produces<ServerBillingConfigDto>(200);
+    }
+}

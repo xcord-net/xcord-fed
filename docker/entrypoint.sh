@@ -121,6 +121,10 @@ if [ -n "${XCORD_CONFIG_INLINE:-}" ]; then
             Password: (.admin.password // ""),
             PasswordHash: (.admin.passwordHash // "")
         },
+        MemberBilling: {
+            StripeSecretKey: (.memberBilling.stripeSecretKey // ""),
+            StripeWebhookSecret: (.memberBilling.stripeWebhookSecret // "")
+        },
         TestSeed: {
             Key: (.testSeed.key // "")
         }
@@ -238,6 +242,10 @@ elif [ -f "$CONFIG_PATH" ]; then
             DisplayName: (.admin.displayName // ""),
             Password: (.admin.password // ""),
             PasswordHash: (.admin.passwordHash // "")
+        },
+        MemberBilling: {
+            StripeSecretKey: (.memberBilling.stripeSecretKey // ""),
+            StripeWebhookSecret: (.memberBilling.stripeWebhookSecret // "")
         },
         TestSeed: {
             Key: (.testSeed.key // "")
