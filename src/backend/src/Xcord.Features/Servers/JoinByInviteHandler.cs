@@ -66,9 +66,10 @@ public sealed class JoinByInviteHandler(
         {
             // User is already a member - consume the invite use so max-uses accounting
             // remains correct (otherwise a member re-clicking an invite would let extra
-            // users join a 1-use link without decrementing the counter).
-            invite.Uses++;
-            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            // users join a 1-use link without decrementing the counter). The increment
+            // is conditional SQL so concurrent consumers can never push Uses past
+            // MaxUses; an exhausted invite is fine here since no new member is added.
+            await ConsumeInviteUseAsync(invite.Code, cancellationToken).ConfigureAwait(false);
 
             return new JoinByInviteResponse(
                 Id: invite.Server.Id,
@@ -85,6 +86,19 @@ public sealed class JoinByInviteHandler(
         }
 
         var now = DateTimeOffset.UtcNow;
+
+        // The invite consume, member insert, and counter increment must be atomic:
+        // ExecuteUpdateAsync runs immediately, so without a transaction a failed
+        // SaveChanges would burn an invite use with no membership to show for it.
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+
+        // Consume the invite use first with a conditional SQL increment. Checking
+        // Uses < MaxUses inside the UPDATE closes the validation TOCTOU: of N
+        // concurrent joiners on a 1-use invite, exactly one row update succeeds.
+        if (!await ConsumeInviteUseAsync(invite.Code, cancellationToken).ConfigureAwait(false))
+        {
+            return Error.Validation("INVITE_MAX_USES_REACHED", "This invite has reached its maximum number of uses");
+        }
 
         // Create ServerMember
         var serverMember = new ServerMember
@@ -143,11 +157,13 @@ public sealed class JoinByInviteHandler(
             });
         }
 
-        // Increment invite uses
-        invite.Uses++;
-
-        // Increment server member count atomically
-        invite.Server.MemberCount++;
+        // Increment server member count atomically (single SQL UPDATE, same
+        // pattern as BanMemberHandler) so concurrent joins/leaves never lose updates.
+        await dbContext.Servers
+            .Where(s => s.Id == invite.ServerId)
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(s => s.MemberCount, s => s.MemberCount + 1),
+                cancellationToken).ConfigureAwait(false);
 
         // Create system message (MemberJoin) in the server's system channel if configured
         long? systemMessageConversationId = null;
@@ -188,6 +204,15 @@ public sealed class JoinByInviteHandler(
         }
 
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+
+        // The tracked Server entity predates the atomic increment; fetch the
+        // committed count for the response instead of reporting a stale value.
+        var memberCount = await dbContext.Servers
+            .AsNoTracking()
+            .Where(s => s.Id == invite.ServerId)
+            .Select(s => s.MemberCount)
+            .FirstAsync(cancellationToken).ConfigureAwait(false);
 
         // Notify after save
         if (systemMessageConversationId.HasValue && systemMessageId.HasValue)
@@ -217,11 +242,27 @@ public sealed class JoinByInviteHandler(
             IconUrl: invite.Server.IconUrl,
             BannerUrl: invite.Server.BannerUrl,
             OwnerId: invite.Server.OwnerId,
-            MemberCount: invite.Server.MemberCount,
+            MemberCount: memberCount,
             PreferredLocale: invite.Server.PreferredLocale,
             CreatedAt: invite.Server.CreatedAt,
             ChannelId: invite.ChannelId
         );
+    }
+
+    /// <summary>
+    /// Consumes one use of the invite with a conditional atomic UPDATE.
+    /// Returns false when the invite was already at MaxUses, so concurrent
+    /// joiners cannot push Uses past the cap.
+    /// </summary>
+    private async Task<bool> ConsumeInviteUseAsync(string inviteCode, CancellationToken cancellationToken)
+    {
+        var updated = await dbContext.Invites
+            .Where(i => i.Code == inviteCode && (i.MaxUses == null || i.Uses < i.MaxUses.Value))
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(i => i.Uses, i => i.Uses + 1),
+                cancellationToken).ConfigureAwait(false);
+
+        return updated > 0;
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)

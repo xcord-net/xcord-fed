@@ -124,16 +124,16 @@ public sealed class ListChannelsHandler(
             return new ListChannelsResponse(Channels: allChannels, Categories: categories);
         }
 
-        // For regular members, filter out channels where they lack ViewChannel permission
-        var visibleChannels = new List<ChannelDto>(allChannels.Count);
-        foreach (var channel in allChannels)
-        {
-            var channelPerms = await roleService.GetChannelRoles(userId, channel.Id).ConfigureAwait(false);
-            if ((channelPerms & (long)Role.ViewChannels) != 0)
-            {
-                visibleChannels.Add(channel);
-            }
-        }
+        // For regular members, filter out channels where they lack ViewChannel
+        // permission. Resolved in one batch (bulk cache read + single override
+        // query) instead of one role lookup per channel.
+        var channelRolesById = await roleService
+            .GetChannelRolesForServer(userId, request.ServerId, allChannels.Select(c => c.Id).ToList())
+            .ConfigureAwait(false);
+
+        var visibleChannels = allChannels
+            .Where(c => (channelRolesById.GetValueOrDefault(c.Id) & (long)Role.ViewChannels) != 0)
+            .ToList();
 
         return new ListChannelsResponse(Channels: visibleChannels, Categories: categories);
     }

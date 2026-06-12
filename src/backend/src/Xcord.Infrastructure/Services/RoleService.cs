@@ -280,6 +280,148 @@ public sealed class RoleService : IRoleService
         return await CacheAndReturn(CapBotRoles(roles)).ConfigureAwait(false);
     }
 
+    public async Task<Dictionary<long, long>> GetChannelRolesForServer(long userId, long serverId, IReadOnlyCollection<long> channelIds)
+    {
+        var results = new Dictionary<long, long>(channelIds.Count);
+        var missing = new List<long>();
+
+        // Bulk cache read: one MGET instead of one round-trip per channel.
+        try
+        {
+            var db = _redis.GetDatabase();
+            var keys = channelIds.Select(id => (RedisKey)$"{_prefix}:perms:channel:{userId}:{id}").ToArray();
+            var cached = await db.StringGetAsync(keys).ConfigureAwait(false);
+            var index = 0;
+            foreach (var channelId in channelIds)
+            {
+                if (cached[index].HasValue && long.TryParse(cached[index].ToString(), out var cachedPerms))
+                {
+                    results[channelId] = cachedPerms;
+                }
+                else
+                {
+                    missing.Add(channelId);
+                }
+                index++;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Redis unavailable when bulk-reading channel role cache for user {UserId}; falling back to DB", userId);
+            results.Clear();
+            missing = channelIds.ToList();
+        }
+
+        if (missing.Count == 0)
+        {
+            return results;
+        }
+
+        // Server-level roles and the @everyone group are channel-independent;
+        // resolve them once for every cache miss.
+        var (serverRoles, everyoneGroup) = await GetServerRolesWithEveryoneGroup(userId, serverId).ConfigureAwait(false);
+
+        var computed = new Dictionary<long, long>(missing.Count);
+
+        if (serverRoles == 0L || serverRoles == long.MaxValue || everyoneGroup == null)
+        {
+            // Mirrors the single-channel early returns: no roles, Administrator,
+            // or a server missing its @everyone group all skip channel overrides.
+            if (everyoneGroup == null && serverRoles != 0L && serverRoles != long.MaxValue)
+            {
+                _logger.LogWarning(
+                    "Server {ServerId} has no @everyone group during channel role resolution",
+                    serverId);
+            }
+
+            foreach (var channelId in missing)
+            {
+                computed[channelId] = serverRoles;
+            }
+        }
+        else
+        {
+            var userGroupIds = await _dbContext.MemberGroups
+                .AsNoTracking()
+                .Where(mg => mg.UserId == userId && mg.ServerId == serverId)
+                .Select(mg => mg.GroupId)
+                .ToListAsync().ConfigureAwait(false);
+
+            // One query for every override relevant to this user across all
+            // missing channels, then apply them per channel in the same order
+            // as GetChannelRoles: @everyone -> groups (deny then allow) -> user.
+            var overrides = await _dbContext.ChannelPermissionOverrides
+                .AsNoTracking()
+                .Where(cpo => missing.Contains(cpo.ChannelId) &&
+                    ((cpo.TargetType == OverrideTargetType.Group &&
+                        (cpo.TargetId == everyoneGroup.Id || userGroupIds.Contains(cpo.TargetId))) ||
+                     (cpo.TargetType == OverrideTargetType.User && cpo.TargetId == userId)))
+                .ToListAsync().ConfigureAwait(false);
+
+            var overridesByChannel = overrides
+                .GroupBy(cpo => cpo.ChannelId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            foreach (var channelId in missing)
+            {
+                var roles = serverRoles;
+
+                if (overridesByChannel.TryGetValue(channelId, out var channelOverrides))
+                {
+                    var everyoneOverride = channelOverrides.FirstOrDefault(cpo =>
+                        cpo.TargetType == OverrideTargetType.Group && cpo.TargetId == everyoneGroup.Id);
+                    if (everyoneOverride != null)
+                    {
+                        roles = (roles & ~everyoneOverride.Deny) | everyoneOverride.Allow;
+                    }
+
+                    long combinedDeny = 0L;
+                    long combinedAllow = 0L;
+                    foreach (var groupOverride in channelOverrides.Where(cpo =>
+                        cpo.TargetType == OverrideTargetType.Group && cpo.TargetId != everyoneGroup.Id))
+                    {
+                        combinedDeny |= groupOverride.Deny;
+                        combinedAllow |= groupOverride.Allow;
+                    }
+                    roles = (roles & ~combinedDeny) | combinedAllow;
+
+                    var userOverride = channelOverrides.FirstOrDefault(cpo =>
+                        cpo.TargetType == OverrideTargetType.User && cpo.TargetId == userId);
+                    if (userOverride != null)
+                    {
+                        roles = (roles & ~userOverride.Deny) | userOverride.Allow;
+                    }
+                }
+
+                computed[channelId] = CapBotRoles(roles);
+            }
+        }
+
+        // Bulk cache write, pipelined in a single batch.
+        try
+        {
+            var cacheDb = _redis.GetDatabase();
+            var batch = cacheDb.CreateBatch();
+            var writes = computed
+                .Select(kv => batch.StringSetAsync(
+                    $"{_prefix}:perms:channel:{userId}:{kv.Key}", kv.Value.ToString(), CacheTtl))
+                .ToArray();
+            batch.Execute();
+            await Task.WhenAll(writes).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Redis unavailable when bulk-writing channel role cache for user {UserId}", userId);
+        }
+
+        foreach (var kv in computed)
+        {
+            results[kv.Key] = kv.Value;
+        }
+
+        return results;
+    }
+
     public async Task<Result<bool>> EnsureServerRole(
         long userId,
         long serverId,

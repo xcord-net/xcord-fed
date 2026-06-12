@@ -1,6 +1,8 @@
 using System.Net;
 using System.Text.Json;
+using System.Net.Http.Json;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Xcord.Tests.Integration.Fixtures;
 using Xcord.Tests.Integration.Helpers;
 using Xunit;
@@ -228,5 +230,70 @@ public class ChannelEndpointTests
             member.AccessToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task ListChannels_MemberWithMixedOverrides_SeesOnlyViewableChannels()
+    {
+        var owner = await _helper.RegisterUserAsync();
+        var server = await _helper.CreateServerAsync(owner.AccessToken);
+        var serverId = server.GetProperty("id").ReadLong();
+
+        var visible = await _helper.CreateChannelAsync(owner.AccessToken, serverId, name: "visible-channel");
+        var hidden = await _helper.CreateChannelAsync(owner.AccessToken, serverId, name: "hidden-channel");
+        var allowed = await _helper.CreateChannelAsync(owner.AccessToken, serverId, name: "user-allowed-channel");
+        var hiddenId = hidden.GetProperty("id").ReadLong();
+        var allowedId = allowed.GetProperty("id").ReadLong();
+
+        var inviteCode = await _helper.CreateInviteAsync(owner.AccessToken, serverId);
+        var member = await _helper.RegisterUserAsync();
+        (await _helper.JoinServerAsync(member.AccessToken, inviteCode)).EnsureSuccessStatusCode();
+
+        long everyoneGroupId;
+        await using (var db = _fixture.CreateDbContext())
+        {
+            everyoneGroupId = await db.Groups
+                .AsNoTracking()
+                .Where(g => g.ServerId == serverId && g.IsEveryone)
+                .Select(g => g.Id)
+                .FirstAsync();
+        }
+
+        async Task PutOverride(long channelId, string subjectId, string verdict)
+        {
+            var request = TestHelper.AuthRequest(
+                HttpMethod.Put, $"/api/v1/servers/{serverId}/channels/{channelId}/permissions", owner.AccessToken);
+            request.Content = JsonContent.Create(new
+            {
+                subjectId,
+                permissions = new Dictionary<string, string> { ["ViewChannel"] = verdict }
+            });
+            var response = await _fixture.Client.SendAsync(request);
+            response.IsSuccessStatusCode.Should().BeTrue(
+                $"override update should succeed: {await response.Content.ReadAsStringAsync()}");
+        }
+
+        // Hide two channels from @everyone, then re-allow one specifically for the member.
+        await PutOverride(hiddenId, everyoneGroupId.ToString(), "Deny");
+        await PutOverride(allowedId, everyoneGroupId.ToString(), "Deny");
+        await PutOverride(allowedId, member.UserId.ToString(), "Allow");
+
+        var listResponse = await _helper.AuthGetAsync($"/api/v1/servers/{serverId}/channels", member.AccessToken);
+        listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await listResponse.ReadAsJsonAsync<JsonElement>();
+        var names = body.GetProperty("channels").EnumerateArray()
+            .Select(c => c.GetProperty("name").GetString())
+            .ToList();
+
+        names.Should().Contain("visible-channel");
+        names.Should().Contain("user-allowed-channel", "a user-level Allow override beats the @everyone Deny");
+        names.Should().NotContain("hidden-channel", "the @everyone Deny override hides the channel from regular members");
+
+        // The owner (admin) still sees everything.
+        var ownerList = await _helper.AuthGetAsync($"/api/v1/servers/{serverId}/channels", owner.AccessToken);
+        var ownerBody = await ownerList.ReadAsJsonAsync<JsonElement>();
+        ownerBody.GetProperty("channels").EnumerateArray()
+            .Select(c => c.GetProperty("name").GetString())
+            .Should().Contain(["visible-channel", "hidden-channel", "user-allowed-channel"]);
     }
 }

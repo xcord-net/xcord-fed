@@ -86,11 +86,11 @@ public sealed class KickMemberHandler(
 
         var now = DateTimeOffset.UtcNow;
 
+        // Member removal and counter decrement must commit together.
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+
         // Remove server member
         dbContext.ServerMembers.Remove(serverMember);
-
-        // Decrement server member count
-        server.MemberCount--;
 
         // Create audit log
         dbContext.AuditLogs.AddEntry(snowflakeGenerator, request.ServerId, moderatorId, "MemberKick", request.UserId, request.Reason, now);
@@ -101,6 +101,17 @@ public sealed class KickMemberHandler(
             request.UserId, moderatorId, MessageType.MemberKick, request.Reason, now, cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        // Atomically decrement Server.MemberCount with a SQL UPDATE rather than
+        // read-then-write, matching BanMemberHandler, so concurrent membership
+        // changes never lose updates.
+        await dbContext.Servers
+            .Where(s => s.Id == request.ServerId)
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(s => s.MemberCount, s => s.MemberCount - 1),
+                cancellationToken).ConfigureAwait(false);
+
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
         // Notify after save
         await notificationService.NotifyServerAsync(request.ServerId, "Member_Kicked", new

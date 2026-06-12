@@ -71,6 +71,7 @@ const store = createRoot(() => {
   const [tags, setTags] = createSignal<ForumTag[]>([]);
   const [selectedPostId, setSelectedPostId] = createSignal<string | null>(null);
   const [isLoading, setIsLoading] = createSignal(false);
+  const [loadError, setLoadError] = createSignal(false);
 
   return {
     posts,
@@ -81,6 +82,8 @@ const store = createRoot(() => {
     setSelectedPostId,
     isLoading,
     setIsLoading,
+    loadError,
+    setLoadError,
   };
 });
 
@@ -90,15 +93,21 @@ export function useForums() {
     get tags() { return store.tags(); },
     get selectedPostId() { return store.selectedPostId(); },
     get isLoading() { return store.isLoading(); },
+    get loadError() { return store.loadError(); },
 
     async loadPosts(channelId: string): Promise<void> {
       store.setIsLoading(true);
       try {
-        const resp = await api.get<ListForumPostsResponse>(`/api/v1/channels/${channelId}/posts`);
-        const rawPosts: ForumPostDto[] = Array.isArray(resp) ? (resp as unknown as ForumPostDto[]) : (resp?.posts ?? []);
+        const resp = await api.get<ListForumPostsResponse | ForumPostDto[]>(`/api/v1/channels/${channelId}/posts`);
+        const rawPosts: ForumPostDto[] = Array.isArray(resp) ? resp : (resp?.posts ?? []);
         store.setPosts(rawPosts.map(mapDtoToPost));
-      } catch {
+        store.setLoadError(false);
+      } catch (err) {
+        // Distinguish "failed to load" from "no posts" - silently emptying the
+        // list reads as an empty forum during an outage.
+        console.error('Failed to load forum posts', err);
         store.setPosts([]);
+        store.setLoadError(true);
       } finally {
         store.setIsLoading(false);
       }
@@ -108,7 +117,8 @@ export function useForums() {
       try {
         const tags = await api.get<ForumTag[]>(`/api/v1/channels/${channelId}/tags`);
         store.setTags(Array.isArray(tags) ? tags : []);
-      } catch {
+      } catch (err) {
+        console.error('Failed to load forum tags', err);
         store.setTags([]);
       }
     },

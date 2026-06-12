@@ -225,6 +225,9 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseSetting("InternalApi:Key", "test-internal-api-key-for-integration");
         builder.UseSetting("Federation:RequireSignatureVerification", "false");
         builder.UseSetting("Tier:MaxStorageMb", "50");
+        // Low cap so VoiceConcurrencyTests can prove the limit holds under
+        // parallel joins; voice tests are otherwise single-participant.
+        builder.UseSetting("Tier:MaxVoiceConcurrency", "2");
 
         builder.ConfigureServices(services =>
         {

@@ -192,6 +192,55 @@ public class DmTests
         message.GetProperty("content").GetString().Should().Be("Hello in DM!");
     }
 
+    [Fact]
+    public async Task ListDms_MultipleDmsWithMessages_ReturnsCorrectLastMessagePerDm()
+    {
+        var user1 = await _helper.RegisterUserAsync();
+        var conversationIds = new List<long>();
+
+        // Three DMs with messages plus one with none.
+        for (var i = 0; i < 3; i++)
+        {
+            var recipient = await _helper.RegisterUserAsync();
+            var createResponse = await _helper.AuthPostAsync(
+                "/api/v1/users/@me/dms",
+                user1.AccessToken,
+                new { recipientIds = new[] { recipient.UserId } });
+            createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+            var dm = await createResponse.ReadAsJsonAsync<JsonElement>();
+            var conversationId = dm.GetProperty("conversationId").ReadLong();
+            conversationIds.Add(conversationId);
+
+            await _helper.SendMessageAsync(user1.AccessToken, conversationId, $"older {i}");
+            await _helper.SendMessageAsync(user1.AccessToken, conversationId, $"latest {i}");
+        }
+
+        var emptyRecipient = await _helper.RegisterUserAsync();
+        var emptyCreate = await _helper.AuthPostAsync(
+            "/api/v1/users/@me/dms",
+            user1.AccessToken,
+            new { recipientIds = new[] { emptyRecipient.UserId } });
+        emptyCreate.StatusCode.Should().Be(HttpStatusCode.Created);
+        var emptyDm = await emptyCreate.ReadAsJsonAsync<JsonElement>();
+        var emptyConversationId = emptyDm.GetProperty("conversationId").ReadLong();
+
+        var listResponse = await _helper.AuthGetAsync("/api/v1/users/@me/dms", user1.AccessToken);
+        listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var dms = await listResponse.ReadAsJsonAsync<JsonElement>();
+        var dmArray = dms.GetProperty("dmChannels").EnumerateArray().ToList();
+
+        for (var i = 0; i < 3; i++)
+        {
+            var entry = dmArray.Single(d => d.GetProperty("conversationId").ReadLong() == conversationIds[i]);
+            entry.GetProperty("lastMessage").GetProperty("content").GetString()
+                .Should().Be($"latest {i}", "each DM must report its own most recent message");
+        }
+
+        var emptyEntry = dmArray.Single(d => d.GetProperty("conversationId").ReadLong() == emptyConversationId);
+        emptyEntry.GetProperty("lastMessage").ValueKind.Should().Be(JsonValueKind.Null,
+            "a DM with no messages has no last-message preview");
+    }
+
     // ──────────── Group DM Management ────────────
 
     [Fact]

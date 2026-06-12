@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { api } from '../api/client';
-import type { BotListing, AppDirectoryResponse } from '../components/AppDirectory';
+import type { BotListing, AppDirectoryResponse, BackendAppListing } from '../components/AppDirectory';
 import {
   formatInstallCount,
   filterBots,
@@ -196,9 +196,18 @@ describe('AppDirectory', () => {
 
   describe('app directory API', () => {
     it('GET /api/v1/app-directory returns bots and total', async () => {
-      // Arrange
-      const bots = makeBotList();
-      const response: AppDirectoryResponse = { bots, total: bots.length };
+      // Arrange - the wire format carries raw backend listings, not the
+      // mapped display shape.
+      const backendBots: BackendAppListing[] = makeBotList().map((b, i) => ({
+        id: b.id,
+        name: b.name,
+        shortDescription: b.shortDescription,
+        iconUrl: b.avatarUrl,
+        category: b.category,
+        installCount: 10 + i,
+        isVerified: false,
+      }));
+      const response: AppDirectoryResponse = { bots: backendBots, total: backendBots.length };
 
       globalThis.fetch = vi.fn().mockResolvedValueOnce({
         ok: true,

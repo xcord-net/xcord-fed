@@ -54,20 +54,31 @@ public sealed class ListDmsHandler(
             .Take(limit)
             .ToListAsync(cancellationToken);
 
+        // Resolve every DM's last-message preview with two set-based queries
+        // instead of one query per DM. Snowflake IDs are time-ordered, so the
+        // max ID per conversation is its most recent message.
+        var conversationIds = dmChannels.Select(dm => dm.ConversationId).ToList();
+
+        var latestMessageIds = await dbContext.Messages
+            .Where(m => conversationIds.Contains(m.ConversationId))
+            .GroupBy(m => m.ConversationId)
+            .Select(g => g.Max(m => m.Id))
+            .ToListAsync(cancellationToken);
+
+        var lastMessagesByConversation = await dbContext.Messages
+            .Where(m => latestMessageIds.Contains(m.Id))
+            .Select(m => new
+            {
+                m.ConversationId,
+                Preview = new MessagePreviewDto(m.Id, m.AuthorId, m.Content ?? "", m.CreatedAt)
+            })
+            .ToDictionaryAsync(x => x.ConversationId, x => x.Preview, cancellationToken);
+
         var result = new List<DmChannelDto>();
 
         foreach (var dm in dmChannels)
         {
-            // Get last message preview for this conversation
-            var lastMessage = await dbContext.Messages
-                .Where(m => m.ConversationId == dm.ConversationId)
-                .OrderByDescending(m => m.CreatedAt)
-                .Select(m => new MessagePreviewDto(
-                    m.Id,
-                    m.AuthorId,
-                    m.Content ?? "",
-                    m.CreatedAt))
-                .FirstOrDefaultAsync(cancellationToken);
+            var lastMessage = lastMessagesByConversation.GetValueOrDefault(dm.ConversationId);
 
             // Order members so the OTHER party is first for 1:1 DMs. This lets the
             // frontend identify the recipient as members[0] without needing to know

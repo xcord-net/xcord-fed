@@ -227,7 +227,13 @@ export default function ForumPostList(props: ForumPostListProps) {
           </div>
         </Show>
 
-        <Show when={!forumStore.isLoading && forumStore.posts.length === 0}>
+        <Show when={!forumStore.isLoading && forumStore.loadError}>
+          <div data-testid="forum-load-error" class={styles.emptyState}>
+            <p class={styles.emptyStateText}>Couldn't load posts. Check your connection and try again.</p>
+          </div>
+        </Show>
+
+        <Show when={!forumStore.isLoading && !forumStore.loadError && forumStore.posts.length === 0}>
           <div data-testid="forum-empty-state" class={styles.emptyState}>
             <p class={styles.emptyStateText}>No posts yet. Be the first to start a discussion!</p>
             <button

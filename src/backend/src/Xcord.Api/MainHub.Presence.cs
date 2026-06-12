@@ -29,23 +29,12 @@ public partial class MainHub
         // Update status in presence service
         await _presenceService.SetStatusAsync(userId.Value, presenceStatus);
 
-        // Get user's server IDs from connection items or DB
+        // Get user's server IDs from the connection cache (refetched when stale)
         List<long> serverIds;
-        if (Context.Items.TryGetValue("ServerIds", out var cachedServerIds) && cachedServerIds is List<long> ids)
-        {
-            serverIds = ids;
-        }
-        else
         {
             using var scope = _serviceScopeFactory.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            serverIds = await context.ServerMembers
-                .Where(sm => sm.UserId == userId.Value)
-                .Select(sm => sm.ServerId)
-                .ToListAsync();
-
-            // Cache for future use
-            Context.Items["ServerIds"] = serverIds;
+            serverIds = await GetServerIdsCachedAsync(context, userId.Value);
         }
 
         // If status is Online, Away, or DND, update heartbeat
@@ -68,23 +57,12 @@ public partial class MainHub
             throw new HubException("Unauthorized");
         }
 
-        // Get user's server IDs from connection items or DB
+        // Get user's server IDs from the connection cache (refetched when stale)
         List<long> serverIds;
-        if (Context.Items.TryGetValue("ServerIds", out var cachedServerIds) && cachedServerIds is List<long> ids)
-        {
-            serverIds = ids;
-        }
-        else
         {
             using var scope = _serviceScopeFactory.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            serverIds = await context.ServerMembers
-                .Where(sm => sm.UserId == userId.Value)
-                .Select(sm => sm.ServerId)
-                .ToListAsync();
-
-            // Cache for future use
-            Context.Items["ServerIds"] = serverIds;
+            serverIds = await GetServerIdsCachedAsync(context, userId.Value);
         }
 
         // Update heartbeat (silent operation, no broadcast)

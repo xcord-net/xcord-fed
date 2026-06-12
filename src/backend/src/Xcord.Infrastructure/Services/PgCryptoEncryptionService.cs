@@ -147,15 +147,22 @@ public sealed class PgCryptoEncryptionService : IEncryptionService
         }
 
         // Legacy AES-CBC (16-byte IV prefix, no version byte). Minimum length 32.
+        // The leading byte of a CBC IV can coincide with an unregistered GCM
+        // version number, so this fallback is heuristic: if CBC decryption fails
+        // on such input, report the unknown key version rather than a misleading
+        // padding error.
         if (ciphertext.Length >= 32)
         {
-            return DecryptLegacyCbc(ciphertext);
-        }
-
-        // Versioned ciphertext whose key is not loaded.
-        if (versionByte != 0 && ciphertext.Length > 1 + NonceSize + TagSize)
-        {
-            throw new CryptographicException($"Unknown key version {versionByte}");
+            try
+            {
+                return DecryptLegacyCbc(ciphertext);
+            }
+            catch (CryptographicException ex) when (versionByte != 0 && ciphertext.Length > 1 + NonceSize + TagSize)
+            {
+                throw new CryptographicException(
+                    $"Decryption failed: input is not legacy CBC ciphertext and its version byte {versionByte} matches no registered key",
+                    ex);
+            }
         }
 
         throw new CryptographicException("Invalid ciphertext format");

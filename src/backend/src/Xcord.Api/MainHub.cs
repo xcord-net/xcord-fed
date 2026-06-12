@@ -57,6 +57,35 @@ public partial class MainHub : Hub
         _presenceNotifier = presenceNotifier;
     }
 
+    private const string ServerIdsCacheKey = "ServerIds";
+    private static readonly TimeSpan ServerIdsCacheTtl = TimeSpan.FromSeconds(60);
+
+    private sealed record ServerIdsCacheEntry(List<long> Ids, DateTimeOffset FetchedAt);
+
+    /// <summary>
+    /// Returns the user's server IDs, cached per connection with a short TTL.
+    /// The TTL bounds how long presence fan-out can target a stale server list
+    /// after the user joins or leaves a server mid-connection (the old cache
+    /// lived for the whole connection and was never invalidated).
+    /// </summary>
+    private async Task<List<long>> GetServerIdsCachedAsync(AppDbContext context, long userId)
+    {
+        if (Context.Items.TryGetValue(ServerIdsCacheKey, out var cached)
+            && cached is ServerIdsCacheEntry entry
+            && DateTimeOffset.UtcNow - entry.FetchedAt < ServerIdsCacheTtl)
+        {
+            return entry.Ids;
+        }
+
+        var serverIds = await context.ServerMembers
+            .Where(sm => sm.UserId == userId)
+            .Select(sm => sm.ServerId)
+            .ToListAsync();
+
+        Context.Items[ServerIdsCacheKey] = new ServerIdsCacheEntry(serverIds, DateTimeOffset.UtcNow);
+        return serverIds;
+    }
+
     public override async Task OnConnectedAsync()
     {
         var userId = GetUserId();
@@ -76,13 +105,7 @@ public partial class MainHub : Hub
         using var scope = _serviceScopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        var serverIds = await context.ServerMembers
-            .Where(sm => sm.UserId == userId.Value)
-            .Select(sm => sm.ServerId)
-            .ToListAsync();
-
-        // Store server IDs in connection items for later use
-        Context.Items["ServerIds"] = serverIds;
+        var serverIds = await GetServerIdsCachedAsync(context, userId.Value);
 
         // Add to server groups so this connection receives server-wide broadcasts (e.g. Presence_Updated)
         foreach (var sid in serverIds)
@@ -125,19 +148,8 @@ public partial class MainHub : Hub
         using var scope = _serviceScopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        // Get server IDs from connection items or DB
-        List<long> serverIds;
-        if (Context.Items.TryGetValue("ServerIds", out var cachedServerIds) && cachedServerIds is List<long> ids)
-        {
-            serverIds = ids;
-        }
-        else
-        {
-            serverIds = await context.ServerMembers
-                .Where(sm => sm.UserId == userId.Value)
-                .Select(sm => sm.ServerId)
-                .ToListAsync();
-        }
+        // Get server IDs from the connection cache (refetched when stale)
+        var serverIds = await GetServerIdsCachedAsync(context, userId.Value);
 
         // Remove from server groups
         foreach (var sid in serverIds)

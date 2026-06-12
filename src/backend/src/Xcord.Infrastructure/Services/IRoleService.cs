@@ -21,6 +21,13 @@ public interface IRoleService
     Task<long> GetChannelRoles(long userId, long channelId);
 
     /// <summary>
+    /// Batch variant of <see cref="GetChannelRoles"/> for channels that all belong
+    /// to the same server: one bulk cache read, one override query for the misses,
+    /// and one bulk cache write instead of per-channel round-trips.
+    /// </summary>
+    Task<Dictionary<long, long>> GetChannelRolesForServer(long userId, long serverId, IReadOnlyCollection<long> channelIds);
+
+    /// <summary>
     /// Ensures the user has the specified server role.
     /// Returns success if authorized, or a Forbidden error if not.
     /// </summary>

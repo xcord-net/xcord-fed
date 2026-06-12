@@ -29,8 +29,21 @@ export interface BotListing {
   tags: string[];
 }
 
+// Backend response type for a single app listing (raw wire format,
+// before mapping to BotListing for display).
+export type BackendAppListing = {
+  id: string;
+  name: string;
+  shortDescription?: string;
+  iconUrl?: string;
+  category?: string;
+  installCount: number;
+  isVerified: boolean;
+  averageRating?: number;
+};
+
 export interface AppDirectoryResponse {
-  bots: BotListing[];
+  bots: BackendAppListing[];
   total: number;
 }
 
@@ -97,18 +110,6 @@ export default function AppDirectory(props: AppDirectoryProps) {
   const displayedBots = () =>
     sortBotsByInstalls(filterBots(bots(), searchQuery(), selectedCategory()));
 
-  // Backend response type for a single app listing
-  type BackendAppListing = {
-    id: string;
-    name: string;
-    shortDescription?: string;
-    iconUrl?: string;
-    category?: string;
-    installCount: number;
-    isVerified: boolean;
-    averageRating?: number;
-  };
-
   // Load directory on mount - backend returns an array directly
   createEffect(() => {
     setIsLoading(true);
@@ -117,8 +118,8 @@ export default function AppDirectory(props: AppDirectoryProps) {
       .then((data) => {
         // Backend returns either a plain array or a wrapped { bots: [] } object
         const rawList: BackendAppListing[] = Array.isArray(data)
-          ? (data as BackendAppListing[])
-          : ((data as AppDirectoryResponse)?.bots as unknown as BackendAppListing[] ?? []);
+          ? data
+          : (data?.bots ?? []);
 
         const mapped: BotListing[] = rawList.map((app) => ({
           id: String(app.id),

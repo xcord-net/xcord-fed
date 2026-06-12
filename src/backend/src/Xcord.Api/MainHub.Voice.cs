@@ -13,6 +13,11 @@ namespace Xcord.Api;
 /// </summary>
 public partial class MainHub
 {
+    // Postgres advisory lock keys serializing the tier-limit check-then-insert
+    // sections below ("xcord_vc" / "xcord_vd" as ASCII hex).
+    private const long VoiceConcurrencyLockKey = 0x78636F72645F7663;
+    private const long VideoConcurrencyLockKey = 0x78636F72645F7664;
+
     public async Task<object> JoinVoiceChannel(long channelId)
     {
         if (channelId <= 0) throw new HubException("Invalid id");
@@ -39,16 +44,6 @@ public partial class MainHub
 
         var permissionResult = await roleService.EnsureChannelRole(userId, channelId, Role.Connect);
         if (permissionResult.IsFailure) throw new HubException("Forbidden");
-
-        // Concurrency check: count instance-wide voice participants (excluding this user)
-        if (_tierOptions.MaxVoiceConcurrency > 0)
-        {
-            var currentVoiceCount = await context.VoiceStates.CountAsync(vs => vs.UserId != userId);
-            if (currentVoiceCount >= _tierOptions.MaxVoiceConcurrency)
-            {
-                throw new HubException("Voice participant limit reached - upgrade your plan for more concurrent participants");
-            }
-        }
 
         // If user is already in a voice channel, leave it first
         var existingState = await context.VoiceStates.FirstOrDefaultAsync(vs => vs.UserId == userId);
@@ -92,8 +87,26 @@ public partial class MainHub
             JoinedAt = DateTime.UtcNow
         };
 
-        context.VoiceStates.Add(voiceState);
-        await context.SaveChangesAsync();
+        // Concurrency cap: the count check and the insert must be serialized,
+        // otherwise N simultaneous joins all pass the check and exceed the tier
+        // limit. A transaction-scoped advisory lock makes check+insert atomic.
+        using (var transaction = await context.Database.BeginTransactionAsync())
+        {
+            if (_tierOptions.MaxVoiceConcurrency > 0)
+            {
+                await context.Database.ExecuteSqlAsync($"SELECT pg_advisory_xact_lock({VoiceConcurrencyLockKey})");
+
+                var currentVoiceCount = await context.VoiceStates.CountAsync(vs => vs.UserId != userId);
+                if (currentVoiceCount >= _tierOptions.MaxVoiceConcurrency)
+                {
+                    throw new HubException("Voice participant limit reached - upgrade your plan for more concurrent participants");
+                }
+            }
+
+            context.VoiceStates.Add(voiceState);
+            await context.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
 
         await Groups.AddToGroupAsync(Context.ConnectionId, $"voice:{serverId}:{channelId}");
 
@@ -286,18 +299,26 @@ public partial class MainHub
             throw new HubException("Forbidden: Missing ShareScreen permission");
         }
 
-        // Video concurrency check: count instance-wide active streams
-        if (_tierOptions.MaxVideoConcurrency > 0)
+        // Video concurrency cap: serialize the count check with the IsStreaming
+        // write via an advisory lock, mirroring JoinVoiceChannel, so concurrent
+        // StartStream calls cannot exceed the tier limit.
+        using (var transaction = await context.Database.BeginTransactionAsync())
         {
-            var activeStreamCount = await context.VoiceStates.CountAsync(vs => vs.IsStreaming);
-            if (activeStreamCount >= _tierOptions.MaxVideoConcurrency)
+            if (_tierOptions.MaxVideoConcurrency > 0)
             {
-                throw new HubException("Video stream limit reached - upgrade your plan for more concurrent streams");
-            }
-        }
+                await context.Database.ExecuteSqlAsync($"SELECT pg_advisory_xact_lock({VideoConcurrencyLockKey})");
 
-        voiceState.IsStreaming = true;
-        await context.SaveChangesAsync();
+                var activeStreamCount = await context.VoiceStates.CountAsync(vs => vs.IsStreaming);
+                if (activeStreamCount >= _tierOptions.MaxVideoConcurrency)
+                {
+                    throw new HubException("Video stream limit reached - upgrade your plan for more concurrent streams");
+                }
+            }
+
+            voiceState.IsStreaming = true;
+            await context.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
 
         await Clients.Group($"voice:{serverId}:{channelId}")
             .SendAsync("Voice_StreamStarted", new { userId, channelId });

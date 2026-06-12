@@ -18,15 +18,26 @@ namespace Xcord.Infrastructure.Services;
 public sealed class EncryptionKeyHolder
 {
     private readonly ConcurrentDictionary<byte, string> _keysByVersion = new();
-    private byte _activeVersion;
+
+    // int rather than byte so Volatile.Read/Write apply: rotation happens on a
+    // different thread than encryption, and a stale read must not outlive the
+    // rotation indefinitely. (A briefly-stale version is harmless - the old key
+    // stays registered and decryption is version-tagged.)
+    private int _activeVersion;
 
     /// <summary>
     /// The version stamped onto ciphertext produced by Encrypt(). Defaults to 1
     /// once the first key is registered.
     /// </summary>
-    public byte ActiveVersion =>
-        _activeVersion != 0 ? _activeVersion
-            : throw new InvalidOperationException("No active encryption key version registered");
+    public byte ActiveVersion
+    {
+        get
+        {
+            var version = Volatile.Read(ref _activeVersion);
+            return version != 0 ? (byte)version
+                : throw new InvalidOperationException("No active encryption key version registered");
+        }
+    }
 
     /// <summary>
     /// All registered key versions, in ascending order.
@@ -44,7 +55,7 @@ public sealed class EncryptionKeyHolder
     /// <summary>
     /// True once at least one key has been registered.
     /// </summary>
-    public bool IsInitialized => _activeVersion != 0;
+    public bool IsInitialized => Volatile.Read(ref _activeVersion) != 0;
 
     /// <summary>
     /// Backwards-compatible accessor returning the active key. Used by the
@@ -79,7 +90,7 @@ public sealed class EncryptionKeyHolder
 
         _keysByVersion[version] = keyMaterial;
         if (isActive)
-            _activeVersion = version;
+            Volatile.Write(ref _activeVersion, version);
     }
 
     /// <summary>
@@ -90,7 +101,7 @@ public sealed class EncryptionKeyHolder
         if (!_keysByVersion.ContainsKey(version))
             throw new InvalidOperationException(
                 $"Cannot activate unknown key version {version}.");
-        _activeVersion = version;
+        Volatile.Write(ref _activeVersion, version);
     }
 
     /// <summary>

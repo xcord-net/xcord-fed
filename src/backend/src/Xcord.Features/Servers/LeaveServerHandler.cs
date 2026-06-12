@@ -50,11 +50,11 @@ public sealed class LeaveServerHandler(
             return Error.NotFound("NOT_A_MEMBER", "You are not a member of this server");
         }
 
+        // Member removal and counter decrement must commit together.
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+
         // Remove server member
         dbContext.ServerMembers.Remove(serverMember);
-
-        // Decrement server member count atomically
-        server.MemberCount--;
 
         // Create system message (MemberLeave) in the server's system channel if configured
         long? systemMessageConversationId = null;
@@ -95,6 +95,17 @@ public sealed class LeaveServerHandler(
         }
 
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        // Atomically decrement Server.MemberCount with a SQL UPDATE rather than
+        // read-then-write, matching BanMemberHandler, so concurrent membership
+        // changes never lose updates.
+        await dbContext.Servers
+            .Where(s => s.Id == request.ServerId)
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(s => s.MemberCount, s => s.MemberCount - 1),
+                cancellationToken).ConfigureAwait(false);
+
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
         // Notify after save
         if (systemMessageConversationId.HasValue && systemMessageId.HasValue)
