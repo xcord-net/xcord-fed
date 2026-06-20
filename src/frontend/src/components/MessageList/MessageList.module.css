@@ -54,7 +54,26 @@
   to { transform: rotate(360deg); }
 }
 
-/* Virtual scroll wrapper */
-.virtualList {
-  position: relative;
+/* Message flow: natural document flow, newest at the bottom. */
+.messageFlow {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Empty-channel marker */
+.emptyState {
+  min-height: 60%;
+  text-align: center;
+  padding: 2rem;
+}
+
+.emptyTitle {
+  color: var(--color-xcord-text-secondary);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.emptyBody {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
 }

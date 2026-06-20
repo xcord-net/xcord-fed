@@ -1,4 +1,4 @@
-import { Show, createMemo } from 'solid-js';
+import { Show, createMemo, createEffect, onCleanup } from 'solid-js';
 import { useParams } from '@solidjs/router';
 import ChannelDirectory from '../ChannelDirectory';
 import ChannelSettings from '../ChannelSettings';
@@ -31,6 +31,19 @@ export default function Layout() {
 
   const { hubUrl } = useLayoutWiring();
 
+  // Mobile off-canvas nav: reflect open state on <body> so the global .sidebar
+  // mobile rules in index.css can slide the drawer in/out. Auto-close whenever
+  // the selected channel changes so picking a channel reveals the chat.
+  createEffect(() => {
+    document.body.classList.toggle('mobile-nav-open', modals.mobileNavOpen);
+  });
+  onCleanup(() => document.body.classList.remove('mobile-nav-open'));
+  createEffect(() => {
+    // Track channelId; closing when already closed is a no-op.
+    void params.channelId;
+    modals.closeMobileNav();
+  });
+
   const isDmView = createMemo(() => params.serverId === 'me');
 
   const currentChannel = () =>
@@ -57,8 +70,34 @@ export default function Layout() {
       <Show when={hubUrl()}>
         <HubHeader hubUrl={hubUrl()!} instanceUrl={window.location.origin} />
       </Show>
+      {/* Mobile-only hamburger: opens the nav drawer. Hidden on desktop via CSS. */}
+      <button
+        type="button"
+        data-testid="mobile-nav-toggle"
+        class={styles.mobileNavToggle}
+        aria-label="Open navigation"
+        aria-expanded={modals.mobileNavOpen}
+        onClick={() => modals.toggleMobileNav()}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      {/* Backdrop behind the open mobile drawer; tap to close. */}
+      <Show when={modals.mobileNavOpen}>
+        <div
+          data-testid="mobile-nav-backdrop"
+          class={styles.mobileNavBackdrop}
+          aria-hidden="true"
+          onClick={() => modals.closeMobileNav()}
+        />
+      </Show>
+
       <Flexbox class={styles.mainRow}>
-        {/* Unified sidebar - always present */}
+        {/* Unified sidebar - always present (off-canvas drawer on mobile) */}
         <Sidebar />
 
         {/* DM view, channel directory, or channel view */}

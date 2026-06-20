@@ -38,7 +38,7 @@
 
 .groupItem:hover {
   background-color: rgb(26 29 37 / 0.5);
-  color: #ffffff;
+  color: var(--color-xcord-white);
 }
 
 .groupItem:focus-visible {
@@ -48,7 +48,7 @@
 
 .groupItemActive {
   background-color: var(--color-xcord-bg-primary);
-  color: #ffffff;
+  color: var(--color-xcord-white);
 }
 
 .groupColorDot {

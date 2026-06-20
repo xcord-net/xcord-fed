@@ -4,12 +4,12 @@
   right: 0;
   bottom: 0;
   left: 0;
-  z-index: 40;
+  z-index: var(--z-overlay);
 }
 
 .menu {
   position: fixed;
-  z-index: 60;
+  z-index: var(--z-popover);
   min-width: 10rem;
   background-color: var(--color-xcord-bg-tertiary);
   border: 1px solid var(--color-xcord-border);

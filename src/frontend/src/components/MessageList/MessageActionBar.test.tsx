@@ -36,6 +36,7 @@ function baseProps(overrides: Partial<Parameters<typeof MessageActionBar>[0]> = 
     canEdit: false,
     canDelete: false,
     showThreadButton: false,
+    onReply: vi.fn(),
     onEdit: vi.fn(),
     onDelete: vi.fn(),
     onToggleReactionPicker: vi.fn(),
@@ -58,6 +59,13 @@ describe('MessageActionBar', () => {
     expect(getByTestId('message-action-reply')).toBeInTheDocument();
     expect(getByTestId('message-action-react')).toBeInTheDocument();
     expect(getByTestId('message-action-pin')).toBeInTheDocument();
+  });
+
+  it('fires onReply when the reply button is clicked', () => {
+    const onReply = vi.fn();
+    const { getByTestId } = render(() => <MessageActionBar {...baseProps({ onReply })} />);
+    fireEvent.click(getByTestId('message-action-reply'));
+    expect(onReply).toHaveBeenCalledTimes(1);
   });
 
   it('hides edit/delete/thread buttons by default', () => {

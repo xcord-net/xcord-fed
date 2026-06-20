@@ -68,7 +68,7 @@
 .pickerBackdrop {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: var(--z-overlay);
 }
 
 .pickerPopover {
@@ -76,5 +76,5 @@
   bottom: 100%;
   left: 0;
   margin-bottom: 0.25rem;
-  z-index: 50;
+  z-index: var(--z-modal);
 }

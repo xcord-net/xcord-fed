@@ -15,7 +15,7 @@
 }
 
 .headerTitle {
-  color: #fff;
+  color: var(--color-xcord-white);
   font-weight: 600;
   font-size: 0.875rem;
 }
@@ -38,11 +38,11 @@
 }
 
 .categoryBtn:hover {
-  color: #fff;
+  color: var(--color-xcord-white);
 }
 
 .categoryBtnActive {
-  color: #fff;
+  color: var(--color-xcord-white);
   border-bottom: 2px solid var(--color-xcord-brand);
 }
 

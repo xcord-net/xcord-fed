@@ -1,6 +1,6 @@
 .deleteButton {
-  background-color: #ef4444;
-  color: #ffffff;
+  background-color: var(--color-xcord-danger-solid);
+  color: var(--color-xcord-white);
   padding: 0.25rem 0.75rem;
   border-radius: 0.25rem;
   font-size: 0.875rem;
@@ -48,7 +48,7 @@
 
 .confirmButton {
   background-color: var(--color-xcord-danger);
-  color: #ffffff;
+  color: var(--color-xcord-white);
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
   font-size: 0.75rem;

@@ -25,7 +25,7 @@
 }
 
 .closeButton:hover {
-  color: #ffffff;
+  color: var(--color-xcord-white);
 }
 
 .closeButton:focus-visible {
@@ -53,11 +53,11 @@
 }
 
 .tab:hover {
-  color: #ffffff;
+  color: var(--color-xcord-white);
 }
 
 .tabActive {
-  color: #ffffff;
+  color: var(--color-xcord-white);
   border-bottom: 2px solid var(--color-xcord-brand);
 }
 
@@ -101,7 +101,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-size: 1.5rem;
   font-weight: 700;
   user-select: none;
@@ -109,7 +109,7 @@
 }
 
 .iconName {
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-weight: 500;
 }
 
@@ -255,7 +255,7 @@
 .saveButton {
   padding: 0.5rem 1.25rem;
   background-color: var(--color-xcord-brand);
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-size: 0.875rem;
   font-weight: 500;
   border-radius: 0.25rem;
@@ -287,7 +287,7 @@
   margin-top: 1rem;
   padding: 0.5rem 1rem;
   background-color: var(--color-xcord-danger);
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-size: 0.875rem;
   font-weight: 500;
   border-radius: 0.25rem;
@@ -330,7 +330,7 @@
 .dialogDeleteButton {
   padding: 0.5rem 1rem;
   background-color: var(--color-xcord-danger);
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-size: 0.875rem;
   font-weight: 500;
   border-radius: 0.25rem;

@@ -20,8 +20,6 @@ export function shouldGroupWithPrevious(
   return timeDiff < 5 * 60 * 1000; // 5 minutes
 }
 
-/** Formats a timestamp as HH:MM in the user's locale. */
-export function formatTime(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
+// Re-exported from the shared datetime util so message timestamps use the same
+// formatting as the rest of the app.
+export { formatTime } from '../../utils/datetime';

@@ -21,7 +21,7 @@
   top: 0.5rem;
   left: 0.5rem;
   background-color: rgba(0, 0, 0, 0.6);
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
@@ -40,7 +40,7 @@
   top: 0.5rem;
   right: 0.5rem;
   background-color: var(--color-xcord-danger);
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;

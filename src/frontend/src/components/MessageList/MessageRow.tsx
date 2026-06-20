@@ -19,6 +19,7 @@ interface MessageRowProps {
   isReactionPickerOpen: boolean;
   isThreadCreateOpen: boolean;
   threadNameValue: string;
+  onReply: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onToggleReactionPicker: () => void;
@@ -50,6 +51,7 @@ export default function MessageRow(props: MessageRowProps) {
         canDelete={props.canDelete}
         showThreadButton={!!props.channelId}
         serverId={props.serverId}
+        onReply={props.onReply}
         onEdit={props.onEdit}
         onDelete={props.onDelete}
         onToggleReactionPicker={props.onToggleReactionPicker}

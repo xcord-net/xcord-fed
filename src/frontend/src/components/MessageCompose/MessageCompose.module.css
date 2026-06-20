@@ -30,7 +30,7 @@
   right: 0;
   bottom: 0;
   left: 0;
-  z-index: 40;
+  z-index: var(--z-overlay);
 }
 
 .pickerDropdown {
@@ -38,12 +38,12 @@
   bottom: 100%;
   left: 0;
   margin-bottom: 0.5rem;
-  z-index: 50;
+  z-index: var(--z-modal);
 }
 
 .pickerFloat {
   position: fixed;
-  z-index: 50;
+  z-index: var(--z-modal);
 }
 
 .scheduledLink {

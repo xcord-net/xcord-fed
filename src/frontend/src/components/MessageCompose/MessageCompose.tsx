@@ -47,7 +47,11 @@ export default function MessageCompose(props: MessageComposeProps) {
       </Show>
 
       <Show when={compose.replyToId()}>
-        <ReplyPreview onCancel={compose.cancelReply} />
+        <ReplyPreview
+          onCancel={compose.cancelReply}
+          author={compose.replyTarget?.()?.authorUsername}
+          content={compose.replyTarget?.()?.content}
+        />
       </Show>
 
       <Show when={compose.uploading()}>
@@ -93,6 +97,12 @@ export default function MessageCompose(props: MessageComposeProps) {
         onToggleMemberList={() => compose.setShowMemberList(!compose.showMemberList())}
         onInput={compose.handleInput}
         onKeyDown={compose.handleKeyDown}
+        canSend={
+          !compose.isSending() &&
+          !compose.isSlowModeActive() &&
+          (compose.content().trim().length > 0 || !!compose.uploadedAttachment())
+        }
+        onSend={compose.handleSend}
       />
 
       <Dropdown open={compose.showGifPicker()} onClose={() => compose.setShowGifPicker(false)} trigger={gifButtonRef}>

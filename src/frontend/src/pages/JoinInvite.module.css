@@ -32,7 +32,7 @@
 
 .goHomeButton {
   background-color: var(--color-xcord-brand);
-  color: #fff;
+  color: var(--color-xcord-white);
   padding: 0.5rem 1rem;
   border-radius: 0.25rem;
   transition: color 150ms, background-color 150ms;

@@ -9,6 +9,19 @@
 .replyText {
   font-size: 0.875rem;
   color: var(--color-xcord-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: calc(100% - 2rem);
+}
+
+.replyAuthor {
+  color: var(--color-xcord-text-primary);
+  font-weight: 600;
+}
+
+.replySnippet {
+  color: var(--color-xcord-text-muted);
 }
 
 .closeBtn {

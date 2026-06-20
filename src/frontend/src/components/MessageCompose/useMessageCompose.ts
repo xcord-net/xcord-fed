@@ -23,7 +23,10 @@ export function useMessageCompose(args: UseMessageComposeArgs) {
   const serverStore = useServers();
 
   const [content, setContent] = createSignal('');
-  const [replyToId, setReplyToId] = createSignal<string | null>(null);
+  // Reply target is shared via the message store so the message action bar (a
+  // sibling of the composer) can start a reply. replyToId stays a derived read.
+  const replyTarget = () => messageStore.replyTarget;
+  const replyToId = () => messageStore.replyTarget?.id ?? null;
   const [isSending, setIsSending] = createSignal(false);
   const [sendError, setSendError] = createSignal<string | null>(null);
 
@@ -84,7 +87,7 @@ export function useMessageCompose(args: UseMessageComposeArgs) {
         attachmentIds,
       );
       setContent('');
-      setReplyToId(null);
+      messageStore.cancelReply();
       upload.setUploadedAttachment(null);
       const ta = args.textareaRef();
       if (ta) {
@@ -125,7 +128,7 @@ export function useMessageCompose(args: UseMessageComposeArgs) {
   };
 
   const cancelReply = () => {
-    setReplyToId(null);
+    messageStore.cancelReply();
   };
 
   const handlePollSubmit = async (pollData: {
@@ -184,6 +187,7 @@ export function useMessageCompose(args: UseMessageComposeArgs) {
     // signals (read)
     content,
     replyToId,
+    replyTarget,
     isSending,
     sendError,
     showPollForm,

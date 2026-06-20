@@ -1,5 +1,6 @@
 import { createSignal } from 'solid-js';
 import { api } from '../../api/client';
+import { useToasts } from '../../stores/toast.store';
 
 interface UploadInitResponse {
   attachmentId: string;
@@ -12,7 +13,17 @@ export interface UploadedAttachment {
   fileSize: number;
 }
 
+/** Maps a raw upload error to a short, user-actionable message. */
+export function uploadErrorMessage(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error);
+  if (/status 413|too large/i.test(raw)) return 'That file is too large to upload.';
+  if (/status 415|content type|unsupported/i.test(raw)) return 'That file type is not supported.';
+  if (/network/i.test(raw)) return 'Upload failed - check your connection and try again.';
+  return 'Upload failed. Please try again.';
+}
+
 export function useFileUpload() {
+  const toasts = useToasts();
   const [uploading, setUploading] = createSignal(false);
   const [uploadProgress, setUploadProgress] = createSignal(0);
   const [uploadedAttachment, setUploadedAttachment] = createSignal<UploadedAttachment | null>(null);
@@ -62,6 +73,7 @@ export function useFileUpload() {
     } catch (error) {
       console.error('Failed to upload file:', error);
       setUploadedAttachment(null);
+      toasts.error(uploadErrorMessage(error));
     } finally {
       setUploading(false);
     }

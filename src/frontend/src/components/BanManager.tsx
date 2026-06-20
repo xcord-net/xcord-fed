@@ -4,6 +4,7 @@ import { getErrorMessage } from '../utils/errors';
 import ConfirmationButton from './ui/ConfirmationButton';
 import Flexbox from './ui/Flexbox';
 import styles from './BanManager.module.css';
+import { formatDate } from '../utils/datetime';
 
 interface BannedUser {
   id: string;
@@ -142,7 +143,7 @@ export default function BanManager(props: BanManagerProps) {
                   <p class={styles.banReason}>Reason: {ban.reason}</p>
                 </Show>
                 <p class={styles.banDate}>
-                  Banned {new Date(ban.createdAt).toLocaleDateString()}
+                  Banned {formatDate(ban.createdAt)}
                 </p>
               </div>
 

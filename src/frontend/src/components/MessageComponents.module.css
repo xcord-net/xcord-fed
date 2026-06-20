@@ -34,7 +34,7 @@
 
 .buttonPrimary {
   background-color: var(--color-xcord-brand);
-  color: #ffffff;
+  color: var(--color-xcord-white);
 }
 
 .buttonPrimary:hover:not(:disabled) {
@@ -52,7 +52,7 @@
 
 .buttonSuccess {
   background-color: var(--color-xcord-success-dark);
-  color: #ffffff;
+  color: var(--color-xcord-white);
 }
 
 .buttonSuccess:hover:not(:disabled) {
@@ -61,7 +61,7 @@
 
 .buttonDanger {
   background-color: var(--color-xcord-danger);
-  color: #ffffff;
+  color: var(--color-xcord-white);
 }
 
 .buttonDanger:hover:not(:disabled) {
@@ -137,7 +137,7 @@
 .confirmButton {
   padding: 0.375rem 0.75rem;
   background-color: var(--color-xcord-brand);
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-size: 0.875rem;
   border-radius: 0.25rem;
   border: none;

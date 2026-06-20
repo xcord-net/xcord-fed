@@ -64,6 +64,7 @@ function baseProps(overrides: Partial<Parameters<typeof MessageRow>[0]> = {}) {
     isReactionPickerOpen: false,
     isThreadCreateOpen: false,
     threadNameValue: '',
+    onReply: vi.fn(),
     onEdit: vi.fn(),
     onDelete: vi.fn(),
     onToggleReactionPicker: vi.fn(),

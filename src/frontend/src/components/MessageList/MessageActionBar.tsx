@@ -36,6 +36,7 @@ export default function MessageActionBar(props: MessageActionBarProps) {
         title="Reply"
         aria-label="Reply"
         class={styles.actionButton}
+        onClick={() => props.onReply?.()}
       >
         &#8617;
       </button>

@@ -62,7 +62,7 @@
 .submitButton {
   width: 100%;
   background-color: var(--color-xcord-brand);
-  color: #fff;
+  color: var(--color-xcord-white);
   font-weight: 500;
   padding: 0.5rem 0;
   border-radius: 0.25rem;

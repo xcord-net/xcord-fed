@@ -9,7 +9,7 @@
 }
 
 .editFormTitle {
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-weight: 600;
 }
 
@@ -89,7 +89,7 @@
 }
 
 .colorSwatchSelected {
-  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--color-xcord-bg-secondary);
+  box-shadow: 0 0 0 2px var(--color-xcord-white), 0 0 0 4px var(--color-xcord-bg-secondary);
 }
 
 .hexRow {
@@ -188,7 +188,7 @@
 .saveButton {
   padding: 0.5rem 1.25rem;
   background-color: var(--color-xcord-brand);
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-size: 0.875rem;
   font-weight: 500;
   border-radius: 0.25rem;

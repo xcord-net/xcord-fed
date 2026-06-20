@@ -216,7 +216,7 @@
   position: absolute;
   top: -0.25rem;
   right: -0.25rem;
-  background-color: #ef4444;
+  background-color: var(--color-xcord-danger-solid);
   color: white;
   border-radius: 50%;
   width: 1.25rem;
@@ -275,7 +275,7 @@
 }
 
 .deleteYesBtn {
-  background-color: #ef4444;
+  background-color: var(--color-xcord-danger-solid);
   color: white;
   padding: 0.125rem 0.5rem;
   border-radius: 0.25rem;

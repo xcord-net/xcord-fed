@@ -16,7 +16,7 @@
 }
 
 .heading {
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-weight: 600;
 }
 
@@ -88,7 +88,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-size: 1.5rem;
   font-weight: 600;
   overflow: hidden;
@@ -114,7 +114,7 @@
 }
 
 .displayName {
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-weight: 600;
   font-size: 1.25rem;
 }
@@ -134,11 +134,11 @@
 }
 
 .fieldValue {
-  color: #ffffff;
+  color: var(--color-xcord-white);
 }
 
 .fieldValuePreWrap {
-  color: #ffffff;
+  color: var(--color-xcord-white);
   white-space: pre-wrap;
 }
 
@@ -163,7 +163,7 @@
 .textInput {
   width: 100%;
   background-color: var(--color-xcord-bg-primary);
-  color: #ffffff;
+  color: var(--color-xcord-white);
   padding: 0.5rem 0.75rem;
   border-radius: 0.25rem;
   border: 1px solid var(--color-xcord-border);
@@ -178,7 +178,7 @@
 .textarea {
   width: 100%;
   background-color: var(--color-xcord-bg-primary);
-  color: #ffffff;
+  color: var(--color-xcord-white);
   padding: 0.5rem 0.75rem;
   border-radius: 0.25rem;
   border: 1px solid var(--color-xcord-border);
@@ -194,7 +194,7 @@
 .saveButton {
   width: 100%;
   background-color: var(--color-xcord-brand);
-  color: #ffffff;
+  color: var(--color-xcord-white);
   padding: 0.5rem;
   border-radius: 0.25rem;
   border: none;

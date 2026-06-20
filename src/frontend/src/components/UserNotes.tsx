@@ -2,6 +2,7 @@ import { Show, createSignal, onMount } from 'solid-js';
 import { api } from '../api/client';
 import Flexbox from './ui/Flexbox';
 import styles from './UserNotes.module.css';
+import { formatDate } from '../utils/datetime';
 
 // ---- Types ----
 
@@ -149,7 +150,7 @@ export default function UserNotes() {
               <Show when={existingNote()}>
                 <p class={styles.noteUpdatedAt}>
                   Note last updated{' '}
-                  {new Date(existingNote()!.updatedAt ?? existingNote()!.createdAt).toLocaleDateString()}
+                  {formatDate(existingNote()!.updatedAt ?? existingNote()!.createdAt)}
                 </p>
               </Show>
             </div>

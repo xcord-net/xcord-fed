@@ -6,7 +6,7 @@
 }
 
 .formHeading {
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-weight: 600;
   margin-bottom: 0.75rem;
 }
@@ -55,7 +55,7 @@
 .submitButton {
   padding: 0.375rem 1rem;
   background-color: var(--color-xcord-brand);
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-size: 0.875rem;
   font-weight: 500;
   border-radius: 0.25rem;

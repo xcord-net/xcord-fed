@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300..900&family=Sora:wght@400;600;700&display=swap');
+/* Figtree is self-hosted via @fontsource-variable/figtree (imported in index.tsx)
+   so it works offline and under a strict style-src 'self' CSP. */
 
 :root {
   /* === Backgrounds (cool undertone, deep slate) === */
@@ -11,8 +12,13 @@
   /* === Text (slightly warm for contrast) === */
   --color-xcord-text-primary: #e6e4f0;
   --color-xcord-text-secondary: #a8a6b8;
-  --color-xcord-text-muted: #6a6880;
+  /* Lightened from #6a6880 (~3.5:1) so muted body text (timestamps, helper
+     text) clears WCAG AA 4.5:1 on the secondary/tertiary backgrounds. */
+  --color-xcord-text-muted: #9794ab;
   --color-xcord-text-link: #e0a44a;
+
+  /* === Neutral === */
+  --color-xcord-white: #ffffff;
 
   /* === Brand (amber-gold signature) === */
   --color-xcord-brand: #d4943a;
@@ -31,6 +37,8 @@
 
   /* === Danger === */
   --color-xcord-danger: #dc2626;
+  /* Brighter danger used for fills/accents; matches the rgba danger-bg base. */
+  --color-xcord-danger-solid: #ef4444;
   --color-xcord-danger-hover: #b91c1c;
   --color-xcord-danger-dark: #991b1b;
   --color-xcord-danger-text: #f87171;
@@ -148,6 +156,27 @@ button, [type='button'], [type='reset'], [type='submit'] {
   outline: auto;
 }
 
+/* Global keyboard focus ring. Many component styles set `outline: none` to
+   suppress the default focus outline; this restores a visible, consistent
+   indicator for keyboard users (WCAG 2.4.7) wherever a component has not
+   defined its own. Pointer interactions do not trigger :focus-visible. */
+:focus-visible {
+  outline: 2px solid var(--color-xcord-brand);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Respect reduced-motion: collapse all transitions/animations app-wide for
+   users who request it (vestibular safety, WCAG 2.3.3). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 textarea {
   resize: vertical;
 }
@@ -238,4 +267,39 @@ img, video {
 .sidebar:hover .channel-icon-wrap,
 .sidebar.sidebar-locked .channel-icon-wrap {
   justify-content: flex-start;
+}
+
+/* ===== Mobile navigation drawer (<= 768px) =====
+   The sidebar becomes an off-canvas drawer, slid in when <body> has
+   .mobile-nav-open (toggled by the Layout hamburger). It is always shown
+   expanded on mobile - the desktop hover-collapse does not apply to touch. */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    max-width: 80vw;
+    min-width: 80vw;
+    transform: translateX(-100%);
+    transition: transform 200ms ease;
+    z-index: var(--z-modal);
+  }
+
+  body.mobile-nav-open .sidebar {
+    transform: translateX(0);
+  }
+
+  /* Always render the expanded content inside the mobile drawer. */
+  .sidebar .expanded-only {
+    display: flex;
+  }
+
+  .sidebar .collapsed-only {
+    display: none;
+  }
+
+  .sidebar .channel-icon-wrap {
+    justify-content: flex-start;
+  }
 }

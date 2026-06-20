@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { fireEvent } from '@solidjs/testing-library';
 import { createSignal } from 'solid-js';
 import { renderWithRouter } from '../../tests/helpers/renderWithRouter';
 
@@ -27,8 +28,11 @@ vi.mock('../../stores/dm.store', () => ({
 const modalsMock = {
   showChannelSettings: false,
   showGroupManager: false,
+  mobileNavOpen: false,
   closeChannelSettings: vi.fn(),
   closeGroupManager: vi.fn(),
+  toggleMobileNav: vi.fn(),
+  closeMobileNav: vi.fn(),
 };
 vi.mock('../../stores/modal.store', () => ({
   useModals: () => modalsMock,
@@ -116,6 +120,15 @@ describe('Layout', () => {
       { path: '/channels', routePath: '/channels' },
     );
     expect(getByTestId('mock-sidebar')).toBeInTheDocument();
+  });
+
+  it('toggles the mobile nav drawer when the hamburger is clicked', () => {
+    const { getByTestId } = renderWithRouter(
+      () => <Layout />,
+      { path: '/channels', routePath: '/channels' },
+    );
+    fireEvent.click(getByTestId('mobile-nav-toggle'));
+    expect(modalsMock.toggleMobileNav).toHaveBeenCalled();
   });
 
   it('does not render the HubHeader when hubUrl is null', () => {

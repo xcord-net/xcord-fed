@@ -50,7 +50,6 @@ export default function Sidebar() {
   const [contextMenuChannelId, setContextMenuChannelId] = createSignal<string | null>(null);
   const [contextMenuPos, setContextMenuPos] = createSignal<{ x: number; y: number }>({ x: 0, y: 0 });
   const [favorites, setFavorites] = createSignal<Set<string>>(new Set());
-  const [showCreateServerModal, setShowCreateServerModal] = createSignal(false);
   const [showMembershipModal, setShowMembershipModal] = createSignal(false);
   const [canUseMemberTiers, setCanUseMemberTiers] = createSignal(false);
 
@@ -234,7 +233,7 @@ export default function Sidebar() {
         data-testid="sidebar-create-server-button"
         type="button"
         class={`expanded-only ${styles.menuItem}`}
-        onClick={() => setShowCreateServerModal(true)}
+        onClick={() => modals.openCreateServer()}
       >
         + Create Server
       </button>
@@ -293,9 +292,9 @@ export default function Sidebar() {
         onSubmit={handleCreateChannel}
       />
 
-      {/* Create server modal */}
-      <Show when={showCreateServerModal()}>
-        <CreateServerModal onClose={() => setShowCreateServerModal(false)} />
+      {/* Create server modal - opened from the rail button or the home welcome CTA */}
+      <Show when={modals.showCreateServer}>
+        <CreateServerModal onClose={() => modals.closeCreateServer()} />
       </Show>
 
       {/* Membership modal (member-facing tier subscription) */}

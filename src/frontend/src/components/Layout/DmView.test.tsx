@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@solidjs/testing-library';
 
 // Stub heavy children. The fallback (no DM selected) renders DmList + FriendList;
@@ -24,10 +24,44 @@ vi.mock('../TypingIndicator', () => ({
     <div data-testid="mock-typing">typing:{p.conversationId}</div>
   ),
 }));
+vi.mock('./WelcomePanel', () => ({
+  default: () => <div data-testid="mock-welcome">welcome</div>,
+}));
+
+// Drive the welcome-banner branch via the server store. Default: an existing
+// user (one server) so the banner is hidden.
+let serverCount = 1;
+vi.mock('../../stores/server.store', () => ({
+  useServers: () => ({ get servers() { return new Array(serverCount).fill({}); } }),
+}));
 
 import DmView from './DmView';
 
 describe('DmView', () => {
+  beforeEach(() => {
+    serverCount = 1;
+  });
+
+  it('shows the welcome banner above the friends/DM view when the user has no servers', () => {
+    serverCount = 0;
+    const { getByTestId } = render(() => (
+      <DmView channelId={undefined} dmConversationId={undefined} />
+    ));
+    // Banner is additive: the friends/DM list stays visible so DMs are reachable.
+    expect(getByTestId('mock-welcome')).toBeInTheDocument();
+    expect(getByTestId('mock-dm-list')).toBeInTheDocument();
+    expect(getByTestId('mock-friend-list')).toBeInTheDocument();
+  });
+
+  it('hides the welcome banner once the user has a server', () => {
+    serverCount = 1;
+    const { queryByTestId, getByTestId } = render(() => (
+      <DmView channelId={undefined} dmConversationId={undefined} />
+    ));
+    expect(queryByTestId('mock-welcome')).toBeNull();
+    expect(getByTestId('mock-dm-list')).toBeInTheDocument();
+  });
+
   it('renders the FriendList + DmList fallback when no DM is selected', () => {
     const { getByTestId, queryByTestId } = render(() => (
       <DmView channelId={undefined} dmConversationId={undefined} />

@@ -32,7 +32,7 @@
 .dialogDeleteButton {
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
-  color: #ffffff;
+  color: var(--color-xcord-white);
   background-color: var(--color-xcord-danger);
   border-radius: 0.25rem;
   border: none;

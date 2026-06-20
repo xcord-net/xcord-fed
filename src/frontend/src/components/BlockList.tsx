@@ -3,6 +3,7 @@ import { useBlocks } from '../stores/block.store';
 import { getErrorMessage } from '../utils/errors';
 import Flexbox from './ui/Flexbox';
 import styles from './BlockList.module.css';
+import { formatDate } from '../utils/datetime';
 
 export default function BlockList() {
   const blockStore = useBlocks();
@@ -86,7 +87,7 @@ export default function BlockList() {
               <div class={styles.userInfo}>
                 <h3 class={styles.username}>{user.blockedUsername}</h3>
                 <p class={styles.blockedDate}>
-                  Blocked {new Date(user.createdAt).toLocaleDateString()}
+                  Blocked {formatDate(user.createdAt)}
                 </p>
               </div>
 

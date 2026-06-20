@@ -1,6 +1,6 @@
 import { Show } from 'solid-js';
 import { tooltip } from '../../directives/tooltip';
-import { PaperclipIcon, BarChartIcon, SmileIcon, UsersIcon } from './icons';
+import { PaperclipIcon, BarChartIcon, SmileIcon, UsersIcon, SendIcon } from './icons';
 import Flexbox from '../ui/Flexbox';
 import styles from './ComposeBar.module.css';
 
@@ -32,6 +32,8 @@ interface ComposeBarProps {
   onToggleMemberList: () => void;
   onInput: (e: Event) => void;
   onKeyDown: (e: KeyboardEvent) => void;
+  canSend: boolean;
+  onSend: () => void;
 }
 
 export default function ComposeBar(props: ComposeBarProps) {
@@ -71,6 +73,18 @@ export default function ComposeBar(props: ComposeBarProps) {
           Slowmode: {props.slowModeCountdown}s
         </span>
       </Show>
+
+      <button
+        data-testid="compose-send-button"
+        class={styles.sendBtn}
+        use:tooltip="Send message"
+        onClick={props.onSend}
+        disabled={!props.canSend}
+        aria-label="Send message"
+        title="Send message"
+      >
+        <SendIcon />
+      </button>
 
       <button data-testid="compose-members-button" class={styles.memberTrigger} classList={{ [styles.btnActive]: props.showMemberList }} ref={props.membersButtonRef} onClick={props.onToggleMemberList} aria-label="Members" title="Members">
         <UsersIcon />

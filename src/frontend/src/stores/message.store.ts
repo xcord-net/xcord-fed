@@ -3,6 +3,13 @@ import { api } from '../api/client';
 import { normalizeIds } from '../utils/snowflake';
 import type { Message } from '../types/message';
 
+/** The message a new message will reply to, shared between the action bar and the composer. */
+export interface ReplyTarget {
+  id: string;
+  authorUsername: string;
+  content: string;
+}
+
 function normalizeMessage(m: Message): Message {
   const base = normalizeIds(m, 'id', 'conversationId');
   return {
@@ -24,6 +31,7 @@ const store = createRoot(() => {
   const [pendingNonces, setPendingNonces] = createSignal<Map<string, string>>(new Map());
   const [editingMessageId, setEditingMessageId] = createSignal<string | null>(null);
   const [editContent, setEditContent] = createSignal('');
+  const [replyTarget, setReplyTarget] = createSignal<ReplyTarget | null>(null);
 
   return {
     messages, setMessages,
@@ -33,6 +41,7 @@ const store = createRoot(() => {
     pendingNonces, setPendingNonces,
     editingMessageId, setEditingMessageId,
     editContent, setEditContent,
+    replyTarget, setReplyTarget,
   };
 });
 
@@ -48,6 +57,15 @@ export function useMessages() {
     get isLoading() { return store.isLoading(); },
     get editingMessageId() { return store.editingMessageId(); },
     get editContent() { return store.editContent(); },
+    get replyTarget() { return store.replyTarget(); },
+
+    startReply(target: ReplyTarget): void {
+      store.setReplyTarget(target);
+    },
+
+    cancelReply(): void {
+      store.setReplyTarget(null);
+    },
 
     startEditing(messageId: string, content: string): void {
       store.setEditingMessageId(messageId);
@@ -192,6 +210,19 @@ export function useMessages() {
       store.setMessages(store.messages().map((m) => (m.id === normalized.id ? normalized : m)));
     },
 
+    /**
+     * Re-fetches a single message and patches it in place. Used after reaction
+     * changes so the view updates without clearing+reloading the whole list,
+     * which would reset the user's scroll position mid-read.
+     */
+    async refreshMessage(conversationId: string, messageId: string): Promise<void> {
+      const fresh = await api.get<Message>(
+        `/api/v1/conversations/${conversationId}/messages/${messageId}`,
+      );
+      const normalized = normalizeMessage(fresh);
+      store.setMessages(store.messages().map((m) => (m.id === normalized.id ? normalized : m)));
+    },
+
     removeMessage(messageId: string): void {
       store.setMessages(store.messages().filter((m) => m.id !== messageId));
     },
@@ -203,6 +234,7 @@ export function useMessages() {
       store.setPendingNonces(new Map());
       store.setEditingMessageId(null);
       store.setEditContent('');
+      store.setReplyTarget(null);
     },
   };
 }

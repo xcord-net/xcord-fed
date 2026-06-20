@@ -4,6 +4,7 @@ import PasswordChangeForm from './PasswordChangeForm';
 import TwoFactorSetup from './TwoFactorSetup';
 import AccountDeletion from './AccountDeletion';
 import styles from './UserProfileEditor.module.css';
+import { formatDate } from '../utils/datetime';
 
 interface UserProfileEditorProps {
   serverId?: string;
@@ -115,7 +116,7 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
 
                 <div class={styles.fieldView}>
                   <label class={styles.fieldMeta}>Member Since</label>
-                  <p class={styles.fieldValue}>{new Date(profileStore.userProfile!.createdAt).toLocaleDateString()}</p>
+                  <p class={styles.fieldValue}>{formatDate(profileStore.userProfile!.createdAt)}</p>
                 </div>
               </Show>
 

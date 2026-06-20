@@ -31,7 +31,7 @@
 
 .menuItem:hover {
   background-color: var(--color-xcord-bg-primary);
-  color: #ffffff;
+  color: var(--color-xcord-white);
 }
 
 .menuItem:disabled {

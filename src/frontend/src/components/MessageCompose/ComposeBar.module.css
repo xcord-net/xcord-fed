@@ -37,6 +37,43 @@
   cursor: not-allowed;
 }
 
+.sendBtn {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 0.375rem;
+  color: var(--color-xcord-brand);
+  transition: color 150ms, background-color 150ms, opacity 150ms;
+}
+
+.sendBtn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.sendBtn:hover:not(:disabled) {
+  color: white;
+  background-color: var(--color-xcord-brand);
+}
+
+.sendBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  color: var(--color-xcord-text-muted);
+}
+
+/* Mouse/fine pointers can use compact targets; on touch, bump the compose
+   controls up to a comfortable hit size (>=44px). */
+@media (hover: none) and (pointer: coarse) {
+  .btn, .btnText, .sendBtn, .memberTrigger {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+}
+
 .btnActive {
   color: white;
   background-color: var(--color-xcord-bg-secondary);

@@ -1,6 +1,7 @@
 import { For, Show, createSignal } from 'solid-js';
 import { api } from '../api/client';
 import { useMessages } from '../stores/message.store';
+import { useToasts } from '../stores/toast.store';
 import { useAuth } from '../stores/auth.store';
 import EmojiPicker from './EmojiPicker';
 import type { MessageReaction } from '../types/message';
@@ -16,6 +17,7 @@ interface ReactionDisplayProps {
 export default function ReactionDisplay(props: ReactionDisplayProps) {
   const authStore = useAuth();
   const messageStore = useMessages();
+  const toasts = useToasts();
   const [showPicker, setShowPicker] = createSignal(false);
 
   const currentUserId = () => authStore.user?.id ?? '';
@@ -24,44 +26,48 @@ export default function ReactionDisplay(props: ReactionDisplayProps) {
     return reaction.userIds.includes(currentUserId());
   };
 
-  const addReaction = async (emoji: string) => {
+  // Returns true on success so callers only refresh the single message when the
+  // server actually accepted the change.
+  const addReaction = async (emoji: string): Promise<boolean> => {
     try {
       await api.put(
         `/api/v1/conversations/${props.conversationId}/messages/${props.messageId}/reactions/${encodeURIComponent(emoji)}`
       );
+      return true;
     } catch (e) {
       console.error('Failed to add reaction', e);
+      toasts.error('Could not add reaction. Please try again.');
+      return false;
     }
   };
 
-  const removeReaction = async (emoji: string) => {
+  const removeReaction = async (emoji: string): Promise<boolean> => {
     try {
       await api.delete(
         `/api/v1/conversations/${props.conversationId}/messages/${props.messageId}/reactions/${encodeURIComponent(emoji)}`
       );
+      return true;
     } catch (e) {
       console.error('Failed to remove reaction', e);
+      toasts.error('Could not remove reaction. Please try again.');
+      return false;
     }
   };
 
-  const reloadMessages = () => {
-    messageStore.clearMessages();
-    messageStore.loadMessages(props.conversationId);
-  };
+  // Patch only this message so the user's scroll position is preserved (the old
+  // clear-and-reload reset the whole list on every reaction toggle).
+  const refresh = () => messageStore.refreshMessage(props.conversationId, props.messageId).catch(() => { /* non-fatal */ });
 
   const toggleReaction = async (reaction: MessageReaction) => {
-    if (hasUserReacted(reaction)) {
-      await removeReaction(reaction.emoji);
-    } else {
-      await addReaction(reaction.emoji);
-    }
-    reloadMessages();
+    const ok = hasUserReacted(reaction)
+      ? await removeReaction(reaction.emoji)
+      : await addReaction(reaction.emoji);
+    if (ok) refresh();
   };
 
   const handlePickerSelect = async (emoji: string) => {
     setShowPicker(false);
-    await addReaction(emoji);
-    reloadMessages();
+    if (await addReaction(emoji)) refresh();
   };
 
   return (

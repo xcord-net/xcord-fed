@@ -21,7 +21,7 @@
   border-radius: 0.25rem;
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   border: 1px solid var(--color-xcord-border);
-  z-index: 30;
+  z-index: var(--z-dropdown);
   display: none;
 }
 
@@ -68,7 +68,7 @@
   right: 0;
   bottom: 0;
   left: 0;
-  z-index: 40;
+  z-index: var(--z-overlay);
 }
 
 .reactionPickerPopover {
@@ -76,7 +76,7 @@
   right: 0;
   top: 100%;
   margin-top: 0.25rem;
-  z-index: 50;
+  z-index: var(--z-modal);
 }
 
 /* Relative wrapper for the react button + picker */
@@ -92,6 +92,9 @@
 .groupedText {
   font-size: 0.875rem;
   color: var(--color-xcord-text-primary);
+  /* Cap line length for readability; long URLs/words still wrap rather than overflow. */
+  max-width: 72ch;
+  overflow-wrap: anywhere;
 }
 
 .editedBadge {
@@ -153,6 +156,9 @@
   font-size: 0.875rem;
   color: var(--color-xcord-text-primary);
   word-break: break-word;
+  /* Cap line length for readability on wide viewports. */
+  max-width: 72ch;
+  overflow-wrap: anywhere;
 }
 
 /* Thread indicator button */

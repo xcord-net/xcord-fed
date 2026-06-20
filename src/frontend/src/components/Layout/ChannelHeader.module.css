@@ -9,6 +9,13 @@
   flex-shrink: 0;
 }
 
+/* Clear the fixed mobile hamburger (top-left) so the channel name isn't under it. */
+@media (max-width: 768px) {
+  .channelHeader {
+    padding-left: 3.5rem;
+  }
+}
+
 .channelName {
   font-weight: 600;
   color: white;

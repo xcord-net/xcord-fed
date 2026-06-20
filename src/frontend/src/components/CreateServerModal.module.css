@@ -39,8 +39,8 @@
 .errorAlert {
   margin-bottom: 1rem;
   padding: 0.5rem 1rem;
-  background-color: color-mix(in srgb, #ef4444 20%, transparent);
-  border: 1px solid color-mix(in srgb, #ef4444 30%, transparent);
+  background-color: color-mix(in srgb, var(--color-xcord-danger-solid) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-xcord-danger-solid) 30%, transparent);
   border-radius: 0.25rem;
   color: var(--color-xcord-danger-text);
   font-size: 0.875rem;

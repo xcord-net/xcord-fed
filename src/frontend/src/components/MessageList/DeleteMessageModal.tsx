@@ -4,6 +4,7 @@ import styles from './DeleteMessageModal.module.css';
 
 interface DeleteMessageModalProps {
   open: boolean;
+  pending?: boolean;
   onClose: () => void;
   onConfirm: () => void;
 }
@@ -28,6 +29,7 @@ export default function DeleteMessageModal(props: DeleteMessageModalProps) {
             data-testid="delete-message-cancel-button"
             class={styles.cancelButton}
             onClick={() => props.onClose()}
+            disabled={props.pending}
           >
             Cancel
           </button>
@@ -35,8 +37,9 @@ export default function DeleteMessageModal(props: DeleteMessageModalProps) {
             data-testid="delete-message-confirm-button"
             class={styles.deleteButton}
             onClick={() => props.onConfirm()}
+            disabled={props.pending}
           >
-            Delete
+            {props.pending ? 'Deleting...' : 'Delete'}
           </button>
         </Flexbox>
       </div>

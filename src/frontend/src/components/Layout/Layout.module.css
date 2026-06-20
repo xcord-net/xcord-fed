@@ -35,3 +35,39 @@
 .groupManagerContent {
   height: min(600px, 70vh);
 }
+
+/* ===== Mobile navigation ===== */
+/* Hamburger toggle - only shown on narrow viewports. */
+.mobileNavToggle {
+  display: none;
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: calc(var(--z-modal) + 1);
+  width: 2.5rem;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  color: var(--color-xcord-text-primary);
+  background-color: var(--color-xcord-bg-floating);
+  border: 1px solid var(--color-xcord-border);
+}
+
+.mobileNavBackdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobileNavToggle {
+    display: flex;
+  }
+
+  .mobileNavBackdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--z-modal) - 1);
+    background-color: rgb(0 0 0 / 0.5);
+  }
+}

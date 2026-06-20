@@ -158,6 +158,8 @@ export function useSignalR() {
     });
 
     connection.on('Chat_TypingStarted', (data: { conversationId: string; userId: string }) => {
+      // Never show the local user their own typing echo.
+      if (data.userId === store.currentUserId()) return;
       typing.startTyping(data.conversationId, data.userId);
     });
 

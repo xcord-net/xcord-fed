@@ -1,7 +1,7 @@
-/* Thread create form - z-index above action bar (30) so it isn't occluded */
+/* Thread create form - one above the action bar (--z-dropdown) so it isn't occluded */
 .threadCreateForm {
   position: relative;
-  z-index: 31;
+  z-index: calc(var(--z-dropdown) + 1);
   margin-top: 0.25rem;
   margin-left: 3.5rem;
   padding: 0.5rem;

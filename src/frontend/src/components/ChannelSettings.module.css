@@ -35,7 +35,7 @@
 }
 
 .closeButton:hover {
-  color: #ffffff;
+  color: var(--color-xcord-white);
 }
 
 .closeButton:focus-visible {
@@ -62,7 +62,7 @@
 }
 
 .tab:hover {
-  color: #ffffff;
+  color: var(--color-xcord-white);
 }
 
 .tab:focus-visible {
@@ -70,7 +70,7 @@
 }
 
 .tabActive {
-  color: #ffffff;
+  color: var(--color-xcord-white);
   border-bottom: 2px solid var(--color-xcord-brand);
 }
 
@@ -290,7 +290,7 @@
   height: 1rem;
   width: 1rem;
   border-radius: 9999px;
-  background-color: #ffffff;
+  background-color: var(--color-xcord-white);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   transition: transform 150ms;
 }
@@ -307,7 +307,7 @@
 .deleteChannelButton {
   padding: 0.5rem 1rem;
   background-color: var(--color-xcord-danger);
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-size: 0.875rem;
   font-weight: 500;
   border-radius: 0.25rem;
@@ -378,7 +378,7 @@
 .saveButton {
   padding: 0.5rem 1.25rem;
   background-color: var(--color-xcord-brand);
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-size: 0.875rem;
   font-weight: 500;
   border-radius: 0.25rem;
@@ -441,7 +441,7 @@
 .dialogDeleteButton {
   padding: 0.5rem 1rem;
   background-color: var(--color-xcord-danger);
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-size: 0.875rem;
   font-weight: 500;
   border-radius: 0.25rem;

@@ -88,7 +88,7 @@
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  z-index: 50;
+  z-index: var(--z-modal);
   top: 50%;
   transform: translateY(-50%);
 }

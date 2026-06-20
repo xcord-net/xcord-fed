@@ -4,6 +4,7 @@ import { getErrorMessage } from '../utils/errors';
 import Modal from './ui/Modal';
 import Flexbox from './ui/Flexbox';
 import styles from './FollowChannel.module.css';
+import { formatDate } from '../utils/datetime';
 
 export interface Channel {
   id: string;
@@ -212,7 +213,7 @@ export default function FollowChannel(props: FollowChannelProps) {
                     #{follow.targetChannelName}
                   </p>
                   <p class={styles.followSince}>
-                    Following since {new Date(follow.createdAt).toLocaleDateString()}
+                    Following since {formatDate(follow.createdAt)}
                   </p>
                 </div>
                 <button

@@ -16,9 +16,15 @@ const store = createRoot(() => {
   const [selectedForumPost, setSelectedForumPost] = createSignal<ForumPost | null>(null);
   const [showServerSettings, setShowServerSettings] = createSignal(false);
   const [serverSettingsTab, setServerSettingsTab] = createSignal<ServerSettingsTab>('overview');
+  const [showCreateServer, setShowCreateServer] = createSignal(false);
+  // Mobile-only: whether the off-canvas navigation drawer (server rail +
+  // channel list) is open. Ignored on desktop where the sidebar is always inline.
+  const [mobileNavOpen, setMobileNavOpen] = createSignal(false);
 
   return {
     showSearch, setShowSearch,
+    showCreateServer, setShowCreateServer,
+    mobileNavOpen, setMobileNavOpen,
     showPins, setShowPins,
     showThreads, setShowThreads,
     showSettings, setShowSettings,
@@ -45,6 +51,15 @@ export function useModals() {
     get selectedForumPost() { return store.selectedForumPost(); },
     get showServerSettings() { return store.showServerSettings(); },
     get serverSettingsTab() { return store.serverSettingsTab(); },
+    get showCreateServer() { return store.showCreateServer(); },
+    get mobileNavOpen() { return store.mobileNavOpen(); },
+
+    openCreateServer() { store.setShowCreateServer(true); },
+    closeCreateServer() { store.setShowCreateServer(false); },
+
+    openMobileNav() { store.setMobileNavOpen(true); },
+    closeMobileNav() { store.setMobileNavOpen(false); },
+    toggleMobileNav() { store.setMobileNavOpen(!store.mobileNavOpen()); },
 
     toggleSearch() { store.setShowSearch(!store.showSearch()); },
     togglePins() { store.setShowPins(!store.showPins()); },
@@ -82,6 +97,8 @@ export function useModals() {
       store.setShowScheduledMessages(false);
       store.setSelectedForumPost(null);
       store.setShowServerSettings(false);
+      store.setShowCreateServer(false);
+      store.setMobileNavOpen(false);
     },
 
     reset(): void {
@@ -96,6 +113,8 @@ export function useModals() {
       store.setSelectedForumPost(null);
       store.setShowServerSettings(false);
       store.setServerSettingsTab('overview');
+      store.setShowCreateServer(false);
+      store.setMobileNavOpen(false);
     },
   };
 }

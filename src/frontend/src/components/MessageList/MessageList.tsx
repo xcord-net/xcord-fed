@@ -1,11 +1,11 @@
 import { For, Show, createEffect, createSignal, onMount } from 'solid-js';
 import { useParams } from '@solidjs/router';
-import { createVirtualizer } from '@tanstack/solid-virtual';
 import { useMessages } from '../../stores/message.store';
 import { usePins } from '../../stores/pin.store';
 import { useAuth } from '../../stores/auth.store';
 import { useServers } from '../../stores/server.store';
 import { useThreads } from '../../stores/thread.store';
+import { useToasts } from '../../stores/toast.store';
 import { api } from '../../api/client';
 import type { Message } from '../../types/message';
 import MessageRow from './MessageRow';
@@ -24,6 +24,7 @@ export default function MessageList(props: MessageListProps) {
   const authStore = useAuth();
   const serverStore = useServers();
   const threadStore = useThreads();
+  const toasts = useToasts();
   const params = useParams();
   const [createThreadMessageId, setCreateThreadMessageId] = createSignal<string | null>(null);
   const [threadNameInput, setThreadNameInput] = createSignal('');
@@ -31,6 +32,7 @@ export default function MessageList(props: MessageListProps) {
   const [isAtBottom, setIsAtBottom] = createSignal(true);
   const [reactionPickerMessageId, setReactionPickerMessageId] = createSignal<string | null>(null);
   const [deleteConfirmMessageId, setDeleteConfirmMessageId] = createSignal<string | null>(null);
+  const [isDeleting, setIsDeleting] = createSignal(false);
   const [myPermissions, setMyPermissions] = createSignal<bigint>(0n);
 
   const currentUserId = () => authStore.user?.id;
@@ -75,28 +77,6 @@ export default function MessageList(props: MessageListProps) {
     const id = props.conversationId;
     messageStore.clearMessages();
     messageStore.loadMessages(id);
-  });
-
-  const virtualizer = createVirtualizer<HTMLDivElement, HTMLDivElement>({
-    get count() {
-      return messageStore.messages.length;
-    },
-    getScrollElement: () => scrollContainer ?? null,
-    estimateSize: (index) => {
-      // Grouped messages (no avatar/username header) are shorter
-      const messages = messageStore.messages;
-      if (index === 0) return 72;
-      const prev = messages[index - 1];
-      const curr = messages[index];
-      if (!prev || !curr) return 72;
-      if (prev.authorId !== curr.authorId) return 72;
-      const timeDiff =
-        new Date(curr.createdAt).getTime() - new Date(prev.createdAt).getTime();
-      return timeDiff < 5 * 60 * 1000 ? 36 : 72;
-    },
-    overscan: 10,
-    // Messages list grows downward - reverse scroll (newest at bottom)
-    getItemKey: (index) => messageStore.messages[index]?.id ?? index,
   });
 
   // Scroll to bottom when new messages arrive and user is at bottom
@@ -149,11 +129,11 @@ export default function MessageList(props: MessageListProps) {
       await api.put(
         `/api/v1/conversations/${props.conversationId}/messages/${messageId}/reactions/${encodeURIComponent(emoji)}`,
       );
-      // Reload messages to show the new reaction
-      messageStore.clearMessages();
-      messageStore.loadMessages(props.conversationId);
+      // Patch just this message so the user's scroll position is preserved.
+      await messageStore.refreshMessage(props.conversationId, messageId);
     } catch (e) {
       console.error('Failed to add reaction', e);
+      toasts.error('Could not add reaction. Please try again.');
     }
   };
 
@@ -162,16 +142,26 @@ export default function MessageList(props: MessageListProps) {
     if (!name) return;
     const channelId = params.channelId;
     if (!channelId) return;
-    await threadStore.createThread(channelId, parentMessageId, name);
-    setCreateThreadMessageId(null);
-    setThreadNameInput('');
+    try {
+      await threadStore.createThread(channelId, parentMessageId, name);
+      setCreateThreadMessageId(null);
+      setThreadNameInput('');
+    } catch (e) {
+      console.error('Failed to create thread', e);
+      toasts.error('Could not create the thread. Please try again.');
+    }
   };
 
-  const handleTogglePin = (msg: Message) => {
-    if (msg.isPinned) {
-      pinStore.unpinMessage(props.conversationId, msg.id);
-    } else {
-      pinStore.pinMessage(props.conversationId, msg.id);
+  const handleTogglePin = async (msg: Message) => {
+    try {
+      if (msg.isPinned) {
+        await pinStore.unpinMessage(props.conversationId, msg.id);
+      } else {
+        await pinStore.pinMessage(props.conversationId, msg.id);
+      }
+    } catch (e) {
+      console.error('Failed to toggle pin', e);
+      toasts.error(msg.isPinned ? 'Could not unpin the message.' : 'Could not pin the message.');
     }
   };
 
@@ -200,64 +190,61 @@ export default function MessageList(props: MessageListProps) {
         </Flexbox>
       </Show>
 
-      {/* Virtual scroll container */}
+      {/* Empty channel: give the start of the conversation a clear marker instead
+          of a blank void. */}
+      <Show when={!messageStore.isLoading && messageStore.messages.length === 0}>
+        <Flexbox direction="vertical" align="center" justify="center" gap={0.5} class={styles.emptyState}>
+          <p data-testid="messages-empty" class={styles.emptyTitle}>This is the start of the conversation</p>
+          <p class={styles.emptyBody}>Send a message below to get things going.</p>
+        </Flexbox>
+      </Show>
+
+      {/* Message list. Rendered in normal document flow (no windowing) so each
+          row takes its natural, content-dependent height - wrapped messages
+          can never overlap their neighbours. The store caps how many messages
+          are loaded and paginates on scroll-up, bounding the node count. */}
       <Show when={messageStore.messages.length > 0}>
-        <div
-          class={styles.virtualList}
-          style={{
-            height: `${virtualizer.getTotalSize()}px`,
-          }}
-        >
-          <For each={virtualizer.getVirtualItems()}>
-            {(virtualRow) => {
-              const message = () => messageStore.messages[virtualRow.index];
+        <div class={styles.messageFlow}>
+          <For each={messageStore.messages}>
+            {(message, index) => {
               const grouped = () =>
-                shouldGroupWithPrevious(messageStore.messages, message(), virtualRow.index);
+                shouldGroupWithPrevious(messageStore.messages, message, index());
 
               return (
-                <div
-                  data-index={virtualRow.index}
-                  ref={(el) => virtualizer.measureElement(el)}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    transform: `translateY(${virtualRow.start}px)`,
+                <MessageRow
+                  message={message}
+                  conversationId={props.conversationId}
+                  serverId={params.serverId}
+                  channelId={params.channelId}
+                  grouped={grouped()}
+                  isAuthor={message.authorId === currentUserId()}
+                  canDelete={canDeleteMessage(message)}
+                  isReactionPickerOpen={reactionPickerMessageId() === message.id}
+                  isThreadCreateOpen={createThreadMessageId() === message.id}
+                  threadNameValue={threadNameInput()}
+                  onReply={() => messageStore.startReply({
+                    id: message.id,
+                    authorUsername: message.authorUsername || 'Unknown User',
+                    content: (message.content || '').slice(0, 80),
+                  })}
+                  onEdit={() => messageStore.startEditing(message.id, message.content)}
+                  onDelete={() => setDeleteConfirmMessageId(message.id)}
+                  onToggleReactionPicker={() =>
+                    setReactionPickerMessageId(
+                      reactionPickerMessageId() === message.id ? null : message.id,
+                    )
+                  }
+                  onCloseReactionPicker={() => setReactionPickerMessageId(null)}
+                  onSelectReaction={(emoji) => handleSelectReaction(message.id, emoji)}
+                  onTogglePin={() => handleTogglePin(message)}
+                  onStartThread={() => {
+                    setCreateThreadMessageId(message.id);
+                    setThreadNameInput('');
                   }}
-                >
-                  <Show when={message()}>
-                    <MessageRow
-                      message={message()}
-                      conversationId={props.conversationId}
-                      serverId={params.serverId}
-                      channelId={params.channelId}
-                      grouped={grouped()}
-                      isAuthor={message().authorId === currentUserId()}
-                      canDelete={canDeleteMessage(message())}
-                      isReactionPickerOpen={reactionPickerMessageId() === message().id}
-                      isThreadCreateOpen={createThreadMessageId() === message().id}
-                      threadNameValue={threadNameInput()}
-                      onEdit={() => messageStore.startEditing(message().id, message().content)}
-                      onDelete={() => setDeleteConfirmMessageId(message().id)}
-                      onToggleReactionPicker={() =>
-                        setReactionPickerMessageId(
-                          reactionPickerMessageId() === message().id ? null : message().id,
-                        )
-                      }
-                      onCloseReactionPicker={() => setReactionPickerMessageId(null)}
-                      onSelectReaction={(emoji) => handleSelectReaction(message().id, emoji)}
-                      onTogglePin={() => handleTogglePin(message())}
-                      onStartThread={() => {
-                        setCreateThreadMessageId(message().id);
-                        setThreadNameInput('');
-                      }}
-                      onThreadNameInput={(v) => setThreadNameInput(v)}
-                      onThreadCreateSubmit={() => handleSubmitThreadCreate(message().id)}
-                      onThreadCreateCancel={() => setCreateThreadMessageId(null)}
-                    />
-                  </Show>
-                </div>
+                  onThreadNameInput={(v) => setThreadNameInput(v)}
+                  onThreadCreateSubmit={() => handleSubmitThreadCreate(message.id)}
+                  onThreadCreateCancel={() => setCreateThreadMessageId(null)}
+                />
               );
             }}
           </For>
@@ -266,11 +253,21 @@ export default function MessageList(props: MessageListProps) {
 
       <DeleteMessageModal
         open={deleteConfirmMessageId() !== null}
-        onClose={() => setDeleteConfirmMessageId(null)}
-        onConfirm={() => {
+        pending={isDeleting()}
+        onClose={() => { if (!isDeleting()) setDeleteConfirmMessageId(null); }}
+        onConfirm={async () => {
           const id = deleteConfirmMessageId();
-          if (id) messageStore.deleteMessage(props.conversationId, id);
-          setDeleteConfirmMessageId(null);
+          if (!id) return;
+          setIsDeleting(true);
+          try {
+            await messageStore.deleteMessage(props.conversationId, id);
+            setDeleteConfirmMessageId(null);
+          } catch (e) {
+            console.error('Failed to delete message', e);
+            toasts.error('Could not delete the message. Please try again.');
+          } finally {
+            setIsDeleting(false);
+          }
         }}
       />
     </div>

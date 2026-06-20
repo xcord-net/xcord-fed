@@ -1,5 +1,6 @@
 import { Show } from 'solid-js';
 import styles from './PollFooter.module.css';
+import { formatDate } from '../../utils/datetime';
 
 interface PollFooterProps {
   totalVotes: number;
@@ -33,7 +34,7 @@ export default function PollFooter(props: PollFooterProps) {
 
         <Show when={!props.isClosed && props.expiresAt}>
           <span class={styles.expiryText}>
-            Ends {new Date(props.expiresAt!).toLocaleDateString()}
+            Ends {formatDate(props.expiresAt!)}
           </span>
         </Show>
 

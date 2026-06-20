@@ -30,6 +30,8 @@ function makeProps(overrides: Partial<ComposeBarProps> = {}): ComposeBarProps {
     onToggleMemberList: vi.fn(),
     onInput: vi.fn(),
     onKeyDown: vi.fn(),
+    canSend: true,
+    onSend: vi.fn(),
     ...overrides,
   };
 }
@@ -86,5 +88,23 @@ describe('ComposeBar', () => {
     ));
     const attach = getByTestId('compose-attach-button') as HTMLButtonElement;
     expect(attach.disabled).toBe(true);
+  });
+
+  it('shows a send button that fires onSend when enabled', () => {
+    const onSend = vi.fn();
+    const { getByTestId } = render(() => (
+      <ComposeBar {...makeProps({ canSend: true, onSend })} />
+    ));
+    const send = getByTestId('compose-send-button') as HTMLButtonElement;
+    expect(send.disabled).toBe(false);
+    fireEvent.click(send);
+    expect(onSend).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables the send button when there is nothing to send', () => {
+    const { getByTestId } = render(() => (
+      <ComposeBar {...makeProps({ canSend: false })} />
+    ));
+    expect((getByTestId('compose-send-button') as HTMLButtonElement).disabled).toBe(true);
   });
 });

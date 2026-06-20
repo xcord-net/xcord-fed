@@ -13,7 +13,7 @@
 }
 
 .panelTitle {
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-weight: 600;
 }
 
@@ -61,7 +61,7 @@
 }
 
 .threadName {
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -112,7 +112,7 @@
 }
 
 .activeThreadName {
-  color: #ffffff;
+  color: var(--color-xcord-white);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -131,7 +131,7 @@
 }
 
 .editNameButton:hover {
-  color: #ffffff;
+  color: var(--color-xcord-white);
 }
 
 .editNameRow {
@@ -171,7 +171,7 @@
 }
 
 .saveNameButton:hover {
-  color: #ffffff;
+  color: var(--color-xcord-white);
   background-color: var(--color-xcord-brand);
 }
 
@@ -185,7 +185,7 @@
 }
 
 .closeButton:hover {
-  color: #ffffff;
+  color: var(--color-xcord-white);
 }
 
 .memberBar {
@@ -205,7 +205,7 @@
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
   background-color: var(--color-xcord-brand);
-  color: #ffffff;
+  color: var(--color-xcord-white);
   border-radius: 0.25rem;
   border: none;
   cursor: pointer;
@@ -228,7 +228,7 @@
 }
 
 .leaveButton:hover {
-  color: #ffffff;
+  color: var(--color-xcord-white);
   background-color: var(--color-xcord-bg-tertiary);
 }
 

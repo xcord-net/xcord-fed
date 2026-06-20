@@ -22,7 +22,7 @@
 .errorReloadButton {
   padding: 0.5rem 1rem;
   background-color: var(--color-xcord-brand);
-  color: #fff;
+  color: var(--color-xcord-white);
   border: none;
   border-radius: 0.25rem;
   cursor: pointer;
@@ -36,7 +36,7 @@
 .suspensionOverlay {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: var(--z-modal);
   display: flex;
   flex-direction: column;
   align-items: center;

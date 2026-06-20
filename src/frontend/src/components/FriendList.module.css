@@ -17,6 +17,13 @@
   gap: 1rem;
 }
 
+/* Clear the fixed mobile hamburger (top-left). */
+@media (max-width: 768px) {
+  .tabRow {
+    padding-left: 3.5rem;
+  }
+}
+
 .heading {
   color: white;
   font-weight: 600;
@@ -55,7 +62,7 @@
 
 .pendingBadge {
   margin-left: 0.25rem;
-  background-color: #ef4444;
+  background-color: var(--color-xcord-danger-solid);
   color: white;
   font-size: 0.75rem;
   padding: 0.125rem 0.375rem;
@@ -205,7 +212,7 @@
 }
 
 .removeBtn {
-  color: #ef4444;
+  color: var(--color-xcord-danger-solid);
   background: none;
   border: none;
   font-size: 0.875rem;
@@ -297,7 +304,7 @@
 }
 
 .cancelRequestBtn {
-  color: #ef4444;
+  color: var(--color-xcord-danger-solid);
   background: none;
   border: none;
   font-size: 0.875rem;
