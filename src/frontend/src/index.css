@@ -67,7 +67,7 @@
   --color-xcord-border: #1e2130;
 
   /* === Font === */
-  --font-sans: "Figtree", "Segoe UI", sans-serif;
+  --font-sans: "Figtree Variable", "Figtree", "Segoe UI", sans-serif;
 
   /* === Z-index scale === */
   --z-toolbar: 10;
