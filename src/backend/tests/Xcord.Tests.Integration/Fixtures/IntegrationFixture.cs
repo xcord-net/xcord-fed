@@ -34,9 +34,19 @@ public class IntegrationFixture : IAsyncLifetime
         return _postgres.CreateDbContext();
     }
 
+    public Task<AppDbContext> CreateDbContextAsync()
+    {
+        return _postgres.CreateDbContextAsync();
+    }
+
     public AppDbContext CreateFreshDbContext()
     {
         return _postgres.CreateFreshDbContext();
+    }
+
+    public Task<AppDbContext> CreateFreshDbContextAsync()
+    {
+        return _postgres.CreateFreshDbContextAsync();
     }
 
     public IConnectionMultiplexer CreateRedisConnection()

@@ -180,7 +180,12 @@ public class RoleCachingTests
 
         // Force cache expiry - avoids waiting the real 60-second TTL
         await db.KeyExpireAsync(serverCacheKey, TimeSpan.FromMilliseconds(1));
-        await Task.Delay(50); // Allow Redis to process the expiry
+
+        // Poll until Redis actually drops the expired key (a fixed sleep flakes under load).
+        await WaitHelper.UntilAsync(
+            async () => !await db.KeyExistsAsync(serverCacheKey),
+            timeout: TimeSpan.FromSeconds(2),
+            label: $"redis key {serverCacheKey} expired");
 
         // Confirm the key is gone
         (await db.KeyExistsAsync(serverCacheKey)).Should().BeFalse("cache key must have expired before we proceed");
@@ -360,7 +365,12 @@ public class RoleCachingTests
         // Force both the channel and server cache keys to expire immediately
         await db.KeyExpireAsync(channelCacheKey, TimeSpan.FromMilliseconds(1));
         await db.KeyExpireAsync(serverCacheKey, TimeSpan.FromMilliseconds(1));
-        await Task.Delay(50); // Allow Redis to process the expiry
+
+        // Poll until Redis actually drops both expired keys (a fixed sleep flakes under load).
+        await WaitHelper.UntilAsync(
+            async () => !await db.KeyExistsAsync(channelCacheKey) && !await db.KeyExistsAsync(serverCacheKey),
+            timeout: TimeSpan.FromSeconds(2),
+            label: $"redis keys {channelCacheKey} and {serverCacheKey} expired");
 
         // Verify both keys are gone
         (await db.KeyExistsAsync(channelCacheKey)).Should().BeFalse("channel cache key must have expired");

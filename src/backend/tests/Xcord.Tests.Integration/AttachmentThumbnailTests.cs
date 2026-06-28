@@ -24,34 +24,42 @@ namespace Xcord.Tests.Integration;
 /// updated with a non-null ThumbnailS3Key.
 /// </summary>
 [Collection("SharedInfra")]
-public sealed class AttachmentThumbnailTests
+public sealed class AttachmentThumbnailTests : IAsyncLifetime
 {
-    private readonly string _connectionString;
-    private readonly IStorageService _storage;
-    private readonly IThumbnailService _thumbnailService;
+    private readonly SharedInfraFixture _fixture;
+    private string _connectionString = string.Empty;
+    private IStorageService _storage = null!;
+    private IThumbnailService _thumbnailService = null!;
 
     private const string TestBucket = "xcord-test";
     private static int _dbCounter;
 
     public AttachmentThumbnailTests(SharedInfraFixture fixture)
     {
+        _fixture = fixture;
+    }
+
+    public async Task InitializeAsync()
+    {
         var dbName = $"xcord_thumbnail_{Interlocked.Increment(ref _dbCounter)}";
-        _connectionString = fixture.CreateDatabaseAsync(dbName).GetAwaiter().GetResult();
+        _connectionString = await _fixture.CreateDatabaseAsync(dbName);
 
         var storageOptions = Options.Create(new StorageOptions
         {
-            Endpoint = fixture.MinioConnectionString,
-            AccessKey = fixture.MinioAccessKey,
-            SecretKey = fixture.MinioSecretKey,
+            Endpoint = _fixture.MinioConnectionString,
+            AccessKey = _fixture.MinioAccessKey,
+            SecretKey = _fixture.MinioSecretKey,
             Bucket = TestBucket,
         });
         _storage = new S3StorageService(storageOptions, NullLogger<S3StorageService>.Instance);
 
         // Ensure the test bucket exists
-        EnsureBucketAsync(fixture).GetAwaiter().GetResult();
+        await EnsureBucketAsync(_fixture);
 
         _thumbnailService = new ImageSharpThumbnailService(NullLogger<ImageSharpThumbnailService>.Instance);
     }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     private static async Task EnsureBucketAsync(SharedInfraFixture fixture)
     {

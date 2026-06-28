@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using FluentAssertions;
+using StackExchange.Redis;
 using Xcord.Tests.Integration.Fixtures;
 using Xcord.Tests.Integration.Helpers;
 using Xunit;
@@ -85,8 +86,17 @@ public class SlowmodeEnforcementTests
         var errorBody = await rateLimitedResponse.ReadAsJsonAsync<JsonElement>();
         errorBody.GetProperty("title").GetString().Should().Be("SLOWMODE_RATE_LIMITED");
 
-        // Act 3 - wait for the 2-second cooldown to expire, then send again
-        await Task.Delay(TimeSpan.FromSeconds(3));
+        // Act 3 - wait for the 2-second cooldown to expire, then send again.
+        // The production RedisSlowmodeService sets a TTL of slowModeSeconds on the key
+        // "{prefix}:slowmode:{channelId}:{userId}"; poll for its absence instead of a fixed
+        // 3s sleep, which is fragile under scheduler jitter.
+        using var redis = ConnectionMultiplexer.Connect(_fixture.RedisConnectionString);
+        var redisDb = redis.GetDatabase();
+        var slowmodeKey = $"xcord-test:slowmode:{channelId}:{member.UserId}";
+        await WaitHelper.UntilAsync(
+            async () => !await redisDb.KeyExistsAsync(slowmodeKey),
+            timeout: TimeSpan.FromSeconds(5),
+            label: "slowmode cooldown elapsed");
 
         var thirdMessage = await _helper.SendMessageAsync(
             member.AccessToken, conversationId, "Third message after cooldown");

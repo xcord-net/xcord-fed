@@ -27,7 +27,7 @@ public class SnowflakePersistenceTests
     [Fact]
     public async Task SnowflakeIdPersistsAsInt64()
     {
-        using var db = _fixture.CreateFreshDbContext();
+        await using var db = await _fixture.CreateFreshDbContextAsync();
 
         var id = _snowflake.NextId();
         var email = "snowflake@test.com";

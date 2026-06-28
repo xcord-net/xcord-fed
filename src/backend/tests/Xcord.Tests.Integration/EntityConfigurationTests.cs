@@ -27,7 +27,7 @@ public class EntityConfigurationTests
     [Fact]
     public async Task CanCreateAndRetrieveUser()
     {
-        using var db = _fixture.CreateFreshDbContext();
+        await using var db = await _fixture.CreateFreshDbContextAsync();
 
         var email = "test@example.com";
         var user = new User
@@ -53,7 +53,7 @@ public class EntityConfigurationTests
     [Fact]
     public async Task ServerMemberCascadeDeletesOnServerRemoval()
     {
-        using var db = _fixture.CreateFreshDbContext();
+        await using var db = await _fixture.CreateFreshDbContextAsync();
 
         var userId = _snowflake.NextId();
         var email = "owner@test.com";
@@ -100,7 +100,7 @@ public class EntityConfigurationTests
     [Fact]
     public async Task SoftDeleteFilterExcludesDeletedEntities()
     {
-        using var db = _fixture.CreateFreshDbContext();
+        await using var db = await _fixture.CreateFreshDbContextAsync();
 
         var userId = _snowflake.NextId();
         var email = "deleted@test.com";

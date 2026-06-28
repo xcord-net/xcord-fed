@@ -35,26 +35,48 @@ public class PostgresFixture : IAsyncLifetime
 
     public AppDbContext CreateDbContext()
     {
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseNpgsql(ConnectionString)
-            .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning))
-            .Options;
-
+        var options = BuildOptions();
         var context = new AppDbContext(options);
         context.Database.EnsureCreated();
         return context;
     }
 
+    /// <summary>
+    /// Async variant of <see cref="CreateDbContext"/>. Preferred - avoids the sync-over-async
+    /// <c>EnsureCreated()</c> blocking call on the threadpool.
+    /// </summary>
+    public async Task<AppDbContext> CreateDbContextAsync()
+    {
+        var context = new AppDbContext(BuildOptions());
+        await context.Database.EnsureCreatedAsync();
+        return context;
+    }
+
     public AppDbContext CreateFreshDbContext()
     {
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseNpgsql(ConnectionString)
-            .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning))
-            .Options;
-
-        var context = new AppDbContext(options);
+        var context = new AppDbContext(BuildOptions());
         context.Database.EnsureDeleted();
         context.Database.EnsureCreated();
         return context;
+    }
+
+    /// <summary>
+    /// Async variant of <see cref="CreateFreshDbContext"/>. Preferred - avoids the
+    /// sync-over-async <c>EnsureDeleted()</c>/<c>EnsureCreated()</c> blocking calls.
+    /// </summary>
+    public async Task<AppDbContext> CreateFreshDbContextAsync()
+    {
+        var context = new AppDbContext(BuildOptions());
+        await context.Database.EnsureDeletedAsync();
+        await context.Database.EnsureCreatedAsync();
+        return context;
+    }
+
+    private DbContextOptions<AppDbContext> BuildOptions()
+    {
+        return new DbContextOptionsBuilder<AppDbContext>()
+            .UseNpgsql(ConnectionString)
+            .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning))
+            .Options;
     }
 }

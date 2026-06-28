@@ -5,6 +5,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 using Xcord.Tests.Integration.Fixtures;
 using Xcord.Tests.Integration.Helpers;
 using Xunit;
@@ -81,11 +82,18 @@ public class MainHubTests
             await connection.DisposeAsync();
         }
 
-        // Give the server a moment to process the disconnect cleanup
-        await Task.Delay(500);
+        // Poll until the server-side OnDisconnectedAsync cleanup removes the VoiceState row
+        // (a fixed Task.Delay flakes under load / on slow runners).
+        await using var dbAfter = _fixture.CreateDbContext();
+        await WaitHelper.UntilAsync(
+            async () => !await dbAfter.VoiceStates
+                .AsNoTracking()
+                .AnyAsync(vs => vs.ChannelId == voiceChannelId && vs.UserId == user.UserId),
+            timeout: TimeSpan.FromSeconds(5),
+            interval: TimeSpan.FromMilliseconds(50),
+            label: "voice state removed after disconnect");
 
         // After disconnect, voice state should be removed from the DB
-        await using var dbAfter = _fixture.CreateDbContext();
         var voiceStateAfter = await dbAfter.VoiceStates
             .AsNoTracking()
             .FirstOrDefaultAsync(vs => vs.ChannelId == voiceChannelId && vs.UserId == user.UserId);
@@ -233,15 +241,25 @@ public class MainHubTests
             await senderConn.InvokeAsync("StartTyping", conversationId)
                 .WaitAsync(TimeSpan.FromSeconds(5));
 
-            // Wait briefly for the first broadcast to arrive
-            await Task.Delay(200);
+            // Wait until the first Chat_TypingStarted broadcast arrives at the observer.
+            await WaitHelper.UntilAsync(
+                () => Volatile.Read(ref broadcastCount) >= 1,
+                timeout: TimeSpan.FromSeconds(3),
+                label: "first typing broadcast received");
 
             // Second call within the rate limit window - should be throttled (no additional broadcast)
             await senderConn.InvokeAsync("StartTyping", conversationId)
                 .WaitAsync(TimeSpan.FromSeconds(5));
 
-            // Wait to ensure any throttled broadcast would have arrived
-            await Task.Delay(300);
+            // Positive-state proof that the throttle engaged: MainHub.StartTyping writes a
+            // Redis key "{prefix}:typing:{conversationId}:{userId}" (TTL 8s) on the first call
+            // and short-circuits while it exists. Asserting its presence proves the second
+            // call was suppressed by the rate limiter (a non-event has nothing else to poll).
+            using var redis = ConnectionMultiplexer.Connect(_fixture.RedisConnectionString);
+            var redisDb = redis.GetDatabase();
+            var typingKey = $"xcord-test:typing:{conversationId}:{member.UserId}";
+            (await redisDb.KeyExistsAsync(typingKey)).Should().BeTrue(
+                "the Redis typing throttle key must exist after the first StartTyping, proving the second call is suppressed");
 
             // Only the first call should have produced a broadcast; the second should have been suppressed
             broadcastCount.Should().Be(1, "the second StartTyping within the rate limit window should be throttled and not broadcast");

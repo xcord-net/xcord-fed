@@ -44,10 +44,10 @@ internal sealed class CapturingNotificationService : INotificationService
 /// </summary>
 [Collection("SharedInfra")]
 [Trait("Category", "Auth")]
-public sealed class ForgotPasswordHandlerTests
+public sealed class ForgotPasswordHandlerTests : IAsyncLifetime
 {
     private readonly SharedInfraFixture _fixture;
-    private readonly string _connectionString;
+    private string _connectionString = string.Empty;
 
     private const string TestEncryptionKey = "test-encryption-key-for-integration-tests";
     private const string TestRedisPrefix = "xcord-fptest";
@@ -56,9 +56,15 @@ public sealed class ForgotPasswordHandlerTests
     public ForgotPasswordHandlerTests(SharedInfraFixture fixture)
     {
         _fixture = fixture;
-        var dbName = $"xcord_forgotpw_{Interlocked.Increment(ref _dbCounter)}";
-        _connectionString = fixture.CreateDatabaseAsync(dbName).GetAwaiter().GetResult();
     }
+
+    public async Task InitializeAsync()
+    {
+        var dbName = $"xcord_forgotpw_{Interlocked.Increment(ref _dbCounter)}";
+        _connectionString = await _fixture.CreateDatabaseAsync(dbName);
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     // --- Helpers ---
 

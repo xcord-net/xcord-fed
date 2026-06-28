@@ -75,7 +75,7 @@ export default function MessageRow(props: MessageRowProps) {
         when={!props.grouped}
         fallback={
           <div class={styles.groupedContent}>
-            <span class={styles.groupedText}>
+            <span class={styles.groupedText} data-testid="message-content">
               <MarkdownRenderer content={props.message.content} />
             </span>
             <MessageContent
@@ -121,7 +121,7 @@ export default function MessageRow(props: MessageRowProps) {
               </div>
             </Show>
 
-            <div class={styles.messageContent}>
+            <div class={styles.messageContent} data-testid="message-content">
               <MarkdownRenderer content={props.message.content} />
             </div>
             <MessageContent
