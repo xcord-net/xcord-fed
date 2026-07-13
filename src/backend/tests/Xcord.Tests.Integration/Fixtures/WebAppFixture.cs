@@ -214,6 +214,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseSetting("Outbox:RetentionMinutes", "1440");
         builder.UseSetting("Hub:Enabled", "false");
         builder.UseSetting("Hub:Url", $"https://{TestHost}");
+        builder.UseSetting("Captcha:Enabled", "false");
         builder.UseSetting("Gif:Provider", "none");
         builder.UseSetting("Gif:ApiKey", "");
         builder.UseSetting("Email:SmtpHost", TestHost);

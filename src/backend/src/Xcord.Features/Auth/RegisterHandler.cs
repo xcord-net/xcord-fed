@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 
+using Xcord.Captcha;
 using Xcord.Entities;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Options;
@@ -20,7 +21,9 @@ public sealed record RegisterRequest(
     string Username,
     string DisplayName,
     string Email,
-    string Password
+    string Password,
+    string? CaptchaId = null,
+    string? CaptchaAnswer = null
 );
 
 public sealed partial class RegisterHandler(
@@ -32,7 +35,8 @@ public sealed partial class RegisterHandler(
     INotificationService notificationService,
     IOptions<EmailOptions> emailOptions,
     IOptions<TierOptions> tierOptions,
-    IOptions<AuthOptions> authOptions)
+    IOptions<AuthOptions> authOptions,
+    ICaptchaService captchaService)
     : IRequestHandler<RegisterRequest, Result<RegisterResponse>>, IValidatable<RegisterRequest>
 {
     private readonly EmailOptions _emailOptions = emailOptions.Value;
@@ -76,6 +80,9 @@ public sealed partial class RegisterHandler(
 
     public async Task<Result<RegisterResponse>> Handle(RegisterRequest request, CancellationToken cancellationToken)
     {
+        if (!await captchaService.ValidateAsync(request.CaptchaId ?? "", request.CaptchaAnswer ?? ""))
+            return Error.BadRequest("CAPTCHA_FAILED", "Invalid or expired captcha");
+
         // Tier gating: enforce user capacity limit (0 = unlimited)
         if (_tierOptions.MaxUsers > 0)
         {

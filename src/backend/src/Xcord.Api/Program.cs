@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 using Xcord.Api;
+using Xcord.Captcha.AspNetCore;
 
 // Pre-warm the thread pool to handle concurrent CPU-bound work (e.g. BCrypt)
 // without starvation. Default min threads is too low for burst auth traffic.
@@ -81,6 +82,7 @@ app.UseStaticFiles();
 // Map endpoints
 app.MapHealthEndpoint();
 app.MapHandlerEndpoints(typeof(Xcord.Features.FeaturesAssemblyMarker).Assembly);
+app.MapGhostFontCaptcha();
 Xcord.Features.Billing.MemberBillingWebhookHandler.Map(app);
 app.MapHub<MainHub>("/hubs/main");
 

@@ -12,6 +12,8 @@ using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Xcord.Api;
 using Xcord.Api.Authorization;
+using Xcord.Captcha;
+using Xcord.Captcha.AspNetCore;
 using Xcord.Features;
 using Xcord.Infrastructure.Data;
 using Xcord.Infrastructure.Options;
@@ -54,6 +56,15 @@ public static class ServiceCollectionExtensions
                 cfg.Password = redisOpts.Password;
             return ConnectionMultiplexer.Connect(cfg);
         });
+
+        // Captcha (ghost-font, portable module) - guards public registration
+        var captchaEnabled = config.GetValue<bool>("Captcha:Enabled", true);
+        services.AddGhostFontCaptcha(o =>
+        {
+            o.Enabled = captchaEnabled;
+            o.KeyPrefix = $"{redisOpts.ChannelPrefix}captcha:";
+        });
+        if (captchaEnabled) services.UseRedisCaptchaStore();
 
         // JSON serialization - explicit camelCase + converters
         services.ConfigureHttpJsonOptions(options =>

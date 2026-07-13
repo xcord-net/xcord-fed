@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Xcord.Infrastructure\Xcord.Infrastructure.csproj" />
     <ProjectReference Include="..\Xcord.Shared\Xcord.Shared.csproj" />
+    <ProjectReference Include="../../../../xcord-common/src/Xcord.Captcha/Xcord.Captcha.csproj" />
   </ItemGroup>
 
 </Project>
