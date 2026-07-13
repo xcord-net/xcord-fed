@@ -26,6 +26,7 @@ export default function Captcha(props: CaptchaProps) {
   const [useAudio, setUseAudio] = createSignal(false);
   const [isDisabled, setIsDisabled] = createSignal(false);
   const [isLoading, setIsLoading] = createSignal(false);
+  const [loaded, setLoaded] = createSignal(false);
   const [error, setError] = createSignal('');
 
   async function loadChallenge() {
@@ -49,6 +50,7 @@ export default function Captcha(props: CaptchaProps) {
       setCaptchaId(response.captchaId);
       setImageUrl(response.imageUrl);
       setAudioUrl(response.audioUrl);
+      setLoaded(true);
     } catch (err: unknown) {
       setError(getErrorMessage(err, 'Failed to load captcha'));
     } finally {
@@ -75,54 +77,56 @@ export default function Captcha(props: CaptchaProps) {
           <p class={styles.errorText}>{error()}</p>
         </Show>
 
-        <Show when={!useAudio()}>
-          <img
-            data-testid="captcha-image"
-            class={styles.image}
-            src={imageUrl()}
-            alt="Animated captcha challenge - type the letters formed by the moving dots"
+        <Show when={loaded()}>
+          <Show when={!useAudio()}>
+            <img
+              data-testid="captcha-image"
+              class={styles.image}
+              src={imageUrl()}
+              alt="Animated captcha challenge - type the letters formed by the moving dots"
+            />
+          </Show>
+
+          <Show when={useAudio()}>
+            <audio
+              data-testid="captcha-audio"
+              class={styles.audio}
+              controls
+              src={audioUrl()}
+            />
+          </Show>
+
+          <div class={styles.controlsRow}>
+            <button
+              type="button"
+              data-testid="captcha-new"
+              class={styles.controlButton}
+              onClick={loadChallenge}
+              disabled={isLoading()}
+            >
+              New
+            </button>
+            <button
+              type="button"
+              data-testid="captcha-audio-toggle"
+              class={styles.controlButton}
+              onClick={() => setUseAudio(!useAudio())}
+            >
+              {useAudio() ? "Can't hear it? Use image" : "Can't see it? Use audio"}
+            </button>
+          </div>
+
+          <input
+            id="captcha-answer"
+            data-testid="captcha-input"
+            type="text"
+            class={styles.input}
+            value={answer()}
+            onInput={handleAnswerInput}
+            autocomplete="off"
+            placeholder="Type what you see or hear"
           />
         </Show>
-
-        <Show when={useAudio()}>
-          <audio
-            data-testid="captcha-audio"
-            class={styles.audio}
-            controls
-            src={audioUrl()}
-          />
-        </Show>
-
-        <div class={styles.controlsRow}>
-          <button
-            type="button"
-            data-testid="captcha-new"
-            class={styles.controlButton}
-            onClick={loadChallenge}
-            disabled={isLoading()}
-          >
-            New
-          </button>
-          <button
-            type="button"
-            data-testid="captcha-audio-toggle"
-            class={styles.controlButton}
-            onClick={() => setUseAudio(!useAudio())}
-          >
-            {useAudio() ? "Can't hear it? Use image" : "Can't see it? Use audio"}
-          </button>
-        </div>
-
-        <input
-          id="captcha-answer"
-          data-testid="captcha-input"
-          type="text"
-          class={styles.input}
-          value={answer()}
-          onInput={handleAnswerInput}
-          autocomplete="off"
-          placeholder="Type what you see or hear"
-        />
       </div>
     </Show>
   );
