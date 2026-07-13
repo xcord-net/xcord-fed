@@ -11,6 +11,7 @@ COPY src/backend/src/Xcord.Features/Xcord.Features.csproj src/backend/src/Xcord.
 COPY src/backend/src/Xcord.Infrastructure/Xcord.Infrastructure.csproj src/backend/src/Xcord.Infrastructure/
 COPY src/backend/src/Xcord.Shared/Xcord.Shared.csproj src/backend/src/Xcord.Shared/
 COPY xcord-common/src/Xcord.Common/Xcord.Common.csproj xcord-common/src/Xcord.Common/
+COPY xcord-common/src/Xcord.Captcha/Xcord.Captcha.csproj xcord-common/src/Xcord.Captcha/
 
 # Restore dependencies
 RUN dotnet restore src/backend/src/Xcord.Api/Xcord.Api.csproj -r linux-musl-x64 -p:PublishReadyToRun=true
