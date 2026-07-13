@@ -8,6 +8,8 @@ export interface RegisterRequest {
   displayName: string;
   email: string;
   password: string;
+  captchaId?: string;
+  captchaAnswer?: string;
 }
 
 export interface AuthResponse {

@@ -2,6 +2,7 @@ import { createSignal, onMount } from 'solid-js';
 import { useNavigate, A } from '@solidjs/router';
 import { useAuth } from '../stores/auth.store';
 import { api } from '../api/client';
+import Captcha from '../components/Captcha';
 import styles from './Register.module.css';
 
 export default function Register() {
@@ -10,6 +11,8 @@ export default function Register() {
   const [password, setPassword] = createSignal('');
   const [error, setError] = createSignal('');
   const [loading, setLoading] = createSignal(false);
+  const [captchaId, setCaptchaId] = createSignal('');
+  const [captchaAnswer, setCaptchaAnswer] = createSignal('');
   const auth = useAuth();
 
   const navigate = useNavigate();
@@ -30,7 +33,14 @@ export default function Register() {
     setError('');
     setLoading(true);
     try {
-      await auth.register({ username: username(), displayName: username(), email: email(), password: password() });
+      await auth.register({
+        username: username(),
+        displayName: username(),
+        email: email(),
+        password: password(),
+        captchaId: captchaId(),
+        captchaAnswer: captchaAnswer(),
+      });
       navigate('/confirm-email');
     } catch (err: unknown) {
       setError((err as Error)?.message || 'Registration failed');
@@ -81,10 +91,13 @@ export default function Register() {
             autocomplete="new-password"
           />
         </div>
+        <div class={styles.fieldGroupLast}>
+          <Captcha onSolved={(id, answer) => { setCaptchaId(id); setCaptchaAnswer(answer); }} />
+        </div>
         <button
           data-testid="register-submit-button"
           type="submit"
-          disabled={loading()}
+          disabled={loading() || (captchaAnswer() === '' && captchaId() !== 'disabled')}
           class={styles.submitButton}
         >
           {loading() ? 'Creating account...' : 'Register'}

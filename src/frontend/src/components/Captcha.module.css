@@ -1,0 +1,78 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: var(--color-xcord-bg-primary);
+  border: 1px solid var(--color-xcord-border);
+  border-radius: 0.375rem;
+}
+
+.label {
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.errorText {
+  color: var(--color-xcord-danger-text);
+  font-size: 0.8125rem;
+  margin: 0;
+}
+
+.image {
+  width: 240px;
+  height: 80px;
+  max-width: 100%;
+  border-radius: 0.25rem;
+  border: 1px solid var(--color-xcord-border);
+  background-color: var(--color-xcord-bg-tertiary);
+  object-fit: cover;
+}
+
+.audio {
+  width: 240px;
+  max-width: 100%;
+  height: 40px;
+}
+
+.controlsRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.controlButton {
+  background: none;
+  border: none;
+  color: var(--color-xcord-brand);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0;
+  cursor: pointer;
+}
+
+.controlButton:hover {
+  text-decoration: underline;
+}
+
+.controlButton:disabled {
+  color: var(--color-xcord-text-muted);
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.input {
+  width: 100%;
+  background-color: var(--color-xcord-bg-secondary);
+  color: var(--color-xcord-text-primary);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-xcord-border);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: var(--color-xcord-brand);
+}
