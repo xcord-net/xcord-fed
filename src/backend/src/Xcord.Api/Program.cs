@@ -82,7 +82,7 @@ app.UseStaticFiles();
 // Map endpoints
 app.MapHealthEndpoint();
 app.MapHandlerEndpoints(typeof(Xcord.Features.FeaturesAssemblyMarker).Assembly);
-app.MapGhostFontCaptcha();
+app.MapGhostFontCaptcha().RequireRateLimiting("captcha");
 Xcord.Features.Billing.MemberBillingWebhookHandler.Map(app);
 app.MapHub<MainHub>("/hubs/main");
 

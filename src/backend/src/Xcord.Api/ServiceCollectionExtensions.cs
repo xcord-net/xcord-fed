@@ -320,6 +320,20 @@ public static class ServiceCollectionExtensions
             });
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
+            // Captcha issuance: per-IP limit (default 20/min) to slow mass GIF harvesting.
+            // Uses a policy (per-IP partition) rather than AddFixedWindowLimiter, which shares
+            // one bucket across all callers.
+            options.AddPolicy("captcha", context =>
+            {
+                var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                return RateLimitPartition.GetFixedWindowLimiter(ip, _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = opts.CaptchaPermitLimit,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0
+                });
+            });
+
             // Registration: configurable per-IP limit (default 3/min)
             options.AddFixedWindowLimiter("auth-register", limiterOptions =>
             {

@@ -22,4 +22,7 @@ public sealed class RateLimitingOptions
 
     /// <summary>Max auth requests (login, reset-password) per minute per IP (default 10).</summary>
     public int AuthPermitLimit { get; set; } = 10;
+
+    /// <summary>Max captcha issuances per minute per IP (default 20). Limits GIF harvesting.</summary>
+    public int CaptchaPermitLimit { get; set; } = 20;
 }
