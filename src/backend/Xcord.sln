@@ -23,6 +23,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xcord.Tests.Integration", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xcord.Common", "..\..\xcord-common\src\Xcord.Common\Xcord.Common.csproj", "{8C0C828B-1A15-4E3E-9121-30E5FD3178F1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xcord.Captcha", "..\..\..\xcord-common\src\Xcord.Captcha\Xcord.Captcha.csproj", "{DA48AA51-02A6-4577-8867-A4BE03313275}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xcord.Captcha.Tests", "..\..\..\xcord-common\src\Xcord.Captcha.Tests\Xcord.Captcha.Tests.csproj", "{A6DC43A5-AF96-4D9A-848E-7A0ABAB110F8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -129,6 +133,30 @@ Global
 		{8C0C828B-1A15-4E3E-9121-30E5FD3178F1}.Release|x64.Build.0 = Release|Any CPU
 		{8C0C828B-1A15-4E3E-9121-30E5FD3178F1}.Release|x86.ActiveCfg = Release|Any CPU
 		{8C0C828B-1A15-4E3E-9121-30E5FD3178F1}.Release|x86.Build.0 = Release|Any CPU
+		{DA48AA51-02A6-4577-8867-A4BE03313275}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA48AA51-02A6-4577-8867-A4BE03313275}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA48AA51-02A6-4577-8867-A4BE03313275}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DA48AA51-02A6-4577-8867-A4BE03313275}.Debug|x64.Build.0 = Debug|Any CPU
+		{DA48AA51-02A6-4577-8867-A4BE03313275}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DA48AA51-02A6-4577-8867-A4BE03313275}.Debug|x86.Build.0 = Debug|Any CPU
+		{DA48AA51-02A6-4577-8867-A4BE03313275}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA48AA51-02A6-4577-8867-A4BE03313275}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA48AA51-02A6-4577-8867-A4BE03313275}.Release|x64.ActiveCfg = Release|Any CPU
+		{DA48AA51-02A6-4577-8867-A4BE03313275}.Release|x64.Build.0 = Release|Any CPU
+		{DA48AA51-02A6-4577-8867-A4BE03313275}.Release|x86.ActiveCfg = Release|Any CPU
+		{DA48AA51-02A6-4577-8867-A4BE03313275}.Release|x86.Build.0 = Release|Any CPU
+		{A6DC43A5-AF96-4D9A-848E-7A0ABAB110F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6DC43A5-AF96-4D9A-848E-7A0ABAB110F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6DC43A5-AF96-4D9A-848E-7A0ABAB110F8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A6DC43A5-AF96-4D9A-848E-7A0ABAB110F8}.Debug|x64.Build.0 = Debug|Any CPU
+		{A6DC43A5-AF96-4D9A-848E-7A0ABAB110F8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A6DC43A5-AF96-4D9A-848E-7A0ABAB110F8}.Debug|x86.Build.0 = Debug|Any CPU
+		{A6DC43A5-AF96-4D9A-848E-7A0ABAB110F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6DC43A5-AF96-4D9A-848E-7A0ABAB110F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6DC43A5-AF96-4D9A-848E-7A0ABAB110F8}.Release|x64.ActiveCfg = Release|Any CPU
+		{A6DC43A5-AF96-4D9A-848E-7A0ABAB110F8}.Release|x64.Build.0 = Release|Any CPU
+		{A6DC43A5-AF96-4D9A-848E-7A0ABAB110F8}.Release|x86.ActiveCfg = Release|Any CPU
+		{A6DC43A5-AF96-4D9A-848E-7A0ABAB110F8}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
