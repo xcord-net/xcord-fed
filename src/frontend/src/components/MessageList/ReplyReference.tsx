@@ -29,7 +29,10 @@ export default function ReplyReference(props: ReplyReferenceProps) {
         aria-label={`Jump to the message from ${props.replyTo.authorUsername || 'Unknown User'}`}
         onClick={() => props.onJumpTo()}
       >
-        <span class={styles.replyAuthor}>
+        <span
+          class={styles.replyAuthor}
+          style={{ color: props.replyTo.authorGroupColor ?? undefined }}
+        >
           {props.replyTo.authorUsername || 'Unknown User'}
         </span>
         <span class={styles.replyPreview}>{props.replyTo.preview}</span>

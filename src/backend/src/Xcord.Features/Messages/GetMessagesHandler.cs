@@ -27,6 +27,7 @@ public sealed record MessageDto(
     long? AuthorId,
     string? AuthorUsername,
     string? AuthorAvatarUrl,
+    string? AuthorGroupColor,
     MessageType Type,
     string Content,
     string? Metadata,
@@ -117,6 +118,7 @@ public sealed class GetMessagesHandler(
                 ReplyToAuthorUsername = m.ReplyTo != null && m.ReplyTo.Author != null
                     ? m.ReplyTo.Author.Username
                     : null,
+                ReplyToAuthorId = m.ReplyTo != null ? m.ReplyTo.AuthorId : null,
                 Reactions = m.Reactions.GroupBy(r => r.Emoji).Select(g => new MessageReactionDto(
                     g.Key,
                     g.Count(),
@@ -170,6 +172,21 @@ public sealed class GetMessagesHandler(
                 )).ToList()
             );
 
+        // Resolve username colours for every author on the page - including the authors
+        // of reply targets, so a quote line names its author in the same colour the
+        // message header does. One query for the whole page.
+        var colorAuthorIds = messages
+            .SelectMany(m => new[] { m.Message.AuthorId, m.ReplyToAuthorId })
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .Distinct()
+            .ToList();
+        var groupColors = await AuthorGroupColors.ResolveAsync(
+            dbContext, contextResult.Value.ServerId, colorAuthorIds, cancellationToken);
+
+        string? colorFor(long? authorId) =>
+            authorId.HasValue ? groupColors.GetValueOrDefault(authorId.Value) : null;
+
         // Map to DTOs
         var messageDtos = messages.Select(m =>
         {
@@ -180,6 +197,7 @@ public sealed class GetMessagesHandler(
                 AuthorId: m.Message.AuthorId,
                 AuthorUsername: m.Author != null ? m.Author.Username : null,
                 AuthorAvatarUrl: m.Author != null ? m.Author.AvatarUrl : null,
+                AuthorGroupColor: colorFor(m.Message.AuthorId),
                 Type: m.Message.Type,
                 Content: m.Message.Content,
                 Metadata: m.Message.Metadata,
@@ -190,7 +208,8 @@ public sealed class GetMessagesHandler(
                 Reactions: m.Reactions.Count > 0 ? m.Reactions : null,
                 Attachments: attachmentDtos is { Count: > 0 } ? attachmentDtos : null,
                 PollId: m.PollId,
-                ReplyTo: ReplyToDto.Resolve(m.Message.ReplyToId, m.ReplyTo, m.ReplyToAuthorUsername)
+                ReplyTo: ReplyToDto.Resolve(
+                    m.Message.ReplyToId, m.ReplyTo, m.ReplyToAuthorUsername, colorFor(m.ReplyToAuthorId))
             );
         }).ToList();
 

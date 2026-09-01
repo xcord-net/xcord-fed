@@ -159,7 +159,10 @@ public sealed class EditMessageHandler(
         // message store immediately without a separate API fetch.
         await notificationService.NotifyConversationAsync(request.ConversationId, "Chat_MessageUpdated",
             MessageEventPayloads.ForCreated(message, message.Author?.Username, message.Author?.AvatarUrl, message.EditedAt,
-                replyTo: ReplyToDto.Resolve(message.ReplyToId, message.ReplyTo, message.ReplyTo?.Author?.Username)), cancellationToken);
+                replyTo: ReplyToDto.Resolve(message.ReplyToId, message.ReplyTo, message.ReplyTo?.Author?.Username,
+                    await AuthorGroupColors.ResolveOneAsync(dbContext, context.ServerId, message.ReplyTo?.AuthorId, cancellationToken)),
+                authorGroupColor: await AuthorGroupColors.ResolveOneAsync(dbContext, context.ServerId, message.AuthorId, cancellationToken)),
+            cancellationToken);
 
         // Execute deferred automod actions after save
         var deferredActions = processingResult.Value.DeferredActions;

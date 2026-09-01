@@ -52,6 +52,32 @@
   background-color: color-mix(in srgb, var(--color-xcord-bg-primary) 30%, transparent);
 }
 
+/* ── System messages ──────────────────────────────────────────────────────────
+   Member joined/left/kicked/banned and friends. No author, no body - a single
+   quiet line so channel events read as background, not as conversation. */
+
+.systemRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.25rem 0 0.25rem 3.5rem;
+  font-size: 0.8125rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.systemDot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background-color: var(--color-xcord-text-faint);
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.systemText {
+  font-style: italic;
+}
+
 /* Hover action toolbar (lives inside .messageRow) */
 .actionBar {
   position: absolute;
@@ -179,6 +205,7 @@
 
 .authorName {
   font-weight: 600;
+  color: var(--color-xcord-text-primary);
 }
 
 .messageTimestamp {

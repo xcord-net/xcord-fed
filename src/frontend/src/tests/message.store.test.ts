@@ -182,8 +182,8 @@ describe('message.store', () => {
         replyToId: 'msg-parent',
         replyTo: {
           id: 'msg-parent',
-          authorId: 'user-2',
           authorUsername: 'bob',
+          authorGroupColor: '#FF5733',
           preview: 'the original',
           isDeleted: false,
         },
@@ -193,14 +193,14 @@ describe('message.store', () => {
       };
     }
 
-    it('normalizes reply-target ids to strings', () => {
+    it('normalizes the reply-target id to a string', () => {
       const messages = useMessages();
-      // SignalR can deliver snowflakes as raw numbers before the converter runs.
+      // SignalR can deliver snowflakes as raw numbers before the converter runs,
+      // and a number id would never match the string ids lane building compares.
       messages.addMessage(reply({
         replyToId: 9007199254740993 as unknown as string,
         replyTo: {
           id: 9007199254740993 as unknown as string,
-          authorId: 42 as unknown as string,
           authorUsername: 'bob',
           preview: 'the original',
           isDeleted: false,
@@ -208,7 +208,7 @@ describe('message.store', () => {
       }));
 
       expect(typeof messages.messages[0].replyTo!.id).toBe('string');
-      expect(typeof messages.messages[0].replyTo!.authorId).toBe('string');
+      expect(messages.messages[0].replyTo!.id).toBe(messages.messages[0].replyToId);
     });
 
     it('keeps the reply reference when an update payload omits it', () => {
@@ -220,6 +220,39 @@ describe('message.store', () => {
 
       expect(messages.messages[0].content).toBe('edited reply');
       expect(messages.messages[0].replyTo?.authorUsername).toBe('bob');
+    });
+
+    it('keeps attachments and reactions when a partial update omits them', () => {
+      // Pin and unpin broadcast a message without its attachments or reactions.
+      const messages = useMessages();
+      messages.addMessage(reply({
+        attachments: [{
+          id: 'a-1', fileName: 'plan.pdf', contentType: 'application/pdf',
+          fileSize: 10, downloadUrl: 'https://example.test/plan.pdf',
+        }],
+        reactions: [{ emoji: '👍', count: 1, userIds: ['user-2'] }],
+      }));
+
+      messages.updateMessage(reply({
+        attachments: undefined,
+        reactions: undefined,
+        isPinned: true,
+      }));
+
+      expect(messages.messages[0].isPinned).toBe(true);
+      expect(messages.messages[0].attachments).toHaveLength(1);
+      expect(messages.messages[0].reactions).toHaveLength(1);
+    });
+
+    it('still lets an explicit empty collection clear the previous one', () => {
+      const messages = useMessages();
+      messages.addMessage(reply({
+        reactions: [{ emoji: '👍', count: 1, userIds: ['user-2'] }],
+      }));
+
+      messages.updateMessage(reply({ reactions: [] }));
+
+      expect(messages.messages[0].reactions).toHaveLength(0);
     });
 
     it('takes the incoming reply reference when the update payload carries one', () => {

@@ -122,36 +122,18 @@ public sealed class SearchMessagesHandler(
         // Fetch one extra to determine HasMore
         var fetchLimit = request.Limit + 1;
 
-        var messages = await query
-            .OrderByDescending(m => m.Id)
-            .Take(fetchLimit)
-            .Select(m => new
-            {
-                Message = m,
-                Author = m.Author
-            })
-            .ToListAsync(cancellationToken);
+        // Search can span servers, so the mapper resolves each message's server itself
+        // when picking username colours.
+        var messageDtos = await MessageDtos.FromQueryAsync(
+            dbContext,
+            query.OrderByDescending(m => m.Id).Take(fetchLimit),
+            cancellationToken);
 
-        var hasMore = messages.Count > request.Limit;
+        var hasMore = messageDtos.Count > request.Limit;
         if (hasMore)
         {
-            messages = messages.Take(request.Limit).ToList();
+            messageDtos = messageDtos.Take(request.Limit).ToList();
         }
-
-        var messageDtos = messages.Select(m => new MessageDto(
-            Id: m.Message.Id,
-            ConversationId: m.Message.ConversationId,
-            AuthorId: m.Message.AuthorId,
-            AuthorUsername: m.Author != null ? m.Author.Username : null,
-            AuthorAvatarUrl: m.Author != null ? m.Author.AvatarUrl : null,
-            Type: m.Message.Type,
-            Content: m.Message.Content,
-            Metadata: m.Message.Metadata,
-            ReplyToId: m.Message.ReplyToId,
-            IsPinned: m.Message.IsPinned,
-            EditedAt: m.Message.EditedAt,
-            CreatedAt: m.Message.CreatedAt
-        )).ToList();
 
         // Encode the next cursor when there are more results to fetch
         var nextCursor = hasMore && messageDtos.Count > 0

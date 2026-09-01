@@ -124,12 +124,8 @@ public sealed class KickMemberHandler(
 
         if (systemMsg != null)
         {
-            await notificationService.NotifyConversationAsync(systemMsg.ConversationId, "Chat_MessageCreated", new
-            {
-                MessageId = systemMsg.MessageId,
-                ConversationId = systemMsg.ConversationId,
-                AuthorId = (long?)null
-            }, cancellationToken);
+            await notificationService.NotifyConversationAsync(systemMsg.ConversationId, "Chat_MessageCreated",
+            Messages.MessageEventPayloads.ForSystemCreated(systemMsg.Message), cancellationToken);
         }
 
         logger.LogInformation(

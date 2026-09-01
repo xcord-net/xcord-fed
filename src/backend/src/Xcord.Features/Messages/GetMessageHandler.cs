@@ -21,6 +21,7 @@ public sealed record GetMessageResponse(
     long? AuthorId,
     string? AuthorUsername,
     string? AuthorAvatarUrl,
+    string? AuthorGroupColor,
     MessageType Type,
     string Content,
     string? Metadata,
@@ -65,7 +66,8 @@ public sealed class GetMessageHandler(
                 ReplyTo = m.ReplyTo,
                 ReplyToAuthorUsername = m.ReplyTo != null && m.ReplyTo.Author != null
                     ? m.ReplyTo.Author.Username
-                    : null
+                    : null,
+                ReplyToAuthorId = m.ReplyTo != null ? m.ReplyTo.AuthorId : null
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -74,12 +76,24 @@ public sealed class GetMessageHandler(
             return Error.NotFound("MESSAGE_NOT_FOUND", "Message not found");
         }
 
+        var serverId = contextResult.Value.ServerId;
+        var groupColors = await AuthorGroupColors.ResolveAsync(
+            dbContext,
+            serverId,
+            new[] { messageData.Message.AuthorId, messageData.ReplyToAuthorId }
+                .Where(id => id.HasValue).Select(id => id!.Value).Distinct().ToList(),
+            cancellationToken);
+
+        string? colorFor(long? authorId) =>
+            authorId.HasValue ? groupColors.GetValueOrDefault(authorId.Value) : null;
+
         return new GetMessageResponse(
             Id: messageData.Message.Id,
             ConversationId: messageData.Message.ConversationId,
             AuthorId: messageData.Message.AuthorId,
             AuthorUsername: messageData.Author != null ? messageData.Author.Username : null,
             AuthorAvatarUrl: messageData.Author != null ? messageData.Author.AvatarUrl : null,
+            AuthorGroupColor: colorFor(messageData.Message.AuthorId),
             Type: messageData.Message.Type,
             Content: messageData.Message.Content,
             Metadata: messageData.Message.Metadata,
@@ -88,7 +102,8 @@ public sealed class GetMessageHandler(
             EditedAt: messageData.Message.EditedAt,
             CreatedAt: messageData.Message.CreatedAt,
             ReplyTo: ReplyToDto.Resolve(
-                messageData.Message.ReplyToId, messageData.ReplyTo, messageData.ReplyToAuthorUsername)
+                messageData.Message.ReplyToId, messageData.ReplyTo, messageData.ReplyToAuthorUsername,
+                colorFor(messageData.ReplyToAuthorId))
         );
     }
 

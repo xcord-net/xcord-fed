@@ -25,6 +25,7 @@ public sealed record SendMessageResponse(
     long? AuthorId,
     string AuthorUsername,
     string? AuthorAvatarUrl,
+    string? AuthorGroupColor,
     MessageType Type,
     string Content,
     string? Metadata,
@@ -133,9 +134,16 @@ public sealed class SendMessageHandler(
                 return Error.NotFound("REPLY_MESSAGE_NOT_FOUND", "Reply target message not found in this conversation");
             }
 
+            var replyToAuthorColor = await AuthorGroupColors.ResolveOneAsync(
+                dbContext, serverId, replyToTarget.AuthorId, cancellationToken);
+
             replyTo = ReplyToDto.From(
-                replyToTarget.Id, replyToTarget.AuthorId, replyToTarget.AuthorUsername, replyToTarget.Content);
+                replyToTarget.Id, replyToTarget.AuthorUsername, replyToAuthorColor, replyToTarget.Content);
         }
+
+        // The sender's own username colour, for the message they are about to create.
+        var authorGroupColor = await AuthorGroupColors.ResolveOneAsync(
+            dbContext, serverId, userId, cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
 
@@ -346,7 +354,8 @@ public sealed class SendMessageHandler(
 
             await notificationService.NotifyConversationAsync(request.ConversationId, "Chat_MessageCreated",
                 MessageEventPayloads.ForCreated(message, authorForResponse.Username, authorForResponse.AvatarUrl,
-                    attachments: notifyAttachments, replyTo: replyTo), cancellationToken);
+                    attachments: notifyAttachments, replyTo: replyTo, authorGroupColor: authorGroupColor),
+                cancellationToken);
 
             logger.LogInformation(
                 "User {UserId} sent message {MessageId} in conversation {ConversationId}",
@@ -364,6 +373,7 @@ public sealed class SendMessageHandler(
                 AuthorId: message.AuthorId,
                 AuthorUsername: authorForResponse.Username,
                 AuthorAvatarUrl: authorForResponse.AvatarUrl,
+                AuthorGroupColor: authorGroupColor,
                 Type: message.Type,
                 Content: message.Content,
                 Metadata: message.Metadata,

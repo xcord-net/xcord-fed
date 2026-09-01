@@ -7,6 +7,7 @@ import MessageContent from './MessageContent';
 import { formatTime } from './helpers';
 import type { LaneAssignment } from './lanes';
 import ReplyReference from './ReplyReference';
+import { isSystemMessage, systemMessageText } from './systemMessage';
 import Flexbox from '../ui/Flexbox';
 import styles from './MessageRow.module.css';
 
@@ -42,6 +43,24 @@ interface MessageRowProps {
 /** A single message row including the hover action bar, optional thread-create form,
  *  and either a grouped (no header) or full (avatar + header) body. */
 export default function MessageRow(props: MessageRowProps) {
+  // System messages carry no author and no content - rendering them through the
+  // normal layout produced a blank row attributed to "Unknown User".
+  if (isSystemMessage(props.message)) {
+    return (
+      <div
+        data-message-id={props.message.id}
+        data-testid={`message-row-${props.message.id}`}
+        class={styles.systemRow}
+      >
+        <span class={styles.systemDot} aria-hidden="true" />
+        <span class={styles.systemText} data-testid="system-message-text">
+          {systemMessageText(props.message)}
+        </span>
+        <span class={styles.messageTimestamp}>{formatTime(props.message.createdAt)}</span>
+      </div>
+    );
+  }
+
   return (
     <div
       data-message-id={props.message.id}
@@ -136,10 +155,11 @@ export default function MessageRow(props: MessageRowProps) {
           {/* Message content */}
           <div class={styles.messageBody}>
             <Flexbox align="baseline" gap={0.5} class={styles.messageHeader}>
-              {/* Card 170: group color applied inline to username */}
+              {/* Tinted with the author's highest coloured group; falls back to the
+                  default text colour from .authorName when they have none. */}
               <span
                 class={styles.authorName}
-                style={{ color: props.message.authorGroupColor ?? 'white' }}
+                style={{ color: props.message.authorGroupColor ?? undefined }}
               >
                 {props.message.authorUsername || 'Unknown User'}
               </span>

@@ -19,9 +19,26 @@ function normalizeMessage(m: Message): Message {
     // (system messages dispatched by backend handlers like BanMemberHandler).
     content: base.content ?? '',
     replyToId: m.replyToId ? String(m.replyToId) : undefined,
-    replyTo: m.replyTo ? normalizeIds(m.replyTo, 'id', 'authorId') : undefined,
+    replyTo: m.replyTo ? normalizeIds(m.replyTo, 'id') : undefined,
     pollId: m.pollId ? String(m.pollId) : undefined,
   };
+}
+
+/**
+ * Merges an update into the message already in the store, keeping any field the
+ * incoming payload leaves undefined.
+ *
+ * Update payloads are not all equally complete: pin and unpin broadcast a message
+ * without its attachments, reactions or poll, and an edit may arrive without the
+ * reply reference. Replacing wholesale would drop whichever of those the sender
+ * happened not to include. An explicit empty array still overwrites, so genuinely
+ * clearing a collection works.
+ */
+function mergeMessage(existing: Message, incoming: Message): Message {
+  const defined = Object.fromEntries(
+    Object.entries(incoming).filter(([, value]) => value !== undefined),
+  );
+  return { ...existing, ...defined };
 }
 
 const store = createRoot(() => {
@@ -208,14 +225,9 @@ export function useMessages() {
 
     updateMessage(message: Message): void {
       const normalized = normalizeMessage(message);
-      store.setMessages(store.messages().map((m) => {
-        if (m.id !== normalized.id) return m;
-        // An update replaces the message wholesale. replyToId is immutable after
-        // creation, so keeping a reply reference the payload happened to omit is
-        // always correct - and it stops a partial payload from dissolving a lane.
-        if (normalized.replyTo || !m.replyTo) return normalized;
-        return { ...normalized, replyTo: m.replyTo };
-      }));
+      store.setMessages(store.messages().map((m) =>
+        m.id === normalized.id ? mergeMessage(m, normalized) : m,
+      ));
     },
 
     /**

@@ -38,6 +38,10 @@ public sealed class PinMessageHandler(
         // Find the message and verify it belongs to the conversation
         var message = await dbContext.Messages
             .Include(m => m.Author)
+            // Needed so the returned DTO carries the reply reference, same as the
+            // main message list.
+            .Include(m => m.ReplyTo)
+                .ThenInclude(r => r!.Author)
             .FirstOrDefaultAsync(
                 m => m.Id == request.MessageId && m.ConversationId == request.ConversationId,
                 cancellationToken);
@@ -62,27 +66,15 @@ public sealed class PinMessageHandler(
 
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        // Notify conversation after save
-        await notificationService.NotifyConversationAsync(request.ConversationId, "Chat_MessageUpdated", new
-        {
-            conversationId = request.ConversationId,
-            messageId = request.MessageId
-        }, cancellationToken);
+        var dto = await MessageDtos.FromEntityAsync(dbContext, message, cancellationToken);
 
-        return new MessageDto(
-            Id: message.Id,
-            ConversationId: message.ConversationId,
-            AuthorId: message.AuthorId,
-            AuthorUsername: message.Author != null ? message.Author.Username : null,
-            AuthorAvatarUrl: message.Author != null ? message.Author.AvatarUrl : null,
-            Type: message.Type,
-            Content: message.Content,
-            Metadata: message.Metadata,
-            ReplyToId: message.ReplyToId,
-            IsPinned: message.IsPinned,
-            EditedAt: message.EditedAt,
-            CreatedAt: message.CreatedAt
-        );
+        // Notify conversation after save. The client's Chat_MessageUpdated handler
+        // replaces the message in its store by id, so a {conversationId, messageId}
+        // stub matched nothing and the pin state never reached other clients.
+        await notificationService.NotifyConversationAsync(
+            request.ConversationId, "Chat_MessageUpdated", dto, cancellationToken);
+
+        return dto;
     }
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app) =>

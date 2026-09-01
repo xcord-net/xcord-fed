@@ -130,15 +130,20 @@ public sealed class InteractionCallbackHandler(
 
             await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
-            await notificationService.NotifyConversationAsync(message.ConversationId, "Chat_MessageCreated", new
-            {
-                messageId = message.Id,
-                conversationId = message.ConversationId,
-                authorId = message.AuthorId,
-                content = message.Content,
-                type = message.Type.ToString(),
-                createdAt = message.CreatedAt
-            }, ct);
+            // The bot's own name and avatar, so its reply is not rendered as an
+            // unknown author. Sent as "id", not "messageId" - the client keys its
+            // message store on id and silently dropped the old shape.
+            var botUser = await dbContext.Users
+                .AsNoTracking()
+                .Where(u => u.Id == botUserId)
+                .Select(u => new { u.Username, u.AvatarUrl })
+                .FirstOrDefaultAsync(ct);
+
+            await notificationService.NotifyConversationAsync(
+                message.ConversationId,
+                "Chat_MessageCreated",
+                Messages.MessageEventPayloads.ForCreated(message, botUser?.Username, botUser?.AvatarUrl),
+                ct);
         }
 
         return new InteractionCallbackResponse("ok");

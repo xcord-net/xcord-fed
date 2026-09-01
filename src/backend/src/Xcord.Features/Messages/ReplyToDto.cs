@@ -9,8 +9,8 @@ namespace Xcord.Features.Messages;
 /// </summary>
 public sealed record ReplyToDto(
     long Id,
-    long? AuthorId,
     string? AuthorUsername,
+    string? AuthorGroupColor,
     string Preview,
     bool IsDeleted
 )
@@ -49,26 +49,27 @@ public sealed record ReplyToDto(
     }
 
     /// <summary>Builds the DTO from parent fields already materialized by a projection.</summary>
-    public static ReplyToDto From(long id, long? authorId, string? authorUsername, string? content)
-        => new(id, authorId, authorUsername, BuildPreview(content), IsDeleted: false);
+    public static ReplyToDto From(long id, string? authorUsername, string? authorGroupColor, string? content)
+        => new(id, authorUsername, authorGroupColor, BuildPreview(content), IsDeleted: false);
 
     /// <summary>
     /// The parent is gone. Keeps the id so the reply edge still forms client-side, but
     /// carries no author or content.
     /// </summary>
     public static ReplyToDto Deleted(long id)
-        => new(id, AuthorId: null, AuthorUsername: null, Preview: string.Empty, IsDeleted: true);
+        => new(id, AuthorUsername: null, AuthorGroupColor: null, Preview: string.Empty, IsDeleted: true);
 
     /// <summary>
     /// Resolves the DTO for a message that may or may not be a reply. The soft-delete
     /// query filter nulls the navigation when the parent is deleted, so a present
     /// <paramref name="replyToId"/> with a null <paramref name="parent"/> means "gone".
     /// </summary>
-    public static ReplyToDto? Resolve(long? replyToId, Entities.Message? parent, string? parentAuthorUsername)
+    public static ReplyToDto? Resolve(
+        long? replyToId, Entities.Message? parent, string? parentAuthorUsername, string? parentAuthorGroupColor)
     {
         if (!replyToId.HasValue) return null;
         return parent is null
             ? Deleted(replyToId.Value)
-            : From(parent.Id, parent.AuthorId, parentAuthorUsername, parent.Content);
+            : From(parent.Id, parentAuthorUsername, parentAuthorGroupColor, parent.Content);
     }
 }

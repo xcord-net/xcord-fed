@@ -36,31 +36,13 @@ public sealed class ListPinnedMessagesHandler(
         if (contextResult.IsFailure) return contextResult.Error;
 
         // Query pinned messages for the conversation, ordered by PinnedAt descending
-        var messages = await dbContext.Messages
-            .AsNoTracking()
-            .Where(m => m.ConversationId == request.ConversationId && m.IsPinned)
-            .OrderByDescending(m => m.PinnedAt)
-            .Select(m => new
-            {
-                Message = m,
-                Author = m.Author
-            })
-            .ToListAsync(cancellationToken);
-
-        var messageDtos = messages.Select(m => new MessageDto(
-            Id: m.Message.Id,
-            ConversationId: m.Message.ConversationId,
-            AuthorId: m.Message.AuthorId,
-            AuthorUsername: m.Author != null ? m.Author.Username : null,
-            AuthorAvatarUrl: m.Author != null ? m.Author.AvatarUrl : null,
-            Type: m.Message.Type,
-            Content: m.Message.Content,
-            Metadata: m.Message.Metadata,
-            ReplyToId: m.Message.ReplyToId,
-            IsPinned: m.Message.IsPinned,
-            EditedAt: m.Message.EditedAt,
-            CreatedAt: m.Message.CreatedAt
-        )).ToList();
+        var messageDtos = await MessageDtos.FromQueryAsync(
+            dbContext,
+            dbContext.Messages
+                .AsNoTracking()
+                .Where(m => m.ConversationId == request.ConversationId && m.IsPinned)
+                .OrderByDescending(m => m.PinnedAt),
+            cancellationToken);
 
         return new ListPinnedMessagesResponse(Messages: messageDtos);
     }

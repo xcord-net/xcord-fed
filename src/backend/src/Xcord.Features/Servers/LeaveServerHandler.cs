@@ -59,6 +59,7 @@ public sealed class LeaveServerHandler(
         // Create system message (MemberLeave) in the server's system channel if configured
         long? systemMessageConversationId = null;
         long? systemMessageId = null;
+        Message? systemMessageEntity = null;
         if (server.SystemChannelId.HasValue)
         {
             var systemChannel = await dbContext.Channels
@@ -91,6 +92,7 @@ public sealed class LeaveServerHandler(
                 dbContext.Messages.Add(systemMessage);
                 systemMessageConversationId = systemChannel.ConversationId;
                 systemMessageId = messageId;
+                systemMessageEntity = systemMessage;
             }
         }
 
@@ -110,12 +112,8 @@ public sealed class LeaveServerHandler(
         // Notify after save
         if (systemMessageConversationId.HasValue && systemMessageId.HasValue)
         {
-            await notificationService.NotifyConversationAsync(systemMessageConversationId.Value, "Chat_MessageCreated", new
-            {
-                MessageId = systemMessageId.Value,
-                ConversationId = systemMessageConversationId.Value,
-                AuthorId = (long?)null
-            }, cancellationToken);
+            await notificationService.NotifyConversationAsync(systemMessageConversationId.Value, "Chat_MessageCreated",
+            Messages.MessageEventPayloads.ForSystemCreated(systemMessageEntity!), cancellationToken);
         }
 
         await notificationService.NotifyServerAsync(request.ServerId, "Member_Left", new

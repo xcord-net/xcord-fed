@@ -106,7 +106,6 @@ describe('MessageRow', () => {
       replyToId: 'm-prev',
       replyTo: {
         id: 'm-prev',
-        authorId: 'u-2',
         authorUsername: 'bob',
         preview: 'what do you think?',
         isDeleted: false,
@@ -119,6 +118,35 @@ describe('MessageRow', () => {
     expect(getByTestId('reply-reference')).toBeInTheDocument();
     expect(getByText('bob')).toBeInTheDocument();
     expect(getByText('what do you think?')).toBeInTheDocument();
+  });
+
+  it('tints the quoted author with their group colour, like the message header', () => {
+    const message = makeMessage({
+      replyToId: 'm-prev',
+      replyTo: {
+        id: 'm-prev',
+        authorUsername: 'bob',
+        authorGroupColor: '#FF5733',
+        preview: 'earlier',
+        isDeleted: false,
+      },
+    });
+    const { getByText } = render(() => <MessageRow {...baseProps({ message })} />);
+
+    expect(getByText('bob').style.color).toBe('rgb(255, 87, 51)');
+  });
+
+  it('tints the message author with their group colour', () => {
+    const message = makeMessage({ authorGroupColor: '#16A765' });
+    const { getByText } = render(() => <MessageRow {...baseProps({ message })} />);
+
+    expect(getByText('alice').style.color).toBe('rgb(22, 167, 101)');
+  });
+
+  it('leaves the author name to the default colour when they have no coloured group', () => {
+    const { getByText } = render(() => <MessageRow {...baseProps()} />);
+
+    expect(getByText('alice').style.color).toBe('');
   });
 
   it('jumps to the referenced message when the quote line is clicked', () => {
@@ -185,6 +213,24 @@ describe('MessageRow', () => {
     const row = getByTestId('message-row-m-1');
     expect(row.style.getPropertyValue('--lane-color')).toBe('var(--color-xcord-lane-3)');
     expect(row.style.getPropertyValue('--lane-heat')).toBe('0.75');
+  });
+
+  it('renders a system message as a single line, not a blank authored row', () => {
+    const message = makeMessage({
+      type: 'MemberJoin',
+      authorId: '',
+      authorUsername: undefined,
+      content: '',
+      metadata: JSON.stringify({ Username: 'bob' }) as unknown as Record<string, unknown>,
+    });
+    const { getByTestId, queryByText, queryByTestId } = render(() => (
+      <MessageRow {...baseProps({ message })} />
+    ));
+
+    expect(getByTestId('system-message-text').textContent).toBe('bob joined the server');
+    expect(queryByText('Unknown User')).toBeNull();
+    // No avatar, no hover actions - a channel event is not a conversation turn.
+    expect(queryByTestId('mock-action-bar')).toBeNull();
   });
 
   it('shows the thread button only when channelId is provided', () => {

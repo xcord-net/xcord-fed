@@ -80,7 +80,7 @@ public sealed class FederationInboxHandler(
         var rejected = 0;
 
         // Collect (localMessageId, conversationId) pairs to notify after save
-        var pendingNotifications = new List<(long LocalMessageId, long ConversationId)>();
+        var pendingNotifications = new List<Message>();
 
         foreach (var message in request.Messages)
         {
@@ -138,7 +138,7 @@ public sealed class FederationInboxHandler(
 
                     dbContext.FederationMessages.Add(fedMessage);
 
-                    pendingNotifications.Add((localMessageId, follow.LocalChannel.ConversationId));
+                    pendingNotifications.Add(localMessage);
                 }
 
                 accepted++;
@@ -188,14 +188,15 @@ public sealed class FederationInboxHandler(
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Dispatch SignalR events after save
-        foreach (var (localMessageId, conversationId) in pendingNotifications)
+        foreach (var localMessage in pendingNotifications)
         {
-            await notificationService.NotifyConversationAsync(conversationId, "Chat_MessageCreated", new
-            {
-                MessageId = localMessageId,
-                ConversationId = conversationId,
-                Federated = true
-            }, cancellationToken);
+            // Federated copies have no local author; the remote author's name travels
+            // in Metadata, which ForSystemCreated carries through.
+            await notificationService.NotifyConversationAsync(
+                localMessage.ConversationId,
+                "Chat_MessageCreated",
+                Messages.MessageEventPayloads.ForSystemCreated(localMessage),
+                cancellationToken);
         }
 
         logger.LogInformation(

@@ -424,7 +424,6 @@ public class MessageEndpointTests
 
         var replyTo = reply.GetProperty("replyTo");
         replyTo.GetProperty("id").ReadLong().Should().Be(parentId);
-        replyTo.GetProperty("authorId").ReadLong().Should().Be(owner.UserId);
         replyTo.GetProperty("authorUsername").GetString().Should().Be(owner.Username);
         replyTo.GetProperty("preview").GetString().Should().Be("what do you think?");
         replyTo.GetProperty("isDeleted").GetBoolean().Should().BeFalse();
@@ -572,5 +571,160 @@ public class MessageEndpointTests
 
         var body = await response.ReadAsJsonAsync<JsonElement>();
         body.GetProperty("replyTo").GetProperty("preview").GetString().Should().Be("the question");
+    }
+
+    // ──────────── Author group colours ────────────
+    //
+    // The username colour is a per-server attribute taken from the author's highest
+    // coloured group. It reaches the client on the message itself and on the reply
+    // target, so a quote line names its author in the same colour as the header.
+
+    /// <summary>Creates a coloured group on the server and assigns it to a member.</summary>
+    private async Task<long> CreateAndAssignGroupAsync(
+        AuthenticatedUser owner, long serverId, long userId, string color, int? position = null)
+    {
+        var createResponse = await _helper.AuthPostAsync(
+            $"/api/v1/servers/{serverId}/groups",
+            owner.AccessToken,
+            position.HasValue
+                ? new { name = $"group-{color[1..]}", color, position = position.Value }
+                : new { name = $"group-{color[1..]}", color });
+
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+            $"group creation should succeed: {await createResponse.Content.ReadAsStringAsync()}");
+        var groupId = (await createResponse.ReadAsJsonAsync<JsonElement>()).GetProperty("id").ReadLong();
+
+        var assignResponse = await _helper.AuthPostAsync(
+            $"/api/v1/servers/{serverId}/members/{userId}/groups/{groupId}", owner.AccessToken);
+        assignResponse.IsSuccessStatusCode.Should().BeTrue(
+            $"group assignment should succeed: {await assignResponse.Content.ReadAsStringAsync()}");
+
+        return groupId;
+    }
+
+    private async Task<(AuthenticatedUser Owner, AuthenticatedUser Member, long ServerId, long ConversationId)>
+        CreateSharedServerAndChannelAsync()
+    {
+        var owner = await _helper.RegisterUserAsync();
+        var member = await _helper.RegisterUserAsync();
+        var server = await _helper.CreateServerAsync(owner.AccessToken);
+        var serverId = server.GetProperty("id").ReadLong();
+        var inviteCode = await _helper.CreateInviteAsync(owner.AccessToken, serverId);
+        await _helper.JoinServerAsync(member.AccessToken, inviteCode);
+        var channel = await _helper.CreateChannelAsync(owner.AccessToken, serverId);
+
+        return (owner, member, serverId, channel.GetProperty("conversationId").ReadLong());
+    }
+
+    [Fact]
+    public async Task GetMessages_AuthorInColouredGroup_ReturnsAuthorGroupColor()
+    {
+        var (owner, _, serverId, conversationId) = await CreateSharedServerAndChannelAsync();
+        await CreateAndAssignGroupAsync(owner, serverId, owner.UserId, "#FF5733");
+        await _helper.SendMessageAsync(owner.AccessToken, conversationId, "coloured");
+
+        var response = await _helper.AuthGetAsync(
+            $"/api/v1/conversations/{conversationId}/messages", owner.AccessToken);
+
+        var body = await response.ReadAsJsonAsync<JsonElement>();
+        var listed = body.GetProperty("messages").EnumerateArray()
+            .Single(m => m.GetProperty("content").GetString() == "coloured");
+
+        listed.GetProperty("authorGroupColor").GetString().Should().Be("#FF5733");
+    }
+
+    [Fact]
+    public async Task GetMessages_AuthorWithNoColouredGroup_ReturnsNullColor()
+    {
+        var (owner, _, _, conversationId) = await CreateSharedServerAndChannelAsync();
+        await _helper.SendMessageAsync(owner.AccessToken, conversationId, "plain");
+
+        var response = await _helper.AuthGetAsync(
+            $"/api/v1/conversations/{conversationId}/messages", owner.AccessToken);
+
+        var body = await response.ReadAsJsonAsync<JsonElement>();
+        var listed = body.GetProperty("messages").EnumerateArray()
+            .Single(m => m.GetProperty("content").GetString() == "plain");
+
+        listed.GetProperty("authorGroupColor").ValueKind.Should().Be(JsonValueKind.Null);
+    }
+
+    [Fact]
+    public async Task GetMessages_AuthorInSeveralGroups_UsesTheHighestPositionedColour()
+    {
+        var (owner, _, serverId, conversationId) = await CreateSharedServerAndChannelAsync();
+        await CreateAndAssignGroupAsync(owner, serverId, owner.UserId, "#111111", position: 1);
+        await CreateAndAssignGroupAsync(owner, serverId, owner.UserId, "#222222", position: 9);
+        await _helper.SendMessageAsync(owner.AccessToken, conversationId, "ranked");
+
+        var response = await _helper.AuthGetAsync(
+            $"/api/v1/conversations/{conversationId}/messages", owner.AccessToken);
+
+        var body = await response.ReadAsJsonAsync<JsonElement>();
+        var listed = body.GetProperty("messages").EnumerateArray()
+            .Single(m => m.GetProperty("content").GetString() == "ranked");
+
+        listed.GetProperty("authorGroupColor").GetString().Should().Be("#222222");
+    }
+
+    [Fact]
+    public async Task SendMessage_ReplyToColouredAuthor_CarriesTheirColourOnTheReplyTarget()
+    {
+        var (owner, member, serverId, conversationId) = await CreateSharedServerAndChannelAsync();
+        await CreateAndAssignGroupAsync(owner, serverId, owner.UserId, "#FF5733");
+        var parent = await _helper.SendMessageAsync(owner.AccessToken, conversationId, "quoted me");
+        var parentId = parent.GetProperty("id").ReadLong();
+
+        var reply = await SendReplyAsync(member.AccessToken, conversationId, parentId, "replying");
+
+        reply.GetProperty("replyTo").GetProperty("authorGroupColor").GetString().Should().Be("#FF5733");
+    }
+
+    [Fact]
+    public async Task ListPinnedMessages_CarriesColourAndReplyTarget()
+    {
+        // Pins go through a different handler than the message list; it must not
+        // quietly return nulls for either.
+        var (owner, member, serverId, conversationId) = await CreateSharedServerAndChannelAsync();
+        await CreateAndAssignGroupAsync(owner, serverId, owner.UserId, "#FF5733");
+        var parent = await _helper.SendMessageAsync(owner.AccessToken, conversationId, "pin parent");
+        var parentId = parent.GetProperty("id").ReadLong();
+        var reply = await SendReplyAsync(member.AccessToken, conversationId, parentId, "pin me");
+        var replyId = reply.GetProperty("id").ReadLong();
+
+        var pinResponse = await _helper.AuthPostAsync(
+            $"/api/v1/conversations/{conversationId}/messages/{replyId}/pin", owner.AccessToken);
+        pinResponse.IsSuccessStatusCode.Should().BeTrue(
+            $"pinning should succeed: {await pinResponse.Content.ReadAsStringAsync()}");
+
+        var pins = await _helper.AuthGetAsync(
+            $"/api/v1/conversations/{conversationId}/pins", owner.AccessToken);
+        var body = await pins.ReadAsJsonAsync<JsonElement>();
+        var pinned = body.GetProperty("messages").EnumerateArray()
+            .Single(m => m.GetProperty("id").ReadLong() == replyId);
+
+        pinned.GetProperty("replyTo").GetProperty("preview").GetString().Should().Be("pin parent");
+        pinned.GetProperty("replyTo").GetProperty("authorGroupColor").GetString().Should().Be("#FF5733");
+    }
+
+    [Fact]
+    public async Task SearchMessages_CarriesColourAndReplyTarget()
+    {
+        var (owner, member, serverId, conversationId) = await CreateSharedServerAndChannelAsync();
+        await CreateAndAssignGroupAsync(owner, serverId, owner.UserId, "#FF5733");
+        var needle = $"needle-{Guid.NewGuid():N}";
+        var parent = await _helper.SendMessageAsync(owner.AccessToken, conversationId, "search parent");
+        var parentId = parent.GetProperty("id").ReadLong();
+        await SendReplyAsync(member.AccessToken, conversationId, parentId, needle);
+
+        var searchResponse = await _helper.AuthGetAsync(
+            $"/api/v1/search?query={needle}&conversationId={conversationId}", owner.AccessToken);
+        searchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await searchResponse.ReadAsJsonAsync<JsonElement>();
+        var hit = body.GetProperty("messages").EnumerateArray().Single();
+
+        hit.GetProperty("replyTo").GetProperty("preview").GetString().Should().Be("search parent");
+        hit.GetProperty("replyTo").GetProperty("authorGroupColor").GetString().Should().Be("#FF5733");
     }
 }

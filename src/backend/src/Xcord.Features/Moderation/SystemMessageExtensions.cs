@@ -4,7 +4,11 @@ using Xcord.Infrastructure.Data;
 
 namespace Xcord.Features.Moderation;
 
-public sealed record SystemMessageInfo(long MessageId, long ConversationId);
+/// <summary>
+/// The created system message. Carries the entity, not just its ids, so callers can
+/// broadcast a payload the client can actually render.
+/// </summary>
+public sealed record SystemMessageInfo(long MessageId, long ConversationId, Message Message);
 
 public static class SystemMessageExtensions
 {
@@ -63,6 +67,6 @@ public static class SystemMessageExtensions
 
         dbContext.Messages.Add(systemMessage);
 
-        return new SystemMessageInfo(systemMessage.Id, systemMessage.ConversationId);
+        return new SystemMessageInfo(systemMessage.Id, systemMessage.ConversationId, systemMessage);
     }
 }

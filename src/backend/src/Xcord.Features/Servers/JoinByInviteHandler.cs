@@ -168,6 +168,7 @@ public sealed class JoinByInviteHandler(
         // Create system message (MemberJoin) in the server's system channel if configured
         long? systemMessageConversationId = null;
         long? systemMessageId = null;
+        Message? systemMessageEntity = null;
         if (invite.Server.SystemChannelId.HasValue)
         {
             var systemChannel = await dbContext.Channels
@@ -200,6 +201,7 @@ public sealed class JoinByInviteHandler(
                 dbContext.Messages.Add(systemMessage);
                 systemMessageConversationId = systemChannel.ConversationId;
                 systemMessageId = messageId;
+                systemMessageEntity = systemMessage;
             }
         }
 
@@ -217,12 +219,8 @@ public sealed class JoinByInviteHandler(
         // Notify after save
         if (systemMessageConversationId.HasValue && systemMessageId.HasValue)
         {
-            await notificationService.NotifyConversationAsync(systemMessageConversationId.Value, "Chat_MessageCreated", new
-            {
-                MessageId = systemMessageId.Value,
-                ConversationId = systemMessageConversationId.Value,
-                AuthorId = (long?)null
-            }, cancellationToken);
+            await notificationService.NotifyConversationAsync(systemMessageConversationId.Value, "Chat_MessageCreated",
+            Messages.MessageEventPayloads.ForSystemCreated(systemMessageEntity!), cancellationToken);
         }
 
         await notificationService.NotifyServerAsync(invite.ServerId, "Member_Joined", new

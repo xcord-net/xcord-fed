@@ -29,8 +29,8 @@ export interface MessageAttachment {
  *  still present (the reply edge holds) but there is no author or preview. */
 export interface ReplyTo {
   id: string;
-  authorId?: string;
   authorUsername?: string;
+  authorGroupColor?: string;
   preview: string;
   isDeleted: boolean;
 }
