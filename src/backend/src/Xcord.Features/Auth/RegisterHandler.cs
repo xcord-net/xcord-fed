@@ -23,7 +23,15 @@ public sealed record RegisterRequest(
     string Email,
     string Password,
     string? CaptchaId = null,
-    string? CaptchaAnswer = null
+    string? CaptchaAnswer = null,
+    /// <summary>
+    /// Invite code the registration is scoped to. On an instance with public
+    /// registration disabled, a valid code is what makes an account possible:
+    /// being handed an invite by a member IS the authorisation. Without this,
+    /// "join via invite from an existing member" was unreachable - the invite
+    /// page sent anonymous visitors to a login they could never complete.
+    /// </summary>
+    string? InviteCode = null
 );
 
 public sealed partial class RegisterHandler(
@@ -45,7 +53,10 @@ public sealed partial class RegisterHandler(
 
     public Error? Validate(RegisterRequest request)
     {
-        if (!_authOptions.RegistrationEnabled)
+        // Public registration off does not mean nobody may register - it means
+        // registration must be vouched for. An invite code is the vouching, and
+        // it is checked for real in Handle before any account is created.
+        if (!_authOptions.RegistrationEnabled && string.IsNullOrWhiteSpace(request.InviteCode))
             return Error.Forbidden("REGISTRATION_DISABLED", "Public registration is disabled. Join via invite from an existing member.");
 
         if (string.IsNullOrWhiteSpace(request.Username))
@@ -82,6 +93,17 @@ public sealed partial class RegisterHandler(
     {
         if (!await captchaService.ValidateAsync(request.CaptchaId ?? "", request.CaptchaAnswer ?? ""))
             return Error.BadRequest("CAPTCHA_FAILED", "Invalid or expired captcha");
+
+        // With public registration off, the invite is the authorisation, so it
+        // has to be real before an account exists. The code is only validated
+        // here, never consumed: the client follows the invite link after signing
+        // up and JoinByInviteHandler consumes exactly one use, keeping max-uses
+        // accounting in one place.
+        if (!_authOptions.RegistrationEnabled)
+        {
+            var inviteError = await ValidateInviteAsync(request.InviteCode!, cancellationToken).ConfigureAwait(false);
+            if (inviteError is not null) return inviteError;
+        }
 
         // Tier gating: enforce user capacity limit (0 = unlimited)
         if (_tierOptions.MaxUsers > 0)
@@ -191,6 +213,32 @@ public sealed partial class RegisterHandler(
     private static string GenerateConfirmationCode()
     {
         return RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+    }
+
+    /// <summary>
+    /// Checks that an invite code can still admit someone. Mirrors the checks in
+    /// <see cref="Servers.JoinByInviteHandler"/> so a registration is never
+    /// accepted against an invite the subsequent join would refuse.
+    /// </summary>
+    private async Task<Error?> ValidateInviteAsync(string inviteCode, CancellationToken cancellationToken)
+    {
+        var invite = await dbContext.Invites
+            .AsNoTracking()
+            .Where(i => i.Code == inviteCode)
+            .Select(i => new { i.ExpiresAt, i.MaxUses, i.Uses })
+            .FirstOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        if (invite is null)
+            return Error.NotFound("INVITE_NOT_FOUND", "Invite not found");
+
+        if (invite.ExpiresAt.HasValue && invite.ExpiresAt.Value < DateTimeOffset.UtcNow)
+            return Error.Validation("INVITE_EXPIRED", "This invite has expired");
+
+        if (invite.MaxUses.HasValue && invite.Uses >= invite.MaxUses.Value)
+            return Error.Validation("INVITE_MAX_USES_REACHED", "This invite has reached its maximum number of uses");
+
+        return null;
     }
 
     [GeneratedRegex("^[a-zA-Z0-9_-]+$")]

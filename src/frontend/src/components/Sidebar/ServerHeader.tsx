@@ -24,6 +24,7 @@ export interface ServerHeaderProps {
   onOpenServerSettings: () => void;
   onOpenInvite: () => void;
   onToggleEvents: () => void;
+  onOpenGroups: () => void;
   onOpenMembership?: () => void;
   onLeaveServer: () => void;
 }
@@ -105,12 +106,22 @@ export default function ServerHeader(props: ServerHeaderProps) {
           Invite People
         </button>
         <button
+          data-testid="server-menu-events"
           type="button"
           role="menuitem"
           onClick={() => { props.onToggleEvents(); props.onMenuClose(); }}
           class={sharedStyles.menuItem}
         >
           Scheduled Events
+        </button>
+        <button
+          data-testid="server-menu-groups"
+          type="button"
+          role="menuitem"
+          onClick={() => { props.onOpenGroups(); props.onMenuClose(); }}
+          class={sharedStyles.menuItem}
+        >
+          Groups &amp; Permissions
         </button>
         <Show when={props.canShowMembership}>
           <button

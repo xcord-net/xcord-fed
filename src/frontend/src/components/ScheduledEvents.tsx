@@ -213,6 +213,7 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
               Event Name *
             </label>
             <input
+              data-testid="scheduled-events-name-input"
               type="text"
               class={styles.textInput}
               placeholder="Event name..."
@@ -242,6 +243,7 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
                 Start Time *
               </label>
               <input
+                data-testid="scheduled-events-start-input"
                 type="datetime-local"
                 class={styles.textInput}
                 value={formStartTime()}

@@ -47,6 +47,7 @@ export default function ChannelItem(props: ChannelItemProps) {
       aria-selected={props.isSelected}
       aria-label={ariaLabel()}
       data-channel-id={props.channel.id}
+      data-channel-name={props.channel.name}
       data-testid={`channel-item-${props.channel.id}`}
       data-favorited={props.isFavorite ? 'true' : 'false'}
       tabindex={tabIndex()}
@@ -74,6 +75,7 @@ export default function ChannelItem(props: ChannelItemProps) {
         <span class={styles.channelName}>{props.channel.name}</span>
         <Show when={hasUnread()}>
           <span
+            data-testid="channel-unread-badge"
             class={styles.unreadBadge}
             aria-label={`${props.unreadCount} unread messages`}
           >

@@ -8,6 +8,7 @@ import type { Channel } from '../types/channel';
 import AutomodManager from './AutomodManager';
 import BanManager from './BanManager';
 import AuditLogViewer from './AuditLogViewer';
+import WebhookManager from './WebhookManager';
 import EmojiManager from './EmojiManager';
 import StickerPicker from './StickerPicker';
 import VanityInvite from './VanityInvite';
@@ -17,6 +18,7 @@ import InviteManager from './InviteManager';
 import AppDirectory from './AppDirectory';
 import BotsTab from './BotsTab';
 import OwnershipTransfer from './OwnershipTransfer';
+import ServerIconUpload from './ServerIconUpload';
 import WelcomeScreen from './WelcomeScreen';
 import UpdatesTab from './UpdatesTab';
 import TierManager from './TierManager';
@@ -32,7 +34,7 @@ interface ServerSettingsProps {
 }
 
 type NotificationLevel = 'AllMessages' | 'OnlyMentions' | 'Nothing';
-type SettingsTab = 'overview' | 'channels-admin' | 'automod' | 'bans' | 'audit-log' | 'emoji' | 'stickers' | 'vanity-url' | 'templates' | 'insights' | 'invites' | 'app-directory' | 'bots' | 'welcome-screen' | 'updates' | 'tiers';
+type SettingsTab = 'overview' | 'channels-admin' | 'automod' | 'bans' | 'audit-log' | 'emoji' | 'stickers' | 'vanity-url' | 'templates' | 'insights' | 'invites' | 'app-directory' | 'bots' | 'webhooks' | 'welcome-screen' | 'updates' | 'tiers';
 
 const NOTIFICATION_OPTIONS: { label: string; value: NotificationLevel }[] = [
   { label: 'All Messages', value: 'AllMessages' },
@@ -63,6 +65,7 @@ const TABS: TabDef[] = [
   { id: 'tiers', label: 'Tiers', ownerOnly: true, requiresFlag: 'canUseMemberTiers' },
   { id: 'app-directory', label: 'App Directory' },
   { id: 'bots', label: 'Bots', ownerOnly: true },
+  { id: 'webhooks', label: 'Webhooks', ownerOnly: true },
   { id: 'welcome-screen', label: 'Welcome Screen' },
   { id: 'updates', label: 'Updates', ownerOnly: true },
 ];
@@ -186,19 +189,12 @@ export default function ServerSettings(props: ServerSettingsProps) {
             <section class={styles.section}>
               <h3 class={styles.sectionHeading}>Overview</h3>
 
-              {/* Server icon placeholder */}
-              <div class={styles.iconRow}>
-                <div
-                  class={styles.serverIcon}
-                  aria-label="Server icon"
-                >
-                  {name() ? name().charAt(0).toUpperCase() : '?'}
-                </div>
-                <div>
-                  <p class={styles.iconName}>{name() || currentServer()?.name}</p>
-                  <p class={styles.iconHint}>Icon upload coming soon</p>
-                </div>
-              </div>
+              {/* Server icon and banner. ServerIconUpload was fully built and
+                  unit-tested but never mounted anywhere, so this said "coming
+                  soon" while the feature sat finished a file away. */}
+              <Show when={currentServer()}>
+                <ServerIconUpload server={currentServer()!} />
+              </Show>
 
               {/* Server name */}
               <div class={styles.fieldGroup}>
@@ -336,6 +332,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
                 />
               </Show>
               <button
+                data-testid="delete-server-button"
                 type="button"
                 class={styles.deleteButton}
                 onClick={() => setShowDeleteConfirm(true)}
@@ -359,6 +356,13 @@ export default function ServerSettings(props: ServerSettingsProps) {
         {/* Audit Log tab */}
         <Show when={activeTab() === 'audit-log'}>
           <AuditLogViewer serverId={props.serverId} />
+        </Show>
+
+        {/* Webhooks tab. The manager and its API have existed all along; until
+            now nothing mounted it, so outgoing webhooks could be created only
+            by calling the API directly. */}
+        <Show when={activeTab() === 'webhooks'}>
+          <WebhookManager serverId={props.serverId} />
         </Show>
 
         {/* Emoji tab */}
@@ -432,7 +436,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
       </Modal>
 
       {/* Delete server confirmation */}
-      <Modal open={showDeleteConfirm()} onClose={() => setShowDeleteConfirm(false)} title="Delete Server" size="sm" role="alertdialog">
+      <Modal data-testid="delete-server-dialog" open={showDeleteConfirm()} onClose={() => setShowDeleteConfirm(false)} title="Delete Server" size="sm" role="alertdialog">
         <div class={styles.dialogBody}>
           <p class={styles.dialogText}>Are you sure you want to delete this server? This cannot be undone.</p>
           <div class={styles.dialogActions}>
@@ -444,6 +448,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
               Cancel
             </button>
             <button
+              data-testid="delete-server-confirm-button"
               type="button"
               onClick={() => {
                 serverStore.deleteServer(props.serverId).then(() => {

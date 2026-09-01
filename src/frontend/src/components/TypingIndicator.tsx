@@ -39,7 +39,7 @@ export default function TypingIndicator(props: TypingIndicatorProps) {
 
   return (
     <Show when={typingUsers().length > 0}>
-      <Flexbox align="center" gap={0.5} id="typing-indicator" class={styles.container}>
+      <Flexbox align="center" gap={0.5} id="typing-indicator" data-testid="typing-indicator" class={styles.container}>
         {/* Animated dots */}
         <span class={styles.dots}>
           <span class={styles.dot} />

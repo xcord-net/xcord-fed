@@ -160,8 +160,9 @@ export default function AutomodManager(props: AutomodManagerProps) {
   return (
     <div class={styles.container}>
       <Flexbox align="center" justify="between" class={styles.header}>
-        <h2 class={styles.headerTitle}>Automod Rules</h2>
+        <h2 data-testid="automod-heading" class={styles.headerTitle}>Automod Rules</h2>
         <button
+          data-testid="automod-add-rule-button"
           type="button"
           aria-label="Create automod rule"
           class={styles.addButton}

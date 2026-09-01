@@ -1,13 +1,17 @@
-import { createSignal, onMount } from 'solid-js';
-import { useNavigate } from '@solidjs/router';
+import { createSignal, onMount, Show } from 'solid-js';
+import { useNavigate, useSearchParams } from '@solidjs/router';
 import { api } from '../api/client';
+import { sanitizeRedirect } from '../utils/redirect';
 import styles from './ConfirmEmail.module.css';
 
 export default function ConfirmEmail() {
   const [code, setCode] = createSignal('');
   const [error, setError] = createSignal('');
   const [loading, setLoading] = createSignal(false);
+  const [resent, setResent] = createSignal(false);
+  const [resending, setResending] = createSignal(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams<{ redirect?: string }>();
 
   onMount(() => { document.title = 'Confirm Email - Xcord'; });
 
@@ -19,11 +23,30 @@ export default function ConfirmEmail() {
       await api.post(`/api/v1/auth/confirm-email?code=${encodeURIComponent(code())}`);
       // Refresh the token so it includes the email_confirmed claim (cookie updated server-side)
       await api.post('/api/v1/auth/refresh');
-      navigate('/channels/me');
+      // Someone who arrived from an invite goes back to it - joining a server
+      // needs the email_confirmed claim they only just earned, so the invite
+      // has to wait for this step rather than be forgotten by it.
+      navigate(sanitizeRedirect(searchParams.redirect));
     } catch (err: unknown) {
       setError((err as Error)?.message || 'Invalid confirmation code');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // The resend endpoint has always existed; nothing in the UI reached it, so a
+  // lost or expired code was a dead end.
+  const handleResend = async () => {
+    setError('');
+    setResent(false);
+    setResending(true);
+    try {
+      await api.post('/api/v1/auth/resend-confirmation');
+      setResent(true);
+    } catch (err: unknown) {
+      setError((err as Error)?.message || 'Could not resend the code');
+    } finally {
+      setResending(false);
     }
   };
 
@@ -57,6 +80,20 @@ export default function ConfirmEmail() {
           class={styles.submitButton}
         >
           {loading() ? 'Confirming...' : 'Confirm'}
+        </button>
+        <Show when={resent()}>
+          <p data-testid="confirm-email-resent" class={styles.description}>
+            A new code is on its way.
+          </p>
+        </Show>
+        <button
+          data-testid="confirm-email-resend-button"
+          type="button"
+          disabled={resending()}
+          onClick={handleResend}
+          class={styles.submitButton}
+        >
+          {resending() ? 'Sending...' : 'Resend code'}
         </button>
       </form>
     </div>

@@ -23,8 +23,13 @@ export default function JoinInvite() {
   createEffect(() => {
     if (auth.isLoading) return;
     if (!auth.isAuthenticated) {
+      // Send them to register, not login. Someone following an invite usually
+      // has no account yet, and on an instance with public registration off the
+      // invite is what authorises them to make one - so the code travels with
+      // them. Register keeps a login link for people who already have an
+      // account, carrying the same invite as the redirect.
       const redirectPath = sanitizeRedirect(`/invite/${params.code}`);
-      navigate(`/login?redirect=${encodeURIComponent(redirectPath)}`);
+      navigate(`/register?invite=${encodeURIComponent(params.code)}&redirect=${encodeURIComponent(redirectPath)}`);
       return;
     }
     if (!joinAttempted) {

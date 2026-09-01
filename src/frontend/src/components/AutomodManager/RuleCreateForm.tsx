@@ -116,6 +116,7 @@ export default function RuleCreateForm(props: RuleCreateFormProps) {
           Cancel
         </button>
         <button
+          data-testid="automod-create-rule-submit"
           type="submit"
           disabled={props.isCreating}
           class={styles.submitButton}

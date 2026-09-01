@@ -30,12 +30,14 @@ export default function SettingsModal() {
             Notifications
           </button>
           <button
+            data-testid="settings-tab-blocks"
             class={`${styles.settingsTab}${modals.showSettings === 'blocks' ? ` ${styles.settingsTabActive}` : ''}`}
             onClick={() => modals.openSettings('blocks')}
           >
             Blocked Users
           </button>
           <button
+            data-testid="settings-tab-notes"
             class={`${styles.settingsTab}${modals.showSettings === 'notes' ? ` ${styles.settingsTabActive}` : ''}`}
             onClick={() => modals.openSettings('notes')}
           >

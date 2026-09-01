@@ -46,6 +46,7 @@ export default function VoicePanel() {
 
         <div class={styles.controls}>
           <button
+            data-testid="voice-mute-button"
             aria-label={voice.isMuted ? 'Unmute' : 'Mute'}
             classList={{
               [styles.voiceButton]: true,
@@ -57,6 +58,7 @@ export default function VoicePanel() {
             {voice.isMuted ? 'Unmute' : 'Mute'}
           </button>
           <button
+            data-testid="voice-screenshare-button"
             aria-label={voice.isScreenSharing ? 'Stop sharing' : 'Share screen'}
             classList={{
               [styles.voiceButton]: true,
@@ -73,6 +75,7 @@ export default function VoicePanel() {
             </svg>
           </button>
           <button
+            data-testid="voice-deafen-button"
             aria-label="Deafen"
             aria-pressed={voice.isDeafened}
             classList={{
@@ -85,6 +88,7 @@ export default function VoicePanel() {
             Deafen
           </button>
           <button
+            data-testid="voice-leave-button"
             aria-label="Leave"
             class={`${styles.voiceButton} ${styles.voiceButtonLeave}`}
             onClick={() => voice.leaveVoice()}

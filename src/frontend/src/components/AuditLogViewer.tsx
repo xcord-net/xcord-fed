@@ -118,7 +118,7 @@ export default function AuditLogViewer(props: AuditLogViewerProps) {
   return (
     <Flexbox direction="vertical" class={styles.container}>
       <div class={styles.filterHeader}>
-        <h2 class={styles.filterTitle}>Audit Log</h2>
+        <h2 data-testid="audit-log-heading" class={styles.filterTitle}>Audit Log</h2>
         <Flexbox direction="vertical" gap={0.5} class={styles.filterControls}>
           <select
             class={styles.filterSelect}
@@ -163,7 +163,7 @@ export default function AuditLogViewer(props: AuditLogViewerProps) {
 
         <For each={entries()}>
           {(entry) => (
-            <Flexbox align="start" gap={0.75} class={styles.entryRow}>
+            <Flexbox align="start" gap={0.75} data-testid="audit-log-entry" data-action={entry.actionType} class={styles.entryRow}>
               <span class={styles.entryIcon} aria-hidden="true">
                 {getActionIcon(entry.actionType)}
               </span>

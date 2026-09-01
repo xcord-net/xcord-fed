@@ -174,6 +174,7 @@ export default function Sidebar() {
             onOpenServerSettings={() => modals.openServerSettings()}
             onOpenInvite={() => setShowInviteModal(true)}
             onToggleEvents={() => modals.toggleEvents()}
+            onOpenGroups={() => modals.toggleGroupManager()}
             onOpenMembership={() => setShowMembershipModal(true)}
             onLeaveServer={() => setShowLeaveConfirm(true)}
           />

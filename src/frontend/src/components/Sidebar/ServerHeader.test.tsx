@@ -14,12 +14,24 @@ function makeProps(overrides: Partial<Parameters<typeof ServerHeader>[0]> = {}) 
     onOpenServerSettings: vi.fn(),
     onOpenInvite: vi.fn(),
     onToggleEvents: vi.fn(),
+    onOpenGroups: vi.fn(),
     onLeaveServer: vi.fn(),
     ...overrides,
   };
 }
 
 describe('ServerHeader', () => {
+  it('offers a way into groups and permissions', () => {
+    // Regression: toggleGroupManager() existed in the modal store but nothing
+    // called it, so the roles and permissions editor could not be opened by any
+    // sequence of clicks. An admin surface with no entry point is not a feature.
+    const onOpenGroups = vi.fn();
+    const props = makeProps({ showServerMenu: true, onOpenGroups });
+    const { getByTestId } = render(() => <ServerHeader {...props} />);
+    fireEvent.click(getByTestId('server-menu-groups'));
+    expect(onOpenGroups).toHaveBeenCalled();
+  });
+
   it('renders without crashing and shows the server name', () => {
     const props = makeProps();
     const { getByTestId } = render(() => <ServerHeader {...props} />);

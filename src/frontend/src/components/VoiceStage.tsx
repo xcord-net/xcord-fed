@@ -93,7 +93,9 @@ export default function VoiceStage() {
             {(tile) => (
               <div
                 data-testid={`voice-tile-${tile.userId}`}
+                data-participant={tile.name}
                 data-speaking={String(tile.isSpeaking)}
+                data-muted={String(tile.isMuted)}
                 classList={{
                   [styles.tile]: true,
                   [styles.tileSpeaking]: tile.isSpeaking,

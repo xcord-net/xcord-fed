@@ -10,6 +10,9 @@ export interface RegisterRequest {
   password: string;
   captchaId?: string;
   captchaAnswer?: string;
+  /** Set when signing up from an invite link; lets an invited person register
+   *  on an instance where public registration is off. */
+  inviteCode?: string;
 }
 
 export interface AuthResponse {
