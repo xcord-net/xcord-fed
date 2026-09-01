@@ -19,6 +19,7 @@ function normalizeMessage(m: Message): Message {
     // (system messages dispatched by backend handlers like BanMemberHandler).
     content: base.content ?? '',
     replyToId: m.replyToId ? String(m.replyToId) : undefined,
+    replyTo: m.replyTo ? normalizeIds(m.replyTo, 'id', 'authorId') : undefined,
     pollId: m.pollId ? String(m.pollId) : undefined,
   };
 }
@@ -207,7 +208,14 @@ export function useMessages() {
 
     updateMessage(message: Message): void {
       const normalized = normalizeMessage(message);
-      store.setMessages(store.messages().map((m) => (m.id === normalized.id ? normalized : m)));
+      store.setMessages(store.messages().map((m) => {
+        if (m.id !== normalized.id) return m;
+        // An update replaces the message wholesale. replyToId is immutable after
+        // creation, so keeping a reply reference the payload happened to omit is
+        // always correct - and it stops a partial payload from dissolving a lane.
+        if (normalized.replyTo || !m.replyTo) return normalized;
+        return { ...normalized, replyTo: m.replyTo };
+      }));
     },
 
     /**

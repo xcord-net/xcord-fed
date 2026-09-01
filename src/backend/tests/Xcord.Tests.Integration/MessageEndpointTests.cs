@@ -378,4 +378,199 @@ public class MessageEndpointTests
         remainingIds.Should().NotContain(messageIds[1], "bulk-deleted message 2 should be absent");
         remainingIds.Should().NotContain(messageIds[2], "bulk-deleted message 3 should be absent");
     }
+
+    // ──────────── Reply references ────────────
+    //
+    // Replies carry their target's author and a truncated preview so the client can
+    // render a quote line, connect the exchange into a lane, and offer a jump back
+    // without a second fetch.
+
+    /// <summary>Sets up a channel with two members and returns its conversation id.</summary>
+    private async Task<(AuthenticatedUser Owner, AuthenticatedUser Member, long ConversationId)> CreateSharedChannelAsync()
+    {
+        var owner = await _helper.RegisterUserAsync();
+        var member = await _helper.RegisterUserAsync();
+        var server = await _helper.CreateServerAsync(owner.AccessToken);
+        var serverId = server.GetProperty("id").ReadLong();
+        var inviteCode = await _helper.CreateInviteAsync(owner.AccessToken, serverId);
+        await _helper.JoinServerAsync(member.AccessToken, inviteCode);
+        var channel = await _helper.CreateChannelAsync(owner.AccessToken, serverId);
+
+        return (owner, member, channel.GetProperty("conversationId").ReadLong());
+    }
+
+    private async Task<JsonElement> SendReplyAsync(
+        string accessToken, long conversationId, long replyToId, string content)
+    {
+        var response = await _helper.AuthPostAsync(
+            $"/api/v1/conversations/{conversationId}/messages",
+            accessToken,
+            new { content, replyToId });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created,
+            $"sending a reply should succeed: {await response.Content.ReadAsStringAsync()}");
+
+        return await response.ReadAsJsonAsync<JsonElement>();
+    }
+
+    [Fact]
+    public async Task SendMessage_AsReply_ReturnsReplyTargetAuthorAndPreview()
+    {
+        var (owner, member, conversationId) = await CreateSharedChannelAsync();
+        var parent = await _helper.SendMessageAsync(owner.AccessToken, conversationId, "what do you think?");
+        var parentId = parent.GetProperty("id").ReadLong();
+
+        var reply = await SendReplyAsync(member.AccessToken, conversationId, parentId, "sounds good");
+
+        var replyTo = reply.GetProperty("replyTo");
+        replyTo.GetProperty("id").ReadLong().Should().Be(parentId);
+        replyTo.GetProperty("authorId").ReadLong().Should().Be(owner.UserId);
+        replyTo.GetProperty("authorUsername").GetString().Should().Be(owner.Username);
+        replyTo.GetProperty("preview").GetString().Should().Be("what do you think?");
+        replyTo.GetProperty("isDeleted").GetBoolean().Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetMessages_ReplyInList_CarriesReplyTarget()
+    {
+        var (owner, member, conversationId) = await CreateSharedChannelAsync();
+        var parent = await _helper.SendMessageAsync(owner.AccessToken, conversationId, "original question");
+        var parentId = parent.GetProperty("id").ReadLong();
+        var reply = await SendReplyAsync(member.AccessToken, conversationId, parentId, "an answer");
+        var replyId = reply.GetProperty("id").ReadLong();
+
+        var response = await _helper.AuthGetAsync(
+            $"/api/v1/conversations/{conversationId}/messages", owner.AccessToken);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await response.ReadAsJsonAsync<JsonElement>();
+        var listed = body.GetProperty("messages").EnumerateArray()
+            .Single(m => m.GetProperty("id").ReadLong() == replyId);
+
+        listed.GetProperty("replyTo").GetProperty("preview").GetString().Should().Be("original question");
+        listed.GetProperty("replyTo").GetProperty("authorUsername").GetString().Should().Be(owner.Username);
+    }
+
+    [Fact]
+    public async Task GetMessages_NonReply_HasNoReplyTarget()
+    {
+        var (owner, _, conversationId) = await CreateSharedChannelAsync();
+        var plain = await _helper.SendMessageAsync(owner.AccessToken, conversationId, "just talking");
+        var plainId = plain.GetProperty("id").ReadLong();
+
+        var response = await _helper.AuthGetAsync(
+            $"/api/v1/conversations/{conversationId}/messages", owner.AccessToken);
+
+        var body = await response.ReadAsJsonAsync<JsonElement>();
+        var listed = body.GetProperty("messages").EnumerateArray()
+            .Single(m => m.GetProperty("id").ReadLong() == plainId);
+
+        listed.TryGetProperty("replyTo", out var replyTo).Should().BeTrue();
+        replyTo.ValueKind.Should().Be(JsonValueKind.Null);
+    }
+
+    [Fact]
+    public async Task GetMessages_ReplyToDeletedMessage_ReportsTargetAsDeleted()
+    {
+        var (owner, member, conversationId) = await CreateSharedChannelAsync();
+        var parent = await _helper.SendMessageAsync(owner.AccessToken, conversationId, "soon to be gone");
+        var parentId = parent.GetProperty("id").ReadLong();
+        var reply = await SendReplyAsync(member.AccessToken, conversationId, parentId, "still here");
+        var replyId = reply.GetProperty("id").ReadLong();
+
+        var deleteResponse = await _helper.AuthDeleteAsync(
+            $"/api/v1/conversations/{conversationId}/messages/{parentId}", owner.AccessToken);
+        deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        var response = await _helper.AuthGetAsync(
+            $"/api/v1/conversations/{conversationId}/messages", owner.AccessToken);
+
+        var body = await response.ReadAsJsonAsync<JsonElement>();
+        var listed = body.GetProperty("messages").EnumerateArray()
+            .Single(m => m.GetProperty("id").ReadLong() == replyId);
+
+        var replyTo = listed.GetProperty("replyTo");
+        replyTo.GetProperty("isDeleted").GetBoolean().Should().BeTrue();
+        replyTo.GetProperty("id").ReadLong().Should().Be(parentId);
+        replyTo.GetProperty("preview").GetString().Should().BeEmpty();
+        replyTo.GetProperty("authorUsername").ValueKind.Should().Be(JsonValueKind.Null);
+    }
+
+    [Fact]
+    public async Task SendMessage_ReplyToLongMessage_TruncatesPreview()
+    {
+        var (owner, member, conversationId) = await CreateSharedChannelAsync();
+        var longContent = new string('x', 200);
+        var parent = await _helper.SendMessageAsync(owner.AccessToken, conversationId, longContent);
+        var parentId = parent.GetProperty("id").ReadLong();
+
+        var reply = await SendReplyAsync(member.AccessToken, conversationId, parentId, "tl;dr");
+
+        var preview = reply.GetProperty("replyTo").GetProperty("preview").GetString()!;
+        preview.Should().Be(new string('x', 80) + "…");
+    }
+
+    [Fact]
+    public async Task SendMessage_ReplyToMultilineMessage_FlattensPreviewToOneLine()
+    {
+        var (owner, member, conversationId) = await CreateSharedChannelAsync();
+        var parent = await _helper.SendMessageAsync(
+            owner.AccessToken, conversationId, "first line\nsecond line");
+        var parentId = parent.GetProperty("id").ReadLong();
+
+        var reply = await SendReplyAsync(member.AccessToken, conversationId, parentId, "noted");
+
+        reply.GetProperty("replyTo").GetProperty("preview").GetString()
+            .Should().Be("first line second line");
+    }
+
+    [Fact]
+    public async Task SendMessage_ReplyToEncodedContent_DecodesPreviewForDisplay()
+    {
+        // Stored content is HTML-encoded by the sanitizer; the preview must come back
+        // as readable text rather than a string of numeric character references.
+        var (owner, member, conversationId) = await CreateSharedChannelAsync();
+        var parent = await _helper.SendMessageAsync(
+            owner.AccessToken, conversationId, "5 > 3 & \"quoted\"");
+        var parentId = parent.GetProperty("id").ReadLong();
+
+        var reply = await SendReplyAsync(member.AccessToken, conversationId, parentId, "agreed");
+
+        reply.GetProperty("replyTo").GetProperty("preview").GetString()
+            .Should().Be("5 > 3 & \"quoted\"");
+    }
+
+    [Fact]
+    public async Task SendMessage_ReplyToEmojiContent_TruncatesWithoutSplittingSurrogatePairs()
+    {
+        var (owner, member, conversationId) = await CreateSharedChannelAsync();
+        // 60 emoji is 120 UTF-16 units, so the 80-char cut lands inside a pair.
+        var emojiContent = string.Concat(Enumerable.Repeat("😀", 60));
+        var parent = await _helper.SendMessageAsync(owner.AccessToken, conversationId, emojiContent);
+        var parentId = parent.GetProperty("id").ReadLong();
+
+        var reply = await SendReplyAsync(member.AccessToken, conversationId, parentId, "lots of those");
+
+        var preview = reply.GetProperty("replyTo").GetProperty("preview").GetString()!;
+        preview.Should().NotContain("�", "a split surrogate pair would render as U+FFFD");
+        preview.Should().EndWith("…");
+        char.IsLowSurrogate(preview[^2]).Should().BeTrue("the last emoji should be whole");
+    }
+
+    [Fact]
+    public async Task GetMessage_SingleReply_CarriesReplyTarget()
+    {
+        var (owner, member, conversationId) = await CreateSharedChannelAsync();
+        var parent = await _helper.SendMessageAsync(owner.AccessToken, conversationId, "the question");
+        var parentId = parent.GetProperty("id").ReadLong();
+        var reply = await SendReplyAsync(member.AccessToken, conversationId, parentId, "the answer");
+        var replyId = reply.GetProperty("id").ReadLong();
+
+        var response = await _helper.AuthGetAsync(
+            $"/api/v1/conversations/{conversationId}/messages/{replyId}", owner.AccessToken);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await response.ReadAsJsonAsync<JsonElement>();
+        body.GetProperty("replyTo").GetProperty("preview").GetString().Should().Be("the question");
+    }
 }

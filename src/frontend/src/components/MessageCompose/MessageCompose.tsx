@@ -97,6 +97,7 @@ export default function MessageCompose(props: MessageComposeProps) {
         onToggleMemberList={() => compose.setShowMemberList(!compose.showMemberList())}
         onInput={compose.handleInput}
         onKeyDown={compose.handleKeyDown}
+        onPaste={compose.handlePaste}
         canSend={
           !compose.isSending() &&
           !compose.isSlowModeActive() &&

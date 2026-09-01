@@ -1,6 +1,7 @@
 import { createEffect, createSignal, onMount } from 'solid-js';
 import { useNavigate, useParams } from '@solidjs/router';
 import { api } from '../../api/client';
+import { useAuth } from '../../stores/auth.store';
 import { useChannels } from '../../stores/channel.store';
 import { useDms } from '../../stores/dm.store';
 import { useMembers } from '../../stores/member.store';
@@ -20,6 +21,7 @@ import { requestPermission } from '../../services/notification.service';
 export function useLayoutWiring() {
   const params = useParams<{ serverId?: string; channelId?: string }>();
   const navigate = useNavigate();
+  const authStore = useAuth();
   const serverStore = useServers();
   const channelStore = useChannels();
   const memberStore = useMembers();
@@ -30,6 +32,14 @@ export function useLayoutWiring() {
   const dmStore = useDms();
 
   const [hubUrl, setHubUrl] = createSignal<string | null>(null);
+
+  // Tell the SignalR store who the local user is. Its Chat_TypingStarted and
+  // Chat_MessageCreated handlers compare against this to drop the user's own
+  // typing echo and to suppress notifications for their own messages. Kept in an
+  // effect so it also lands when auth resolves after this hook mounts.
+  createEffect(() => {
+    signalR.setCurrentUserId(authStore.user?.id ?? null);
+  });
 
   createEffect(() => {
     const server = serverStore.servers.find(s => s.id === params.serverId);

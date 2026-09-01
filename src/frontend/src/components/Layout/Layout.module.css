@@ -1,7 +1,16 @@
 /* ===== Root layout ===== */
+/* Two grid layers ride on the base color: a fine 30px weave and a 150px
+   module. Panes above sit at partial opacity so the grid reads through and
+   they register as surfaces on a ground rather than shapes on flat color. */
 .root {
   height: 100vh;
   background-color: var(--color-xcord-bg-primary);
+  background-image:
+    linear-gradient(var(--color-xcord-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-xcord-grid) 1px, transparent 1px),
+    linear-gradient(var(--color-xcord-grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-xcord-grid-major) 1px, transparent 1px);
+  background-size: 30px 30px, 30px 30px, 150px 150px, 150px 150px;
   color: var(--color-xcord-text-primary);
 }
 

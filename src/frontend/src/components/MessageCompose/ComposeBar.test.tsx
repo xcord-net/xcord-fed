@@ -30,6 +30,7 @@ function makeProps(overrides: Partial<ComposeBarProps> = {}): ComposeBarProps {
     onToggleMemberList: vi.fn(),
     onInput: vi.fn(),
     onKeyDown: vi.fn(),
+    onPaste: vi.fn(),
     canSend: true,
     onSend: vi.fn(),
     ...overrides,
@@ -40,6 +41,15 @@ describe('ComposeBar', () => {
   it('renders without crashing with minimal props', () => {
     const { getByTestId } = render(() => <ComposeBar {...makeProps()} />);
     expect(getByTestId('compose-textarea')).toBeInTheDocument();
+  });
+
+  it('forwards paste events from the textarea so images can be attached', () => {
+    const onPaste = vi.fn();
+    const { getByTestId } = render(() => <ComposeBar {...makeProps({ onPaste })} />);
+
+    fireEvent.paste(getByTestId('compose-textarea'));
+
+    expect(onPaste).toHaveBeenCalled();
   });
 
   it('renders the textarea with the channel-name placeholder and member count', () => {

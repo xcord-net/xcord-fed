@@ -5,6 +5,8 @@ import MessageActionBar from './MessageActionBar';
 import ThreadCreateForm from './ThreadCreateForm';
 import MessageContent from './MessageContent';
 import { formatTime } from './helpers';
+import type { LaneAssignment } from './lanes';
+import ReplyReference from './ReplyReference';
 import Flexbox from '../ui/Flexbox';
 import styles from './MessageRow.module.css';
 
@@ -14,6 +16,11 @@ interface MessageRowProps {
   serverId?: string;
   channelId?: string;
   grouped: boolean;
+  /** Set when this message belongs to a reply-connected exchange. */
+  lane?: LaneAssignment;
+  /** 0-1 conversation heat for this row's lane. */
+  laneHeat?: number;
+  onJumpTo?: (messageId: string) => void;
   isAuthor: boolean;
   canDelete: boolean;
   isReactionPickerOpen: boolean;
@@ -39,11 +46,35 @@ export default function MessageRow(props: MessageRowProps) {
     <div
       data-message-id={props.message.id}
       data-testid={`message-row-${props.message.id}`}
+      data-lane-id={props.lane?.laneId}
       classList={{
         [styles.messageRow]: true,
         [styles.messageRowGrouped]: props.grouped,
+        [styles.messageRowLaned]: !!props.lane,
       }}
+      style={props.lane
+        ? {
+            '--lane-color': `var(--color-xcord-lane-${props.lane.colorIndex + 1})`,
+            '--lane-heat': String(props.laneHeat ?? 0),
+          }
+        : undefined}
     >
+      {/* Lane rail. Absolutely positioned into the scroll container's padding so a
+          lane forming or dissolving never reflows the message column. */}
+      <Show when={props.lane}>
+        {(lane) => (
+          <span
+            aria-hidden="true"
+            data-testid="lane-rail"
+            classList={{
+              [styles.laneRail]: true,
+              [styles.laneRailContinuesUp]: lane().continuesPrevious,
+              [styles.laneRailContinuesDown]: lane().continuesNext,
+            }}
+          />
+        )}
+      </Show>
+
       <MessageActionBar
         message={props.message}
         isReactionPickerOpen={props.isReactionPickerOpen}
@@ -115,10 +146,13 @@ export default function MessageRow(props: MessageRowProps) {
               <span class={styles.messageTimestamp}>{formatTime(props.message.createdAt)}</span>
             </Flexbox>
 
-            <Show when={props.message.replyToId}>
-              <div class={styles.replyIndicator}>
-                Replying to a message
-              </div>
+            <Show when={props.message.replyTo}>
+              {(replyTo) => (
+                <ReplyReference
+                  replyTo={replyTo()}
+                  onJumpTo={() => props.onJumpTo?.(replyTo().id)}
+                />
+              )}
             </Show>
 
             <div class={styles.messageContent} data-testid="message-content">

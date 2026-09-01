@@ -36,7 +36,8 @@ public sealed record MessageDto(
     DateTimeOffset CreatedAt,
     List<MessageReactionDto>? Reactions = null,
     List<AttachmentDto>? Attachments = null,
-    long? PollId = null
+    long? PollId = null,
+    ReplyToDto? ReplyTo = null
 );
 
 public sealed record AttachmentDto(
@@ -110,6 +111,12 @@ public sealed class GetMessagesHandler(
             {
                 Message = m,
                 Author = m.Author,
+                // The soft-delete query filter nulls this navigation when the parent is
+                // deleted, which is how ReplyToDto.Resolve detects a gone parent.
+                ReplyTo = m.ReplyTo,
+                ReplyToAuthorUsername = m.ReplyTo != null && m.ReplyTo.Author != null
+                    ? m.ReplyTo.Author.Username
+                    : null,
                 Reactions = m.Reactions.GroupBy(r => r.Emoji).Select(g => new MessageReactionDto(
                     g.Key,
                     g.Count(),
@@ -182,7 +189,8 @@ public sealed class GetMessagesHandler(
                 CreatedAt: m.Message.CreatedAt,
                 Reactions: m.Reactions.Count > 0 ? m.Reactions : null,
                 Attachments: attachmentDtos is { Count: > 0 } ? attachmentDtos : null,
-                PollId: m.PollId
+                PollId: m.PollId,
+                ReplyTo: ReplyToDto.Resolve(m.Message.ReplyToId, m.ReplyTo, m.ReplyToAuthorUsername)
             );
         }).ToList();
 

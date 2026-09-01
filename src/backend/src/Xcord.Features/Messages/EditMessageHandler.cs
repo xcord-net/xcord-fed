@@ -77,6 +77,10 @@ public sealed class EditMessageHandler(
         var message = await dbContext.Messages
             .Include(m => m.Mentions)
             .Include(m => m.Author)
+            // The update broadcast replaces the message wholesale in the client store, so
+            // it has to carry the reply reference or an edited reply loses its quote line.
+            .Include(m => m.ReplyTo)
+                .ThenInclude(r => r!.Author)
             .FirstOrDefaultAsync(m => m.Id == request.MessageId && m.ConversationId == request.ConversationId, cancellationToken);
 
         if (message == null)
@@ -154,7 +158,8 @@ public sealed class EditMessageHandler(
         // Notify conversation after save - include full message data so clients can update their
         // message store immediately without a separate API fetch.
         await notificationService.NotifyConversationAsync(request.ConversationId, "Chat_MessageUpdated",
-            MessageEventPayloads.ForCreated(message, message.Author?.Username, message.Author?.AvatarUrl, message.EditedAt), cancellationToken);
+            MessageEventPayloads.ForCreated(message, message.Author?.Username, message.Author?.AvatarUrl, message.EditedAt,
+                replyTo: ReplyToDto.Resolve(message.ReplyToId, message.ReplyTo, message.ReplyTo?.Author?.Username)), cancellationToken);
 
         // Execute deferred automod actions after save
         var deferredActions = processingResult.Value.DeferredActions;

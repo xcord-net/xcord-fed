@@ -71,6 +71,7 @@ vi.mock('livekit-client', () => {
       TrackSubscribed: 'trackSubscribed',
       TrackUnsubscribed: 'trackUnsubscribed',
       LocalTrackUnpublished: 'localTrackUnpublished',
+      ActiveSpeakersChanged: 'activeSpeakersChanged',
     },
     Track: {
       Kind: { Audio: 'audio', Video: 'video' },
@@ -309,6 +310,64 @@ describe('voice.store', () => {
       expect(voice.participants.size).toBe(0);
       expect(voice.isMuted).toBe(false);
       expect(voice.isDeafened).toBe(false);
+    });
+  });
+
+  describe('active speakers', () => {
+    /** Pulls the handler the store registered for a given RoomEvent. */
+    function handlerFor(event: string): (...args: unknown[]) => void {
+      const call = lastMockRoomInstance!.on.mock.calls.find(([name]) => name === event);
+      if (!call) throw new Error(`no handler registered for ${event}`);
+      return call[1] as (...args: unknown[]) => void;
+    }
+
+    async function joinWithRemote(): Promise<ReturnType<typeof useVoice>> {
+      const voice = useVoice();
+      voice.setSignalRConnection(makeMockConnection());
+      await voice.joinVoice('channel-1');
+      voice.updateVoiceState('remote-user', 'channel-1', false, false);
+      return voice;
+    }
+
+    it('flags a remote participant who starts speaking', async () => {
+      const voice = await joinWithRemote();
+
+      handlerFor('activeSpeakersChanged')([{ identity: 'remote-user' }]);
+
+      expect(voice.participants.get('remote-user')?.isSpeaking).toBe(true);
+    });
+
+    it('clears the flag when that participant stops speaking', async () => {
+      const voice = await joinWithRemote();
+      const fire = handlerFor('activeSpeakersChanged');
+
+      fire([{ identity: 'remote-user' }]);
+      fire([]);
+
+      expect(voice.participants.get('remote-user')?.isSpeaking).toBe(false);
+    });
+
+    it('tracks the local user separately from the participants map', async () => {
+      const voice = await joinWithRemote();
+      const fire = handlerFor('activeSpeakersChanged');
+
+      fire([{ identity: 'local-user' }]);
+
+      expect(voice.isSpeaking).toBe(true);
+      expect(voice.participants.has('local-user')).toBe(false);
+      expect(voice.participants.get('remote-user')?.isSpeaking).toBe(false);
+
+      fire([]);
+      expect(voice.isSpeaking).toBe(false);
+    });
+
+    it('clears local speaking state when voice state is cleared', async () => {
+      const voice = await joinWithRemote();
+      handlerFor('activeSpeakersChanged')([{ identity: 'local-user' }]);
+
+      voice.clearVoiceState();
+
+      expect(voice.isSpeaking).toBe(false);
     });
   });
 });

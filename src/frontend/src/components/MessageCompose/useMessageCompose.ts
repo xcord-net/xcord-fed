@@ -215,6 +215,7 @@ export function useMessageCompose(args: UseMessageComposeArgs) {
     handleInput,
     cancelReply,
     handleFileSelect: upload.handleFileSelect,
+    handlePaste: upload.handlePaste,
     removeAttachment: upload.removeAttachment,
     handlePollSubmit,
     handleEmojiSelect,

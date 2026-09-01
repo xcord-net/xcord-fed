@@ -20,7 +20,8 @@
   height: 0.625rem;
   border-radius: 9999px;
   background-color: var(--color-xcord-red);
-  box-shadow: 0 0 8px var(--color-xcord-red);
+  /* The one licensed glow in the app. See --shadow-live in index.css. */
+  box-shadow: var(--shadow-live);
   animation: livePulse 2s ease-in-out infinite;
 }
 

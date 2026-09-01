@@ -124,4 +124,32 @@ describe('parseMarkdown', () => {
       expect(textTokens.map(t => t.value)).toContain(' foo');
     });
   });
+
+  describe('html entity decoding', () => {
+    // The backend runs message content through HtmlEncoder.Default.Encode(),
+    // which escapes every non-ASCII character as a numeric reference:
+    // "hi 😀 café" becomes "hi &#x1F600; caf&#xE9;".
+    const text = (tokens: ReturnType<typeof parseMarkdown>) =>
+      tokens.filter(t => t.type === 'text').map(t => (t as { value: string }).value).join('');
+
+    it('should decode astral-plane emoji escaped as hex references', () => {
+      expect(text(parseMarkdown('hi &#x1F600;'))).toBe('hi 😀');
+    });
+
+    it('should decode accented latin escaped as hex references', () => {
+      expect(text(parseMarkdown('caf&#xE9;'))).toBe('café');
+    });
+
+    it('should decode decimal character references', () => {
+      expect(text(parseMarkdown('hi &#128512;'))).toBe('hi 😀');
+    });
+
+    it('should not double-decode an escaped ampersand', () => {
+      expect(text(parseMarkdown('&amp;#x1F600;'))).toBe('&#x1F600;');
+    });
+
+    it('should leave an out-of-range reference untouched', () => {
+      expect(text(parseMarkdown('&#xFFFFFFF;'))).toBe('&#xFFFFFFF;');
+    });
+  });
 });

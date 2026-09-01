@@ -170,4 +170,67 @@ describe('message.store', () => {
       expect(messages.messages[0].editedAt!.length).toBeGreaterThan(0);
     });
   });
+
+  describe('reply references', () => {
+    function reply(overrides: Partial<Message> = {}): Message {
+      return {
+        id: 'msg-reply',
+        conversationId: '123',
+        authorId: 'user-1',
+        type: 'Default',
+        content: 'a reply',
+        replyToId: 'msg-parent',
+        replyTo: {
+          id: 'msg-parent',
+          authorId: 'user-2',
+          authorUsername: 'bob',
+          preview: 'the original',
+          isDeleted: false,
+        },
+        isPinned: false,
+        createdAt: new Date().toISOString(),
+        ...overrides,
+      };
+    }
+
+    it('normalizes reply-target ids to strings', () => {
+      const messages = useMessages();
+      // SignalR can deliver snowflakes as raw numbers before the converter runs.
+      messages.addMessage(reply({
+        replyToId: 9007199254740993 as unknown as string,
+        replyTo: {
+          id: 9007199254740993 as unknown as string,
+          authorId: 42 as unknown as string,
+          authorUsername: 'bob',
+          preview: 'the original',
+          isDeleted: false,
+        },
+      }));
+
+      expect(typeof messages.messages[0].replyTo!.id).toBe('string');
+      expect(typeof messages.messages[0].replyTo!.authorId).toBe('string');
+    });
+
+    it('keeps the reply reference when an update payload omits it', () => {
+      const messages = useMessages();
+      messages.addMessage(reply());
+
+      // An edit broadcast that lost its replyTo must not dissolve the lane.
+      messages.updateMessage(reply({ replyTo: undefined, content: 'edited reply' }));
+
+      expect(messages.messages[0].content).toBe('edited reply');
+      expect(messages.messages[0].replyTo?.authorUsername).toBe('bob');
+    });
+
+    it('takes the incoming reply reference when the update payload carries one', () => {
+      const messages = useMessages();
+      messages.addMessage(reply());
+
+      messages.updateMessage(reply({
+        replyTo: { id: 'msg-parent', preview: '', isDeleted: true },
+      }));
+
+      expect(messages.messages[0].replyTo?.isDeleted).toBe(true);
+    });
+  });
 });

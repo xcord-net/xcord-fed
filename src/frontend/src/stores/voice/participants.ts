@@ -65,6 +65,28 @@ export function attachParticipantHandlers(room: Room): void {
     },
   );
 
+  // LiveKit reports the full set of active speakers on every change, so the
+  // handler sets the flag on everyone in that set and clears it on everyone
+  // else. The local participant is not in the participants map, so its
+  // speaking state lands on its own signal.
+  room.on(RoomEvent.ActiveSpeakersChanged, (speakers: Participant[]) => {
+    const speaking = new Set(speakers.map((s) => s.identity));
+    voiceState.setIsSpeaking(speaking.has(room.localParticipant.identity));
+
+    const map = new Map(voiceState.participants());
+    let changed = false;
+    for (const [identity, participant] of map) {
+      const next = speaking.has(identity);
+      if (participant.isSpeaking !== next) {
+        map.set(identity, { ...participant, isSpeaking: next });
+        changed = true;
+      }
+    }
+    if (changed) {
+      voiceState.setParticipants(map);
+    }
+  });
+
   room.on(
     RoomEvent.TrackSubscribed,
     (track: RemoteTrack, publication: RemoteTrackPublication, participant: RemoteParticipant) => {

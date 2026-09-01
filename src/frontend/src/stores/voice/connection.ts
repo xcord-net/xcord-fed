@@ -61,6 +61,7 @@ function attachRoomEventHandlers(room: Room): void {
       voiceState.setIsDeafened(false);
       voiceState.setIsScreenSharing(false);
       voiceState.setScreenShareParticipantId(null);
+      voiceState.setIsSpeaking(false);
     }
     voiceState.setIsConnecting(false);
     voiceRefs.intentionalLeave = false;
@@ -171,6 +172,7 @@ export async function leaveVoice(): Promise<void> {
   voiceState.setIsDeafened(false);
   voiceState.setIsScreenSharing(false);
   voiceState.setScreenShareParticipantId(null);
+  voiceState.setIsSpeaking(false);
 }
 
 /**
@@ -193,6 +195,7 @@ export function clearVoiceState(): void {
   voiceState.setIsDeafened(false);
   voiceState.setIsScreenSharing(false);
   voiceState.setScreenShareParticipantId(null);
+  voiceState.setIsSpeaking(false);
 }
 
 /** Hard reset for tests / sign-out. */

@@ -2,6 +2,7 @@
 .rightPanel {
   width: 20rem;
   border-left: 1px solid var(--color-xcord-border);
-  background-color: var(--color-xcord-bg-secondary);
+  /* Slightly translucent so the shell's grid ground reads through. */
+  background-color: color-mix(in srgb, var(--color-xcord-bg-secondary) 92%, transparent);
   overflow-y: auto;
 }

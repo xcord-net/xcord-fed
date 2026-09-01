@@ -20,19 +20,32 @@ type RenderedToken =
   | { type: 'mention_everyone' }
   | { type: 'mention_here' };
 
+/** Turn a numeric character reference's code point into its character.
+ *  Returns the original reference unchanged if the code point is not valid. */
+function fromCodePoint(raw: string, code: number): string {
+  if (!Number.isFinite(code) || code < 0 || code > 0x10ffff) return raw;
+  try {
+    return String.fromCodePoint(code);
+  } catch {
+    return raw;
+  }
+}
+
 /**
  * Decode HTML entities produced by the backend's HtmlEncoder.Default.Encode().
  * The backend HTML-encodes message content for XSS prevention, so the frontend
  * must decode before parsing markdown syntax (especially newlines for code blocks
  * and angle brackets for mention patterns like <@userId>).
+ *
+ * HtmlEncoder.Default escapes *every* non-ASCII character as a numeric reference,
+ * so emoji arrive as &#x1F600; and accents as &#xE9;. Numeric references are
+ * therefore decoded generically rather than from a fixed list. &amp; is decoded
+ * last so an escaped ampersand ("&amp;#x1F600;") stays literal text.
  */
 function decodeHtmlEntities(text: string): string {
   return text
-    .replace(/&#xA;/g, '\n')
-    .replace(/&#xD;/g, '\r')
-    .replace(/&#x9;/g, '\t')
-    .replace(/&#x2B;/g, '+')
-    .replace(/&#x27;/g, "'")
+    .replace(/&#x([0-9a-fA-F]+);/g, (raw, hex: string) => fromCodePoint(raw, parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (raw, dec: string) => fromCodePoint(raw, parseInt(dec, 10)))
     .replace(/&quot;/g, '"')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')

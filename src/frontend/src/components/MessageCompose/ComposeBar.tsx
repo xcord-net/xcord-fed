@@ -32,6 +32,7 @@ interface ComposeBarProps {
   onToggleMemberList: () => void;
   onInput: (e: Event) => void;
   onKeyDown: (e: KeyboardEvent) => void;
+  onPaste: (e: ClipboardEvent) => void;
   canSend: boolean;
   onSend: () => void;
 }
@@ -64,6 +65,7 @@ export default function ComposeBar(props: ComposeBarProps) {
         value={props.content}
         onInput={props.onInput}
         onKeyDown={props.onKeyDown}
+        onPaste={props.onPaste}
         rows={1}
         disabled={props.isSending || props.isSlowModeActive}
       />

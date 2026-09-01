@@ -27,7 +27,8 @@ public sealed record GetMessageResponse(
     long? ReplyToId,
     bool IsPinned,
     DateTimeOffset? EditedAt,
-    DateTimeOffset CreatedAt
+    DateTimeOffset CreatedAt,
+    ReplyToDto? ReplyTo = null
 );
 
 public sealed class GetMessageHandler(
@@ -60,7 +61,11 @@ public sealed class GetMessageHandler(
             .Select(m => new
             {
                 Message = m,
-                Author = m.Author
+                Author = m.Author,
+                ReplyTo = m.ReplyTo,
+                ReplyToAuthorUsername = m.ReplyTo != null && m.ReplyTo.Author != null
+                    ? m.ReplyTo.Author.Username
+                    : null
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -81,7 +86,9 @@ public sealed class GetMessageHandler(
             ReplyToId: messageData.Message.ReplyToId,
             IsPinned: messageData.Message.IsPinned,
             EditedAt: messageData.Message.EditedAt,
-            CreatedAt: messageData.Message.CreatedAt
+            CreatedAt: messageData.Message.CreatedAt,
+            ReplyTo: ReplyToDto.Resolve(
+                messageData.Message.ReplyToId, messageData.ReplyTo, messageData.ReplyToAuthorUsername)
         );
     }
 

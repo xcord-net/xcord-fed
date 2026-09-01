@@ -1,6 +1,7 @@
 /* Sidebar layout */
 .sidebar {
-  background-color: var(--color-xcord-bg-secondary);
+  /* Slightly translucent so the shell's grid ground reads through. */
+  background-color: color-mix(in srgb, var(--color-xcord-bg-secondary) 92%, transparent);
   position: relative;
   z-index: var(--z-toolbar);
   overflow: hidden;

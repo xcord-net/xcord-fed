@@ -4,6 +4,7 @@ import { fireEvent, waitFor } from '@solidjs/testing-library';
 const mockAuth = {
   login: vi.fn(),
   verifyTwoFactor: vi.fn(),
+  validateAuth: vi.fn(),
 };
 
 vi.mock('../stores/auth.store', () => ({
@@ -18,6 +19,7 @@ describe('Login', () => {
   beforeEach(() => {
     mockAuth.login = vi.fn().mockResolvedValue({ authenticated: true, requiresTwoFactor: false });
     mockAuth.verifyTwoFactor = vi.fn().mockResolvedValue(undefined);
+    mockAuth.validateAuth = vi.fn().mockResolvedValue(true);
   });
 
   it('renders heading, email, password inputs and submit button', async () => {
@@ -37,6 +39,30 @@ describe('Login', () => {
     });
     const { findByTestId } = renderWithRouter(() => <Login />);
     expect(await findByTestId('login-register-link')).toBeInTheDocument();
+  });
+
+  it('hides the dev login button when the server does not offer it', async () => {
+    mockFetch({
+      'GET /api/v1/config': () => ({ status: 200, body: { registrationEnabled: false } }),
+    });
+    const { findByTestId, queryByTestId } = renderWithRouter(() => <Login />);
+    // Wait for the config fetch to settle before asserting the absence.
+    await findByTestId('login-submit-button');
+    await waitFor(() => expect(queryByTestId('dev-login-button')).not.toBeInTheDocument());
+  });
+
+  it('shows the dev login button and signs in through it when enabled', async () => {
+    const { calls } = mockFetch({
+      'GET /api/v1/config': () => ({ status: 200, body: { registrationEnabled: false, devLoginEnabled: true } }),
+      'POST /api/v1/test/dev-login': () => ({ status: 200, body: { authenticated: true } }),
+      'GET /api/v1/users/@me/servers': () => ({ status: 200, body: { servers: [] } }),
+    });
+    const { findByTestId } = renderWithRouter(() => <Login />);
+    fireEvent.click(await findByTestId('dev-login-button'));
+    await waitFor(() => expect(mockAuth.validateAuth).toHaveBeenCalled());
+    expect(calls).toContainEqual(
+      expect.objectContaining({ method: 'POST', url: '/api/v1/test/dev-login' }),
+    );
   });
 
   it('calls auth.login with email and password on submit', async () => {

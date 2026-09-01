@@ -1,7 +1,11 @@
 /* ===== Messages area ===== */
+/* The pane is nearly opaque so the shell's grid ground reads as a whisper
+   behind the conversation rather than competing with it. Reading text is the
+   job here; the grid only has to keep the pane from looking like flat void. */
 .messagesArea {
   flex: 1;
   min-width: 0;
+  background-color: color-mix(in srgb, var(--color-xcord-bg-primary) 88%, transparent);
 }
 
 /* ===== Forum thread view ===== */

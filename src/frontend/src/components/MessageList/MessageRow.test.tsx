@@ -101,12 +101,90 @@ describe('MessageRow', () => {
     expect(getByTestId('mock-markdown').textContent).toBe('hello world');
   });
 
-  it('renders the reply indicator when replyToId is set', () => {
-    const message = makeMessage({ replyToId: 'm-prev' });
-    const { getByText } = render(() => (
+  it('renders the quote line with the replied-to author and preview', () => {
+    const message = makeMessage({
+      replyToId: 'm-prev',
+      replyTo: {
+        id: 'm-prev',
+        authorId: 'u-2',
+        authorUsername: 'bob',
+        preview: 'what do you think?',
+        isDeleted: false,
+      },
+    });
+    const { getByTestId, getByText } = render(() => (
       <MessageRow {...baseProps({ message })} />
     ));
-    expect(getByText('Replying to a message')).toBeInTheDocument();
+
+    expect(getByTestId('reply-reference')).toBeInTheDocument();
+    expect(getByText('bob')).toBeInTheDocument();
+    expect(getByText('what do you think?')).toBeInTheDocument();
+  });
+
+  it('jumps to the referenced message when the quote line is clicked', () => {
+    const onJumpTo = vi.fn();
+    const message = makeMessage({
+      replyToId: 'm-prev',
+      replyTo: { id: 'm-prev', authorUsername: 'bob', preview: 'earlier', isDeleted: false },
+    });
+    const { getByTestId } = render(() => (
+      <MessageRow {...baseProps({ message, onJumpTo })} />
+    ));
+
+    fireEvent.click(getByTestId('reply-reference'));
+
+    expect(onJumpTo).toHaveBeenCalledWith('m-prev');
+  });
+
+  it('renders a deleted parent as inert text with nothing to jump to', () => {
+    const message = makeMessage({
+      replyToId: 'm-prev',
+      replyTo: { id: 'm-prev', preview: '', isDeleted: true },
+    });
+    const { getByTestId, queryByTestId } = render(() => (
+      <MessageRow {...baseProps({ message })} />
+    ));
+
+    expect(getByTestId('reply-reference-deleted')).toBeInTheDocument();
+    expect(queryByTestId('reply-reference')).toBeNull();
+  });
+
+  it('omits the quote line when the message is not a reply', () => {
+    const { queryByTestId } = render(() => <MessageRow {...baseProps()} />);
+
+    expect(queryByTestId('reply-reference')).toBeNull();
+    expect(queryByTestId('reply-reference-deleted')).toBeNull();
+  });
+
+  it('renders a lane rail only for messages in an exchange', () => {
+    const without = render(() => <MessageRow {...baseProps()} />);
+    expect(without.queryByTestId('lane-rail')).toBeNull();
+
+    const withLane = render(() => (
+      <MessageRow
+        {...baseProps({
+          lane: { laneId: 'm-0', colorIndex: 1, continuesPrevious: false, continuesNext: true },
+          laneHeat: 0.5,
+        })}
+      />
+    ));
+    expect(withLane.getByTestId('lane-rail')).toBeInTheDocument();
+    expect(withLane.getByTestId('message-row-m-1').getAttribute('data-lane-id')).toBe('m-0');
+  });
+
+  it('exposes lane colour and heat to CSS on the row', () => {
+    const { getByTestId } = render(() => (
+      <MessageRow
+        {...baseProps({
+          lane: { laneId: 'm-0', colorIndex: 2, continuesPrevious: false, continuesNext: false },
+          laneHeat: 0.75,
+        })}
+      />
+    ));
+
+    const row = getByTestId('message-row-m-1');
+    expect(row.style.getPropertyValue('--lane-color')).toBe('var(--color-xcord-lane-3)');
+    expect(row.style.getPropertyValue('--lane-heat')).toBe('0.75');
   });
 
   it('shows the thread button only when channelId is provided', () => {

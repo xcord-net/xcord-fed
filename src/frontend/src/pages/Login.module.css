@@ -123,6 +123,30 @@
   color: var(--color-xcord-text-primary);
 }
 
+/* Local dev stack only - deliberately reads as scaffolding, not product UI. */
+.devButton {
+  width: 100%;
+  margin-top: 0.75rem;
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  padding: 0.5rem 0;
+  background: none;
+  border: 1px dashed var(--color-xcord-border);
+  border-radius: 0.25rem;
+  transition: color 150ms, border-color 150ms;
+}
+
+.devButton:hover {
+  color: var(--color-xcord-text-primary);
+  border-color: var(--color-xcord-text-muted);
+}
+
+.devButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .footerText {
   color: var(--color-xcord-text-muted);
   font-size: 0.875rem;

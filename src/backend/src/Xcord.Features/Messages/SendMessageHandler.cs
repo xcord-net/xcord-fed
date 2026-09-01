@@ -32,7 +32,8 @@ public sealed record SendMessageResponse(
     bool IsPinned,
     DateTimeOffset? EditedAt,
     DateTimeOffset CreatedAt,
-    List<AttachmentDto>? Attachments = null
+    List<AttachmentDto>? Attachments = null,
+    ReplyToDto? ReplyTo = null
 );
 
 public sealed class SendMessageHandler(
@@ -109,17 +110,31 @@ public sealed class SendMessageHandler(
         long serverId = context.ServerId;
         long channelId = context.ChannelId;
 
-        // If replying, verify the reply target exists and is in the same conversation
+        // If replying, verify the reply target exists and is in the same conversation.
+        // Same round trip as a bare existence check, but it also yields the quote-line
+        // data the response and the SignalR broadcast need.
+        ReplyToDto? replyTo = null;
         if (request.ReplyToId.HasValue)
         {
-            var replyToExists = await dbContext.Messages
+            var replyToTarget = await dbContext.Messages
                 .AsNoTracking()
-                .AnyAsync(m => m.Id == request.ReplyToId.Value && m.ConversationId == request.ConversationId, cancellationToken);
+                .Where(m => m.Id == request.ReplyToId.Value && m.ConversationId == request.ConversationId)
+                .Select(m => new
+                {
+                    m.Id,
+                    m.AuthorId,
+                    AuthorUsername = m.Author != null ? m.Author.Username : null,
+                    m.Content
+                })
+                .FirstOrDefaultAsync(cancellationToken);
 
-            if (!replyToExists)
+            if (replyToTarget is null)
             {
                 return Error.NotFound("REPLY_MESSAGE_NOT_FOUND", "Reply target message not found in this conversation");
             }
+
+            replyTo = ReplyToDto.From(
+                replyToTarget.Id, replyToTarget.AuthorId, replyToTarget.AuthorUsername, replyToTarget.Content);
         }
 
         var now = DateTimeOffset.UtcNow;
@@ -331,7 +346,7 @@ public sealed class SendMessageHandler(
 
             await notificationService.NotifyConversationAsync(request.ConversationId, "Chat_MessageCreated",
                 MessageEventPayloads.ForCreated(message, authorForResponse.Username, authorForResponse.AvatarUrl,
-                    attachments: notifyAttachments), cancellationToken);
+                    attachments: notifyAttachments, replyTo: replyTo), cancellationToken);
 
             logger.LogInformation(
                 "User {UserId} sent message {MessageId} in conversation {ConversationId}",
@@ -356,7 +371,8 @@ public sealed class SendMessageHandler(
                 IsPinned: message.IsPinned,
                 EditedAt: message.EditedAt,
                 CreatedAt: message.CreatedAt,
-                Attachments: attachmentDtos
+                Attachments: attachmentDtos,
+                ReplyTo: replyTo
             );
         }
         catch

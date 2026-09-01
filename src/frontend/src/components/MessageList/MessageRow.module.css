@@ -7,6 +7,46 @@
   padding-left: 3.5rem;
 }
 
+/* ── Conversation lanes ───────────────────────────────────────────────────────
+   A lane marks a reply-connected exchange. Rows carry --lane-color and
+   --lane-heat (0-1, set from JS and decaying after each new reply). */
+
+.messageRowLaned {
+  /* Faint wash that rises with heat and fades back out. Never enough to fight
+     the text; the rail carries the identity. */
+  background-color: color-mix(
+    in srgb,
+    var(--lane-color) calc(var(--lane-heat, 0) * 9%),
+    transparent
+  );
+}
+
+.laneRail {
+  position: absolute;
+  /* Sits in the scroll container's 1rem padding, so a lane appearing or
+     dissolving never reflows the message column. */
+  left: -0.5rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--lane-color);
+  border-radius: 1px;
+  /* Resting lane is quiet; a fresh reply takes it to full. */
+  opacity: calc(0.32 + 0.68 * var(--lane-heat, 0));
+}
+
+/* Square off the ends that meet another row in the same lane, so a run of
+   adjacent messages reads as one unbroken line. */
+.laneRailContinuesUp {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.laneRailContinuesDown {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
 .messageRowGrouped:hover,
 .messageRowBase:hover {
   background-color: color-mix(in srgb, var(--color-xcord-bg-primary) 30%, transparent);
@@ -146,10 +186,69 @@
   color: var(--color-xcord-text-muted);
 }
 
+/* Quote line above a reply: who was answered, and what they said. */
 .replyIndicator {
-  font-size: 0.75rem;
-  color: var(--color-xcord-text-muted);
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  width: 100%;
+  max-width: 72ch;
   margin-bottom: 0.25rem;
+  padding: 0;
+  font-size: 0.75rem;
+  font-family: inherit;
+  color: var(--color-xcord-text-muted);
+  text-align: left;
+  background: none;
+  border: none;
+  border-left: 2px solid var(--color-xcord-border);
+  padding-left: 0.5rem;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-standard),
+              border-color var(--dur-fast) var(--ease-standard);
+}
+
+.replyIndicator:hover {
+  color: var(--color-xcord-text-secondary);
+  border-left-color: var(--color-xcord-text-muted);
+}
+
+.replyAuthor {
+  font-weight: 600;
+  color: var(--color-xcord-text-secondary);
+  flex-shrink: 0;
+}
+
+.replyPreview {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A deleted parent is not a link - there is nowhere to go. */
+.replyIndicatorInert {
+  cursor: default;
+}
+
+.replyIndicatorInert:hover {
+  color: var(--color-xcord-text-muted);
+  border-left-color: var(--color-xcord-border);
+}
+
+.replyDeleted {
+  font-style: italic;
+  color: var(--color-xcord-text-faint);
+}
+
+/* Landing flash after jumping to a message. */
+.messageRowFlash {
+  animation: messageFlash 1.2s var(--ease-standard);
+}
+
+@keyframes messageFlash {
+  from { background-color: color-mix(in srgb, var(--color-xcord-brand) 22%, transparent); }
+  to { background-color: transparent; }
 }
 
 .messageContent {

@@ -22,25 +22,48 @@ export function uploadErrorMessage(error: unknown): string {
   return 'Upload failed. Please try again.';
 }
 
+/**
+ * Pull the first file out of a paste event's clipboard payload. Screenshots and
+ * images copied from another app arrive as a file entry; a plain text paste has
+ * none, and must be left to the browser's default handling.
+ */
+export function clipboardFile(data: DataTransfer | null | undefined): File | null {
+  if (!data) return null;
+
+  const direct = data.files?.[0];
+  if (direct) return direct;
+
+  for (const item of Array.from(data.items ?? [])) {
+    if (item.kind !== 'file') continue;
+    const file = item.getAsFile();
+    if (file) return file;
+  }
+  return null;
+}
+
+/**
+ * Some browsers hand a pasted image over with an empty name. Give it a unique,
+ * readable one so the attachment preview and the sent message aren't blank.
+ */
+function pastedFileName(file: File): string {
+  if (file.name) return file.name;
+  const ext = file.type.split('/')[1] || 'bin';
+  return `pasted-${Date.now()}.${ext}`;
+}
+
 export function useFileUpload() {
   const toasts = useToasts();
   const [uploading, setUploading] = createSignal(false);
   const [uploadProgress, setUploadProgress] = createSignal(0);
   const [uploadedAttachment, setUploadedAttachment] = createSignal<UploadedAttachment | null>(null);
 
-  const handleFileSelect = async (e: Event) => {
-    const input = e.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-
-    input.value = '';
-
+  const uploadFile = async (file: File, fileName: string) => {
     setUploading(true);
     setUploadProgress(0);
 
     try {
       const { attachmentId, uploadUrl } = await api.post<UploadInitResponse>('/api/v1/uploads', {
-        fileName: file.name,
+        fileName,
         contentType: file.type || 'application/octet-stream',
         fileSize: file.size,
       });
@@ -68,7 +91,7 @@ export function useFileUpload() {
 
       await api.post(`/api/v1/attachments/${attachmentId}/confirm`, {});
 
-      setUploadedAttachment({ attachmentId, fileName: file.name, fileSize: file.size });
+      setUploadedAttachment({ attachmentId, fileName, fileSize: file.size });
       setUploadProgress(100);
     } catch (error) {
       console.error('Failed to upload file:', error);
@@ -77,6 +100,33 @@ export function useFileUpload() {
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleFileSelect = async (e: Event) => {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    input.value = '';
+
+    await uploadFile(file, file.name);
+  };
+
+  /** Paste an image (or any file) straight into the composer as an attachment. */
+  const handlePaste = async (e: ClipboardEvent) => {
+    const file = clipboardFile(e.clipboardData);
+    // No file on the clipboard - it's a text paste, let the browser handle it.
+    if (!file) return;
+
+    e.preventDefault();
+
+    if (uploading()) return;
+    if (uploadedAttachment()) {
+      toasts.error('Only one attachment per message. Send or remove the current one first.');
+      return;
+    }
+
+    await uploadFile(file, pastedFileName(file));
   };
 
   const removeAttachment = () => {
@@ -90,6 +140,7 @@ export function useFileUpload() {
     uploadedAttachment,
     setUploadedAttachment,
     handleFileSelect,
+    handlePaste,
     removeAttachment,
   };
 }

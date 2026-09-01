@@ -4,13 +4,15 @@ import type { Message } from '../../types/message';
 export const MANAGE_MESSAGES_BIT = 128n;
 
 /** Returns true when this message should be visually grouped with the previous one
- *  (same author, within 5 minutes). */
+ *  (same author, within 5 minutes). A reply is never grouped: grouping drops the
+ *  header, which would hide the quote line saying who is being answered. */
 export function shouldGroupWithPrevious(
   messages: readonly Message[],
   message: Message,
   index: number,
 ): boolean {
   if (index === 0) return false;
+  if (message.replyToId || message.replyTo) return false;
   const previousMessage = messages[index - 1];
   if (!previousMessage) return false;
   if (previousMessage.authorId !== message.authorId) return false;

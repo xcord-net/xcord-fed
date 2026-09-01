@@ -13,13 +13,15 @@ export default function Login() {
   const [twoFactorToken, setTwoFactorToken] = createSignal('');
   const [twoFactorCode, setTwoFactorCode] = createSignal('');
   const [registrationEnabled, setRegistrationEnabled] = createSignal(false);
+  const [devLoginEnabled, setDevLoginEnabled] = createSignal(false);
   const auth = useAuth();
 
   onMount(async () => {
     document.title = 'Log In - Xcord';
     try {
-      const data = await api.get<{ registrationEnabled: boolean }>('/api/v1/config');
+      const data = await api.get<{ registrationEnabled: boolean; devLoginEnabled?: boolean }>('/api/v1/config');
       setRegistrationEnabled(data.registrationEnabled);
+      setDevLoginEnabled(data.devLoginEnabled === true);
     } catch {}
   });
   const navigate = useNavigate();
@@ -58,6 +60,22 @@ export default function Login() {
       }
     } catch (err: unknown) {
       setError((err as Error)?.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Only reachable on the local dev stack: the endpoint is not mapped unless
+  // TestSeed:Key is configured, and the same gate drives devLoginEnabled.
+  const handleDevLogin = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      await api.post('/api/v1/test/dev-login');
+      await auth.validateAuth();
+      doNavigate();
+    } catch (err: unknown) {
+      setError((err as Error)?.message || 'Dev login failed');
     } finally {
       setLoading(false);
     }
@@ -115,6 +133,17 @@ export default function Login() {
           >
             {loading() ? 'Logging in...' : 'Log In'}
           </button>
+          <Show when={devLoginEnabled()}>
+            <button
+              data-testid="dev-login-button"
+              type="button"
+              disabled={loading()}
+              onClick={handleDevLogin}
+              class={styles.devButton}
+            >
+              Dev login as admin
+            </button>
+          </Show>
           <Show when={registrationEnabled()}>
             <p class={styles.footerText}>
               Need an account? <A data-testid="login-register-link" href="/register" class={styles.link}>Register</A>

@@ -24,6 +24,17 @@ export interface MessageAttachment {
   thumbnailUrl?: string;
 }
 
+/** The message a reply points at, denormalized onto the reply so the quote line
+ *  renders without a second fetch. `isDeleted` means the parent is gone: the id is
+ *  still present (the reply edge holds) but there is no author or preview. */
+export interface ReplyTo {
+  id: string;
+  authorId?: string;
+  authorUsername?: string;
+  preview: string;
+  isDeleted: boolean;
+}
+
 export interface Message {
   id: string;
   conversationId: string;
@@ -35,6 +46,7 @@ export interface Message {
   content: string;
   metadata?: Record<string, unknown>;
   replyToId?: string;
+  replyTo?: ReplyTo;
   isPinned: boolean;
   editedAt?: string;
   createdAt: string;

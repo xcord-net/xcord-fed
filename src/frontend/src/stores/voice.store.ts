@@ -42,6 +42,9 @@ export function useVoice() {
     get error() { return voiceState.error(); },
     get isScreenSharing() { return voiceState.isScreenSharing(); },
     get screenShareParticipantId() { return voiceState.screenShareParticipantId(); },
+    /** Whether the local user is speaking. Remote speakers carry `isSpeaking`
+     *  on their entry in `participants`. */
+    get isSpeaking() { return voiceState.isSpeaking(); },
 
     /**
      * Called by signalr.store after a connection is established so that voice

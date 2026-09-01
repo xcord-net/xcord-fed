@@ -5,6 +5,7 @@ import MessageCompose from '../MessageCompose';
 import MessageList from '../MessageList';
 import ScreenShareViewer from '../ScreenShareViewer';
 import TypingIndicator from '../TypingIndicator';
+import VoiceStage from '../VoiceStage';
 import { useChannels } from '../../stores/channel.store';
 import { useMessages } from '../../stores/message.store';
 import { useModals } from '../../stores/modal.store';
@@ -67,6 +68,10 @@ export default function MessagesArea(props: MessagesAreaProps) {
         (!currentChannel()?.capabilities || !hasCapability(currentChannel()!.capabilities, Capability.Forum)) &&
         (!currentChannel()?.capabilities || !hasCapability(currentChannel()!.capabilities, Capability.Streaming))
       }>
+        {/* Voice channels show who is in the room above the chat. */}
+        <Show when={currentChannel()?.capabilities && hasCapability(currentChannel()!.capabilities, Capability.Voice)}>
+          <VoiceStage />
+        </Show>
         <ScreenShareViewer />
         <MessageList conversationId={props.conversationId} />
         <TypingIndicator conversationId={props.conversationId} />

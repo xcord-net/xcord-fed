@@ -155,5 +155,63 @@ public static class TestSeedEndpoint
             .AllowAnonymous()
             .WithName("TestSeedUser")
             .WithTags("Test");
+
+        // One-click sign-in for the local dev stack, behind the "Dev login as
+        // admin" button on the login page. Takes no body and no X-Test-Key:
+        // the browser cannot hold a secret, so the gate is that this route is
+        // not mapped at all unless TestSeed:Key is configured (see Program.cs).
+        app.MapPost("/api/v1/test/dev-login", async (
+                HttpContext httpContext,
+                CancellationToken ct) =>
+            {
+                var services = httpContext.RequestServices;
+                var logger = services.GetRequiredService<ILogger<Program>>();
+                var dbContext = services.GetRequiredService<AppDbContext>();
+                var jwtService = services.GetRequiredService<IJwtService>();
+                var snowflakeGenerator = services.GetRequiredService<SnowflakeIdGenerator>();
+
+                var now = DateTimeOffset.UtcNow;
+
+                // Oldest admin. On a hub-provisioned instance that is the owner
+                // seeded during provisioning by the hub's StartApiContainerStep.
+                var admin = await dbContext.Users
+                    .Where(u => u.IsAdmin && !u.IsDisabled && u.DeletedAt == null)
+                    .OrderBy(u => u.Id)
+                    .FirstOrDefaultAsync(ct);
+
+                if (admin is null)
+                    return Results.Problem(statusCode: 404, title: "NOT_FOUND",
+                        detail: "No admin user exists on this instance");
+
+                var refreshTokenValue = TokenHelper.GenerateToken();
+                dbContext.RefreshTokens.Add(new Entities.RefreshToken
+                {
+                    Id = snowflakeGenerator.NextId(),
+                    TokenHash = TokenHelper.HashToken(refreshTokenValue),
+                    UserId = admin.Id,
+                    ExpiresAt = now.AddDays(30),
+                    CreatedAt = now
+                });
+                await dbContext.SaveChangesAsync(ct);
+
+                var accessToken = jwtService.GenerateAccessToken(
+                    admin.Id, admin.IsAdmin, admin.EmailConfirmed, admin.IsBot);
+
+                AuthCookieHelper.SetAccessTokenCookie(httpContext, accessToken, 15);
+                AuthCookieHelper.SetRefreshTokenCookie(httpContext, refreshTokenValue);
+
+                logger.LogWarning("TestSeed: dev-login issued for admin {Username}", admin.Username);
+
+                return Results.Ok(new
+                {
+                    authenticated = true,
+                    userId = admin.Id.ToString(),
+                    username = admin.Username,
+                    emailConfirmed = admin.EmailConfirmed
+                });
+            })
+            .AllowAnonymous()
+            .WithName("TestDevLogin")
+            .WithTags("Test");
     }
 }

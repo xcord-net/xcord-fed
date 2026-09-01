@@ -1,8 +1,15 @@
+/* The composer is where you act, so it gets a visible structural edge rather
+   than the hairline used for pane separators. Focus turns that edge amber. */
 .bar {
   padding: 0.5rem 0.75rem;
   background-color: var(--color-xcord-bg-secondary);
-  border: 1px solid var(--color-xcord-border);
+  border: 1px solid var(--color-xcord-line);
   border-radius: 0.5rem;
+  transition: border-color 150ms var(--ease-standard);
+}
+
+.bar:focus-within {
+  border-color: var(--color-xcord-brand);
 }
 
 .barContinued {

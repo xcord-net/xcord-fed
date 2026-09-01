@@ -1,0 +1,136 @@
+/* Voice participant grid.
+
+   Emphasis here is structural, per the visual direction: a speaking tile
+   takes a solid amber edge and lights its level bars. No bloom, no colored
+   shadow. The one licensed glow in the app marks "on air" and lives on the
+   live indicator. */
+
+.stage {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-xcord-border);
+  flex-shrink: 0;
+}
+
+.empty {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+  padding: 0.75rem 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0.5rem;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  /* The bottom padding clears the meter track so the name never sits on it. */
+  padding: 0.875rem 0.75rem 2rem;
+  background-color: var(--color-xcord-bg-secondary);
+  border: 2px solid var(--color-xcord-line);
+  border-radius: var(--radius-md);
+  transition: border-color 150ms var(--ease-standard);
+  position: relative;
+  overflow: hidden;
+}
+
+.tileSpeaking {
+  border-color: var(--color-xcord-brand);
+}
+
+.avatar {
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-xcord-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-xcord-bg-tertiary);
+  font-size: 1.125rem;
+  font-weight: 600;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 100%;
+}
+
+.name {
+  font-size: 0.8125rem;
+  color: var(--color-xcord-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.you {
+  color: var(--color-xcord-text-muted);
+}
+
+.mutedIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--color-xcord-text-muted);
+  flex-shrink: 0;
+}
+
+/* Level meter: a floor of bars across the base of the tile. Hidden until the
+   participant holds the floor, so a quiet room stays quiet. */
+.meter {
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  bottom: 0;
+  height: 1.75rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 150ms var(--ease-standard);
+}
+
+.tileSpeaking .meter {
+  opacity: 0.75;
+}
+
+.bar {
+  flex: 1 1 0;
+  min-width: 2px;
+  max-width: 5px;
+  border-radius: 1px 1px 0 0;
+  background-color: var(--color-xcord-brand);
+  transform-origin: bottom;
+}
+
+.tileSpeaking .bar {
+  animation: level 1.6s var(--ease-standard) infinite;
+}
+
+/* Transform only, so the meter runs on the compositor. The app-wide
+   prefers-reduced-motion rule in index.css stills it; the bars stay at their
+   resting heights, so the speaking tile still reads through its amber edge. */
+@keyframes level {
+  0%,
+  100% {
+    transform: scaleY(0.4);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}

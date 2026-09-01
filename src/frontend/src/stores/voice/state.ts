@@ -42,6 +42,10 @@ export const voiceState = createRoot(() => {
   const [isScreenSharing, setIsScreenSharing] = createSignal(false);
   // Identity of the participant currently screen sharing (null if nobody is).
   const [screenShareParticipantId, setScreenShareParticipantId] = createSignal<string | null>(null);
+  // Whether the local user is currently speaking. Remote speakers are flagged
+  // on their participants-map entry, but the local user has no entry there
+  // (the map tracks remote participants only), so it needs its own signal.
+  const [isSpeaking, setIsSpeaking] = createSignal(false);
 
   return {
     currentChannelId,
@@ -60,6 +64,8 @@ export const voiceState = createRoot(() => {
     setIsScreenSharing,
     screenShareParticipantId,
     setScreenShareParticipantId,
+    isSpeaking,
+    setIsSpeaking,
   };
 });
 

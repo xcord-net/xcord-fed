@@ -57,30 +57,23 @@
   text-decoration: underline;
 }
 
-.mentionUser {
-  background-color: rgba(59, 130, 246, 0.2);
-  color: #60a5fa;
-  border-radius: 0.25rem;
-  padding: 0 0.125rem;
-}
-
+/* Mentions read as a flat amber tint, no wash and no glow. Broadcast
+   mentions (@everyone, @here) reach more people, so they carry a solid amber
+   edge on top of the tint. The extra weight is structural, not luminous. */
+.mentionUser,
 .mentionGroup {
-  background-color: rgba(59, 130, 246, 0.2);
-  color: #60a5fa;
+  background-color: color-mix(in srgb, var(--color-xcord-brand) 18%, transparent);
+  color: var(--color-xcord-brand);
   border-radius: 0.25rem;
   padding: 0 0.125rem;
 }
 
-.mentionEveryone {
-  background-color: rgba(234, 179, 8, 0.2);
-  color: var(--color-xcord-warning-glow);
-  border-radius: 0.25rem;
-  padding: 0 0.125rem;
-}
-
+.mentionEveryone,
 .mentionHere {
-  background-color: rgba(234, 179, 8, 0.2);
-  color: var(--color-xcord-warning-glow);
+  background-color: color-mix(in srgb, var(--color-xcord-brand) 18%, transparent);
+  color: var(--color-xcord-brand);
+  border-left: 2px solid var(--color-xcord-brand);
   border-radius: 0.25rem;
   padding: 0 0.125rem;
+  font-weight: 600;
 }

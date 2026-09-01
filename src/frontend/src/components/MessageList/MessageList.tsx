@@ -1,4 +1,4 @@
-import { For, Show, createEffect, createSignal, onMount } from 'solid-js';
+import { For, Show, createEffect, createMemo, createSignal, onCleanup, onMount } from 'solid-js';
 import { useParams } from '@solidjs/router';
 import { useMessages } from '../../stores/message.store';
 import { usePins } from '../../stores/pin.store';
@@ -11,8 +11,21 @@ import type { Message } from '../../types/message';
 import MessageRow from './MessageRow';
 import DeleteMessageModal from './DeleteMessageModal';
 import { MANAGE_MESSAGES_BIT, shouldGroupWithPrevious } from './helpers';
+import { buildLanes } from './lanes';
+import { createLaneHeat, prefersMotion } from './lane-heat';
 import Flexbox from '../ui/Flexbox';
 import styles from './MessageList.module.css';
+import rowStyles from './MessageRow.module.css';
+
+/** How often heat is recomputed while a lane is lit. Fast enough to read as a
+ *  smooth falloff, slow enough to be invisible in a profile. */
+const HEAT_TICK_MS = 100;
+
+/** How many older pages jump-to-message will load before giving up. */
+const JUMP_MAX_PAGES = 5;
+
+/** How long the landing flash stays on the jumped-to row - matches messageFlash. */
+const JUMP_FLASH_MS = 1200;
 
 interface MessageListProps {
   conversationId: string;
@@ -34,6 +47,80 @@ export default function MessageList(props: MessageListProps) {
   const [deleteConfirmMessageId, setDeleteConfirmMessageId] = createSignal<string | null>(null);
   const [isDeleting, setIsDeleting] = createSignal(false);
   const [myPermissions, setMyPermissions] = createSignal<bigint>(0n);
+
+  // ── Conversation lanes and heat ──
+  const lanes = createMemo(() => buildLanes(messageStore.messages));
+  const laneHeat = createLaneHeat({ enabled: prefersMotion() });
+  // Ticker drives the falloff. It runs only while a lane is lit and stops itself
+  // once everything has cooled, so an idle channel costs nothing.
+  const [heatNow, setHeatNow] = createSignal(0);
+  let heatTimer: ReturnType<typeof setInterval> | undefined;
+  let lastSeenMessageId: string | null = null;
+
+  const stopHeatTicker = () => {
+    if (heatTimer === undefined) return;
+    clearInterval(heatTimer);
+    heatTimer = undefined;
+  };
+
+  const startHeatTicker = () => {
+    if (heatTimer !== undefined) return;
+    heatTimer = setInterval(() => {
+      const now = Date.now();
+      setHeatNow(now);
+      if (!laneHeat.hasHotLanes(now)) stopHeatTicker();
+    }, HEAT_TICK_MS);
+  };
+
+  onCleanup(stopHeatTicker);
+
+  // Light a lane whenever a reply lands in it. Covers all three arrival routes -
+  // own optimistic send, the POST echo, and Chat_MessageCreated over SignalR -
+  // because each ends up appending to the same store.
+  createEffect(() => {
+    const list = messageStore.messages;
+    const laneMap = lanes();
+    if (list.length === 0) {
+      lastSeenMessageId = null;
+      return;
+    }
+
+    const newest = list[list.length - 1];
+    if (newest.id === lastSeenMessageId) return;
+
+    const isFirstPass = lastSeenMessageId === null;
+    const previousIndex = lastSeenMessageId
+      ? list.findIndex((m) => m.id === lastSeenMessageId)
+      : -1;
+    lastSeenMessageId = newest.id;
+
+    // Heat marks live activity, so the backlog never lights up on channel open -
+    // an hour-old reply is still a lane, just not a hot one.
+    if (isFirstPass) return;
+
+    // The last message seen can vanish from the list: an optimistic "pending-" id
+    // is swapped for the real one once the POST returns. Without a reference point
+    // there is no safe way to tell what is new, so only consider the newest row
+    // rather than lighting every lane in the window.
+    const firstUnseen = previousIndex >= 0 ? previousIndex + 1 : list.length - 1;
+
+    const now = Date.now();
+    let lit = false;
+    for (let i = firstUnseen; i < list.length; i++) {
+      const lane = laneMap.get(list[i].id);
+      if (!lane || !list[i].replyToId) continue;
+      laneHeat.noteReply(lane.laneId, now);
+      lit = true;
+    }
+
+    if (lit) {
+      setHeatNow(now);
+      startHeatTicker();
+    }
+  });
+
+  const heatForRow = (laneId: string | undefined) =>
+    laneId ? laneHeat.heatFor(laneId, heatNow()) : 0;
 
   const currentUserId = () => authStore.user?.id;
 
@@ -123,6 +210,39 @@ export default function MessageList(props: MessageListProps) {
     }
   };
 
+  /** Scrolls to a message and flashes it. Pages backwards when the target has not
+   *  been loaded yet, bounded so a reply to something ancient cannot spin forever. */
+  const jumpToMessage = async (messageId: string) => {
+    const focusRow = () => {
+      const row = scrollContainer?.querySelector<HTMLElement>(
+        `[data-message-id="${CSS.escape(messageId)}"]`,
+      );
+      if (!row) return false;
+
+      row.scrollIntoView({ block: 'center', behavior: prefersMotion() ? 'smooth' : 'auto' });
+      row.classList.remove(rowStyles.messageRowFlash);
+      // Force a reflow so re-adding the class restarts the animation when the same
+      // message is jumped to twice in a row.
+      void row.offsetWidth;
+      row.classList.add(rowStyles.messageRowFlash);
+      setTimeout(() => row.classList.remove(rowStyles.messageRowFlash), JUMP_FLASH_MS);
+      return true;
+    };
+
+    if (focusRow()) return;
+
+    for (let page = 0; page < JUMP_MAX_PAGES; page++) {
+      const cursor = messageStore.nextCursor;
+      if (!cursor || !messageStore.hasMore) break;
+      await messageStore.loadMessages(props.conversationId, cursor);
+      // Let the newly prepended rows render before looking for the target.
+      await new Promise<void>((resolve) => queueMicrotask(resolve));
+      if (focusRow()) return;
+    }
+
+    toasts.error('That message is too far back to jump to.');
+  };
+
   const handleSelectReaction = async (messageId: string, emoji: string) => {
     setReactionPickerMessageId(null);
     try {
@@ -209,6 +329,7 @@ export default function MessageList(props: MessageListProps) {
             {(message, index) => {
               const grouped = () =>
                 shouldGroupWithPrevious(messageStore.messages, message, index());
+              const lane = () => lanes().get(message.id);
 
               return (
                 <MessageRow
@@ -217,6 +338,9 @@ export default function MessageList(props: MessageListProps) {
                   serverId={params.serverId}
                   channelId={params.channelId}
                   grouped={grouped()}
+                  lane={lane()}
+                  laneHeat={heatForRow(lane()?.laneId)}
+                  onJumpTo={(id) => void jumpToMessage(id)}
                   isAuthor={message.authorId === currentUserId()}
                   canDelete={canDeleteMessage(message)}
                   isReactionPickerOpen={reactionPickerMessageId() === message.id}

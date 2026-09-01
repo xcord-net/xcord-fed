@@ -4,7 +4,7 @@ namespace Xcord.Features.Messages;
 
 public static class MessageEventPayloads
 {
-    public static object ForCreated(Message message, string? authorUsername, string? authorAvatarUrl, DateTimeOffset? editedAt = null, IReadOnlyList<object>? attachments = null)
+    public static object ForCreated(Message message, string? authorUsername, string? authorAvatarUrl, DateTimeOffset? editedAt = null, IReadOnlyList<object>? attachments = null, ReplyToDto? replyTo = null)
     {
         return new
         {
@@ -17,6 +17,7 @@ public static class MessageEventPayloads
             content = message.Content,
             metadata = message.Metadata,
             replyToId = message.ReplyToId,
+            replyTo,
             isPinned = message.IsPinned,
             editedAt,
             createdAt = message.CreatedAt,
