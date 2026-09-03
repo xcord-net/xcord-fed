@@ -161,6 +161,9 @@ describe('BroadcastHostPanel', () => {
       expect(hoisted.connect).toHaveBeenCalledWith({
         livekitUrl: 'wss://lk.test',
         publishToken: 'pub-token',
+        // Passed so the hook can keep the token current; without it a broadcast
+        // that outlives its token cannot reconnect.
+        broadcastId: 'b-new',
       }),
     );
   });

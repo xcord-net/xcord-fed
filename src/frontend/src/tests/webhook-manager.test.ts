@@ -15,11 +15,10 @@ import {
 const makeWebhook = (overrides?: Partial<OutgoingWebhook>): OutgoingWebhook => ({
   id: 'wh-1',
   serverId: 'server-abc',
-  name: 'Deploy Notifier',
   targetUrl: 'https://example.com/webhook',
-  events: ['message.created', 'member.joined'],
-  secret: 'wh-secret-abc123',
-  enabled: true,
+  eventTypes: ['MessageCreated', 'MemberJoined'],
+  isActive: true,
+  createdByUserId: 'user-1',
   createdAt: '2026-01-01T00:00:00Z',
   ...overrides,
 });
@@ -123,34 +122,34 @@ describe('WebhookManager', () => {
   describe('toggleEvent', () => {
     it('adds an event when not already in the list', () => {
       // Arrange
-      const events: WebhookEvent[] = ['message.created'];
+      const events: WebhookEvent[] = ['MessageCreated'];
 
       // Act
-      const result = toggleEvent(events, 'member.joined');
+      const result = toggleEvent(events, 'MemberJoined');
 
       // Assert
-      expect(result).toContain('member.joined');
+      expect(result).toContain('MemberJoined');
       expect(result).toHaveLength(2);
     });
 
     it('removes an event when already in the list', () => {
       // Arrange
-      const events: WebhookEvent[] = ['message.created', 'member.joined'];
+      const events: WebhookEvent[] = ['MessageCreated', 'MemberJoined'];
 
       // Act
-      const result = toggleEvent(events, 'message.created');
+      const result = toggleEvent(events, 'MessageCreated');
 
       // Assert
-      expect(result).not.toContain('message.created');
+      expect(result).not.toContain('MessageCreated');
       expect(result).toHaveLength(1);
     });
 
     it('does not mutate the original array', () => {
       // Arrange
-      const events: WebhookEvent[] = ['message.created'];
+      const events: WebhookEvent[] = ['MessageCreated'];
 
       // Act
-      toggleEvent(events, 'member.joined');
+      toggleEvent(events, 'MemberJoined');
 
       // Assert
       expect(events).toHaveLength(1);
@@ -161,15 +160,14 @@ describe('WebhookManager', () => {
 
   describe('ALL_WEBHOOK_EVENTS and labels', () => {
     it('ALL_WEBHOOK_EVENTS contains the expected events', () => {
-      // Assert - exact catalog so accidentally removing any event fails the test
+      // Exact catalog, so both losing an event and inventing one fail here. It
+      // is the set the server validates against - it rejects anything else - so
+      // this list is a claim about the API, not a preference.
       expect(ALL_WEBHOOK_EVENTS).toEqual([
-        'message.created',
-        'message.deleted',
-        'member.joined',
-        'member.left',
-        'channel.created',
-        'channel.deleted',
-        'group.updated',
+        'MessageCreated',
+        'MemberJoined',
+        'MemberLeft',
+        'MemberBanned',
       ]);
     });
 
@@ -185,7 +183,7 @@ describe('WebhookManager', () => {
   // ---- API calls ----
 
   describe('fetching webhooks', () => {
-    it('calls GET /api/v1/servers/{id}/webhooks/outgoing', async () => {
+    it('calls GET /api/v1/servers/{id}/outgoing-webhooks', async () => {
       // Arrange
       const serverId = 'server-abc';
       const mockWebhooks: OutgoingWebhook[] = [makeWebhook()];
@@ -197,16 +195,16 @@ describe('WebhookManager', () => {
 
       // Act
       const result = await api.get<OutgoingWebhook[]>(
-        `/api/v1/servers/${serverId}/webhooks/outgoing`,
+        `/api/v1/servers/${serverId}/outgoing-webhooks`,
       );
 
       // Assert
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        `/api/v1/servers/${serverId}/webhooks/outgoing`,
+        `/api/v1/servers/${serverId}/outgoing-webhooks`,
         expect.objectContaining({ method: 'GET' }),
       );
       expect(result).toHaveLength(1);
-      expect(result[0].name).toBe('Deploy Notifier');
+      expect(result[0].targetUrl).toBe('https://example.com/webhook');
     });
 
     it('throws when API returns an error', async () => {
@@ -218,16 +216,16 @@ describe('WebhookManager', () => {
 
       // Act & Assert
       await expect(
-        api.get('/api/v1/servers/srv/webhooks/outgoing'),
+        api.get('/api/v1/servers/srv/outgoing-webhooks'),
       ).rejects.toMatchObject({ error: 'Forbidden' });
     });
   });
 
   describe('creating a webhook', () => {
-    it('calls POST /api/v1/servers/{id}/webhooks/outgoing with correct body', async () => {
+    it('calls POST /api/v1/servers/{id}/outgoing-webhooks with correct body', async () => {
       // Arrange
       const serverId = 'server-abc';
-      const newWebhook = makeWebhook({ id: 'wh-new', name: 'New Hook' });
+      const newWebhook = makeWebhook({ id: 'wh-new', targetUrl: 'https://example.com/new' });
 
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
@@ -236,19 +234,19 @@ describe('WebhookManager', () => {
 
       // Act
       const result = await api.post<OutgoingWebhook>(
-        `/api/v1/servers/${serverId}/webhooks/outgoing`,
-        { name: 'New Hook', targetUrl: 'https://example.com/hook', events: ['message.created'] },
+        `/api/v1/servers/${serverId}/outgoing-webhooks`,
+        { name: 'New Hook', targetUrl: 'https://example.com/hook', events: ['MessageCreated'] },
       );
 
       // Assert
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        `/api/v1/servers/${serverId}/webhooks/outgoing`,
+        `/api/v1/servers/${serverId}/outgoing-webhooks`,
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({
             name: 'New Hook',
             targetUrl: 'https://example.com/hook',
-            events: ['message.created'],
+            events: ['MessageCreated'],
           }),
         }),
       );
@@ -258,7 +256,7 @@ describe('WebhookManager', () => {
   });
 
   describe('deleting a webhook', () => {
-    it('calls DELETE /api/v1/servers/{id}/webhooks/outgoing/{webhookId}', async () => {
+    it('calls DELETE /api/v1/servers/{id}/outgoing-webhooks/{webhookId}', async () => {
       // Arrange
       const serverId = 'server-abc';
       const webhookId = 'wh-1';
@@ -266,11 +264,11 @@ describe('WebhookManager', () => {
       globalThis.fetch = vi.fn().mockResolvedValue({ ok: true, status: 204 });
 
       // Act
-      await api.delete(`/api/v1/servers/${serverId}/webhooks/outgoing/${webhookId}`);
+      await api.delete(`/api/v1/servers/${serverId}/outgoing-webhooks/${webhookId}`);
 
       // Assert
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        `/api/v1/servers/${serverId}/webhooks/outgoing/${webhookId}`,
+        `/api/v1/servers/${serverId}/outgoing-webhooks/${webhookId}`,
         expect.objectContaining({ method: 'DELETE' }),
       );
     });

@@ -35,10 +35,10 @@ describe('BroadcastGreenRoom', () => {
   });
 
   it('shows empty placeholder when no slots', () => {
-    const { getByText } = render(() => (
+    const { getByText, getByTestId } = render(() => (
       <BroadcastGreenRoom broadcast={makeBroadcast()} />
     ));
-    expect(getByText('No one is on stage yet.')).toBeInTheDocument();
+    expect(getByTestId('green-room-empty')).toBeInTheDocument();
   });
 
   it('renders one row per stage slot using userId fallback', () => {

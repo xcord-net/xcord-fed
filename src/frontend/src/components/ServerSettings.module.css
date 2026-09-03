@@ -85,14 +85,6 @@
   margin-bottom: 1rem;
 }
 
-/* Server icon row */
-.iconRow {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-}
-
 .serverIcon {
   width: 5rem;
   height: 5rem;
@@ -106,17 +98,6 @@
   font-weight: 700;
   user-select: none;
   flex-shrink: 0;
-}
-
-.iconName {
-  color: var(--color-xcord-white);
-  font-weight: 500;
-}
-
-.iconHint {
-  color: var(--color-xcord-text-muted);
-  font-size: 0.875rem;
-  margin-top: 0.125rem;
 }
 
 /* Form fields */
@@ -150,10 +131,10 @@
 
 .textInput:focus {
   border-color: var(--color-xcord-brand);
-  outline: none;
 }
 
 .textInput:focus-visible {
+  outline: none;
   box-shadow: 0 0 0 2px var(--color-xcord-brand);
 }
 
@@ -170,10 +151,10 @@
 
 .textarea:focus {
   border-color: var(--color-xcord-brand);
-  outline: none;
 }
 
 .textarea:focus-visible {
+  outline: none;
   box-shadow: 0 0 0 2px var(--color-xcord-brand);
 }
 
@@ -189,10 +170,10 @@
 
 .selectInput:focus {
   border-color: var(--color-xcord-brand);
-  outline: none;
 }
 
 .selectInput:focus-visible {
+  outline: none;
   box-shadow: 0 0 0 2px var(--color-xcord-brand);
 }
 

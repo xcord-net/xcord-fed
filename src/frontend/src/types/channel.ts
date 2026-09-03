@@ -40,7 +40,7 @@ export interface Channel {
   categoryId?: string;
   name: string;
   topic?: string;
-  type: 'Text' | 'Voice' | 'Forum';
+  type: 'Text' | 'Voice' | 'Forum' | 'Announcement' | 'Stage';
   capabilities: number;
   accessGroupId?: string;
   position: number;

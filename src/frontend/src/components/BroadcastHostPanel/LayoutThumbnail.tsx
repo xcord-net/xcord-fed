@@ -35,6 +35,15 @@ export default function LayoutThumbnail(props: { preset: BroadcastLayoutPreset }
           <div class={styles.thumbHalf} />
         </div>
       </Show>
+      {/* The thumbnail says the same thing the output does: no tiles, just
+          voices. */}
+      <Show when={props.preset === 'AudioShow'}>
+        <div class={styles.thumbAudio}>
+          <div class={styles.thumbWave}>
+            <i /><i /><i /><i /><i />
+          </div>
+        </div>
+      </Show>
     </div>
   );
 }

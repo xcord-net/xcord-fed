@@ -1,0 +1,204 @@
+.strip {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.55rem 0.8rem 0;
+  border-bottom: 1px solid var(--color-xcord-border);
+  background: var(--color-xcord-bg-tertiary);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.strip::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid transparent;
+  border-radius: 9px 9px 0 0;
+  background: none;
+  color: var(--color-xcord-text-muted);
+  font-size: 0.84rem;
+  font-family: inherit;
+  cursor: pointer;
+  position: relative;
+  top: 1px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tab:hover {
+  color: var(--color-xcord-text-secondary);
+}
+
+/* Elevation comes from the surface step, not from a heavier border: the
+   active tab is literally the content pane's colour, joined to it. */
+.active {
+  background: var(--color-xcord-bg-primary);
+  color: var(--color-xcord-text-primary);
+  border-color: var(--color-xcord-border);
+  border-bottom-color: var(--color-xcord-bg-primary);
+  font-weight: 600;
+}
+
+.tabLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.tabName {
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home {
+  padding: 0.5rem 0.7rem;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.badge {
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--color-xcord-brand);
+  color: var(--color-xcord-bg-tertiary);
+  font-size: 0.6rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ghost {
+  color: var(--color-xcord-text-muted);
+  font-style: italic;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-bottom: none;
+}
+
+.ghostBadge {
+  background: var(--color-xcord-bg-floating);
+  color: var(--color-xcord-text-secondary);
+}
+
+.close {
+  background: none;
+  border: none;
+  color: var(--color-xcord-text-faint);
+  cursor: pointer;
+  padding: 0 0 0 0.15rem;
+  font-size: 1rem;
+  line-height: 1;
+  opacity: 0;
+}
+
+.tab:hover .close,
+.close:focus-visible {
+  opacity: 1;
+}
+
+.close:hover {
+  color: var(--color-xcord-text-primary);
+}
+
+.add {
+  color: var(--color-xcord-text-faint);
+  padding: 0.5rem 0.6rem;
+  font-size: 1rem;
+}
+
+.spacer {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding-bottom: 0.4rem;
+  flex-shrink: 0;
+}
+
+.kbd {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.6rem;
+  color: var(--color-xcord-text-faint);
+  border: 1px solid var(--color-xcord-line, #2c272c);
+  border-radius: var(--radius-sm, 6px);
+  padding: 0.1rem 0.35rem;
+  background: none;
+  cursor: pointer;
+}
+
+.kbd:hover {
+  color: var(--color-xcord-text-secondary);
+}
+
+/* Keyboard focus must stay visible on every control in the strip. */
+.tab:focus-visible,
+.tabLabel:focus-visible,
+.close:focus-visible,
+.kbd:focus-visible {
+  outline: 2px solid var(--color-xcord-brand);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .tabName {
+    max-width: 7rem;
+  }
+
+  .strip {
+    padding: 0.4rem 0.5rem 0;
+  }
+}
+
+/* The colour dot is its own control: it opens the community, which is a
+   different destination from the conversation on the tab. */
+.dotButton {
+  background: none;
+  border: none;
+  padding: 0 0 0 0.15rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.dotButton:focus-visible {
+  outline: 2px solid var(--color-xcord-brand);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* A settings tab is a place you went, not part of the working set, so it reads
+   quieter than a conversation: no community dot, a gear, and no unread badge
+   because there is nothing to be behind on. */
+.utility {
+  color: var(--color-xcord-text-faint);
+}
+
+.utility.active {
+  color: var(--color-xcord-text-primary);
+}
+
+.utilityIcon {
+  flex-shrink: 0;
+}

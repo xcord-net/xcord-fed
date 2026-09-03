@@ -81,7 +81,11 @@ export function useSubscriptions() {
      * caller should refresh the subscription view rather than redirecting.
      */
     async subscribe(serverId: string, tierId: string): Promise<string> {
-      const res = await api.post<SubscribeResponse>(`/api/v1/servers/${serverId}/subscribe`, { tierId: Number(tierId) });
+      // Sent as a string: a tier id is a snowflake, and Number() silently
+      // rounds anything past 2^53 - so subscribing to a real tier asked the
+      // server for an id that does not exist, and every attempt came back
+      // "tier not found or inactive". The API reads ids from strings.
+      const res = await api.post<SubscribeResponse>(`/api/v1/servers/${serverId}/subscribe`, { tierId: String(tierId) });
       if (res.requiresCheckout && res.checkoutUrl) return res.checkoutUrl;
       if (res.subscription) {
         setSubscription(serverId, res.subscription);

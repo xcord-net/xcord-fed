@@ -29,6 +29,22 @@ export function useMembers() {
       store.setMembers(store.members().filter(m => m.userId !== userId));
     },
 
+    /**
+     * Drop someone from the roster on screen, in response to a realtime event.
+     *
+     * Leaving, being kicked and being banned all reach other people this way.
+     * Without it the roster only ever changed for whoever performed the action;
+     * everyone else went on seeing the departed member until they reloaded.
+     */
+    removeMember(userId: string): void {
+      store.setMembers(store.members().filter(m => m.userId !== userId));
+    },
+
+    /** Refetch the roster after someone joins, which the event does not carry. */
+    async refreshMembers(serverId: string): Promise<void> {
+      await this.fetchMembers(serverId).catch(() => undefined);
+    },
+
     async assignGroup(serverId: string, userId: string, groupId: string): Promise<void> {
       await api.post(`/api/v1/servers/${serverId}/members/${userId}/groups/${groupId}`);
     },

@@ -13,6 +13,10 @@ export default function AttachmentList(props: AttachmentListProps) {
     <Flexbox wrap="wrap" gap={0.5} class={styles.attachmentList}>
       <For each={props.attachments}>
         {(attachment) => (
+          // Which of the two shapes an attachment takes depends on whether its
+          // thumbnail has been generated yet, so "there is an attachment here"
+          // needs a hook that does not depend on winning that race.
+          <div data-testid="message-attachment" class={styles.attachmentItem}>
           <Show
             when={attachment.thumbnailUrl}
             fallback={
@@ -43,6 +47,7 @@ export default function AttachmentList(props: AttachmentListProps) {
               />
             </a>
           </Show>
+          </div>
         )}
       </For>
     </Flexbox>

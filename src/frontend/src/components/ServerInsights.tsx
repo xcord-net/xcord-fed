@@ -2,6 +2,8 @@ import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import styles from './ServerInsights.module.css';
+import EmptyState from './ui/EmptyState';
+import { ChartColumn } from 'lucide-solid';
 
 export type InsightsRange = '7d' | '30d' | '90d';
 
@@ -289,9 +291,12 @@ export default function ServerInsights(props: ServerInsightsProps) {
       </Show>
 
       <Show when={!isLoading() && data() === null && !error()}>
-        <div class={styles.emptyState}>
-          <p>No insights data available.</p>
-        </div>
+        <EmptyState
+          icon={ChartColumn}
+          title="No insights yet"
+          body="Once the community has some activity, message and join trends show up here."
+          data-testid="server-insights-empty"
+        />
       </Show>
     </div>
   );

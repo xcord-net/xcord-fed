@@ -74,6 +74,18 @@ public enum BroadcastLayoutPreset
     Spotlight,
     Pip,
     SideBySide,
+
+    /// <summary>
+    /// Audio show: no video at all. The composite renders each speaker as a
+    /// name card whose waveform moves while they talk.
+    /// </summary>
+    /// <remarks>
+    /// A talk show does not need faces, and asking people to be on camera is the
+    /// thing that stops most of them showing up. This preset also costs a
+    /// fraction of the encode: the compositor has no video tracks to decode and
+    /// the output is a near-static frame.
+    /// </remarks>
+    AudioShow,
 }
 
 /// <summary>

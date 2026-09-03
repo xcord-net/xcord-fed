@@ -1,12 +1,11 @@
 import { onMount, onCleanup, createSignal } from 'solid-js';
 import { api } from '../api/client';
+import { parseHubMessage, HubMessageType } from '../protocol/hubProtocol';
 
 interface HubHeaderProps {
   hubUrl: string;
   instanceUrl: string;
 }
-
-const HUB_KEY_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 
 export default function HubHeader(props: HubHeaderProps) {
   const [hubKey, setHubKey] = createSignal<string | null>(null);
@@ -29,16 +28,16 @@ export default function HubHeader(props: HubHeaderProps) {
     }
   });
 
+  // Only the hub origin we already trust, and only the frame we put there:
+  // another frame on the same origin does not get to set the key.
   const handleMessage = (event: MessageEvent) => {
-    if (expectedOrigin === null) return;
-    if (event.origin !== expectedOrigin) return;
-    if (event.source !== iframeRef?.contentWindow) return;
-    const data = event.data;
-    if (!data || data.type !== 'xcord_hub_key') return;
-    const key = data.hubKey;
-    if (typeof key !== 'string' || !HUB_KEY_PATTERN.test(key)) return;
-    setHubKey(key);
-    api.put('/api/v1/users/@me/hub-key', { hubKey: key }).catch(() => {});
+    const message = parseHubMessage(event, {
+      isTrustedOrigin: (origin) => expectedOrigin !== null && origin === expectedOrigin,
+      expectedSource: iframeRef?.contentWindow ?? null,
+    });
+    if (message?.type !== HubMessageType.HubKey) return;
+    setHubKey(message.hubKey);
+    api.put('/api/v1/users/@me/hub-key', { hubKey: message.hubKey }).catch(() => {});
   };
 
   onMount(() => window.addEventListener('message', handleMessage));

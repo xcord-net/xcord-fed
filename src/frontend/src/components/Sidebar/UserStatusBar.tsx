@@ -24,9 +24,9 @@ const isValidVersion = (v: string) =>
 export default function UserStatusBar(props: UserStatusBarProps) {
   return (
     <div class={styles.userPanel}>
-      {/* Version badge - expanded-only via CSS */}
+      {/* Version badge */}
       <Show when={props.version && isValidVersion(props.version)}>
-        <div class={`expanded-only ${styles.versionBadgeWrapper}`}>
+        <div class={styles.versionBadgeWrapper}>
           <span data-testid="version-badge" class={styles.versionBadge}>
             v{props.version}
           </span>
@@ -52,14 +52,10 @@ export default function UserStatusBar(props: UserStatusBarProps) {
                   <AdminShieldIcon class={styles.adminIcon} />
                 </div>
               </Show>
-              {/* Tooltip - shown via CSS when collapsed (not hovered) */}
-              <div class={`collapsed-only ${styles.userTooltip}`}>
-                {profile().displayName || profile().username}
-              </div>
             </div>
 
-            {/* Username - expanded-only via CSS */}
-            <span class={`expanded-only ${styles.username}`}>{profile().displayName || profile().username}</span>
+            {/* Username */}
+            <span class={styles.username}>{profile().displayName || profile().username}</span>
 
             {/* Settings + Logout */}
             <Flexbox align="center" gap={0.25} class={styles.userActions}>

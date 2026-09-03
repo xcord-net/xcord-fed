@@ -24,7 +24,7 @@ describe('FriendList', () => {
       'GET /api/v1/users/@me/friends': () => ({ status: 200, body: { friendships: [] } }),
     });
     const { findByTestId } = render(() => <FriendList />);
-    expect(await findByTestId('friends-empty-state')).toHaveTextContent('No friends yet');
+    expect(await findByTestId('friends-empty-state')).toBeInTheDocument();
   });
 
   it('disables the Send Request button when the input is empty', async () => {

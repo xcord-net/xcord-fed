@@ -4,12 +4,16 @@ import { api } from '../../api/client';
 import { useAuth } from '../../stores/auth.store';
 import { useChannels } from '../../stores/channel.store';
 import { useDms } from '../../stores/dm.store';
+import { useThreads } from '../../stores/thread.store';
+import { useEmojis } from '../../stores/emoji.store';
 import { useMembers } from '../../stores/member.store';
 import { useMessages } from '../../stores/message.store';
 import { useModals } from '../../stores/modal.store';
 import { useServers } from '../../stores/server.store';
 import { useSignalR } from '../../stores/signalr.store';
 import { useUnread } from '../../stores/unread.store';
+import { useVoice } from '../../stores/voice.store';
+import { Capability, hasCapability } from '../../types/channel';
 import { requestPermission } from '../../services/notification.service';
 
 /**
@@ -28,8 +32,11 @@ export function useLayoutWiring() {
   const messageStore = useMessages();
   const signalR = useSignalR();
   const unreadStore = useUnread();
+  const voiceStore = useVoice();
   const modals = useModals();
   const dmStore = useDms();
+  const threadStore = useThreads();
+  const emojiStore = useEmojis();
 
   const [hubUrl, setHubUrl] = createSignal<string | null>(null);
 
@@ -72,10 +79,7 @@ export function useLayoutWiring() {
       .catch(() => {});
     // Connect to the real-time hub so message/presence/typing events are received.
     signalR.connectSignalR().then(() => {
-      const channel = channelStore.channels.find(
-        (c) => c.id === channelStore.selectedChannelId,
-      );
-      const convId = channel?.conversationId;
+      const convId = activeConversationId();
       if (convId) {
         signalR.joinConversation(convId).catch((err) => {
           console.error('Failed to join conversation after SignalR connect:', err);
@@ -114,6 +118,10 @@ export function useLayoutWiring() {
         }
       });
       memberStore.fetchMembers(serverId);
+      // A community's custom emoji are needed to *read* its messages, not only
+      // to write them. Loading them with the picker meant anyone who had not
+      // opened the picker saw ":name:" where a picture belonged.
+      emojiStore.loadCustomEmojis(serverId).catch(() => undefined);
     }
   });
 
@@ -136,15 +144,87 @@ export function useLayoutWiring() {
     }
   });
 
+  // Opening a voice channel puts you in the room.
+  //
+  // Nothing else calls joinVoice. The sidebar row used to, and that entry point
+  // went with the sidebar - leaving voice unreachable through the interface:
+  // the stage rendered an empty room and the connection pill, which only shows
+  // once you are actually connected, never appeared at all.
+  //
+  // Join only. Voice deliberately outlives the tab you joined from (the pill in
+  // VoicePanel is the way back to it), so navigating elsewhere must not hang up
+  // on you - leaving stays something you do on purpose.
+  let lastAutoJoined: string | undefined;
+  createEffect(() => {
+    const channelId = channelStore.selectedChannelId;
+    if (!channelId || voiceStore.currentChannelId === channelId) return;
+    // Arriving is what joins you, not merely being here while not connected.
+    // Without this the effect fought the leave button: hanging up cleared the
+    // current channel, which made this condition true again for the room still
+    // on screen, and rejoined you immediately.
+    if (channelId === lastAutoJoined) return;
+    const channel = channelStore.channels.find((c) => c.id === channelId);
+    if (!channel?.capabilities) return;
+    if (!hasCapability(channel.capabilities, Capability.Voice)) return;
+    // Joining a room is a SignalR call, and on a fresh page load the room is
+    // selected before the connection is up. Reading the flag here makes this
+    // effect wait for it rather than spend its one attempt on a call that
+    // cannot land - which left the stage empty with no way back but a reload.
+    if (!signalR.isConnected) return;
+    lastAutoJoined = channelId;
+    void voiceStore.joinVoice(channelId).catch(() => undefined);
+  });
+
+  /**
+   * The conversation on screen, from whichever store owns it.
+   *
+   * A direct message is a conversation like any other, but it lives in the DM
+   * store - `channelStore` only ever holds a server's channels. Resolving from
+   * `channelStore` alone meant opening a DM never joined its realtime group: a
+   * message arriving while you had the thread open was invisible until reload,
+   * and the thread was never marked read.
+   */
+  const activeConversationId = () => {
+    if (params.serverId === 'me') {
+      return dmStore.dmChannels.find((d) => d.id === params.channelId)?.conversationId;
+    }
+    return channelStore.channels.find((c) => c.id === channelStore.selectedChannelId)
+      ?.conversationId;
+  };
+
+  /**
+   * A thread is a conversation of its own, open *alongside* a channel.
+   *
+   * The join below tracks one conversation - the channel or DM on screen - so a
+   * thread never joined its own group and nothing said in it arrived live for
+   * anybody but the sender. This is a second subscription rather than a
+   * replacement, because the channel underneath stays open too.
+   */
+  let prevThreadConversationId: string | undefined;
+  createEffect(() => {
+    const thread = threadStore.threads.find((t) => t.id === threadStore.activeThreadId);
+    const convId = thread?.conversationId;
+    const connected = signalR.isConnected;
+    if (convId === prevThreadConversationId) return;
+    if (!connected) return;
+
+    if (prevThreadConversationId) {
+      signalR.leaveConversation(prevThreadConversationId).catch(() => { /* non-fatal */ });
+    }
+    prevThreadConversationId = convId;
+    if (convId) {
+      signalR.joinConversation(convId).catch((err) => {
+        console.error('Failed to join thread conversation:', err);
+      });
+    }
+  });
+
   // Join/leave SignalR conversation group when the active conversation changes, or
   // when the SignalR connection is (re)established.
   let prevConversationId: string | undefined;
   let prevConnected = false;
   createEffect(() => {
-    const channel = channelStore.channels.find(
-      (c) => c.id === channelStore.selectedChannelId,
-    );
-    const convId = channel?.conversationId;
+    const convId = activeConversationId();
     const connected = signalR.isConnected;
 
     const conversationChanged = convId !== prevConversationId;

@@ -4,6 +4,8 @@ import { api } from '../api/client';
 import type { Channel, Category } from '../types/channel';
 import Flexbox from './ui/Flexbox';
 import styles from './ChannelReorder.module.css';
+import EmptyState from './ui/EmptyState';
+import { ChannelIcon } from './Sidebar/icons';
 
 interface ChannelReorderProps {
   serverId: string;
@@ -169,9 +171,7 @@ export default function ChannelReorder(props: ChannelReorderProps) {
             >
               ⠿
             </span>
-            <span class={styles.channelIcon} aria-hidden="true">
-              {channel.type === 'Voice' ? '🔊' : '#'}
-            </span>
+            <ChannelIcon capabilities={channel.capabilities} class={styles.channelIcon} />
             <span class={styles.channelName}>{channel.name}</span>
           </div>
         )}
@@ -221,9 +221,7 @@ export default function ChannelReorder(props: ChannelReorderProps) {
                     >
                       ⠿
                     </span>
-                    <span class={styles.channelIcon} aria-hidden="true">
-                      {channel.type === 'Voice' ? '🔊' : '#'}
-                    </span>
+                    <ChannelIcon capabilities={channel.capabilities} class={styles.channelIcon} />
                     <span class={styles.channelName}>{channel.name}</span>
                   </div>
                 )}
@@ -235,7 +233,7 @@ export default function ChannelReorder(props: ChannelReorderProps) {
 
       {/* Empty state */}
       <Show when={channelStore.channels.length === 0 && channelStore.categories.length === 0}>
-        <p class={styles.emptyState}>No channels to reorder.</p>
+        <EmptyState title="Nothing to reorder yet" dense data-testid="channel-reorder-empty" />
       </Show>
     </Flexbox>
   );

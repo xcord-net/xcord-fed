@@ -62,8 +62,8 @@ export default function ServerHeader(props: ServerHeaderProps) {
         <PlusIcon class={styles.createChannelPlusIcon} />
       </button>
 
-      {/* Server name + menu - CSS expanded-only */}
-      <h2 class={`expanded-only ${styles.serverNameHeading}`} data-testid="server-name-heading">{props.server.name}</h2>
+      {/* Server name + menu */}
+      <h2 class={styles.serverNameHeading} data-testid="server-name-heading">{props.server.name}</h2>
       <Show when={props.selectedServerId}>
         <button
           data-testid="server-menu-trigger"
@@ -74,7 +74,7 @@ export default function ServerHeader(props: ServerHeaderProps) {
           aria-expanded={props.showServerMenu}
           title="Server Options"
           onClick={() => props.onMenuOpen()}
-          class={`expanded-only ${styles.serverMenuTrigger}`}
+          class={styles.serverMenuTrigger}
         >
           <ChevronDownIcon class={styles.chevronIcon} />
         </button>

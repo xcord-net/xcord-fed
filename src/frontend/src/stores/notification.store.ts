@@ -64,7 +64,16 @@ export function useNotifications() {
       if (current) {
         store.setSettings({ ...current, ...updates });
       }
-      await api.put('/api/v1/users/@me/notification-settings', updates);
+      try {
+        await api.put('/api/v1/users/@me/notification-settings', updates);
+      } catch (err) {
+        // Put the switch back where the server still has it. Without this a
+        // refused write left the toggle showing the value the user chose, so
+        // the interface claimed a preference that did not exist anywhere -
+        // and only a reload would ever admit it.
+        if (current) store.setSettings(current);
+        throw err;
+      }
     },
 
     async muteServer(serverId: string): Promise<void> {

@@ -73,12 +73,3 @@
   padding: 2rem 0;
   color: var(--color-xcord-text-muted);
 }
-
-.emptyTitle {
-  font-weight: 600;
-}
-
-.emptySubtitle {
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-}

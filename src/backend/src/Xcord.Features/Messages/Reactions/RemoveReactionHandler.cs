@@ -12,7 +12,8 @@ namespace Xcord.Features.Messages;
 public sealed record RemoveReactionCommand(long ConversationId, long MessageId, string Emoji);
 
 public sealed class RemoveReactionHandler(
-    AppDbContext dbContext, ICurrentUserService currentUserService)
+    AppDbContext dbContext, ICurrentUserService currentUserService,
+    INotificationService notificationService)
     : IRequestHandler<RemoveReactionCommand, Result<bool>>
 {
     public async Task<Result<bool>> Handle(RemoveReactionCommand request, CancellationToken ct)
@@ -29,6 +30,10 @@ public sealed class RemoveReactionHandler(
 
         dbContext.Reactions.Remove(reaction);
         await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+
+        await ReactionBroadcast.PublishAsync(
+            dbContext, notificationService, request.ConversationId, request.MessageId, ct)
+            .ConfigureAwait(false);
 
         return true;
     }

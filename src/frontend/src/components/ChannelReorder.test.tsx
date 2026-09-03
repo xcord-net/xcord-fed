@@ -52,8 +52,8 @@ describe('ChannelReorder', () => {
   });
 
   it('renders empty state when there are no channels or categories', () => {
-    const { getByText } = render(() => <ChannelReorder serverId="s-1" />);
-    expect(getByText('No channels to reorder.')).toBeInTheDocument();
+    const { getByText, getByTestId } = render(() => <ChannelReorder serverId="s-1" />);
+    expect(getByTestId('channel-reorder-empty')).toBeInTheDocument();
   });
 
   it('renders an uncategorized channel row', async () => {

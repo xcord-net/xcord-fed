@@ -87,6 +87,10 @@ export function useMessageCompose(args: UseMessageComposeArgs) {
         attachmentIds,
       );
       setContent('');
+      // Sending empties the box without an input event, so withdraw the notice
+      // here too - otherwise you go on "typing" beside the message you just sent.
+      lastTypingSentAt = 0;
+      signalR.sendStoppedTyping(args.conversationId()).catch(() => { /* non-fatal */ });
       messageStore.cancelReply();
       upload.setUploadedAttachment(null);
       const ta = args.textareaRef();
@@ -124,6 +128,13 @@ export function useMessageCompose(args: UseMessageComposeArgs) {
         lastTypingSentAt = now;
         signalR.sendTyping(args.conversationId()).catch(() => { /* non-fatal */ });
       }
+    } else if (lastTypingSentAt > 0) {
+      // Emptying the box is a decision, not a pause. Without telling anyone,
+      // someone who typed a word and deleted it went on "typing" on every other
+      // screen until the eight-second notice expired. Only sent when this
+      // composer actually claimed to be typing.
+      lastTypingSentAt = 0;
+      signalR.sendStoppedTyping(args.conversationId()).catch(() => { /* non-fatal */ });
     }
   };
 

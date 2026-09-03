@@ -54,21 +54,6 @@
   color: var(--color-xcord-text-muted);
 }
 
-.emptyContainer {
-  height: 8rem;
-  color: var(--color-xcord-text-muted);
-}
-
-.emptyTitle {
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-.emptySubtitle {
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-}
-
 .banItem {
   padding: 0.75rem 1rem;
   display: flex;

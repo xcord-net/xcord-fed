@@ -1,85 +1,18 @@
-.pageWrapper {
-  min-height: 100vh;
-  background-color: var(--color-xcord-bg-tertiary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+/* Shared surface lives in auth.module.css. */
 
-.card {
-  background-color: var(--color-xcord-bg-secondary);
-  padding: 2rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  width: 100%;
-  max-width: 28rem;
-}
+.pageWrapper { composes: pageWrapper from './auth.module.css'; }
+.card { composes: card from './auth.module.css'; }
+.heading { composes: heading from './auth.module.css'; }
+.description { composes: description from './auth.module.css'; }
+.errorText { composes: errorText from './auth.module.css'; }
+.fieldGroup { composes: fieldGroupLast from './auth.module.css'; }
+.label { composes: label from './auth.module.css'; }
+.submitButton { composes: submitButton from './auth.module.css'; }
 
-.heading {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-xcord-text-primary);
-  margin-bottom: 0.5rem;
-  text-align: center;
-}
-
-.description {
-  color: var(--color-xcord-text-muted);
-  font-size: 0.875rem;
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-
-.errorText {
-  color: var(--color-xcord-danger-text);
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
-}
-
-.fieldGroup {
-  margin-bottom: 1.5rem;
-}
-
-.label {
-  display: block;
-  color: var(--color-xcord-text-secondary);
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-}
-
+/* The confirmation code is the only thing on this page, so it is set larger
+   than a code field elsewhere. */
 .codeInput {
-  width: 100%;
-  background-color: var(--color-xcord-bg-primary);
-  color: var(--color-xcord-text-primary);
-  border-radius: 0.25rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-xcord-border);
-  outline: none;
-  text-align: center;
-  font-size: 1.5rem;
-  letter-spacing: 0.1em;
-}
-
-.codeInput:focus {
-  border-color: var(--color-xcord-brand);
-}
-
-.submitButton {
-  width: 100%;
-  background-color: var(--color-xcord-brand);
-  color: var(--color-xcord-white);
-  font-weight: 500;
-  padding: 0.5rem 0;
-  border-radius: 0.25rem;
-  transition: color 150ms, background-color 150ms;
-}
-
-.submitButton:hover {
-  background-color: var(--color-xcord-brand-hover);
-}
-
-.submitButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  composes: codeInput from './auth.module.css';
+  font-size: 1.375rem;
+  padding: 0.7rem 0.75rem;
 }

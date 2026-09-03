@@ -29,7 +29,7 @@ export function validateAvatarFile(file: { type: string; size: number }): string
  *   1. POST /api/v1/uploads to obtain a presigned URL
  *   2. PUT to the presigned URL (via the provided xhrFactory)
  *   3. POST /api/v1/attachments/{id}/confirm to finalise the attachment
- *   4. PUT /api/v1/users/@me to update the user's avatar URL
+ *   4. PATCH /api/v1/users/@me to update the user's avatar URL
  *
  * Returns the confirmed CDN URL for the new avatar.
  * Exported for direct unit-testing of each step.
@@ -52,8 +52,10 @@ export async function uploadAvatar(
   const confirmed = await api.post<{ url: string }>(`/api/v1/attachments/${attachmentId}/confirm`, {});
   const avatarUrl = confirmed.url ?? uploadUrl;
 
-  // Step 4: update profile
-  await api.put<UserProfile>('/api/v1/users/@me', { avatarUrl });
+  // Step 4: update profile. PATCH, not PUT: the endpoint is a partial update
+  // and only PATCH is mapped, so PUT answered 405 and the whole upload reported
+  // failure after the file had already been stored and confirmed.
+  await api.patch<UserProfile>('/api/v1/users/@me', { avatarUrl });
 
   return avatarUrl;
 }

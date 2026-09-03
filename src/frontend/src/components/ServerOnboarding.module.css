@@ -203,11 +203,6 @@
   white-space: nowrap;
 }
 
-.emptyText {
-  color: var(--color-xcord-text-muted);
-  font-size: 0.875rem;
-}
-
 .channelList {
   display: flex;
   flex-direction: column;

@@ -78,7 +78,7 @@ describe('avatar-upload', () => {
       );
     });
 
-    it('calls PUT /api/v1/users/@me with the confirmed avatar URL', async () => {
+    it('calls PATCH /api/v1/users/@me with the confirmed avatar URL', async () => {
       const confirmedUrl = 'https://cdn.example.com/my-avatar.jpg';
       const file = { name: 'me.jpg', type: 'image/jpeg', size: 64000 };
 
@@ -102,7 +102,9 @@ describe('avatar-upload', () => {
         3,
         '/api/v1/users/@me',
         expect.objectContaining({
-          method: 'PUT',
+          // The profile endpoint only accepts PATCH; PUT was answered with 405,
+          // which is why avatar uploads never actually took effect.
+          method: 'PATCH',
           body: JSON.stringify({ avatarUrl: confirmedUrl }),
         }),
       );

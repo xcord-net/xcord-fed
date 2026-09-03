@@ -1,6 +1,5 @@
 import { For, Show, createSignal } from 'solid-js';
 import { api } from '../api/client';
-import { useMessages } from '../stores/message.store';
 import { useToasts } from '../stores/toast.store';
 import { useAuth } from '../stores/auth.store';
 import EmojiPicker from './EmojiPicker';
@@ -16,7 +15,6 @@ interface ReactionDisplayProps {
 
 export default function ReactionDisplay(props: ReactionDisplayProps) {
   const authStore = useAuth();
-  const messageStore = useMessages();
   const toasts = useToasts();
   const [showPicker, setShowPicker] = createSignal(false);
 
@@ -54,20 +52,22 @@ export default function ReactionDisplay(props: ReactionDisplayProps) {
     }
   };
 
-  // Patch only this message so the user's scroll position is preserved (the old
-  // clear-and-reload reset the whole list on every reaction toggle).
-  const refresh = () => messageStore.refreshMessage(props.conversationId, props.messageId).catch(() => { /* non-fatal */ });
-
+  // No refetch after a change: the server announces the whole reaction set to
+  // the conversation, and the person who clicked is in it. Refetching as well
+  // raced that announcement - a read taken around the same instant could carry
+  // the older count and overwrite the newer one, so a reaction sometimes
+  // appeared to bounce back.
   const toggleReaction = async (reaction: MessageReaction) => {
-    const ok = hasUserReacted(reaction)
-      ? await removeReaction(reaction.emoji)
-      : await addReaction(reaction.emoji);
-    if (ok) refresh();
+    if (hasUserReacted(reaction)) {
+      await removeReaction(reaction.emoji);
+    } else {
+      await addReaction(reaction.emoji);
+    }
   };
 
   const handlePickerSelect = async (emoji: string) => {
     setShowPicker(false);
-    if (await addReaction(emoji)) refresh();
+    await addReaction(emoji);
   };
 
   return (

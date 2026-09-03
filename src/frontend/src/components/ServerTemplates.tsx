@@ -1,6 +1,8 @@
 import { For, Show, createSignal, createEffect } from 'solid-js';
 import { api } from '../api/client';
 import styles from './ServerTemplates.module.css';
+import EmptyState from './ui/EmptyState';
+import { LayoutTemplate } from 'lucide-solid';
 
 // ---- Types ----
 
@@ -364,17 +366,15 @@ export default function ServerTemplates(props: ServerTemplatesProps) {
         </Show>
 
         <Show when={!isLoading() && templates().length === 0}>
-          <div class={styles.emptyState}>
-            <p class={styles.emptyText}>No templates available</p>
-            <Show when={props.isOwner}>
-              <button
-                class={styles.linkBtn}
-                onClick={() => setShowSaveForm(true)}
-              >
-                Save current server as a template
-              </button>
-            </Show>
-          </div>
+          <EmptyState
+            icon={LayoutTemplate}
+            title="No templates yet"
+            body="A template captures this community's channels and roles so you can start another like it."
+            action={props.isOwner
+              ? { label: 'Save this community as a template', onClick: () => setShowSaveForm(true) }
+              : undefined}
+            data-testid="server-templates-empty"
+          />
         </Show>
 
         <Show when={!isLoading() && templates().length > 0}>

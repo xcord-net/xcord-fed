@@ -17,7 +17,7 @@ namespace Xcord.Features.Broadcasts;
 public sealed class GetLayoutTemplateHandler : IEndpoint
 {
     private static readonly string[] SupportedPresets =
-        new[] { "grid", "spotlight", "pip", "side-by-side" };
+        new[] { "grid", "spotlight", "pip", "side-by-side", "audio-show" };
 
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder app)
     {
@@ -96,80 +96,18 @@ public sealed class GetLayoutTemplateHandler : IEndpoint
         string slots,
         string livekitUrl)
     {
-        var css = preset switch
-        {
-            "grid" => GridCss,
-            "spotlight" => SpotlightCss,
-            "pip" => PipCss,
-            "side-by-side" => SideBySideCss,
-            _ => GridCss,
-        };
-        var slotElements = GenerateSlotElements(preset);
-
         var jsEnc = JavaScriptEncoder.Default;
-        var escapedRoomAttr = HtmlEncoder.Default.Encode(room);
-        var escapedRoomJs = jsEnc.Encode(room);
-        var escapedTokenJs = jsEnc.Encode(token);
-        var escapedSlotsJs = jsEnc.Encode(slots);
-        var escapedLiveKitJs = jsEnc.Encode(livekitUrl);
-        var escapedPresetAttr = HtmlEncoder.Default.Encode(preset);
 
         return TemplateCommon
-            .Replace("{{CSS}}", css)
-            .Replace("{{SLOTS_HTML}}", slotElements)
-            .Replace("{{ROOM_ATTR}}", escapedRoomAttr)
-            .Replace("{{PRESET_ATTR}}", escapedPresetAttr)
-            .Replace("{{ROOM}}", escapedRoomJs)
-            .Replace("{{TOKEN}}", escapedTokenJs)
-            .Replace("{{SLOTS}}", escapedSlotsJs)
-            .Replace("{{LIVEKIT_URL}}", escapedLiveKitJs);
-    }
-
-    private static string GenerateSlotElements(string preset)
-    {
-        return preset switch
-        {
-            "grid" => BuildSlots("grid", 8),
-            "spotlight" => BuildSpotlightSlots(4),
-            "pip" => BuildPipSlots(),
-            "side-by-side" => BuildSlots("side-by-side", 2),
-            _ => BuildSlots("grid", 8),
-        };
-    }
-
-    private static string BuildSlots(string containerClass, int count)
-    {
-        var sb = new System.Text.StringBuilder();
-        sb.Append($"<div class=\"stage {containerClass}\">");
-        for (int i = 0; i < count; i++)
-        {
-            sb.Append($"<div class=\"slot\" data-slot-index=\"{i}\"></div>");
-        }
-        sb.Append("</div>");
-        return sb.ToString();
-    }
-
-    private static string BuildSpotlightSlots(int thumbnailCount)
-    {
-        var sb = new System.Text.StringBuilder();
-        sb.Append("<div class=\"stage spotlight\">");
-        sb.Append("<div class=\"spotlight-main slot\" data-slot-index=\"0\"></div>");
-        sb.Append("<div class=\"spotlight-thumbs\">");
-        for (int i = 1; i <= thumbnailCount; i++)
-        {
-            sb.Append($"<div class=\"slot\" data-slot-index=\"{i}\"></div>");
-        }
-        sb.Append("</div>");
-        sb.Append("</div>");
-        return sb.ToString();
-    }
-
-    private static string BuildPipSlots()
-    {
-        return "<div class=\"stage pip\">" +
-               "<div class=\"pip-main slot\" data-slot-index=\"0\"></div>" +
-               "<div class=\"pip-overlay slot\" data-slot-index=\"1\"></div>" +
-               "</div>";
+            .Replace("{{CSS}}", AllCss)
+            .Replace("{{ROOM_ATTR}}", HtmlEncoder.Default.Encode(room))
+            .Replace("{{PRESET_ATTR}}", HtmlEncoder.Default.Encode(preset))
+            .Replace("{{ROOM}}", jsEnc.Encode(room))
+            .Replace("{{TOKEN}}", jsEnc.Encode(token))
+            .Replace("{{SLOTS}}", jsEnc.Encode(slots))
+            .Replace("{{PRESET}}", jsEnc.Encode(preset))
+            .Replace("{{CONTROL_TOPIC}}", jsEnc.Encode(BroadcastControl.Topic))
+            .Replace("{{LIVEKIT_URL}}", jsEnc.Encode(livekitUrl));
     }
 
     // ---------- CSS per preset ----------
@@ -182,7 +120,7 @@ public sealed class GetLayoutTemplateHandler : IEndpoint
         .slot video, .slot audio { width: 100%; height: 100%; object-fit: cover; display: block; }
     ";
 
-    private const string GridCss = BaseCss + @"
+    private const string GridCss = @"
         .stage.grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(25%, 1fr));
@@ -192,7 +130,7 @@ public sealed class GetLayoutTemplateHandler : IEndpoint
         }
     ";
 
-    private const string SpotlightCss = BaseCss + @"
+    private const string SpotlightCss = @"
         .stage.spotlight {
             display: grid;
             grid-template-columns: 70% 30%;
@@ -207,7 +145,7 @@ public sealed class GetLayoutTemplateHandler : IEndpoint
         }
     ";
 
-    private const string PipCss = BaseCss + @"
+    private const string PipCss = @"
         .stage.pip { position: relative; }
         .stage.pip .pip-main { position: absolute; inset: 0; width: 100%; height: 100%; }
         .stage.pip .pip-overlay {
@@ -223,7 +161,7 @@ public sealed class GetLayoutTemplateHandler : IEndpoint
         }
     ";
 
-    private const string SideBySideCss = BaseCss + @"
+    private const string SideBySideCss = @"
         .stage.side-by-side {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -232,6 +170,62 @@ public sealed class GetLayoutTemplateHandler : IEndpoint
         .stage.side-by-side .slot { height: 100vh; }
     ";
 
+    private const string AudioShowCss = @"
+        .stage.audio-show {
+            display: flex;
+            flex-wrap: wrap;
+            align-content: center;
+            justify-content: center;
+            gap: 24px;
+            padding: 48px;
+            background: #131114;
+        }
+        .stage.audio-show .slot {
+            background: #1a171b;
+            border: 1px solid rgba(255, 240, 225, 0.09);
+            border-radius: 14px;
+            min-width: 280px;
+            height: 132px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            padding: 20px 28px;
+        }
+        .stage.audio-show .slot:empty { display: none; }
+        .stage.audio-show .speaker-name {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: #f0ede8;
+        }
+        .stage.audio-show .wave {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 34px;
+        }
+        .stage.audio-show .wave i {
+            display: block;
+            width: 4px;
+            height: 100%;
+            border-radius: 2px;
+            background: #6a6361;
+            transform: scaleY(0.18);
+            transform-origin: bottom;
+            transition: transform 90ms linear, background-color 160ms linear;
+        }
+        /* Amber is the only colour that means ""this one is talking"". */
+        .stage.audio-show .slot.speaking .wave i { background: #d4943a; }
+    ";
+
+    /// <summary>
+    /// Every preset's rules, always. The renderer switches presets by changing a
+    /// class on one element, so the stylesheet cannot be preset-specific.
+    /// </summary>
+    private const string AllCss = BaseCss + GridCss + SpotlightCss + PipCss + SideBySideCss + AudioShowCss;
+
     // ---------- Common HTML/JS template ----------
 
     private const string TemplateCommon = @"<!DOCTYPE html>
@@ -239,12 +233,12 @@ public sealed class GetLayoutTemplateHandler : IEndpoint
 <head>
     <meta charset=""utf-8"" />
     <meta name=""viewport"" content=""width=device-width, initial-scale=1"" />
-    <title>Broadcast Layout - {{PRESET_ATTR}}</title>
+    <title>Broadcast Layout</title>
     <style>{{CSS}}</style>
     <script src=""https://cdn.jsdelivr.net/npm/livekit-client@2.7.2/dist/livekit-client.umd.min.js""></script>
 </head>
 <body data-preset=""{{PRESET_ATTR}}"" data-room=""{{ROOM_ATTR}}"">
-    {{SLOTS_HTML}}
+    <div id=""stage"" class=""stage""></div>
     <div id=""audio-sink"" style=""display:none""></div>
     <script>
         (function () {
@@ -252,47 +246,140 @@ public sealed class GetLayoutTemplateHandler : IEndpoint
             var params = new URLSearchParams(window.location.search);
             var roomName = params.get('room') || ""{{ROOM}}"";
             var token = params.get('token') || ""{{TOKEN}}"";
-            var slotsRaw = params.get('slots');
+            var CONTROL_TOPIC = ""{{CONTROL_TOPIC}}"";
+
+            // Shape of each preset: the class on the stage container, how many
+            // slots it has, and any extra classes particular slots carry.
+            var PRESETS = {
+                'grid':         { slots: 8, classes: {} },
+                'spotlight':    { slots: 5, classes: { 0: 'spotlight-main' }, thumbsFrom: 1 },
+                'pip':          { slots: 2, classes: { 0: 'pip-main', 1: 'pip-overlay' } },
+                'side-by-side': { slots: 2, classes: {} },
+                'audio-show':   { slots: 0, classes: {}, audioOnly: true }
+            };
+
+            function normalizePreset(name) {
+                return Object.prototype.hasOwnProperty.call(PRESETS, name) ? name : 'grid';
+            }
+
+            function normalizeSlots(value) {
+                if (!Array.isArray(value)) return [];
+                var out = [];
+                for (var i = 0; i < value.length; i++) {
+                    var entry = value[i];
+                    if (!entry || typeof entry !== 'object') continue;
+                    if (entry.userId === undefined || entry.userId === null) continue;
+                    var index = Number(entry.slotIndex);
+                    if (!isFinite(index) || index < 0) continue;
+                    out.push({ userId: String(entry.userId), slotIndex: index });
+                }
+                return out;
+            }
+
+            var preset = normalizePreset(""{{PRESET}}"");
             var slots = [];
-            try { slots = JSON.parse(slotsRaw || ""{{SLOTS}}"" || '[]'); } catch (e) { slots = []; }
-            if (!Array.isArray(slots)) slots = [];
+            try { slots = normalizeSlots(JSON.parse(params.get('slots') || ""{{SLOTS}}"" || '[]')); }
+            catch (e) { slots = []; }
 
-            function getSlotElement(userId) {
-                var match = null;
+            // Every video track we are subscribed to, by participant identity. Kept
+            // so a stage or preset change can re-place them without renegotiating.
+            var videoTracks = {};
+            var stageEl = document.getElementById('stage');
+
+            // Display name per identity, learned from the room. Falls back to the
+            // identity so a card is never blank.
+            var names = {};
+
+            function buildAudioShowStage() {
+                stageEl.innerHTML = '';
                 for (var i = 0; i < slots.length; i++) {
-                    if (String(slots[i].userId) === String(userId)) { match = slots[i]; break; }
-                }
-                if (!match) return null;
-                return document.querySelector('[data-slot-index=""' + String(match.slotIndex) + '""]');
-            }
+                    var id = slots[i].userId;
+                    var card = document.createElement('div');
+                    card.className = 'slot';
+                    card.setAttribute('data-identity', id);
+                    card.setAttribute('data-slot-index', String(slots[i].slotIndex));
 
-            function attachTrack(track, participant) {
-                if (!track) return;
-                if (track.kind === 'video') {
-                    var container = getSlotElement(participant.identity);
-                    if (!container) return;
-                    var el = track.attach();
-                    el.style.width = '100%';
-                    el.style.height = '100%';
-                    el.style.objectFit = 'cover';
-                    container.innerHTML = '';
-                    container.appendChild(el);
-                } else if (track.kind === 'audio') {
-                    var sink = document.getElementById('audio-sink');
-                    var audioEl = track.attach();
-                    audioEl.style.display = 'none';
-                    sink.appendChild(audioEl);
+                    var name = document.createElement('div');
+                    name.className = 'speaker-name';
+                    name.textContent = names[id] || id;
+                    card.appendChild(name);
+
+                    var wave = document.createElement('div');
+                    wave.className = 'wave';
+                    for (var b = 0; b < 5; b++) wave.appendChild(document.createElement('i'));
+                    card.appendChild(wave);
+
+                    stageEl.appendChild(card);
                 }
             }
 
-            function detachTrack(track) {
-                if (!track) return;
-                try {
-                    var elements = track.detach();
-                    if (Array.isArray(elements)) {
-                        elements.forEach(function (el) { if (el && el.remove) el.remove(); });
+            function buildStage() {
+                var shape = PRESETS[preset];
+                stageEl.className = 'stage ' + preset;
+
+                if (shape.audioOnly) {
+                    buildAudioShowStage();
+                    return;
+                }
+
+                stageEl.innerHTML = '';
+
+                var thumbs = null;
+                if (preset === 'spotlight') {
+                    thumbs = document.createElement('div');
+                    thumbs.className = 'spotlight-thumbs';
+                }
+
+                for (var i = 0; i < shape.slots; i++) {
+                    var slot = document.createElement('div');
+                    slot.className = 'slot' + (shape.classes[i] ? ' ' + shape.classes[i] : '');
+                    slot.setAttribute('data-slot-index', String(i));
+                    if (thumbs && shape.thumbsFrom !== undefined && i >= shape.thumbsFrom) {
+                        thumbs.appendChild(slot);
+                    } else {
+                        stageEl.appendChild(slot);
                     }
-                } catch (e) { /* swallow */ }
+                }
+                if (thumbs) stageEl.appendChild(thumbs);
+            }
+
+            function slotElementFor(identity) {
+                for (var i = 0; i < slots.length; i++) {
+                    if (slots[i].userId === String(identity)) {
+                        return stageEl.querySelector('[data-slot-index=""' + slots[i].slotIndex + '""]');
+                    }
+                }
+                return null;
+            }
+
+            // Rebuild the stage and place every known track into it. Called on any
+            // change to the preset or the assignments; cheap enough to redo whole
+            // rather than diff, and a full redraw cannot drift out of sync.
+            function render() {
+                buildStage();
+                if (PRESETS[preset].audioOnly) return;
+                Object.keys(videoTracks).forEach(function (identity) {
+                    var container = slotElementFor(identity);
+                    if (!container) return;
+                    try {
+                        var el = videoTracks[identity].attach();
+                        el.style.width = '100%';
+                        el.style.height = '100%';
+                        el.style.objectFit = 'cover';
+                        container.innerHTML = '';
+                        container.appendChild(el);
+                    } catch (e) { /* track ended mid-render */ }
+                });
+            }
+
+            function applyControl(text) {
+                var next;
+                try { next = JSON.parse(text); } catch (e) { return; }
+                if (!next || typeof next !== 'object') return;
+                if (typeof next.preset === 'string') preset = normalizePreset(next.preset);
+                if (next.slots !== undefined) slots = normalizeSlots(next.slots);
+                document.body.setAttribute('data-preset', preset);
+                render();
             }
 
             if (!window.LivekitClient) {
@@ -302,33 +389,108 @@ public sealed class GetLayoutTemplateHandler : IEndpoint
 
             var Room = window.LivekitClient.Room;
             var RoomEvent = window.LivekitClient.RoomEvent;
-
-            var room = new Room({
-                adaptiveStream: false,
-                dynacast: false,
-            });
+            var room = new Room({ adaptiveStream: false, dynacast: false });
 
             room.on(RoomEvent.TrackSubscribed, function (track, publication, participant) {
-                attachTrack(track, participant);
+                if (!track) return;
+                if (track.kind === 'video') {
+                    videoTracks[String(participant.identity)] = track;
+                    render();
+                } else if (track.kind === 'audio') {
+                    // Audio is mixed regardless of stage position: someone speaking
+                    // is heard whether or not the layout has a tile for them.
+                    var audioEl = track.attach();
+                    audioEl.style.display = 'none';
+                    document.getElementById('audio-sink').appendChild(audioEl);
+                }
             });
 
-            room.on(RoomEvent.TrackUnsubscribed, function (track) {
-                detachTrack(track);
+            room.on(RoomEvent.TrackUnsubscribed, function (track, publication, participant) {
+                if (!track) return;
+                if (track.kind === 'video' && participant) {
+                    delete videoTracks[String(participant.identity)];
+                }
+                try {
+                    var elements = track.detach();
+                    if (Array.isArray(elements)) {
+                        elements.forEach(function (el) { if (el && el.remove) el.remove(); });
+                    }
+                } catch (e) { /* swallow */ }
+                if (track.kind === 'video') render();
+            });
+
+            // Stage and layout changes arrive here rather than as a new page load,
+            // which is what keeps the outgoing stream unbroken across them.
+            room.on(RoomEvent.DataReceived, function (payload, participant, kind, topic) {
+                if (topic !== CONTROL_TOPIC) return;
+                try {
+                    applyControl(new TextDecoder().decode(payload));
+                } catch (e) { /* malformed control message */ }
+            });
+
+            // The waveform is the whole visual in audio-show, so it has to track
+            // the real signal rather than animate on a timer. LiveKit reports both
+            // who is speaking and how loudly.
+            function paintLevels(speakers) {
+                if (!PRESETS[preset].audioOnly) return;
+                var loud = {};
+                (speakers || []).forEach(function (p) {
+                    loud[String(p.identity)] = typeof p.audioLevel === 'number' ? p.audioLevel : 0;
+                });
+
+                var cards = stageEl.querySelectorAll('.slot');
+                for (var i = 0; i < cards.length; i++) {
+                    var card = cards[i];
+                    var id = card.getAttribute('data-identity');
+                    var level = loud[id];
+                    var speaking = level !== undefined;
+                    card.classList.toggle('speaking', speaking);
+
+                    var bars = card.querySelectorAll('.wave i');
+                    for (var b = 0; b < bars.length; b++) {
+                        // Idle bars sit low and flat; a speaking card's bars vary
+                        // per bar so it reads as a waveform, not a level meter.
+                        var scale = speaking
+                            ? Math.min(1, 0.25 + (level || 0) * (0.7 + 0.3 * Math.sin((b + 1) * 1.7)))
+                            : 0.18;
+                        bars[b].style.transform = 'scaleY(' + scale.toFixed(3) + ')';
+                    }
+                }
+            }
+
+            function rememberName(participant) {
+                if (!participant) return false;
+                var id = String(participant.identity);
+                var name = participant.name || participant.identity;
+                if (names[id] === name) return false;
+                names[id] = name;
+                return true;
+            }
+
+            room.on(RoomEvent.ActiveSpeakersChanged, paintLevels);
+
+            room.on(RoomEvent.ParticipantConnected, function (participant) {
+                if (rememberName(participant)) render();
             });
 
             room.on(RoomEvent.Disconnected, function () {
                 console.log('LiveKit room disconnected');
             });
 
+            render();
+
             room.connect(window.__LIVEKIT_URL__, token).then(function () {
-                // Attach any tracks already subscribed (edge case: fast-start).
                 room.remoteParticipants.forEach(function (p) {
+                    rememberName(p);
                     p.trackPublications.forEach(function (pub) {
                         if (pub.track && pub.isSubscribed) {
-                            attachTrack(pub.track, p);
+                            if (pub.track.kind === 'video') {
+                                videoTracks[String(p.identity)] = pub.track;
+                            }
                         }
                     });
                 });
+                render();
                 window.__layoutReady = true;
             }).catch(function (err) {
                 console.error('LiveKit connect failed', err);

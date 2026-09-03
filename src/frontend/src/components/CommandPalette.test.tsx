@@ -60,10 +60,10 @@ describe('CommandPalette', () => {
 
   it('shows empty state when no commands match', async () => {
     mockFetch({ 'GET /api/v1/servers/s-1/commands': () => ({ status: 200, body: [] }) });
-    const { findByText } = render(() => (
+    const { findByText, findByTestId } = render(() => (
       <CommandPalette serverId="s-1" onSelectCommand={vi.fn()} onDismiss={vi.fn()} />
     ));
-    expect(await findByText('No commands found')).toBeInTheDocument();
+    expect(await findByTestId('command-palette-empty')).toBeInTheDocument();
   });
 
   it('renders fetched commands in the list', async () => {

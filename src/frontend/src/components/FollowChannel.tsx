@@ -5,6 +5,7 @@ import Modal from './ui/Modal';
 import Flexbox from './ui/Flexbox';
 import styles from './FollowChannel.module.css';
 import { formatDate } from '../utils/datetime';
+import EmptyState from './ui/EmptyState';
 
 export interface Channel {
   id: string;
@@ -199,9 +200,12 @@ export default function FollowChannel(props: FollowChannelProps) {
         </Show>
 
         <Show when={follows().length === 0}>
-          <Flexbox direction="vertical" align="center" justify="center" class={styles.emptyState}>
-            <p class={styles.emptyStateText}>No channels are following {props.channelName} yet.</p>
-          </Flexbox>
+          <EmptyState
+            title={`Nothing follows ${props.channelName} yet`}
+            body="Channels that follow this one get a copy of every announcement posted here."
+            dense
+            data-testid="follow-channel-empty"
+          />
         </Show>
 
         <div class={styles.followList}>

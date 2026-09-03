@@ -66,6 +66,9 @@ function mapCreateResponseToPost(resp: CreateForumPostResponse): ForumPost {
   };
 }
 
+/** Guards against a slower earlier listing overwriting newer state. */
+let loadGeneration = 0;
+
 const store = createRoot(() => {
   const [posts, setPosts] = createSignal<ForumPost[]>([]);
   const [tags, setTags] = createSignal<ForumTag[]>([]);
@@ -96,9 +99,15 @@ export function useForums() {
     get loadError() { return store.loadError(); },
 
     async loadPosts(channelId: string): Promise<void> {
+      // A listing that was already in flight must not be allowed to land on top
+      // of newer state. The list is loaded when the channel opens and can easily
+      // still be running when the first post is created - and it then replaced
+      // the new post with the empty list it had asked for beforehand.
+      const token = ++loadGeneration;
       store.setIsLoading(true);
       try {
         const resp = await api.get<ListForumPostsResponse | ForumPostDto[]>(`/api/v1/channels/${channelId}/posts`);
+        if (token !== loadGeneration) return;
         const rawPosts: ForumPostDto[] = Array.isArray(resp) ? resp : (resp?.posts ?? []);
         store.setPosts(rawPosts.map(mapDtoToPost));
         store.setLoadError(false);
@@ -130,6 +139,8 @@ export function useForums() {
         tags,
       });
       const post = mapCreateResponseToPost(resp);
+      // Anything still loading describes a world without this post in it.
+      loadGeneration++;
       store.setPosts([post, ...store.posts()]);
       return post;
     },

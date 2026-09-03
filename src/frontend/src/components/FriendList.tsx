@@ -4,6 +4,8 @@ import { useAuth } from '../stores/auth.store';
 import PresenceDot from './PresenceDot';
 import { getErrorMessage } from '../utils/errors';
 import styles from './FriendList.module.css';
+import EmptyState from './ui/EmptyState';
+import { Users } from 'lucide-solid';
 
 export default function FriendList() {
   const friendStore = useFriends();
@@ -100,9 +102,12 @@ export default function FriendList() {
           </Show>
 
           <Show when={!friendStore.isLoading && friendStore.friends.length === 0}>
-            <div class={styles.emptyCenter}>
-              <p data-testid="friends-empty-state" class={styles.emptyText}>No friends yet</p>
-            </div>
+            <EmptyState
+              icon={Users}
+              title="No friends yet"
+              body="Send a request and they show up here once it is accepted."
+              data-testid="friends-empty-state"
+            />
           </Show>
 
           <For each={friendStore.friends}>

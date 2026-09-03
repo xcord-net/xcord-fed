@@ -3,6 +3,8 @@ import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import Modal from './ui/Modal';
 import styles from './ScheduledMessages.module.css';
+import EmptyState from './ui/EmptyState';
+import { Clock } from 'lucide-solid';
 
 interface ScheduledMessage {
   id: string;
@@ -157,12 +159,12 @@ export default function ScheduledMessages(props: ScheduledMessagesProps) {
         </Show>
 
         <Show when={!isLoading() && messages().length === 0 && !error()}>
-          <div class={styles.emptyState}>
-            <p class={styles.emptyText}>No scheduled messages</p>
-            <p class={styles.emptyHint}>
-              Use the clock button in the compose area to schedule a message.
-            </p>
-          </div>
+          <EmptyState
+            icon={Clock}
+            title="Nothing scheduled"
+            body="Use the clock in the composer to send a message at a set time."
+            data-testid="scheduled-messages-empty"
+          />
         </Show>
 
         <For each={messages()}>

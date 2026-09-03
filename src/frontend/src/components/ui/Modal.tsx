@@ -2,6 +2,7 @@ import { Show, createEffect, onMount, splitProps } from 'solid-js';
 import type { JSX } from 'solid-js';
 import { createFocusTrap } from '../../hooks/createFocusTrap';
 import { createScrollLock } from '../../hooks/createScrollLock';
+import { CloseIcon } from './icons';
 import styles from './Modal.module.css';
 
 // Whether the user has requested reduced motion at the OS level.
@@ -132,19 +133,7 @@ export default function Modal(props: ModalProps) {
                 class={styles.closeButton}
               >
                 {/* X icon */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class={styles.closeIcon}
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
+                <CloseIcon class={styles.closeIcon} />
               </button>
             </div>
           </Show>

@@ -3,6 +3,8 @@ import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import type { CustomEmoji } from '../types/emoji';
 import styles from './EmojiManager.module.css';
+import EmptyState from './ui/EmptyState';
+import { Smile } from 'lucide-solid';
 
 interface EmojiManagerProps {
   serverId: string;
@@ -271,9 +273,13 @@ export default function EmojiManager(props: EmojiManagerProps) {
         </Show>
 
         <Show when={!isLoading() && emojis().length === 0}>
-          <div id="emoji-manager-empty" data-testid="emoji-list-empty-state" class={styles.emptyContainer}>
-            <p class={styles.emptyTitle}>No custom emojis</p>
-            <p class={styles.emptySubtitle}>Upload an emoji above to get started.</p>
+          <div id="emoji-manager-empty">
+            <EmptyState
+              icon={Smile}
+              title="No custom emoji yet"
+              body="Upload an image above and it becomes usable everywhere in this community."
+              data-testid="emoji-list-empty-state"
+            />
           </div>
         </Show>
 

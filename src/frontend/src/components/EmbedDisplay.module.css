@@ -15,7 +15,7 @@
 }
 
 .titleLink {
-  color: #60a5fa;
+  color: var(--color-xcord-text-link);
   font-weight: 600;
   font-size: 0.875rem;
   display: block;

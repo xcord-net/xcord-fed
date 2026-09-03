@@ -104,21 +104,6 @@
   font-size: 0.75rem;
 }
 
-.emptyMembers {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding-top: 2rem;
-  padding-bottom: 2rem;
-  text-align: center;
-}
-
-.emptyMembersText {
-  color: var(--color-xcord-text-muted);
-  font-size: 0.875rem;
-}
-
 .cancelButton {
   padding: 0.5rem 1rem;
   background-color: var(--color-xcord-bg-primary);

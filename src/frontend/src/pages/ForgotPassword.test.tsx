@@ -40,6 +40,6 @@ describe('ForgotPassword', () => {
     const { getByTestId, findByTestId } = renderWithRouter(() => <ForgotPassword />, { path: '/forgot-password' });
     fireEvent.input(getByTestId('forgot-password-email-input'), { target: { value: 'user@example.com' } });
     fireEvent.submit(getByTestId('forgot-password-form'));
-    expect(await findByTestId('forgot-password-error')).toHaveTextContent(/Network error/);
+    expect(await findByTestId('forgot-password-error')).toHaveTextContent(/Could not reach Xcord/);
   });
 });

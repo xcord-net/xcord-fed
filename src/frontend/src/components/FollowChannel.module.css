@@ -45,11 +45,6 @@
   text-align: center;
 }
 
-.emptyStateText {
-  color: var(--color-xcord-text-muted);
-  font-size: 0.875rem;
-}
-
 .followList > * + * {
   margin-top: 0.5rem;
 }
@@ -129,7 +124,6 @@
 .channelSelect:focus-visible {
   box-shadow: 0 0 0 2px var(--color-xcord-brand);
 }
-
 
 .confirmButton {
   flex: 1;

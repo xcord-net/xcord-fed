@@ -21,9 +21,9 @@
 }
 
 .disabledBanner {
-  background-color: var(--color-xcord-warn-bg, #3a2e0a);
-  color: var(--color-xcord-warn-text, #f0c674);
-  border: 1px solid var(--color-xcord-warn-border, #6e5418);
+  background-color: var(--color-xcord-warning-bg);
+  color: var(--color-xcord-warning-glow);
+  border: 1px solid var(--color-xcord-warning-border);
 }
 
 .currentSubscription {
@@ -57,12 +57,12 @@
 }
 
 .statusActive {
-  background-color: var(--color-xcord-success, #43b581);
+  background-color: var(--color-xcord-success);
   color: white;
 }
 
 .statusPastDue {
-  background-color: var(--color-xcord-warn-bg, #f0a020);
+  background-color: var(--color-xcord-warning);
   color: white;
 }
 

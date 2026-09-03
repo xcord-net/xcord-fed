@@ -29,7 +29,11 @@ public sealed record GetMessageResponse(
     bool IsPinned,
     DateTimeOffset? EditedAt,
     DateTimeOffset CreatedAt,
-    ReplyToDto? ReplyTo = null
+    ReplyToDto? ReplyTo = null,
+    // The client refetches a single message specifically after a reaction
+    // changed, so leaving reactions out made this endpoint answer the one
+    // question it is most often asked with silence.
+    List<MessageReactionDto>? Reactions = null
 );
 
 public sealed class GetMessageHandler(
@@ -67,7 +71,12 @@ public sealed class GetMessageHandler(
                 ReplyToAuthorUsername = m.ReplyTo != null && m.ReplyTo.Author != null
                     ? m.ReplyTo.Author.Username
                     : null,
-                ReplyToAuthorId = m.ReplyTo != null ? m.ReplyTo.AuthorId : null
+                ReplyToAuthorId = m.ReplyTo != null ? m.ReplyTo.AuthorId : null,
+                Reactions = m.Reactions.GroupBy(r => r.Emoji).Select(g => new MessageReactionDto(
+                    g.Key,
+                    g.Count(),
+                    g.Select(r => r.UserId).ToList()
+                )).ToList()
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -103,7 +112,8 @@ public sealed class GetMessageHandler(
             CreatedAt: messageData.Message.CreatedAt,
             ReplyTo: ReplyToDto.Resolve(
                 messageData.Message.ReplyToId, messageData.ReplyTo, messageData.ReplyToAuthorUsername,
-                colorFor(messageData.ReplyToAuthorId))
+                colorFor(messageData.ReplyToAuthorId)),
+            Reactions: messageData.Reactions.Count > 0 ? messageData.Reactions : null
         );
     }
 

@@ -3,6 +3,8 @@ import type { Bot, BotAgent } from './types';
 import { BotCard } from './BotCard';
 import Flexbox from '../ui/Flexbox';
 import styles from './BotList.module.css';
+import EmptyState from '../ui/EmptyState';
+import { Bot as BotGlyph } from 'lucide-solid';
 
 export interface BotListProps {
   bots: Bot[];
@@ -47,9 +49,12 @@ export function BotList(props: BotListProps) {
       </Show>
 
       <Show when={!props.isLoading && props.bots.length === 0}>
-        <div data-testid="bots-empty-state" class={styles.emptyState}>
-          No bots yet. Create one to get started.
-        </div>
+        <EmptyState
+          icon={BotGlyph}
+          title="No bots yet"
+          body="A bot gets its own token and can post, moderate, and answer commands."
+          data-testid="bots-empty-state"
+        />
       </Show>
 
       <Show when={!props.isLoading && props.bots.length > 0}>

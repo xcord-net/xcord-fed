@@ -276,8 +276,56 @@ public sealed class RoleService : IRoleService
             roles = (roles & ~userOverride.Deny) | userOverride.Allow;
         }
 
-        // Step 8: Cap roles for bots and cache
-        return await CacheAndReturn(CapBotRoles(roles)).ConfigureAwait(false);
+        // Step 8: apply any group restriction on the channel itself, cap for bots, cache
+        var gated = await ApplyAccessGroups(
+            userId, new[] { channelId }, new Dictionary<long, long> { [channelId] = CapBotRoles(roles) })
+            .ConfigureAwait(false);
+        return await CacheAndReturn(gated[channelId]).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Strip ViewChannels from channels reserved for a group the user is not in.
+    /// </summary>
+    /// <remarks>
+    /// `Channel.AccessGroupId` is what "restrict this channel to a group" writes,
+    /// and until now nothing read it: the column was stored, the UI reported
+    /// success, and the channel stayed visible and reachable for everyone. It is
+    /// applied after overrides so an explicit override cannot be used to walk
+    /// around it, and never to an Administrator, who is already exempt from
+    /// channel overrides everywhere else.
+    /// </remarks>
+    private async Task<Dictionary<long, long>> ApplyAccessGroups(
+        long userId,
+        IReadOnlyCollection<long> channelIds,
+        Dictionary<long, long> roles)
+    {
+        if (channelIds.Count == 0) return roles;
+
+        var restricted = await _dbContext.Channels
+            .AsNoTracking()
+            .Where(c => channelIds.Contains(c.Id) && c.AccessGroupId != null)
+            .Select(c => new { c.Id, AccessGroupId = c.AccessGroupId!.Value, c.ServerId })
+            .ToListAsync().ConfigureAwait(false);
+        if (restricted.Count == 0) return roles;
+
+        var groupIds = restricted.Select(r => r.AccessGroupId).Distinct().ToList();
+        var memberOf = await _dbContext.MemberGroups
+            .AsNoTracking()
+            .Where(mg => mg.UserId == userId && groupIds.Contains(mg.GroupId))
+            .Select(mg => mg.GroupId)
+            .ToListAsync().ConfigureAwait(false);
+        var memberOfSet = memberOf.ToHashSet();
+
+        foreach (var channel in restricted)
+        {
+            if (!roles.TryGetValue(channel.Id, out var value)) continue;
+            if (value == long.MaxValue) continue;                 // Administrator
+            if ((value & (long)Xcord.Entities.Role.Administrator) != 0) continue;
+            if (memberOfSet.Contains(channel.AccessGroupId)) continue;
+            roles[channel.Id] = value & ~(long)Xcord.Entities.Role.ViewChannels;
+        }
+
+        return roles;
     }
 
     public async Task<Dictionary<long, long>> GetChannelRolesForServer(long userId, long serverId, IReadOnlyCollection<long> channelIds)
@@ -396,6 +444,8 @@ public sealed class RoleService : IRoleService
                 computed[channelId] = CapBotRoles(roles);
             }
         }
+
+        computed = await ApplyAccessGroups(userId, missing, computed).ConfigureAwait(false);
 
         // Bulk cache write, pipelined in a single batch.
         try

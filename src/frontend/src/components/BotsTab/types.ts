@@ -31,6 +31,20 @@ export interface BotToken {
   lastUsedAt: string | null;
 }
 
+/** One row of `GET /api/v1/admin/bots`: a token, plus the bot it belongs to. */
+export interface BotTokenRow {
+  tokenId: string;
+  tokenName: string;
+  tokenHash?: string;
+  userId: string;
+  username: string;
+  displayName?: string;
+  roles: number;
+  isRevoked: boolean;
+  createdAt: string;
+  lastUsedAt: string | null;
+}
+
 export interface Bot {
   id: string;
   username: string;
@@ -42,10 +56,20 @@ export interface Bot {
   tokens: BotToken[];
 }
 
+/**
+ * What `POST /api/v1/admin/bots` actually returns.
+ *
+ * The names matter more than usual here: the raw token is shown once and never
+ * again, so reading a field the server does not send loses it for good. This
+ * type claimed `id` and `token`; the server sends `userId` and `rawToken`.
+ */
 export interface CreateBotResponse {
-  id: string;
+  userId: string;
   username: string;
   displayName: string;
-  token: string;
+  rawToken: string;
   tokenId: string;
+  tokenName: string;
+  roles: number;
+  createdAt: string;
 }

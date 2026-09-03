@@ -1,0 +1,7 @@
+/* A settings pane fills the Deck's content area. No border and no shadow: it
+   is the pane, not a card floating on one. */
+.pane {
+  height: 100%;
+  overflow-y: auto;
+  background-color: var(--color-xcord-bg-primary);
+}

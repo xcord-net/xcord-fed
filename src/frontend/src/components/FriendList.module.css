@@ -141,17 +141,6 @@
   color: var(--color-xcord-text-muted);
 }
 
-.emptyCenter {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 8rem;
-}
-
-.emptyText {
-  color: var(--color-xcord-text-muted);
-}
-
 /* Friend item */
 .friendItem {
   padding: 0.75rem 1rem;

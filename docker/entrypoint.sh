@@ -36,7 +36,11 @@ if [ -n "${XCORD_CONFIG_INLINE:-}" ]; then
         LiveKit: {
             Host: .livekit.host,
             ApiKey: .livekit.apiKey,
-            ApiSecret: .livekit.apiSecret
+            ApiSecret: .livekit.apiSecret,
+            EgressServiceUrl: (.livekit.egressServiceUrl // ""),
+            EgressTemplateBaseUrl: (.livekit.egressTemplateBaseUrl // ""),
+            HlsBaseUrl: (.livekit.hlsBaseUrl // ""),
+            EgressWebhookSecret: (.livekit.egressWebhookSecret // "")
         },
         Cors: {
             AllowedOrigins: (.cors.allowedOrigins // [])
@@ -158,7 +162,11 @@ elif [ -f "$CONFIG_PATH" ]; then
         LiveKit: {
             Host: .livekit.host,
             ApiKey: .livekit.apiKey,
-            ApiSecret: .livekit.apiSecret
+            ApiSecret: .livekit.apiSecret,
+            EgressServiceUrl: (.livekit.egressServiceUrl // ""),
+            EgressTemplateBaseUrl: (.livekit.egressTemplateBaseUrl // ""),
+            HlsBaseUrl: (.livekit.hlsBaseUrl // ""),
+            EgressWebhookSecret: (.livekit.egressWebhookSecret // "")
         },
         Cors: {
             AllowedOrigins: (.cors.allowedOrigins // [])

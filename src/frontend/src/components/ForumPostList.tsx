@@ -2,6 +2,8 @@ import { For, Show, createSignal, createEffect } from 'solid-js';
 import { useForums } from '../stores/forum.store';
 import type { ForumPost } from '../types/forum';
 import styles from './ForumPostList.module.css';
+import EmptyState from './ui/EmptyState';
+import { MessagesSquare, TriangleAlert } from 'lucide-solid';
 
 interface ForumPostListProps {
   serverId: string;
@@ -228,21 +230,22 @@ export default function ForumPostList(props: ForumPostListProps) {
         </Show>
 
         <Show when={!forumStore.isLoading && forumStore.loadError}>
-          <div data-testid="forum-load-error" class={styles.emptyState}>
-            <p class={styles.emptyStateText}>Couldn't load posts. Check your connection and try again.</p>
-          </div>
+          <EmptyState
+            icon={TriangleAlert}
+            title="Could not load posts"
+            body="Check your connection and try again."
+            data-testid="forum-load-error"
+          />
         </Show>
 
         <Show when={!forumStore.isLoading && !forumStore.loadError && forumStore.posts.length === 0}>
-          <div data-testid="forum-empty-state" class={styles.emptyState}>
-            <p class={styles.emptyStateText}>No posts yet. Be the first to start a discussion!</p>
-            <button
-              class={styles.emptyStateLink}
-              onClick={() => setShowCreateForm(true)}
-            >
-              Create the first post
-            </button>
-          </div>
+          <EmptyState
+            icon={MessagesSquare}
+            title="No posts yet"
+            body="Start a discussion and everyone in the channel can reply to it."
+            action={{ label: 'Write the first post', onClick: () => setShowCreateForm(true) }}
+            data-testid="forum-empty-state"
+          />
         </Show>
 
         <Show when={!forumStore.isLoading && forumStore.posts.length > 0}>

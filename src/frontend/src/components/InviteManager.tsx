@@ -3,6 +3,8 @@ import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import ConfirmationButton from './ui/ConfirmationButton';
 import styles from './InviteManager.module.css';
+import EmptyState from './ui/EmptyState';
+import { Ticket } from 'lucide-solid';
 
 interface Invite {
   code: string;
@@ -87,10 +89,12 @@ export default function InviteManager(props: InviteManagerProps) {
         </Show>
 
         <Show when={!isLoading() && invites().length === 0}>
-          <div class={styles.emptyContainer}>
-            <p class={styles.emptyTitle}>No active invites</p>
-            <p class={styles.emptySubtitle}>Use the server menu to create invites.</p>
-          </div>
+          <EmptyState
+            icon={Ticket}
+            title="No active invites"
+            body="Create one from the community menu to let people join."
+            data-testid="invite-manager-empty"
+          />
         </Show>
 
         <For each={invites()}>

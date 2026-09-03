@@ -14,7 +14,7 @@ export default function ResetPassword() {
   const navigate = useNavigate();
 
   onMount(() => {
-    document.title = 'Reset Password - Xcord';
+    document.title = 'Choose a new password - Xcord';
     const params = new URLSearchParams(window.location.search);
     const t = params.get('token');
     if (t) {
@@ -27,17 +27,17 @@ export default function ResetPassword() {
     setError('');
 
     if (newPassword() !== confirmPassword()) {
-      setError('Passwords do not match');
+      setError('The two passwords do not match.');
       return;
     }
 
     if (newPassword().length < 8) {
-      setError('Password must be at least 8 characters');
+      setError('Use at least 8 characters.');
       return;
     }
 
     if (!token()) {
-      setError('Invalid or missing reset token');
+      setError('This reset link is not valid. Request a new one.');
       return;
     }
 
@@ -49,7 +49,7 @@ export default function ResetPassword() {
       });
       setSuccess(true);
     } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Failed to reset password. The link may have expired.'));
+      setError(getErrorMessage(err, 'Could not save the new password. The link may have expired - request a new one.'));
     } finally {
       setLoading(false);
     }
@@ -111,7 +111,7 @@ export default function ResetPassword() {
             disabled={loading() || !token()}
             class={styles.submitButton}
           >
-            {loading() ? 'Resetting...' : 'Reset Password'}
+            {loading() ? 'Saving...' : 'Save new password'}
           </button>
           <p class={styles.footerText}>
             Remembered it? <A href="/login" class={styles.link}>Back to Login</A>

@@ -95,12 +95,6 @@
   color: var(--color-xcord-white);
 }
 
-.emptyOverrides {
-  padding: 0.5rem 0.75rem;
-  color: var(--color-xcord-text-muted);
-  font-size: 0.75rem;
-}
-
 /* Right panel */
 .permissionGrid {
   flex: 1;

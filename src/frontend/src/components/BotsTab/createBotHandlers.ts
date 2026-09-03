@@ -52,12 +52,12 @@ export function createCreateBotHandlers(deps: CreateBotHandlersDeps) {
       });
       // If agent selected, assign it now
       if (createAgentId()) {
-        await api.post(`/api/v1/admin/bots/${result.id}/assign-agent`, {
+        await api.post(`/api/v1/admin/bots/${result.userId}/assign-agent`, {
           agentId: createAgentId(),
           configJson: JSON.stringify(createParamValues()),
         });
       }
-      setNewToken(result.token);
+      setNewToken(result.rawToken);
       await deps.loadBots();
     } catch (err: unknown) {
       setCreateError(getErrorMessage(err, 'Failed to create bot.'));

@@ -3,6 +3,7 @@ import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import Modal from './ui/Modal';
 import styles from './OwnershipTransfer.module.css';
+import EmptyState from './ui/EmptyState';
 
 interface Member {
   userId: string;
@@ -158,9 +159,12 @@ export default function OwnershipTransfer(props: OwnershipTransferProps) {
                   )}
                 </For>
                 <Show when={members().length === 0}>
-                  <div class={styles.emptyMembers}>
-                    <p class={styles.emptyMembersText}>No other members to transfer to.</p>
-                  </div>
+                  <EmptyState
+                    title="Nobody to transfer to"
+                    body="You are the only member. Invite someone before handing over the community."
+                    dense
+                    data-testid="ownership-transfer-empty"
+                  />
                 </Show>
               </div>
             </Show>

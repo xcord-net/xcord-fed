@@ -33,12 +33,6 @@
   margin: 0;
 }
 
-.emptyText {
-  font-size: 0.875rem;
-  color: var(--color-xcord-text-muted);
-  margin: 0;
-}
-
 .layoutGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

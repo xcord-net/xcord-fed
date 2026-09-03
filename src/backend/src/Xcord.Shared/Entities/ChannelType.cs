@@ -23,5 +23,17 @@ public enum ChannelType
     /// <summary>
     /// Forum channel (post-based with threads).
     /// </summary>
-    Forum = 3
+    Forum = 3,
+
+    /// <summary>
+    /// Stage channel: a broadcast with a host-controlled stage, optionally
+    /// relayed to external platforms.
+    /// </summary>
+    /// <remarks>
+    /// Until this existed the Streaming capability could only be set by passing
+    /// Capabilities explicitly, which nothing in the product did - so a stage
+    /// channel could not actually be created through the UI, and the integration
+    /// test wrote one straight to the database to get around it.
+    /// </remarks>
+    Stage = 4
 }

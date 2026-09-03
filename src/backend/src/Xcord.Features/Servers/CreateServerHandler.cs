@@ -124,10 +124,17 @@ public sealed class CreateServerHandler(
             ServerId = serverId,
             Name = "@everyone",
             Color = null,
+            // ViewBroadcast sits with Connect and Speak: watching a stream in a
+            // channel you can already see is the same kind of default as hearing
+            // a voice room you can already see. Without it an ordinary member
+            // could open a streaming channel and be refused the broadcast in it,
+            // because joining by invite only assigns a group when the invite
+            // names one - so most members are @everyone and nothing else.
+            // Gating a stream is still possible by taking this away.
             Roles = (long)(Role.ViewChannels | Role.SendMessages |
                            Role.EmbedLinks | Role.AttachFiles |
                            Role.ReadMessageHistory | Role.AddReactions |
-                           Role.Connect | Role.Speak |
+                           Role.Connect | Role.Speak | Role.ViewBroadcast |
                            Role.CreatePublicThreads | Role.SendMessagesInThreads),
             Position = 0,
             IsEveryone = true,
@@ -338,7 +345,8 @@ public sealed class CreateServerHandler(
             OwnerId: server.OwnerId,
             MemberCount: server.MemberCount,
             PreferredLocale: server.PreferredLocale,
-            CreatedAt: server.CreatedAt
+            CreatedAt: server.CreatedAt,
+            SystemChannelId: generalChannelId
         );
     }
 

@@ -4,6 +4,7 @@ import { useChannels } from '../stores/channel.store';
 import ChannelPermissions from './ChannelPermissions';
 import StreambotManager from './StreambotManager';
 import Modal from './ui/Modal';
+import Surface from './ui/Surface';
 import { getErrorMessage } from '../utils/errors';
 import { Capability, hasCapability } from '../types/channel';
 import type { Group } from '../types/member';
@@ -13,6 +14,8 @@ interface ChannelSettingsProps {
   serverId: string;
   channelId: string;
   onClose: () => void;
+  /** Render as a Deck pane instead of a dialog. */
+  inline?: boolean;
 }
 
 const SLOWMODE_OPTIONS: { label: string; value: number }[] = [
@@ -138,7 +141,7 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
 
   return (
     <>
-      <Modal data-testid="channel-settings-dialog" open={true} onClose={props.onClose} aria-label="Channel Settings" size="lg">
+      <Surface data-testid="channel-settings-dialog" inline={props.inline} onClose={props.onClose} aria-label="Channel Settings" size="lg">
         {/* Header */}
         <div class={styles.header}>
           <div class={styles.headerText}>
@@ -416,7 +419,7 @@ export default function ChannelSettings(props: ChannelSettingsProps) {
             </div>
           </form>
         </Show>
-      </Modal>
+      </Surface>
 
       {/* Delete channel confirmation */}
       <Modal data-testid="delete-channel-dialog" open={showDeleteConfirm()} onClose={() => setShowDeleteConfirm(false)} title="Delete Channel" size="sm" role="alertdialog">

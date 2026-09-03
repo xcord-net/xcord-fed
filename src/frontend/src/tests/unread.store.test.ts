@@ -25,25 +25,36 @@ describe('unread.store', () => {
       expect(unread.getUnreadCount('conv-1')).toBe(7);
     });
 
-    it('should remove entry when count is 0', () => {
+    it('keeps a zeroed entry rather than forgetting the conversation', () => {
       const unread = useUnread();
 
       unread.updateUnread('conv-1', 5, 'msg-100');
       unread.updateUnread('conv-1', 0, 'msg-100');
 
       expect(unread.getUnreadCount('conv-1')).toBe(0);
-      expect(unread.unreadMap.has('conv-1')).toBe(false);
+      // Consumers fall back to a server-side aggregate for conversations this
+      // store knows nothing about, so "read" has to be distinguishable from
+      // "unknown" - dropping the entry made a read conversation reappear with
+      // whatever the last aggregate said.
+      expect(unread.isTracked('conv-1')).toBe(true);
+    });
+
+    it('does not claim to track a conversation it has never seen', () => {
+      const unread = useUnread();
+
+      expect(unread.isTracked('never-heard-of-it')).toBe(false);
     });
   });
 
   describe('markRead', () => {
-    it('should remove unread entry for conversation', () => {
+    it('zeroes the count and keeps tracking the conversation', () => {
       const unread = useUnread();
 
       unread.updateUnread('conv-1', 5, 'msg-100');
       unread.markRead('conv-1');
 
       expect(unread.getUnreadCount('conv-1')).toBe(0);
+      expect(unread.isTracked('conv-1')).toBe(true);
     });
 
     it('should not affect other conversations', () => {

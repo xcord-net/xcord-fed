@@ -11,8 +11,13 @@ const voiceState = {
   isSpeaking: false,
 };
 
+// The stage fetches the roster it needs to name participants, so the mock has
+// to offer that too. Recorded rather than ignored: an empty roster must lead to
+// exactly one fetch, and a populated one to none.
+const fetchMembers = vi.fn(() => Promise.resolve());
 const memberState = {
   members: [] as Member[],
+  fetchMembers,
 };
 
 const authState = {
@@ -58,15 +63,39 @@ describe('VoiceStage', () => {
     voiceState.isMuted = false;
     voiceState.isSpeaking = false;
     memberState.members = [];
+    fetchMembers.mockClear();
     authState.user = { id: 'u-local', username: 'craig', email: 'craig@example.com' };
+  });
+
+  it('fetches the roster it needs to name participants', () => {
+    selectVoiceChannel();
+    voiceState.currentChannelId = 'voice-1';
+
+    render(() => <VoiceStage />);
+
+    // Nothing else on a voice channel loads the roster, so without this the
+    // tiles fall back to raw user ids.
+    expect(fetchMembers).toHaveBeenCalledWith('s-1');
+  });
+
+  it('does not refetch the roster when it is already loaded', () => {
+    selectVoiceChannel();
+    voiceState.currentChannelId = 'voice-1';
+    memberState.members = [
+      { userId: 'u-local', username: 'craig', displayName: 'Craig' } as Member,
+    ];
+
+    render(() => <VoiceStage />);
+
+    expect(fetchMembers).not.toHaveBeenCalled();
   });
 
   it('prompts to join when the user is not connected to this channel', () => {
     selectVoiceChannel();
 
-    const { getByText, queryByTestId } = render(() => <VoiceStage />);
+    const { getByText, queryByTestId, getByTestId } = render(() => <VoiceStage />);
 
-    expect(getByText('Join this channel to see who is here.')).toBeTruthy();
+    expect(getByTestId('voice-stage-empty')).toBeTruthy();
     expect(queryByTestId('voice-tile-u-local')).toBeNull();
   });
 

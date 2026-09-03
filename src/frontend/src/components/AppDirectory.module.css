@@ -272,27 +272,6 @@
   flex: 1;
 }
 
-.emptyIcon {
-  font-size: 2.25rem;
-  color: var(--color-xcord-text-muted);
-}
-
-.emptyText {
-  color: var(--color-xcord-text-muted);
-  font-size: 0.875rem;
-}
-
-.clearFiltersBtn {
-  background: none;
-  color: var(--color-xcord-brand);
-  font-size: 0.875rem;
-  padding: 0;
-}
-
-.clearFiltersBtn:hover {
-  text-decoration: underline;
-}
-
 .gridArea {
   flex: 1;
   overflow-y: auto;

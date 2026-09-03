@@ -89,6 +89,31 @@ public sealed class SendMessageHandler(
             {
                 return permissionResult.Error;
             }
+
+            // An announcement channel is a broadcast, not a conversation: everyone
+            // reads it, only moderators post to it. Nothing enforced that, so any
+            // member could reply to an announcement - which is the one thing the
+            // channel type exists to prevent.
+            var channelType = await dbContext.Channels
+                .AsNoTracking()
+                .Where(c => c.Id == context.ChannelId)
+                .Select(c => c.Type)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (channelType == ChannelType.Announcement)
+            {
+                var moderatorResult = await roleService.EnsureChannelRole(
+                    userId,
+                    context.ChannelId,
+                    Role.ManageMessages);
+
+                if (moderatorResult.IsFailure)
+                {
+                    return Error.Forbidden(
+                        "ANNOUNCEMENT_READ_ONLY",
+                        "Only moderators can post in an announcement channel");
+                }
+            }
         }
         else if (context.Type == ConversationType.Thread)
         {

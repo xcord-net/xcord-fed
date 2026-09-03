@@ -352,7 +352,7 @@
 }
 
 .sectionTitleKnownIssues {
-  color: #fb923c;
+  color: var(--color-xcord-warning);
 }
 
 .releaseNotesList {

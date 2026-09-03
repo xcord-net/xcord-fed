@@ -1,4 +1,4 @@
-import { For, createSignal } from 'solid-js';
+import { For, createEffect, createSignal, on } from 'solid-js';
 import { api } from '../../api/client';
 import type { Poll } from './helpers';
 import { fetchPollState } from './helpers';
@@ -23,9 +23,20 @@ export default function PollDisplay(props: PollDisplayProps) {
   const [showEndConfirm, setShowEndConfirm] = createSignal(false);
   const [localPoll, setLocalPoll] = createSignal<Poll>(props.poll);
 
-  // Keep in sync if parent passes a new poll (e.g. after SignalR update)
-  // We use a simple approach: whenever props.poll reference changes, we sync.
-  // SolidJS tracks fine-grained, so we just read props.poll inline in the JSX.
+  /**
+   * The local copy exists only to hold the optimistic vote between the click
+   * and the server's answer. It is not the source of truth: it used to be
+   * seeded from props once and never touched again, which meant a poll only
+   * ever moved for the person who voted - everyone else watched a frozen
+   * count, because the announced tally the parent lays over `props.poll` had
+   * nowhere to land.
+   *
+   * So whatever the parent hands down next - a refetch, or an announcement
+   * from someone else's vote - is newer than the optimistic guess and replaces
+   * it.
+   */
+  createEffect(on(() => props.poll, (incoming) => setLocalPoll(incoming), { defer: true }));
+
   const poll = () => localPoll();
 
   const isExpired = () => {

@@ -94,6 +94,12 @@ export default function MessageRow(props: MessageRowProps) {
         )}
       </Show>
 
+      {/* Nothing to act on until the server has given it an id.
+          A message renders the instant it is typed, carrying a temporary
+          `pending-` id, and every one of these actions names the message to the
+          server - so acting inside that round trip sent the placeholder id and
+          was rejected. The bar reappears the moment the real message lands. */}
+      <Show when={!props.message.id.startsWith('pending-')}>
       <MessageActionBar
         message={props.message}
         isReactionPickerOpen={props.isReactionPickerOpen}
@@ -110,6 +116,7 @@ export default function MessageRow(props: MessageRowProps) {
         onTogglePin={props.onTogglePin}
         onStartThread={props.onStartThread}
       />
+      </Show>
 
       {/* Thread creation form - shown inline below the action bar when triggered */}
       <Show when={props.isThreadCreateOpen}>

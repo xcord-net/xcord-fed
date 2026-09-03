@@ -1,0 +1,169 @@
+/* The shared surface behind every page you can reach without being signed in:
+   log in, register, forgot/reset password, confirm email, invite, 404.
+
+   These pages each carried their own copy of the same card, heading, field and
+   button rules — six near-identical stylesheets that drifted apart every time
+   one of them was touched. They now compose from here, so the surface has one
+   definition and a brand change lands on all of them at once. Page modules keep
+   only what is genuinely theirs (a success box, a status code, a dev-only
+   shortcut). */
+
+.pageWrapper {
+  min-height: 100vh;
+  background-color: var(--color-xcord-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+/* One pane floating on the app base — the same two-surface relationship the
+   Deck uses, so signing in already looks like the product. */
+.card {
+  background-color: var(--color-xcord-bg-primary);
+  border: 1px solid var(--color-xcord-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+  padding: 2rem;
+  width: 100%;
+  max-width: 26rem;
+}
+
+/* Left-aligned: the eye starts where the first field starts, and a centred
+   column of ragged text is the default every login page already uses. */
+.heading {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-xcord-text-primary);
+  margin-bottom: 0.4rem;
+}
+
+.description {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+.errorText {
+  color: var(--color-xcord-danger-text);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.fieldGroup {
+  margin-bottom: 1rem;
+}
+
+.fieldGroupLast {
+  margin-bottom: 1.5rem;
+}
+
+.label {
+  display: block;
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+}
+
+/* Recessed below the pane it sits in, so a field reads as somewhere to put
+   something rather than as another raised card. */
+.input {
+  width: 100%;
+  background-color: var(--color-xcord-bg-tertiary);
+  color: var(--color-xcord-text-primary);
+  border: 1px solid var(--color-xcord-border);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--color-xcord-text-faint);
+}
+
+.input:focus-visible {
+  border-color: var(--color-xcord-brand);
+  outline: 2px solid var(--color-xcord-brand);
+  outline-offset: 1px;
+}
+
+/* A one-time code is read back digit by digit, so it gets the mono face and
+   room between characters. */
+.codeInput {
+  composes: input;
+  font-family: var(--font-mono);
+  letter-spacing: 0.35em;
+  text-align: center;
+}
+
+.submitButton {
+  width: 100%;
+  background-color: var(--color-xcord-brand);
+  color: var(--color-xcord-white);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  padding: 0.6rem 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.submitButton:hover:not(:disabled) {
+  background-color: var(--color-xcord-brand-hover);
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  width: 100%;
+  margin-top: 0.5rem;
+  color: var(--color-xcord-text-muted);
+  font-family: inherit;
+  font-size: 0.875rem;
+  padding: 0.5rem 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color 150ms;
+}
+
+.secondaryButton:hover {
+  color: var(--color-xcord-text-primary);
+}
+
+.footerText {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.875rem;
+  margin-top: 1.25rem;
+  text-align: center;
+}
+
+.link {
+  color: var(--color-xcord-brand);
+  border-radius: 2px;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+/* Keyboard focus stays visible on every control on these pages. Someone who
+   cannot see the pointer still has to be able to sign in. */
+.submitButton:focus-visible,
+.secondaryButton:focus-visible,
+.link:focus-visible {
+  outline: 2px solid var(--color-xcord-brand);
+  outline-offset: 2px;
+}

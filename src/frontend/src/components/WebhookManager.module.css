@@ -154,24 +154,6 @@
   color: var(--color-xcord-text-muted);
 }
 
-.emptyContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 8rem;
-  color: var(--color-xcord-text-muted);
-}
-
-.emptyTitle {
-  font-weight: 600;
-}
-
-.emptySubtitle {
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-}
-
 .webhookCard {
   background-color: var(--color-xcord-bg-primary);
   border-radius: 0.5rem;

@@ -85,10 +85,10 @@ describe('FollowChannel', () => {
 
   it('shows empty state when no followers exist', async () => {
     mockFetch({ 'GET /api/v1/servers/s-1/channels/ch-1/followers': () => ({ status: 200, body: [] }) });
-    const { findByText } = render(() => (
+    const { findByText, findByTestId } = render(() => (
       <FollowChannel serverId="s-1" channelId="ch-1" channelType="Announcement" channelName="news" />
     ));
-    expect(await findByText(/No channels are following news yet/)).toBeInTheDocument();
+    expect(await findByTestId('follow-channel-empty')).toBeInTheDocument();
   });
 
   it('renders existing follower entries', async () => {

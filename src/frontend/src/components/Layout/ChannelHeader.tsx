@@ -4,6 +4,7 @@ import { useModals } from '../../stores/modal.store';
 import { tooltip } from '../../directives/tooltip';
 import { GearIcon, PinIcon, SearchIcon, ThreadsIcon } from './icons';
 import Flexbox from '../ui/Flexbox';
+import { ShieldIcon } from '../ui/icons';
 import styles from './ChannelHeader.module.css';
 
 // Ensure the directive is not tree-shaken
@@ -78,9 +79,7 @@ export default function ChannelHeader(props: ChannelHeaderProps) {
             class={`${styles.headerBtn}${modals.showServerSettings ? ` ${styles.headerBtnActive}` : ''}`}
             onClick={() => modals.openServerSettings()}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class={styles.headerIcon}>
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            </svg>
+            <ShieldIcon class={styles.headerIcon} />
           </button>
         </Show>
       </Flexbox>

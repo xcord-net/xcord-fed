@@ -86,7 +86,7 @@ describe('StickerPicker', () => {
     });
     const { findByTestId } = render(() => <StickerPicker serverId="s-1" />);
     expect(await findByTestId('sticker-picker-empty-state')).toHaveTextContent(
-      'No stickers found',
+      'No stickers yet',
     );
   });
 

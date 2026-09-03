@@ -1,7 +1,7 @@
-import { createSignal, createRoot } from 'solid-js';
+import { createSignal, createRoot, untrack } from 'solid-js';
 import { api } from '../api/client';
 import { normalizeIds } from '../utils/snowflake';
-import type { Message } from '../types/message';
+import type { Message, MessageAttachment, MessageReaction } from '../types/message';
 
 /** The message a new message will reply to, shared between the action bar and the composer. */
 export interface ReplyTarget {
@@ -101,6 +101,15 @@ export function useMessages() {
 
     async loadMessages(conversationId: string, cursor?: string): Promise<void> {
       store.setIsLoading(true);
+      // Anything already on screen when the request goes out is history the
+      // response will carry itself. What is *not* here yet, and arrives while
+      // the request is in flight, is the interesting case - see below.
+      //
+      // Untracked deliberately: this runs synchronously inside the effect that
+      // calls loadMessages, so a plain read would make the message list a
+      // dependency of its own fetch - every setMessages below would re-enter
+      // here, which is an accelerating request loop, not a subscription.
+      const idsBeforeFetch = untrack(() => new Set(store.messages().map((m) => m.id)));
       try {
         const query = cursor
           ? `?cursor=${encodeURIComponent(cursor)}&limit=50`
@@ -119,11 +128,28 @@ export function useMessages() {
           // Prepend older messages
           store.setMessages([...newMessages, ...store.messages()]);
         } else {
-          // Initial load. Preserve any optimistic messages currently in the store
-          // (id starts with "pending-") so an in-flight send is not wiped by the
-          // initial fetch returning before the POST response.
-          const pending = store.messages().filter((m) => m.id.startsWith('pending-'));
-          store.setMessages([...newMessages, ...pending]);
+          // Initial load. Two things must survive it.
+          //
+          // Optimistic messages (id starts with "pending-"), so an in-flight send
+          // is not wiped by the fetch returning before the POST response.
+          //
+          // And messages someone else pushed while this request was in flight.
+          // Opening a channel is a subscribe and a fetch racing each other, and
+          // this replaced the list wholesale - so a message posted in that window
+          // was announced, applied, and then thrown away, invisible until the
+          // next reload. Whoever opened a channel at the moment someone spoke
+          // simply did not see them.
+          const current = store.messages();
+          const fetchedIds = new Set(newMessages.map((m) => m.id));
+          const pending = current.filter((m) => m.id.startsWith('pending-'));
+          const arrivedDuringFetch = current.filter(
+            (m) =>
+              !m.id.startsWith('pending-') &&
+              !idsBeforeFetch.has(m.id) &&
+              !fetchedIds.has(m.id) &&
+              m.conversationId === conversationId,
+          );
+          store.setMessages([...newMessages, ...arrivedDuringFetch, ...pending]);
         }
       } finally {
         store.setIsLoading(false);
@@ -231,6 +257,34 @@ export function useMessages() {
     },
 
     /**
+     * Replace one message's reactions, from a realtime event.
+     *
+     * Deliberately not routed through `updateMessage`: that path normalizes a
+     * whole message, and normalization turns a missing author or body into an
+     * empty string rather than leaving it undefined - so merging a
+     * reactions-only payload through it silently blanked the message it was
+     * decorating. This touches the one field the event actually carries.
+     */
+    /**
+     * Replace one message's attachments, from a realtime event.
+     *
+     * Thumbnails are generated after the message is delivered, so this is how a
+     * download link becomes a picture without a reload. Same reasoning as
+     * `setReactions`: only the field the event carries is touched.
+     */
+    setAttachments(messageId: string, attachments: MessageAttachment[]): void {
+      store.setMessages(store.messages().map((m) =>
+        m.id === messageId ? { ...m, attachments } : m,
+      ));
+    },
+
+    setReactions(messageId: string, reactions: MessageReaction[]): void {
+      store.setMessages(store.messages().map((m) =>
+        m.id === messageId ? { ...m, reactions } : m,
+      ));
+    },
+
+    /**
      * Re-fetches a single message and patches it in place. Used after reaction
      * changes so the view updates without clearing+reloading the whole list,
      * which would reset the user's scroll position mid-read.
@@ -240,11 +294,30 @@ export function useMessages() {
         `/api/v1/conversations/${conversationId}/messages/${messageId}`,
       );
       const normalized = normalizeMessage(fresh);
-      store.setMessages(store.messages().map((m) => (m.id === normalized.id ? normalized : m)));
+      // Merged, not replaced. This says "patch in place", and the single-message
+      // endpoint is a narrower view than the list one - so replacing wholesale
+      // dropped whatever it does not carry, which meant reacting to a message
+      // with an attachment made the attachment disappear from your own screen.
+      store.setMessages(store.messages().map((m) =>
+        m.id === normalized.id ? mergeMessage(m, normalized) : m,
+      ));
     },
 
+    /**
+     * Remove a message, and tell anything quoting it that it has gone.
+     *
+     * A reply carries its own copy of what it answered, so deleting the parent
+     * used to leave the quote showing text that is no longer anywhere - the
+     * placeholder only appeared after a reload, which is when the server next
+     * described the reply. The reply itself stays: that is the point of the
+     * placeholder.
+     */
     removeMessage(messageId: string): void {
-      store.setMessages(store.messages().filter((m) => m.id !== messageId));
+      store.setMessages(store.messages()
+        .filter((m) => m.id !== messageId)
+        .map((m) => (m.replyToId === messageId && m.replyTo && !m.replyTo.isDeleted
+          ? { ...m, replyTo: { ...m.replyTo, isDeleted: true, preview: '' } }
+          : m)));
     },
 
     reset(): void {

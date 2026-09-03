@@ -328,6 +328,7 @@ export default function TierManager(props: TierManagerProps) {
                   </span>
                 </Show>
                 <span
+                  data-testid={`tier-status-${tier.id}`}
                   class={`${styles.tierStatus} ${tier.isActive ? styles.tierStatusActive : styles.tierStatusInactive}`}
                 >
                   {tier.isActive ? 'Active' : 'Inactive'}

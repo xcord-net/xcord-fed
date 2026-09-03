@@ -136,6 +136,7 @@ public sealed class CreateChannelHandler(
             resolvedCapabilities = request.Capabilities;
             resolvedType = resolvedCapabilities.HasFlag(ChannelCapability.Forum) ? ChannelType.Forum
                 : resolvedCapabilities.HasFlag(ChannelCapability.Announcement) ? ChannelType.Announcement
+                : resolvedCapabilities.HasFlag(ChannelCapability.Streaming) ? ChannelType.Stage
                 : resolvedCapabilities.HasFlag(ChannelCapability.Voice) ? ChannelType.Voice
                 : ChannelType.Text;
         }
@@ -145,6 +146,10 @@ public sealed class CreateChannelHandler(
             resolvedCapabilities = resolvedType switch
             {
                 ChannelType.Voice => ChannelCapability.Voice | ChannelCapability.Video,
+                // A stage is a voice room that can also be composited and relayed,
+                // and it keeps a chat alongside the broadcast.
+                ChannelType.Stage => ChannelCapability.Streaming | ChannelCapability.Voice
+                    | ChannelCapability.Video | ChannelCapability.Chat,
                 ChannelType.Forum => ChannelCapability.Forum | ChannelCapability.Chat,
                 ChannelType.Announcement => ChannelCapability.Announcement | ChannelCapability.Chat,
                 _ => ChannelCapability.Chat

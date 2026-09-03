@@ -65,8 +65,11 @@
   color: var(--color-xcord-white);
 }
 
+/* Matches the active tab's own marker, so focus reads as "you are
+   about to open this one" rather than as a second selection. */
 .tab:focus-visible {
   outline: none;
+  box-shadow: inset 0 -2px 0 var(--color-xcord-brand);
 }
 
 .tabActive {
@@ -163,10 +166,10 @@
 
 .textInputWithPrefix:focus {
   border-color: var(--color-xcord-brand);
-  outline: none;
 }
 
 .textInputWithPrefix:focus-visible {
+  outline: none;
   box-shadow: 0 0 0 2px var(--color-xcord-brand);
 }
 
@@ -182,10 +185,10 @@
 
 .textInput:focus {
   border-color: var(--color-xcord-brand);
-  outline: none;
 }
 
 .textInput:focus-visible {
+  outline: none;
   box-shadow: 0 0 0 2px var(--color-xcord-brand);
 }
 
@@ -202,10 +205,10 @@
 
 .textarea:focus {
   border-color: var(--color-xcord-brand);
-  outline: none;
 }
 
 .textarea:focus-visible {
+  outline: none;
   box-shadow: 0 0 0 2px var(--color-xcord-brand);
 }
 
@@ -221,10 +224,10 @@
 
 .selectInput:focus {
   border-color: var(--color-xcord-brand);
-  outline: none;
 }
 
 .selectInput:focus-visible {
+  outline: none;
   box-shadow: 0 0 0 2px var(--color-xcord-brand);
 }
 

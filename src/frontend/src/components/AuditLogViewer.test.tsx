@@ -39,8 +39,8 @@ describe('AuditLogViewer', () => {
 
   it('shows the empty state when there are no entries', async () => {
     mockFetch({ 'GET /api/v1/servers/s-1/audit-log': () => ({ status: 200, body: [] }) });
-    const { findByText } = render(() => <AuditLogViewer serverId="s-1" />);
-    expect(await findByText('No audit log entries')).toBeInTheDocument();
+    const { findByText, findByTestId } = render(() => <AuditLogViewer serverId="s-1" />);
+    expect(await findByTestId('audit-log-empty')).toBeInTheDocument();
   });
 
   it('renders an entry with actor, action, and reason', async () => {
@@ -67,10 +67,10 @@ describe('AuditLogViewer', () => {
     const calls = mockFetch({
       'GET /api/v1/servers/s-1/audit-log': () => ({ status: 200, body: [] }),
     });
-    const { container, findByText } = render(() => <AuditLogViewer serverId="s-1" />);
+    const { container, findByText, findByTestId } = render(() => <AuditLogViewer serverId="s-1" />);
     // Wait for the initial load to settle (isLoading=false), otherwise applyFilters
     // is short-circuited by the early-return inside loadEntries.
-    await findByText('No audit log entries');
+    await findByTestId('audit-log-empty');
     const select = container.querySelector('select') as HTMLSelectElement;
     fireEvent.change(select, { target: { value: 'MemberBan' } });
     await waitFor(() => {

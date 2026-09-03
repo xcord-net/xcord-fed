@@ -1,6 +1,8 @@
 import { For, Show, createSignal, createEffect } from 'solid-js';
 import { api } from '../api/client';
 import styles from './ScheduledEvents.module.css';
+import EmptyState from './ui/EmptyState';
+import { CalendarDays } from 'lucide-solid';
 
 // ---- Types ----
 
@@ -343,16 +345,13 @@ export default function ScheduledEvents(props: ScheduledEventsProps) {
         </Show>
 
         <Show when={!isLoading() && events().length === 0}>
-          <div class={styles.emptyState}>
-            <div class={styles.emptyIcon}>📅</div>
-            <p class={styles.emptyText}>No upcoming events</p>
-            <button
-              class={styles.scheduleLink}
-              onClick={() => setShowCreateForm(true)}
-            >
-              Schedule an event
-            </button>
-          </div>
+          <EmptyState
+            icon={CalendarDays}
+            title="No upcoming events"
+            body="Scheduled events show here, and members can say they are coming."
+            action={{ label: 'Schedule an event', onClick: () => setShowCreateForm(true) }}
+            data-testid="scheduled-events-empty"
+          />
         </Show>
 
         <Show when={!isLoading() && events().length > 0}>

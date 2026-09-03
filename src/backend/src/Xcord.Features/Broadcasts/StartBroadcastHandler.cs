@@ -183,9 +183,8 @@ public sealed class StartBroadcastHandler(
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         // Publish token for the host - 30m TTL matching voice channel tokens.
-        // Limitation: there is no broadcast token refresh endpoint yet, so broadcasts
-        // longer than 30 minutes will require the host to restart the broadcast. A
-        // RefreshBroadcastToken hub method should be added to mirror RefreshVoiceToken.
+        // The client renews it through MainHub.RefreshBroadcastToken before it
+        // lapses, so a broadcast can run past thirty minutes.
         var publishToken = livekitService.GenerateToken(
             userId: userId,
             roomName: roomName,

@@ -1,7 +1,6 @@
 import { createSignal } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
 import { useServers } from '../stores/server.store';
-import { useChannels } from '../stores/channel.store';
 import Modal from './ui/Modal';
 import Flexbox from './ui/Flexbox';
 import { getErrorMessage } from '../utils/errors';
@@ -16,7 +15,6 @@ export default function CreateServerModal(props: CreateServerModalProps) {
   const [error, setError] = createSignal('');
   const [loading, setLoading] = createSignal(false);
   const serverStore = useServers();
-  const channelStore = useChannels();
   const navigate = useNavigate();
 
   const handleCreate = async (e: Event) => {
@@ -25,9 +23,15 @@ export default function CreateServerModal(props: CreateServerModalProps) {
     setLoading(true);
     try {
       const server = await serverStore.createServer(name());
-      await channelStore.fetchChannels(server.id);
-      const generalChannel = channelStore.channels.find(c => c.name === 'general') ?? channelStore.channels[0];
-      navigate(`/channels/${server.id}/${generalChannel?.id ?? ''}`);
+
+      // Straight in on the channel the server was created with. This used to
+      // fetch the whole channel list first and search it for one named
+      // "general", which put a second round trip between the click and any
+      // visible change - for an id the create response already knew. Changing
+      // route loads the new server's channels on its own (useLayoutWiring), so
+      // fetching here as well would only put a second answer in flight racing
+      // the first.
+      navigate(`/channels/${server.id}/${server.systemChannelId ?? ''}`);
       props.onClose();
     } catch (err: unknown) {
       setError(getErrorMessage(err, 'Failed to create server'));

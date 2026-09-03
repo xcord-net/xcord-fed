@@ -110,7 +110,7 @@
   height: 8rem;
   border-radius: 0.5rem;
   overflow: hidden;
-  background: linear-gradient(to right, var(--color-xcord-brand), #9333ea);
+  background: linear-gradient(to right, var(--color-xcord-brand), var(--color-xcord-brand-hover));
   border: none;
   cursor: pointer;
   transition: opacity 0.15s;

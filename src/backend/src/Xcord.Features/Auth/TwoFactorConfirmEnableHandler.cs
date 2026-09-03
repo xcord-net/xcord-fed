@@ -81,19 +81,33 @@ public sealed class TwoFactorConfirmEnableHandler(AppDbContext dbContext, Snowfl
             .ToListAsync(cancellationToken);
         dbContext.TwoFactorBackupCodes.RemoveRange(existingBackupCodes);
 
-        // Generate 10 new backup codes
+        // Generate 10 new backup codes.
+        //
+        // Hashed together rather than one after another. They are independent
+        // values, so on a host with cores to spare this is much faster than a
+        // sequential loop. On an instance held to its tier's CPU quota it is
+        // not: measured there, one hash costs ~280ms and ten still cost ~2.4s,
+        // because there is no spare parallelism to use. Kept anyway - it is
+        // free where the capacity exists - but the endpoint is slow by nature
+        // and is budgeted as such rather than pretended otherwise.
         var now = DateTimeOffset.UtcNow;
+        var rawCodes = new string[BackupCodeCount];
         var plaintextCodes = new List<string>(BackupCodeCount);
 
         for (int i = 0; i < BackupCodeCount; i++)
         {
-            var rawCode = GenerateBackupCode();
-            var formatted = $"{rawCode[..4]}-{rawCode[4..]}";
-            plaintextCodes.Add(formatted);
+            rawCodes[i] = GenerateBackupCode();
+            plaintextCodes.Add($"{rawCodes[i][..4]}-{rawCodes[i][4..]}");
+        }
 
-            // Hash without hyphen - offloaded to Task.Run to avoid thread pool starvation
-            var codeHash = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(rawCode, _authOptions.BcryptWorkFactor)).ConfigureAwait(false);
+        // Hashed without the hyphen, on the thread pool so the request thread is
+        // not held for the duration.
+        var hashes = await Task.WhenAll(rawCodes.Select(raw =>
+            Task.Run(() => BCrypt.Net.BCrypt.HashPassword(raw, _authOptions.BcryptWorkFactor), cancellationToken)))
+            .ConfigureAwait(false);
 
+        foreach (var codeHash in hashes)
+        {
             dbContext.TwoFactorBackupCodes.Add(new TwoFactorBackupCode
             {
                 Id = snowflakeGenerator.NextId(),

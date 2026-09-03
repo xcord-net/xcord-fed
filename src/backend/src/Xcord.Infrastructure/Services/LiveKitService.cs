@@ -38,6 +38,50 @@ public sealed class LiveKitService : ILiveKitService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Builds and signs a LiveKit access token.
+    /// </summary>
+    /// <remarks>
+    /// Every LiveKit token goes through here, because the ways to get one wrong
+    /// are invisible: the `video` grant must be a JSON *object*, not a quoted
+    /// string, and `nbf`/`exp` must be numeric dates - a string claim in either
+    /// place is answered only with "invalid authorization token". Three separate
+    /// builders each made those choices independently, and two of them made them
+    /// wrongly.
+    /// </remarks>
+    private string BuildAccessToken(
+        IDictionary<string, object> videoGrant,
+        TimeSpan ttl,
+        long? subject = null)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var expiry = now.Add(ttl);
+
+        var claims = new List<Claim>
+        {
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new("video", JsonSerializer.Serialize(videoGrant), JsonClaimValueTypes.Json),
+        };
+        if (subject.HasValue)
+        {
+            claims.Insert(0, new Claim(JwtRegisteredClaimNames.Sub, subject.Value.ToString()));
+        }
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.ApiSecret));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        // Issuer, notBefore and expires come from the token itself so they are
+        // written as the types the spec requires.
+        var token = new JwtSecurityToken(
+            issuer: _options.ApiKey,
+            claims: claims,
+            notBefore: now.UtcDateTime,
+            expires: expiry.UtcDateTime,
+            signingCredentials: credentials);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
     public string GenerateToken(
         long userId,
         string roomName,
@@ -118,28 +162,7 @@ public sealed class LiveKitService : ILiveKitService
             }
         }
 
-        var claims = new[]
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
-            new Claim(JwtRegisteredClaimNames.Iss, _options.ApiKey),
-            new Claim(JwtRegisteredClaimNames.Nbf, now.ToUnixTimeSeconds().ToString()),
-            new Claim(JwtRegisteredClaimNames.Exp, expiry.ToUnixTimeSeconds().ToString()),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim("video", JsonSerializer.Serialize(videoGrant))
-        };
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.ApiSecret));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            issuer: _options.ApiKey,
-            claims: claims,
-            expires: expiry.UtcDateTime,
-            signingCredentials: credentials
-        );
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-        return tokenHandler.WriteToken(token);
+        return BuildAccessToken(videoGrant, ttl, userId);
     }
 
     public async Task RemoveParticipantAsync(string roomName, string participantIdentity)
@@ -153,7 +176,7 @@ public sealed class LiveKitService : ILiveKitService
             identity = participantIdentity
         };
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"{_options.Host}/twirp/livekit.RoomService/RemoveParticipant")
+        var request = new HttpRequestMessage(HttpMethod.Post, CombineUrl(ApiBaseUrl, "/twirp/livekit.RoomService/RemoveParticipant"))
         {
             Content = new StringContent(
                 JsonSerializer.Serialize(requestBody),
@@ -167,35 +190,45 @@ public sealed class LiveKitService : ILiveKitService
         response.EnsureSuccessStatusCode();
     }
 
+    public async Task SendDataAsync(string roomName, string topic, string payload, CancellationToken ct)
+    {
+        var serviceToken = GenerateServiceToken();
+
+        // LiveKit's SendData takes raw bytes; the twirp JSON mapping expects them
+        // base64-encoded. RELIABLE ordering matters here: a stage update that
+        // arrives after a later one would leave the composited layout wrong until
+        // the next change.
+        var requestBody = new
+        {
+            room = roomName,
+            data = Convert.ToBase64String(Encoding.UTF8.GetBytes(payload)),
+            kind = "RELIABLE",
+            topic,
+        };
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, CombineUrl(ApiBaseUrl, "/twirp/livekit.RoomService/SendData"))
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(requestBody),
+                Encoding.UTF8,
+                "application/json")
+        };
+
+        request.Headers.Add("Authorization", $"Bearer {serviceToken}");
+
+        var response = await _httpClient.SendAsync(request, ct).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+    }
+
     private string GenerateServiceToken()
     {
         // Generate a service-level token with admin permissions
         var now = DateTimeOffset.UtcNow;
         var expiry = now.AddMinutes(5);
 
-        var claims = new[]
-        {
-            new Claim(JwtRegisteredClaimNames.Iss, _options.ApiKey),
-            new Claim(JwtRegisteredClaimNames.Nbf, now.ToUnixTimeSeconds().ToString()),
-            new Claim(JwtRegisteredClaimNames.Exp, expiry.ToUnixTimeSeconds().ToString()),
-            new Claim("video", JsonSerializer.Serialize(new Dictionary<string, object>
-            {
-                { "roomAdmin", true }
-            }))
-        };
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.ApiSecret));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            issuer: _options.ApiKey,
-            claims: claims,
-            expires: expiry.UtcDateTime,
-            signingCredentials: credentials
-        );
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-        return tokenHandler.WriteToken(token);
+        return BuildAccessToken(
+            new Dictionary<string, object> { { "roomAdmin", true } },
+            expiry - now);
     }
 
     /// <summary>
@@ -209,34 +242,22 @@ public sealed class LiveKitService : ILiveKitService
         var now = DateTimeOffset.UtcNow;
         var expiry = now.AddMinutes(5);
 
+        // Each of these gates a different call, and LiveKit answers a missing one
+        // with a bare "permissions denied": `roomRecord` for starting and stopping
+        // egress, `roomCreate` for making the broadcast room before it, and
+        // `roomAdmin` for touching the room itself.
         var videoGrant = new Dictionary<string, object>
         {
-            { "roomAdmin", true }
+            { "roomAdmin", true },
+            { "roomRecord", true },
+            { "roomCreate", true }
         };
         if (!string.IsNullOrEmpty(roomName))
         {
             videoGrant["room"] = roomName;
         }
 
-        var claims = new[]
-        {
-            new Claim(JwtRegisteredClaimNames.Iss, _options.ApiKey),
-            new Claim(JwtRegisteredClaimNames.Nbf, now.ToUnixTimeSeconds().ToString()),
-            new Claim(JwtRegisteredClaimNames.Exp, expiry.ToUnixTimeSeconds().ToString()),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim("video", JsonSerializer.Serialize(videoGrant))
-        };
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.ApiSecret));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            issuer: _options.ApiKey,
-            claims: claims,
-            expires: expiry.UtcDateTime,
-            signingCredentials: credentials);
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return BuildAccessToken(videoGrant, expiry - now);
     }
 
     public async Task<string> StartRoomCompositeEgressAsync(
@@ -314,7 +335,15 @@ public sealed class LiveKitService : ILiveKitService
         }
 
         var json = JsonSerializer.Serialize(body, EgressJsonOptions);
-        var url = CombineUrl(_options.EgressServiceUrl!, "/twirp/livekit.Egress/StartRoomCompositeEgress");
+        // The room has to exist before anything can be recorded out of it.
+        // LiveKit's auto_create makes a room when a *participant* joins, and the
+        // host's media connection is still being established when this runs - so
+        // without this the very first broadcast of a channel was refused with
+        // "requested room does not exist", and whether it worked depended on who
+        // happened to already be in the room.
+        await EnsureRoomExistsAsync(roomName, ct).ConfigureAwait(false);
+
+        var url = CombineUrl(ApiBaseUrl, "/twirp/livekit.Egress/StartRoomCompositeEgress");
 
         using var request = new HttpRequestMessage(HttpMethod.Post, url)
         {
@@ -353,7 +382,7 @@ public sealed class LiveKitService : ILiveKitService
 
         var body = new { egress_id = egressId };
         var json = JsonSerializer.Serialize(body);
-        var url = CombineUrl(_options.EgressServiceUrl!, "/twirp/livekit.Egress/StopEgress");
+        var url = CombineUrl(ApiBaseUrl, "/twirp/livekit.Egress/StopEgress");
 
         using var request = new HttpRequestMessage(HttpMethod.Post, url)
         {
@@ -415,6 +444,60 @@ public sealed class LiveKitService : ILiveKitService
                 ["force_path_style"] = hls.ForcePathStyle
             }
         };
+    }
+
+    /// <summary>
+    /// Create the room if it is not there yet. Idempotent: LiveKit answers an
+    /// existing room with its current state rather than an error.
+    /// </summary>
+    private async Task EnsureRoomExistsAsync(string roomName, CancellationToken ct)
+    {
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            CombineUrl(ApiBaseUrl, "/twirp/livekit.RoomService/CreateRoom"))
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(new { name = roomName }),
+                Encoding.UTF8,
+                "application/json"),
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            GenerateEgressAdminToken(roomName));
+
+        using var response = await _httpClient.SendAsync(request, ct).ConfigureAwait(false);
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+            throw new HttpRequestException(
+                $"LiveKit CreateRoom failed: {(int)response.StatusCode} {response.ReasonPhrase}. Body: {body}");
+        }
+    }
+
+    /// <summary>
+    /// Base URL for LiveKit's own HTTP APIs (RoomService, Egress).
+    /// </summary>
+    /// <remarks>
+    /// Not <see cref="LiveKitOptions.Host"/>: that is the address handed to
+    /// browsers, so it is a public `wss://` URL that no HttpClient can dial.
+    /// Server-to-server calls use the API base, falling back to Host rewritten
+    /// to http(s) when none is configured - which is what a single-host
+    /// deployment, where the two are the same machine, actually wants.
+    /// </remarks>
+    private string ApiBaseUrl
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(_options.EgressServiceUrl))
+                return _options.EgressServiceUrl!;
+
+            var host = _options.Host ?? string.Empty;
+            if (host.StartsWith("wss://", StringComparison.OrdinalIgnoreCase))
+                return "https://" + host["wss://".Length..];
+            if (host.StartsWith("ws://", StringComparison.OrdinalIgnoreCase))
+                return "http://" + host["ws://".Length..];
+            return host;
+        }
     }
 
     private static string CombineUrl(string baseUrl, string path)

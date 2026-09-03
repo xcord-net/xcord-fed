@@ -50,8 +50,8 @@ describe('ServerTemplates', () => {
     mockFetch({
       'GET /api/v1/server-templates': () => ({ status: 200, body: [] }),
     });
-    const { findByText } = render(() => <ServerTemplates serverId="s-1" />);
-    expect(await findByText('No templates available')).toBeInTheDocument();
+    const { findByText, findByTestId } = render(() => <ServerTemplates serverId="s-1" />);
+    expect(await findByTestId('server-templates-empty')).toBeInTheDocument();
   });
 
   it('renders a template item with name and Use Template action', async () => {

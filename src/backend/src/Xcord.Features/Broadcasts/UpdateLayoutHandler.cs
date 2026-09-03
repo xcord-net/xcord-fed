@@ -19,7 +19,6 @@ public sealed class UpdateLayoutHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
     IRoleService roleService,
-    ILiveKitService livekitService,
     INotificationService notificationService,
     BroadcastEgressBuilder egressBuilder,
     ILogger<UpdateLayoutHandler> logger)
@@ -32,7 +31,7 @@ public sealed class UpdateLayoutHandler(
             return Error.Validation("VALIDATION_ERROR", "Preset is required");
         if (!Enum.TryParse<BroadcastLayoutPreset>(request.Preset, ignoreCase: true, out _))
             return Error.Validation("VALIDATION_ERROR",
-                "Preset must be one of: Grid, Spotlight, Pip, SideBySide");
+                "Preset must be one of: Grid, Spotlight, Pip, SideBySide, AudioShow");
         return null;
     }
 
@@ -69,36 +68,24 @@ public sealed class UpdateLayoutHandler(
         broadcast.LayoutPreset = newPreset;
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        var roomName = egressBuilder.BuildRoomName(broadcast.ChannelId);
-
-        // Rebuild the template URL for the new preset + existing stage slots, and
-        // re-decrypt stream keys fresh so no plaintext copies linger between restarts.
-        var templateUrl = egressBuilder.BuildTemplateUrl(
-            broadcast.Id, newPreset, broadcast.StageSlots, roomName);
-        var outputs = await egressBuilder.BuildOutputsAsync(broadcast.Id, cancellationToken).ConfigureAwait(false);
-
-        string newEgressId;
+        // The compositor is told the new preset over the room's control channel.
+        // Restarting the egress would reapply it too, but only by dropping every
+        // RTMP push and rebuilding it - a visible outage on each relay platform
+        // for what is a change of arrangement, not of destination.
         try
         {
-            newEgressId = await livekitService.RestartEgressWithNewOutputsAsync(
-                oldEgressId: broadcast.EgressJobId,
-                roomName: roomName,
-                templateUrl: templateUrl,
-                outputs: outputs,
-                ct: cancellationToken);
+            await egressBuilder.PublishLayoutAsync(
+                broadcast.ChannelId, newPreset, broadcast.StageSlots, cancellationToken);
         }
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "Failed to restart egress for broadcast {BroadcastId} on layout change",
+                "Failed to publish layout change for broadcast {BroadcastId}",
                 broadcast.Id);
             return Error.Failure(
-                "EGRESS_RESTART_FAILED",
-                "Failed to apply layout change to the egress pipeline");
+                "LAYOUT_PUBLISH_FAILED",
+                "Failed to apply the layout change to the live stream");
         }
-
-        broadcast.EgressJobId = newEgressId;
-        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         await notificationService.NotifyConversationAsync(
             broadcast.Channel.ConversationId,
@@ -111,8 +98,8 @@ public sealed class UpdateLayoutHandler(
             }, cancellationToken);
 
         logger.LogInformation(
-            "User {UserId} changed broadcast {BroadcastId} layout to {Preset} (egress={EgressId})",
-            userId, broadcast.Id, newPreset, newEgressId);
+            "User {UserId} changed broadcast {BroadcastId} layout to {Preset}",
+            userId, broadcast.Id, newPreset);
 
         return true;
     }

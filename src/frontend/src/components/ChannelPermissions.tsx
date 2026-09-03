@@ -2,6 +2,7 @@ import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import styles from './ChannelPermissions.module.css';
+import EmptyState from './ui/EmptyState';
 
 export type PermissionState = 'Allow' | 'Deny' | 'Inherit';
 
@@ -223,7 +224,12 @@ export default function ChannelPermissions(props: ChannelPermissionsProps) {
                 data()!.overrides.length === 0
               }
             >
-              <p class={styles.emptyOverrides}>No overrides configured.</p>
+              <EmptyState
+                title="No overrides yet"
+                body="An override changes what one role or member can do in this channel."
+                dense
+                data-testid="channel-permissions-empty"
+              />
             </Show>
           </div>
 

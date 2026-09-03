@@ -25,8 +25,8 @@ describe('ScheduledMessages', () => {
     mockFetch({
       'GET /api/v1/channels/ch-1/scheduled-messages': () => ({ status: 200, body: [] }),
     });
-    const { findByText } = render(() => <ScheduledMessages channelId="ch-1" />);
-    expect(await findByText('No scheduled messages')).toBeInTheDocument();
+    const { findByText, findByTestId } = render(() => <ScheduledMessages channelId="ch-1" />);
+    expect(await findByTestId('scheduled-messages-empty')).toBeInTheDocument();
   });
 
   it('renders a scheduled message with its content', async () => {

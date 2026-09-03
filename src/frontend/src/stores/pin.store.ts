@@ -35,7 +35,11 @@ export function usePins() {
         `/api/v1/conversations/${conversationId}/messages/${messageId}/pin`,
         {}
       );
-      store.setPinnedMessages([...store.pinnedMessages(), pinned]);
+      // Idempotent: a refetch of the list can land either side of this, and
+      // appending blind then showed the same message pinned twice.
+      if (!store.pinnedMessages().some((m) => m.id === pinned.id)) {
+        store.setPinnedMessages([...store.pinnedMessages(), pinned]);
+      }
     },
 
     async unpinMessage(conversationId: string, messageId: string): Promise<void> {

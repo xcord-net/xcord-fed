@@ -2,6 +2,7 @@ import { createSignal, For, Show, onMount, onCleanup } from 'solid-js';
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import styles from './GifPicker.module.css';
+import EmptyState from './ui/EmptyState';
 
 interface GifDto {
   id: string;
@@ -189,12 +190,12 @@ export default function GifPicker(props: GifPickerProps) {
 
         {/* Empty state */}
         <Show when={!isLoading() && gifs().length === 0 && !error()}>
-          <div class={styles.emptyState}>
-            <p class={styles.emptyTitle}>No GIFs found</p>
-            <Show when={searchQuery()}>
-              <p class={styles.emptySubtitle}>Try a different search term.</p>
-            </Show>
-          </div>
+          <EmptyState
+            title={searchQuery() ? 'No GIFs match that search' : 'No GIFs to show'}
+            body={searchQuery() ? 'Try a different word.' : undefined}
+            dense
+            data-testid="gif-picker-empty"
+          />
         </Show>
 
         {/* Results grid */}

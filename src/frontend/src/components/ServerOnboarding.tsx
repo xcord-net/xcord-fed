@@ -1,6 +1,7 @@
 import { For, Show, Switch, Match, createSignal, createEffect, createMemo } from 'solid-js';
 import { api } from '../api/client';
 import styles from './ServerOnboarding.module.css';
+import EmptyState from './ui/EmptyState';
 
 // ---- Types ----
 
@@ -290,9 +291,12 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
                     </For>
                   </div>
                   <Show when={config()!.groups.length === 0}>
-                    <p class={styles.emptyText}>
-                      No interest groups configured for this server.
-                    </p>
+                    <EmptyState
+                      title="No interest groups set up"
+                      body="Groups let new members pick what they care about when they join."
+                      dense
+                      data-testid="onboarding-groups-empty"
+                    />
                   </Show>
                 </div>
               </Match>
@@ -337,9 +341,12 @@ export default function ServerOnboarding(props: ServerOnboardingProps) {
                     </For>
                   </div>
                   <Show when={config()!.channels.length === 0}>
-                    <p class={styles.emptyText}>
-                      No channels configured for this step.
-                    </p>
+                    <EmptyState
+                      title="No channels in this step"
+                      body="Add the rooms a new member should see first."
+                      dense
+                      data-testid="onboarding-channels-empty"
+                    />
                   </Show>
                 </div>
               </Match>

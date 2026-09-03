@@ -1,9 +1,12 @@
 import { Show } from 'solid-js';
+import { useNavigate } from '@solidjs/router';
 import { useVoice } from '../stores/voice.store';
 import { useChannels } from '../stores/channel.store';
+import { ScreenShareIcon } from './ui/icons';
 import styles from './VoicePanel.module.css';
 
 export default function VoicePanel() {
+  const navigate = useNavigate();
   const voice = useVoice();
   const channels = useChannels();
 
@@ -15,7 +18,20 @@ export default function VoicePanel() {
   return (
     <Show when={voice.currentChannelId && currentChannel()}>
       <div class={styles.panel}>
-        <div class={styles.channelInfo}>
+        {/* Voice outlives the tab you joined from, so the pill has to be the
+            way back to it - otherwise you are connected to a room with no
+            route to the people in it. */}
+        <button
+          type="button"
+          class={styles.channelInfo}
+          data-testid="voice-return-to-room"
+          aria-label={`Back to ${currentChannel()?.name}`}
+          onClick={() => {
+            const channel = currentChannel();
+            if (!channel) return;
+            if (channel.serverId) navigate(`/channels/${channel.serverId}/${channel.id}`);
+          }}
+        >
           <p class={styles.voiceLabel}>Voice Channel</p>
           <p class={styles.channelName}>{currentChannel()?.name}</p>
           <p
@@ -28,16 +44,12 @@ export default function VoicePanel() {
           >
             {voice.isConnecting ? 'Connecting...' : 'Connected'}
           </p>
-        </div>
+        </button>
 
         {/* Screen share indicator */}
         <Show when={voice.screenShareParticipantId}>
           <div class={styles.screenShareBadge}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class={styles.screenShareIcon} aria-hidden="true">
-              <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-              <line x1="8" y1="21" x2="16" y2="21" />
-              <line x1="12" y1="17" x2="12" y2="21" />
-            </svg>
+            <ScreenShareIcon class={styles.screenShareIcon} />
             <span class={styles.screenShareText}>
               {voice.isScreenSharing ? 'You are sharing your screen' : 'Someone is sharing their screen'}
             </span>
@@ -68,11 +80,7 @@ export default function VoicePanel() {
             onClick={() => voice.toggleScreenShare()}
             title={voice.isScreenSharing ? 'Stop sharing' : 'Share screen'}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class={styles.screenShareButtonIcon} aria-hidden="true">
-              <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-              <line x1="8" y1="21" x2="16" y2="21" />
-              <line x1="12" y1="17" x2="12" y2="21" />
-            </svg>
+            <ScreenShareIcon class={styles.screenShareButtonIcon} />
           </button>
           <button
             data-testid="voice-deafen-button"

@@ -1,7 +1,7 @@
 import { createSignal, onMount } from 'solid-js';
 import { api } from '../../api/client';
 import { getErrorMessage } from '../../utils/errors';
-import type { Bot, BotAgent } from './types';
+import type { Bot, BotAgent, BotTokenRow } from './types';
 import { createBotActionHandlers } from './botActionHandlers';
 import { createCreateBotHandlers } from './createBotHandlers';
 import { createConfigureBotHandlers } from './configureBotHandlers';
@@ -35,8 +35,40 @@ export function useBotsTab() {
   async function loadBots() {
     setIsLoadingBots(true);
     try {
-      const data = await api.get<Bot[]>('/api/v1/admin/bots');
-      setBots(data ?? []);
+      // The endpoint answers `{ bots: [...] }`, and each entry is a *token* -
+      // one row per token, carrying the bot it belongs to. Reading it as a bare
+      // array of bots left the list empty however many bots existed, because a
+      // `For` over an object renders nothing at all.
+      const data = await api.get<{ bots?: BotTokenRow[] } | BotTokenRow[]>('/api/v1/admin/bots');
+      const rows: BotTokenRow[] = Array.isArray(data) ? data : (data?.bots ?? []);
+
+      const byUser = new Map<string, Bot>();
+      for (const row of rows) {
+        let bot = byUser.get(row.userId);
+        if (!bot) {
+          bot = {
+            id: row.userId,
+            username: row.username,
+            // The listing carries no display name; the username is what a bot is
+            // actually known by, so it stands in rather than leaving a blank row.
+            displayName: row.displayName ?? row.username,
+            agentId: null,
+            agentName: null,
+            isRunning: false,
+            agentConfigJson: null,
+            tokens: [],
+          };
+          byUser.set(row.userId, bot);
+        }
+        bot.tokens.push({
+          id: row.tokenId,
+          name: row.tokenName,
+          tokenHash: row.tokenHash ?? '',
+          createdAt: row.createdAt,
+          lastUsedAt: row.lastUsedAt ?? null,
+        });
+      }
+      setBots([...byUser.values()]);
     } catch (err: unknown) {
       setLoadError(getErrorMessage(err, 'Failed to load bots.'));
     } finally {

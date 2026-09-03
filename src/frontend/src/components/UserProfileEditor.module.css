@@ -59,7 +59,7 @@
 .banner {
   position: relative;
   height: 8rem;
-  background: linear-gradient(to right, var(--color-xcord-brand), #9333ea);
+  background: linear-gradient(to right, var(--color-xcord-brand), var(--color-xcord-brand-hover));
   border-radius: 0.5rem 0.5rem 0 0;
 }
 

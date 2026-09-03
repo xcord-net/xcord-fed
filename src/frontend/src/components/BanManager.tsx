@@ -5,6 +5,8 @@ import ConfirmationButton from './ui/ConfirmationButton';
 import Flexbox from './ui/Flexbox';
 import styles from './BanManager.module.css';
 import { formatDate } from '../utils/datetime';
+import EmptyState from './ui/EmptyState';
+import { Ban } from 'lucide-solid';
 
 interface BannedUser {
   id: string;
@@ -116,12 +118,12 @@ export default function BanManager(props: BanManagerProps) {
         </Show>
 
         <Show when={!isLoading() && filteredBans().length === 0}>
-          <Flexbox direction="vertical" align="center" justify="center" class={styles.emptyContainer}>
-            <p class={styles.emptyTitle}>No bans found</p>
-            <p class={styles.emptySubtitle}>
-              {searchQuery() ? 'Try a different search.' : 'No users are currently banned.'}
-            </p>
-          </Flexbox>
+          <EmptyState
+            icon={Ban}
+            title={searchQuery() ? 'No bans match that search' : 'Nobody is banned'}
+            body={searchQuery() ? undefined : 'Members you ban from this server are listed here.'}
+            data-testid="ban-manager-empty"
+          />
         </Show>
 
         <For each={paginatedBans()}>

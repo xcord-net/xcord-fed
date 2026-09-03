@@ -33,8 +33,8 @@ describe('AutomodManager', () => {
     mockFetch({
       'GET /api/v1/servers/s-1/automod-rules': () => ({ status: 200, body: { rules: [] } }),
     });
-    const { findByText } = render(() => <AutomodManager serverId="s-1" />);
-    expect(await findByText('No automod rules')).toBeInTheDocument();
+    const { findByText, findByTestId } = render(() => <AutomodManager serverId="s-1" />);
+    expect(await findByTestId('automod-empty')).toBeInTheDocument();
   });
 
   it('loads and displays existing rules from the API', async () => {

@@ -1,6 +1,5 @@
 import { createSignal } from 'solid-js';
 import { api } from '../api/client';
-import { useModals } from '../stores/modal.store';
 import { getErrorMessage } from '../utils/errors';
 import styles from './PasswordChangeForm.module.css';
 
@@ -20,7 +19,6 @@ export function validatePasswordChange(
 // ---- Component ----
 
 export default function PasswordChangeForm() {
-  const modals = useModals();
   const [currentPassword, setCurrentPassword] = createSignal('');
   const [newPassword, setNewPassword] = createSignal('');
   const [confirmPassword, setConfirmPassword] = createSignal('');
@@ -49,9 +47,12 @@ export default function PasswordChangeForm() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      // Close the settings modal after a brief moment so the user sees the
-      // success message but isn't trapped in the modal afterward.
-      setTimeout(() => modals.closeSettings(), 1500);
+      // Deliberately does not close settings. It used to, a second and a half
+      // later, on the reasoning that a modal you cannot see past should let you
+      // out. Settings is a Deck tab now, not a modal - nothing was trapping
+      // anyone - so all that timer did was yank the panel away mid-visit,
+      // leaving an open Settings tab with nothing in it. Whoever wants to leave
+      // can close the tab.
     } catch (err: unknown) {
       setError(getErrorMessage(err, 'Failed to change password'));
     } finally {

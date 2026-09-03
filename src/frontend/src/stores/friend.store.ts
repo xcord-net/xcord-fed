@@ -106,7 +106,8 @@ export function useFriends() {
     },
 
     async sendFriendRequest(userId: string): Promise<FriendRequest> {
-      const dto = await api.post<FriendshipDto>('/api/v1/users/@me/friends', { userId: Number(userId) });
+      // Snowflake - see the note in subscription.store.ts.
+      const dto = await api.post<FriendshipDto>('/api/v1/users/@me/friends', { userId: String(userId) });
       const request = friendshipToRequest(dto);
       store.setOutgoingRequests([...store.outgoingRequests(), request]);
       return request;

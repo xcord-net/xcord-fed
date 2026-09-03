@@ -1,12 +1,8 @@
 import { Show } from 'solid-js';
-import DmList from '../DmList';
-import FriendList from '../FriendList';
 import MessageCompose from '../MessageCompose';
 import MessageList from '../MessageList';
 import TypingIndicator from '../TypingIndicator';
-import WelcomePanel from './WelcomePanel';
 import Flexbox from '../ui/Flexbox';
-import { useServers } from '../../stores/server.store';
 import styles from './DmView.module.css';
 
 interface DmViewProps {
@@ -14,27 +10,19 @@ interface DmViewProps {
   dmConversationId: string | undefined;
 }
 
+/**
+ * One direct-message conversation.
+ *
+ * It used to double as the DM home, falling back to a friends-and-DMs panel
+ * whenever no conversation was selected. Under the Deck that fallback was
+ * unreachable in one direction and stale in the other: `/channels/me` shows
+ * Home, so the panel only appeared when you arrived carrying a leftover active
+ * tab. The friends list and the DM list moved to the People tab in account
+ * settings; the welcome panel moved onto Home.
+ */
 export default function DmView(props: DmViewProps) {
-  const serverStore = useServers();
-
-  // A user who hasn't created or joined any server gets a guidance banner above
-  // the friends/DM view (not instead of it - they still need it to start DMs).
-  const hasNoServers = () => serverStore.servers.length === 0;
-
   return (
-    <Show
-      when={props.channelId && props.dmConversationId}
-      fallback={
-        <Flexbox direction="vertical" class={styles.channelView}>
-          <Show when={hasNoServers()}>
-            <WelcomePanel />
-          </Show>
-          <FriendList />
-          <DmList />
-        </Flexbox>
-      }
-    >
-      {/* DM conversation view */}
+    <Show when={props.channelId && props.dmConversationId}>
       <Flexbox direction="vertical" class={styles.channelView}>
         <Flexbox direction="vertical" class={styles.messagesArea}>
           <MessageList conversationId={props.dmConversationId!} />

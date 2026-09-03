@@ -54,7 +54,7 @@ describe('BotList', () => {
   it('shows the empty state when not loading and bots is empty', () => {
     const { getByTestId } = render(() => <BotList {...defaultProps()} />);
     expect(getByTestId('bots-empty-state')).toHaveTextContent(
-      'No bots yet. Create one to get started.',
+      'No bots yet',
     );
   });
 

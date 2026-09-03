@@ -51,7 +51,7 @@ describe('AgentList', () => {
 
   it('renders the empty state when no agents and not loading', () => {
     const { getByTestId } = render(() => <AgentList {...defaultProps()} />);
-    expect(getByTestId('agents-empty-state')).toHaveTextContent('No agents available.');
+    expect(getByTestId('agents-empty-state')).toHaveTextContent('No agents available');
   });
 
   it('does not render the empty state while loading', () => {

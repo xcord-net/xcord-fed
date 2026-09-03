@@ -11,6 +11,8 @@ import {
   type AutomodRule,
   type TriggerType,
 } from './helpers';
+import EmptyState from '../ui/EmptyState';
+import { ShieldCheck } from 'lucide-solid';
 
 interface AutomodManagerProps {
   serverId: string;
@@ -213,12 +215,12 @@ export default function AutomodManager(props: AutomodManagerProps) {
         </Show>
 
         <Show when={!isLoading() && rules().length === 0}>
-          <div class={styles.emptyState}>
-            <p class={styles.emptyTitle}>No automod rules</p>
-            <p class={styles.emptySubtitle}>
-              Click &ldquo;+ Add Rule&rdquo; to create your first rule.
-            </p>
-          </div>
+          <EmptyState
+            icon={ShieldCheck}
+            title="No automod rules yet"
+            body="Rules watch new messages and act on the ones that match."
+            data-testid="automod-empty"
+          />
         </Show>
 
         <For each={rules()}>

@@ -78,10 +78,10 @@ describe('AppDirectory', () => {
     mockFetch({
       'GET /api/v1/app-directory': () => ({ status: 200, body: [] }),
     });
-    const { findByText } = render(() => (
+    const { findByText, findByTestId } = render(() => (
       <AppDirectory availableServerIds={[]} serverNames={{}} />
     ));
-    expect(await findByText('No bots found')).toBeInTheDocument();
+    expect(await findByTestId('empty-state-title')).toBeInTheDocument();
   });
 
   it('renders a bot card with name and category', async () => {

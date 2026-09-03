@@ -60,8 +60,16 @@ export default function Menu(props: MenuProps) {
   createEffect(() => {
     if (!local.open) return;
 
-    // Run positioning after the element has rendered.
-    requestAnimationFrame(() => {
+    // Re-run whenever the menu changes size. Items can appear after the menu is
+    // already on screen - a permission check resolving adds moderation entries -
+    // and a menu positioned while it was short then grew past the bottom edge
+    // and stayed there, leaving items visible but unclickable.
+    const observer = typeof ResizeObserver === 'undefined'
+      ? null
+      : new ResizeObserver(() => place());
+    onCleanup(() => observer?.disconnect());
+
+    function place() {
       if (!menuEl) return;
 
       const menuWidth = menuEl.offsetWidth;
@@ -73,57 +81,69 @@ export default function Menu(props: MenuProps) {
       let top = 0;
       let left = 0;
 
+      // The menu is `position: fixed`, so top/left are viewport coordinates and
+      // page scroll must not be added to them - `getBoundingClientRect` and
+      // `clientX/Y` are already in that space. Adding `scrollY` pushed the menu
+      // off the bottom of the screen by exactly the scroll distance, which is
+      // why an item could be reported visible and still be unclickable.
       if (local.anchorRef) {
         const anchor = local.anchorRef.getBoundingClientRect();
         const placement: Placement = local.placement ?? 'bottom-start';
 
         // Vertical
         if (placement.startsWith('bottom')) {
-          top = anchor.bottom + window.scrollY;
+          top = anchor.bottom;
           // Flip to top if overflows bottom
           if (anchor.bottom + menuHeight > vh - MARGIN) {
-            top = anchor.top + window.scrollY - menuHeight;
+            top = anchor.top - menuHeight;
           }
         } else {
-          top = anchor.top + window.scrollY - menuHeight;
+          top = anchor.top - menuHeight;
           // Flip to bottom if overflows top
           if (anchor.top - menuHeight < MARGIN) {
-            top = anchor.bottom + window.scrollY;
+            top = anchor.bottom;
           }
         }
 
         // Horizontal
         if (placement.endsWith('start')) {
-          left = anchor.left + window.scrollX;
+          left = anchor.left;
           if (left + menuWidth > vw - MARGIN) {
-            left = anchor.right + window.scrollX - menuWidth;
+            left = anchor.right - menuWidth;
           }
         } else {
-          left = anchor.right + window.scrollX - menuWidth;
+          left = anchor.right - menuWidth;
           if (left < MARGIN) {
-            left = anchor.left + window.scrollX;
+            left = anchor.left;
           }
         }
       } else if (local.position) {
-        top = local.position.y + window.scrollY;
-        left = local.position.x + window.scrollX;
+        top = local.position.y;
+        left = local.position.x;
 
         // Clamp right edge
         if (left + menuWidth > vw - MARGIN) {
-          left = vw - menuWidth - MARGIN + window.scrollX;
+          left = vw - menuWidth - MARGIN;
         }
         // Clamp bottom edge
-        if (top + menuHeight > vh - MARGIN + window.scrollY) {
-          top = local.position.y + window.scrollY - menuHeight;
+        if (top + menuHeight > vh - MARGIN) {
+          top = local.position.y - menuHeight;
         }
       }
 
-      // Ensure we never go off the left/top
-      left = Math.max(MARGIN + window.scrollX, left);
-      top = Math.max(MARGIN + window.scrollY, top);
+      // Never off the left or top, and never taller than the screen allows.
+      left = Math.max(MARGIN, Math.min(left, vw - menuWidth - MARGIN));
+      top = Math.max(MARGIN, Math.min(top, vh - menuHeight - MARGIN));
 
       menuEl.style.top = `${top}px`;
       menuEl.style.left = `${left}px`;
+    }
+
+    // Run positioning after the element has rendered.
+    requestAnimationFrame(() => {
+      if (!menuEl) return;
+      place();
+      observer?.observe(menuEl);
     });
   });
 

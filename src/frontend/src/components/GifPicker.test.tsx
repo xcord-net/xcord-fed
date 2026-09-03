@@ -35,8 +35,8 @@ describe('GifPicker', () => {
     mockFetch({
       'GET /api/v1/gifs/trending': () => ({ status: 200, body: { gifs: [] } }),
     });
-    const { findByText } = render(() => <GifPicker onSelect={() => {}} />);
-    expect(await findByText('No GIFs found')).toBeInTheDocument();
+    const { findByText, findByTestId } = render(() => <GifPicker onSelect={() => {}} />);
+    expect(await findByTestId('gif-picker-empty')).toBeInTheDocument();
   });
 
   it('shows error banner when load fails', async () => {

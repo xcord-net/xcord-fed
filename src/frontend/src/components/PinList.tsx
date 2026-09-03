@@ -1,5 +1,6 @@
 import { For, Show, createEffect } from 'solid-js';
 import { usePins } from '../stores/pin.store';
+import { useToasts } from '../stores/toast.store';
 import styles from './PinList.module.css';
 
 interface PinListProps {
@@ -8,6 +9,7 @@ interface PinListProps {
 
 export default function PinList(props: PinListProps) {
   const pinStore = usePins();
+  const toasts = useToasts();
 
   createEffect(() => {
     pinStore.loadPins(props.conversationId);
@@ -56,7 +58,13 @@ export default function PinList(props: PinListProps) {
                     <button
                       data-testid="pin-list-unpin-button"
                       class={styles.unpinButton}
-                      onClick={() => pinStore.unpinMessage(props.conversationId, message.id)}
+                      onClick={() => {
+                        // Unpinning needs ManageMessages. Without this the
+                        // refusal was swallowed and the row simply stayed put,
+                        // which reads as a button that does nothing.
+                        void pinStore.unpinMessage(props.conversationId, message.id)
+                          .catch(() => toasts.error('You do not have permission to unpin messages.'));
+                      }}
                       aria-label="Unpin message"
                     >
                       Unpin

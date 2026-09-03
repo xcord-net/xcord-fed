@@ -48,10 +48,6 @@
 }
 
 .messageRowGrouped:hover,
-.messageRowBase:hover {
-  background-color: color-mix(in srgb, var(--color-xcord-bg-primary) 30%, transparent);
-}
-
 /* ── System messages ──────────────────────────────────────────────────────────
    Member joined/left/kicked/banned and friends. No author, no body - a single
    quiet line so channel events read as background, not as conversation. */
@@ -266,11 +262,6 @@
 .replyDeleted {
   font-style: italic;
   color: var(--color-xcord-text-faint);
-}
-
-/* Landing flash after jumping to a message. */
-.messageRowFlash {
-  animation: messageFlash 1.2s var(--ease-standard);
 }
 
 @keyframes messageFlash {

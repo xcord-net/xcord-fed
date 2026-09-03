@@ -11,9 +11,11 @@ import { useChannels } from './channel.store';
 import { useFriends } from './friend.store';
 import { useDms } from './dm.store';
 import { useBroadcast } from './broadcast.store';
+import { useMembers } from './member.store';
+import { usePolls } from './poll.store';
 import { handleNewMessageNotification } from '../services/notification.service';
 import type { PresenceStatus } from '../types/presence';
-import type { Message } from '../types/message';
+import type { Message, MessageAttachment } from '../types/message';
 import type { Channel } from '../types/channel';
 
 interface TicketResponse {
@@ -63,8 +65,16 @@ const SIGNALR_EVENTS = [
   'Chat_MessageUpdated',
   'Chat_MessageDeleted',
   'Chat_MessageEmbedded',
+  'Chat_ReactionsUpdated',
+  'Chat_AttachmentsUpdated',
+  'Poll_Created',
+  'Poll_Voted',
   'Chat_TypingStarted',
+  'Chat_TypingStopped',
   'Chat_ChannelCreated',
+  'Member_Joined',
+  'Member_Left',
+  'Member_Kicked',
   'Presence_Updated',
   'Voice_StateUpdated',
   'Notify_UnreadUpdated',
@@ -87,6 +97,8 @@ export function useSignalR() {
   const unread = useUnread();
   const messages = useMessages();
   const channels = useChannels();
+  const members = useMembers();
+  const polls = usePolls();
 
   async function getTicket(): Promise<string> {
     const response = await api.post<TicketResponse>('/api/v1/auth/ws-ticket');
@@ -157,10 +169,102 @@ export function useSignalR() {
       messages.updateMessage(message);
     });
 
+    // Reactions changed on a message someone else is also looking at. The whole
+    // set is sent, so this replaces rather than increments - a client can never
+    // be left holding a count that will not converge.
+    connection.on('Chat_ReactionsUpdated', (data: {
+      conversationId: string;
+      messageId: string;
+      reactions: { emoji: string; count: number; userIds: string[] }[];
+    }) => {
+      const { messageId } = normalizeIds(data, 'messageId', 'conversationId');
+      messages.setReactions(messageId, (data.reactions ?? []).map((r) => ({
+        emoji: r.emoji,
+        count: r.count,
+        userIds: (r.userIds ?? []).map(String),
+      })));
+    });
+
+    // A thumbnail finished generating for a message already on screen.
+    connection.on('Chat_AttachmentsUpdated', (data: {
+      conversationId: string;
+      messageId: string;
+      attachments: MessageAttachment[];
+    }) => {
+      const { messageId } = normalizeIds(data, 'messageId', 'conversationId');
+      messages.setAttachments(messageId, (data.attachments ?? []).map((a) => ({
+        ...a,
+        id: String(a.id),
+      })));
+    });
+
+    // A poll is a message, and the server announces it under its own name - so
+    // without this a poll appeared only for whoever created it, and everyone
+    // else saw the conversation simply skip it.
+    connection.on('Poll_Created', (data: {
+      pollId: string;
+      messageId: string;
+      conversationId: string;
+      authorId: string;
+      question: string;
+    }) => {
+      const { pollId, messageId, conversationId, authorId } =
+        normalizeIds(data, 'pollId', 'messageId', 'conversationId', 'authorId');
+      const activeConvId = store.activeConversationId();
+      if (activeConvId && String(activeConvId) !== conversationId) return;
+      if (messages.messages.some((m) => m.id === messageId)) return;
+      messages.addMessage({
+        id: messageId,
+        conversationId,
+        authorId,
+        type: 'PollCreated',
+        content: data.question ?? '',
+        pollId,
+        isPinned: false,
+        createdAt: new Date().toISOString(),
+      } as Message);
+    });
+
+    // Vote counts after the poll was rendered. The poll is fetched once, when
+    // its message arrives, so without this the tally never moved for anybody -
+    // not even the person who voted.
+    connection.on('Poll_Voted', (data: {
+      pollId: string;
+      conversationId: string;
+      options: { id: string; voteCount: number }[];
+    }) => {
+      const { pollId } = normalizeIds(data, 'pollId', 'conversationId');
+      polls.applyTally(pollId, (data.options ?? []).map((o) => ({
+        id: String(o.id),
+        voteCount: o.voteCount,
+      })));
+    });
+
     connection.on('Chat_TypingStarted', (data: { conversationId: string; userId: string }) => {
       // Never show the local user their own typing echo.
       if (data.userId === store.currentUserId()) return;
       typing.startTyping(data.conversationId, data.userId);
+    });
+
+    connection.on('Chat_TypingStopped', (data: { conversationId: string; userId: string }) => {
+      if (data.userId === store.currentUserId()) return;
+      typing.stopTyping(data.conversationId, data.userId);
+    });
+
+    // Membership events. The server has always broadcast these; nothing listened,
+    // so a roster on screen only changed for whoever performed the action and
+    // everyone else kept seeing a member who had gone until they reloaded.
+    // Departures carry the user id and can be applied directly; an arrival does
+    // not carry the new member, so it is refetched.
+    const onMemberGone = (data: { serverId: string; userId: string }) => {
+      const { userId } = normalizeIds(data, 'serverId', 'userId');
+      members.removeMember(userId);
+    };
+    connection.on('Member_Left', onMemberGone);
+    connection.on('Member_Kicked', onMemberGone);
+    connection.on('Member_Joined', (data: { serverId: string; userId: string }) => {
+      const { serverId } = normalizeIds(data, 'serverId', 'userId');
+      void members.refreshMembers(serverId);
     });
 
     // Channel events - broadcast to all server members when a channel is created
@@ -288,9 +392,12 @@ export function useSignalR() {
       // Handle reconnected - handlers are already registered on the same
       // HubConnection object; do NOT call registerEventHandlers here.
       connection.onreconnected(async () => {
-        store.setIsConnected(true);
-        // Re-inject connection reference so voice store can invoke hub methods again.
+        // Connection reference first: `isConnected` is what everything else
+        // waits on, and Solid runs those effects the instant it flips - so
+        // announcing readiness before handing the connection over let a waiting
+        // join fire against a null reference and fail with "not connected".
         voice.setSignalRConnection(connection);
+        store.setIsConnected(true);
         await rejoinConversations(connection);
         await sendHeartbeat(connection);
       });
@@ -320,9 +427,10 @@ export function useSignalR() {
       // Start connection
       await connection.start();
       store.setConnection(connection);
-      store.setIsConnected(true);
-      // Provide voice store with the connection so it can invoke hub methods.
+      // Same ordering as the reconnect path above: publish the connection before
+      // announcing that there is one.
       voice.setSignalRConnection(connection);
+      store.setIsConnected(true);
 
       // Send initial heartbeat
       await sendHeartbeat(connection);
@@ -417,6 +525,20 @@ export function useSignalR() {
         await connection.invoke('StartTyping', conversationId);
       } catch (error) {
         console.error('Failed to send typing indicator:', error);
+      }
+    },
+
+    /** Withdraw the typing notice, when the composer is emptied. */
+    async sendStoppedTyping(conversationId: string): Promise<void> {
+      const connection = store.connection();
+      if (!connection || !store.isConnected()) {
+        return;
+      }
+
+      try {
+        await connection.invoke('StopTyping', conversationId);
+      } catch (error) {
+        console.error('Failed to withdraw typing indicator:', error);
       }
     },
 

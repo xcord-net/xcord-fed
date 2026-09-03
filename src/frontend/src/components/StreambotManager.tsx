@@ -6,6 +6,7 @@ import {
 } from '../stores/streambot.store';
 import { getErrorMessage } from '../utils/errors';
 import styles from './StreambotManager.module.css';
+import EmptyState from './ui/EmptyState';
 
 interface Props {
   channelId: string;
@@ -286,7 +287,14 @@ export default function StreambotManager(props: Props) {
       <div class={styles.list}>
         <Show
           when={bots().length > 0}
-          fallback={<p class={styles.emptyText}>No streambots configured for this channel.</p>}
+          fallback={
+            <EmptyState
+              title="No streambots on this channel"
+              body="A streambot forwards this channel's broadcast to somewhere outside Xcord."
+              dense
+              data-testid="streambot-manager-empty"
+            />
+          }
         >
           <For each={bots()}>
             {(bot) => {

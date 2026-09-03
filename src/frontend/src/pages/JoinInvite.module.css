@@ -1,23 +1,17 @@
-.pageWrapper {
-  min-height: 100vh;
-  background-color: var(--color-xcord-bg-tertiary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+/* Shared surface lives in auth.module.css. */
 
+.pageWrapper { composes: pageWrapper from './auth.module.css'; }
+.errorText { composes: errorText from './auth.module.css'; }
+
+/* Nothing to fill in here — the page reports what happened to the invite, so
+   the card is centred on its one line of status. */
 .card {
-  background-color: var(--color-xcord-bg-secondary);
-  padding: 2rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  width: 100%;
-  max-width: 28rem;
+  composes: card from './auth.module.css';
   text-align: center;
 }
 
 .loadingText {
-  color: var(--color-xcord-text-primary);
+  color: var(--color-xcord-text-muted);
 }
 
 .successText {
@@ -25,19 +19,8 @@
   font-weight: 600;
 }
 
-.errorText {
-  color: var(--color-xcord-danger-text);
-  margin-bottom: 1rem;
-}
-
 .goHomeButton {
-  background-color: var(--color-xcord-brand);
-  color: var(--color-xcord-white);
-  padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
-  transition: color 150ms, background-color 150ms;
-}
-
-.goHomeButton:hover {
-  background-color: var(--color-xcord-brand-hover);
+  composes: submitButton from './auth.module.css';
+  width: auto;
+  padding: 0.55rem 1.25rem;
 }

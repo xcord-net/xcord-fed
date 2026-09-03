@@ -58,19 +58,30 @@ public sealed class ListChannelsHandler(
         if (userIdResult.IsFailure) return userIdResult.Error;
         var userId = userIdResult.Value;
 
-        // Check if server exists
-        var serverExists = await dbContext.Servers
+        // "Does the server exist" and "are you in it" were two round trips asking
+        // one question. Answered together: absent server and absent membership
+        // are still told apart, because they mean different things to the caller
+        // (a 404 you cannot fix versus a 403 an invite can).
+        var access = await dbContext.Servers
             .AsNoTracking()
-            .AnyAsync(s => s.Id == request.ServerId, cancellationToken);
+            .Where(s => s.Id == request.ServerId)
+            .Select(s => new
+            {
+                IsMember = dbContext.ServerMembers
+                    .Any(sm => sm.ServerId == s.Id && sm.UserId == userId),
+            })
+            .FirstOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
 
-        if (!serverExists)
+        if (access is null)
         {
             return Error.NotFound("SERVER_NOT_FOUND", "Server not found");
         }
 
-        // Check if user is a member
-        var memberCheck = await dbContext.EnsureMembership(request.ServerId, userId, cancellationToken).ConfigureAwait(false);
-        if (memberCheck.IsFailure) return memberCheck.Error;
+        if (!access.IsMember)
+        {
+            return Error.Forbidden("NOT_A_MEMBER", "You must be a member of this server");
+        }
 
         // Get server-level permissions to determine if the user is an admin/owner
         // (admins see all channels regardless of overrides)

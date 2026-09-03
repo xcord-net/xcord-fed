@@ -51,24 +51,22 @@ describe('ReactionDisplay', () => {
   it('calls PUT to add reaction when clicking a non-active badge', async () => {
     const calls = mockFetch({
       'PUT /api/v1/conversations/c-1/messages/m-1/reactions/thumbsup': () => ({ status: 204, body: null }),
-      'GET /api/v1/conversations/c-1/messages': () => ({ status: 200, body: { messages: [] } }),
     });
     const { getByTestId } = render(() => (
       <ReactionDisplay reactions={reactions()} messageId="m-1" conversationId="c-1" />
     ));
     fireEvent.click(getByTestId('reaction-badge-thumbsup'));
-    // toggleReaction fires reloadMessages() fire-and-forget after the PUT resolves.
-    // Wait for BOTH so the in-flight GET doesn't trip the unmocked-fetch guard.
+    // The PUT is the whole interaction: the new reaction set arrives by
+    // announcement to the conversation, so nothing is refetched here.
     await waitFor(() => {
       expect(calls.calls.some(c => c.method === 'PUT' && c.url.includes('/reactions/thumbsup'))).toBe(true);
-      expect(calls.calls.some(c => c.method === 'GET' && c.url.includes('/messages'))).toBe(true);
     });
+    expect(calls.calls.some(c => c.method === 'GET')).toBe(false);
   });
 
   it('calls DELETE to remove reaction when current user is in userIds', async () => {
     const calls = mockFetch({
       'DELETE /api/v1/conversations/c-1/messages/m-1/reactions/heart': () => ({ status: 204, body: null }),
-      'GET /api/v1/conversations/c-1/messages': () => ({ status: 200, body: { messages: [] } }),
     });
     const { getByTestId } = render(() => (
       <ReactionDisplay reactions={reactions()} messageId="m-1" conversationId="c-1" />
@@ -76,7 +74,7 @@ describe('ReactionDisplay', () => {
     fireEvent.click(getByTestId('reaction-badge-heart'));
     await waitFor(() => {
       expect(calls.calls.some(c => c.method === 'DELETE' && c.url.includes('/reactions/heart'))).toBe(true);
-      expect(calls.calls.some(c => c.method === 'GET' && c.url.includes('/messages'))).toBe(true);
     });
+    expect(calls.calls.some(c => c.method === 'GET')).toBe(false);
   });
 });

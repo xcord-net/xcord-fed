@@ -33,6 +33,15 @@ export function useProfiles() {
       }
     },
 
+    /**
+     * Replace the cached profile with one the server has already confirmed.
+     * For flows that upload through their own endpoint and come back holding
+     * the finished profile, so the shell does not have to re-fetch it.
+     */
+    setUserProfile(profile: UserProfile): void {
+      store.setUserProfile(profile);
+    },
+
     async updateUserProfile(updates: Partial<UserProfile>): Promise<void> {
       const updated = await api.patch<UserProfile>('/api/v1/users/@me', updates);
       store.setUserProfile(updated);

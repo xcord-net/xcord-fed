@@ -155,6 +155,30 @@ export function attachParticipantHandlers(room: Room): void {
     },
   );
 
+  // A remote participant stopped sharing.
+  //
+  // Unpublishing is the event that actually means "they stopped"; unsubscribing
+  // is subscription state, which adaptiveStream manages on its own and which a
+  // viewer may therefore never see. Clearing the share only on TrackUnsubscribed
+  // left the shared screen on other people's screens after the sharer had
+  // stopped. Both are handled - whichever arrives first wins, and the second is
+  // a no-op.
+  room.on(
+    RoomEvent.TrackUnpublished,
+    (publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+      if (publication.source !== Track.Source.ScreenShare) return;
+      if (voiceState.screenShareParticipantId() === participant.identity) {
+        voiceState.setScreenShareParticipantId(null);
+      }
+      const map = new Map(voiceState.participants());
+      const existing = map.get(participant.identity);
+      if (existing) {
+        map.set(participant.identity, { ...existing, isScreenSharing: false });
+        voiceState.setParticipants(map);
+      }
+    },
+  );
+
   // Detect when the local user stops screen sharing via the browser's
   // native "Stop sharing" button (which unpublishes the track automatically).
   room.on(

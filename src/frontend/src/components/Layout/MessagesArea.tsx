@@ -1,4 +1,5 @@
-import { Show } from 'solid-js';
+import { Show, createEffect, createSignal } from 'solid-js';
+import { api } from '../../api/client';
 import BroadcastChannel from '../BroadcastChannel';
 import ForumPostList from '../ForumPostList';
 import MessageCompose from '../MessageCompose';
@@ -27,12 +28,63 @@ export default function MessagesArea(props: MessagesAreaProps) {
   const currentChannel = () =>
     channelStore.channels.find((c) => c.id === channelStore.selectedChannelId);
 
+  /**
+   * Whether this person may actually run a broadcast here.
+   *
+   * This used to be hardcoded true, so every member opening a streaming channel
+   * was shown "Start a Broadcast" - an offer the server refuses. The permission
+   * has always existed; nothing asked for it.
+   */
+  const MANAGE_BROADCASTS = 1n << 35n;
+  /** Moderator bit - what an announcement channel asks for before you may post. */
+  const MANAGE_MESSAGES = 1n << 7n;
+  const [canManageBroadcasts, setCanManageBroadcasts] = createSignal(false);
+  const [canModerate, setCanModerate] = createSignal(false);
+  createEffect(() => {
+    const channelId = props.channelId;
+    if (!channelId) {
+      setCanManageBroadcasts(false);
+      setCanModerate(false);
+      return;
+    }
+    api.get<{ permissions: string | number }>(`/api/v1/channels/${channelId}/my-permissions`)
+      .then((data) => {
+        try {
+          const held = BigInt(data.permissions);
+          setCanManageBroadcasts((held & MANAGE_BROADCASTS) !== 0n);
+          setCanModerate((held & MANAGE_MESSAGES) !== 0n);
+        } catch {
+          setCanManageBroadcasts(false);
+          setCanModerate(false);
+        }
+      })
+      .catch(() => {
+        setCanManageBroadcasts(false);
+        setCanModerate(false);
+      });
+  });
+
+  /**
+   * Whether this person may write here.
+   *
+   * Only announcement channels answer no: they are read-only to everyone but
+   * moderators. The composer used to render regardless, so a member could type
+   * a reply to an announcement and have it refused on send - the interface
+   * offering something the server does not allow.
+   */
+  const canPostHere = () => {
+    const channel = currentChannel();
+    if (!channel?.capabilities) return true;
+    if (!hasCapability(channel.capabilities, Capability.Announcement)) return true;
+    return canModerate();
+  };
+
   return (
     <Flexbox direction="vertical" class={styles.messagesArea}>
       <Show when={currentChannel()?.capabilities && hasCapability(currentChannel()!.capabilities, Capability.Streaming)}>
         <BroadcastChannel
           channelId={props.channelId!}
-          canManageBroadcasts={true}
+          canManageBroadcasts={canManageBroadcasts()}
         />
       </Show>
       <Show when={currentChannel()?.capabilities && hasCapability(currentChannel()!.capabilities, Capability.Forum) && !hasCapability(currentChannel()!.capabilities, Capability.Streaming)}>
@@ -77,7 +129,18 @@ export default function MessagesArea(props: MessagesAreaProps) {
         <TypingIndicator conversationId={props.conversationId} />
         <Show
           when={messageStore.editingMessageId}
-          fallback={<MessageCompose conversationId={props.conversationId} channelId={props.channelId} />}
+          fallback={
+            <Show
+              when={canPostHere()}
+              fallback={
+                <p data-testid="channel-read-only-notice" class={styles.readOnlyNotice}>
+                  Only moderators can post in this announcement channel.
+                </p>
+              }
+            >
+              <MessageCompose conversationId={props.conversationId} channelId={props.channelId} />
+            </Show>
+          }
         >
           {/* Edit bar replaces compose while editing */}
           <div class={styles.editBarWrapper}>

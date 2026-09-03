@@ -4,6 +4,7 @@ import LayoutThumbnail from './LayoutThumbnail';
 import { LAYOUTS } from './constants';
 import Flexbox from '../ui/Flexbox';
 import styles from './IdlePanel.module.css';
+import EmptyState from '../ui/EmptyState';
 
 interface Streambot {
   id: string;
@@ -55,9 +56,12 @@ export default function IdlePanel(props: IdlePanelProps) {
         <Show
           when={props.streambots.length > 0}
           fallback={
-            <p class={styles.emptyText}>
-              No streambots configured. Add some in channel settings.
-            </p>
+            <EmptyState
+              title="No restream destinations"
+              body="Add a streambot in channel settings to send this broadcast somewhere else too."
+              dense
+              data-testid="idle-panel-streambots-empty"
+            />
           }
         >
           <Flexbox direction="vertical" gap={0.375} class={styles.streambotList}>

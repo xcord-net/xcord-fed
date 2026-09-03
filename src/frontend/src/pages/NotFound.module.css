@@ -1,32 +1,30 @@
-.container {
-  min-height: 100vh;
-  background-color: var(--color-xcord-bg-tertiary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-}
+/* Same surface as the signed-out pages in auth.module.css — a dead link should
+   land somewhere that still looks like the product. */
+
+.container { composes: pageWrapper from './auth.module.css'; }
 
 .card {
-  background-color: var(--color-xcord-bg-secondary);
+  composes: card from './auth.module.css';
   padding: 2.5rem 2rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  width: 100%;
-  max-width: 28rem;
   text-align: center;
 }
 
+/* The status code is the one loud thing on the page; everything under it is
+   quiet, because the useful content is the way out, not the number. */
 .code {
+  font-family: var(--font-display);
   font-size: 3rem;
   font-weight: 800;
+  letter-spacing: -0.03em;
   color: var(--color-xcord-brand);
   line-height: 1;
 }
 
 .title {
-  font-size: 1.5rem;
+  font-family: var(--font-display);
+  font-size: 1.375rem;
   font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--color-xcord-text-primary);
   margin-top: 0.75rem;
 }
@@ -34,6 +32,7 @@
 .body {
   color: var(--color-xcord-text-secondary);
   font-size: 0.9375rem;
+  line-height: 1.5;
   margin-top: 0.5rem;
 }
 
@@ -45,29 +44,30 @@
 }
 
 .primary {
+  composes: submitButton from './auth.module.css';
+  width: auto;
   padding: 0.5rem 1.25rem;
-  border-radius: 0.375rem;
   font-size: 0.875rem;
-  font-weight: 600;
-  background-color: var(--color-xcord-brand);
-  color: white;
-  transition: background-color 150ms;
-}
-
-.primary:hover {
-  background-color: var(--color-xcord-brand-hover);
 }
 
 .secondary {
   padding: 0.5rem 1.25rem;
-  border-radius: 0.375rem;
+  border: 1px solid var(--color-xcord-border);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
   font-size: 0.875rem;
   font-weight: 600;
-  background-color: var(--color-xcord-bg-accent);
+  background: none;
   color: var(--color-xcord-text-primary);
-  transition: background-color 150ms;
+  cursor: pointer;
+  transition: background-color 150ms, border-color 150ms;
 }
 
 .secondary:hover {
-  background-color: var(--color-xcord-border);
+  background-color: var(--color-xcord-bg-accent);
+}
+
+.secondary:focus-visible {
+  outline: 2px solid var(--color-xcord-brand);
+  outline-offset: 2px;
 }

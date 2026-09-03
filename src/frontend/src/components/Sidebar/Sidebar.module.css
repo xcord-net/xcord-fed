@@ -7,11 +7,6 @@
   overflow: hidden;
 }
 
-/* Voice panel wrapper */
-.voicePanelWrapper {
-  flex-direction: column;
-}
-
 /* Shared dropdown/menu items (used by ServerHeader menu + channel context menu) */
 .menuItem {
   width: 100%;
@@ -29,30 +24,6 @@
 .menuItem:hover {
   background-color: var(--color-xcord-bg-primary);
   color: white;
-}
-
-.menuItemDanger {
-  width: 100%;
-  padding-left: 0.75rem;
-  padding-right: 0.75rem;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-  text-align: left;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  color: var(--color-xcord-danger-text);
-  transition: color 150ms, background-color 150ms, border-color 150ms;
-}
-
-.menuItemDanger:hover {
-  background-color: var(--color-xcord-danger);
-  color: white;
-}
-
-.menuDivider {
-  border-top: 1px solid var(--color-xcord-border);
-  margin-top: 0.25rem;
-  margin-bottom: 0.25rem;
 }
 
 /* Cancel button shared across modals */
@@ -77,4 +48,13 @@
 .cancelButton:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px var(--color-xcord-brand);
+}
+
+/* The Deck replaced the rail. What is left of this component is the community
+   context: the masthead and every modal the community menu opens. It sits
+   above the content pane and collapses to nothing when no community is
+   selected, which is what Home looks like. */
+.communityBar {
+  flex-shrink: 0;
+  width: 100%;
 }

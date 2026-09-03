@@ -218,28 +218,6 @@
   gap: 0.75rem;
 }
 
-.emptyText {
-  color: var(--color-xcord-text-muted);
-  font-size: 0.875rem;
-}
-
-.linkBtn {
-  background: none;
-  border: none;
-  color: var(--color-xcord-brand);
-  font-size: 0.875rem;
-  cursor: pointer;
-  padding: 0;
-}
-
-.linkBtn:hover {
-  text-decoration: underline;
-}
-
-.templateDivider {
-  /* divide-y equivalent handled per item */
-}
-
 .templateItem {
   padding: 1rem;
   transition: color 150ms, background-color 150ms;

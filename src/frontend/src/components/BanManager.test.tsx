@@ -42,8 +42,8 @@ describe('BanManager', () => {
 
   it('shows empty state when there are no bans', async () => {
     mockFetch({ 'GET /api/v1/servers/s-1/bans': () => ({ status: 200, body: [] }) });
-    const { findByText } = render(() => <BanManager serverId="s-1" />);
-    expect(await findByText('No bans found')).toBeInTheDocument();
+    const { findByText, findByTestId } = render(() => <BanManager serverId="s-1" />);
+    expect(await findByTestId('ban-manager-empty')).toBeInTheDocument();
   });
 
   it('renders a banned user row with reason', async () => {

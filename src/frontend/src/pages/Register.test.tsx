@@ -31,7 +31,7 @@ describe('Register', () => {
     mockConfigAndCaptcha();
     const { findByTestId } = renderWithRouter(() => <Register />);
     expect(await findByTestId('register-heading')).toHaveTextContent('Create an account');
-    expect(await findByTestId('register-submit-button')).toHaveTextContent('Register');
+    expect(await findByTestId('register-submit-button')).toHaveTextContent('Create account');
   });
 
   it('renders the username, email, and password inputs', async () => {

@@ -121,5 +121,103 @@ public sealed class ThumbnailProcessor : BackgroundService
         }
 
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        await AnnounceThumbnailsAsync(
+            scope,
+            context,
+            storageService,
+            pending.Where(a => !string.IsNullOrEmpty(a.ThumbnailS3Key)).Select(a => a.Id).ToList(),
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Tell the conversation that a message's attachments now have thumbnails.
+    /// </summary>
+    /// <remarks>
+    /// Thumbnailing is deliberately asynchronous, so a message is delivered
+    /// before its pictures exist and renders as a download link. Nothing then
+    /// announced the thumbnail, so the link stayed a link for the rest of the
+    /// session and only became an image after a reload - the last step of the
+    /// pipeline reached the database and stopped there.
+    ///
+    /// Only the attachments are sent: a message-shaped payload missing its
+    /// author and body would be merged over the real one by clients.
+    /// </remarks>
+    private async Task AnnounceThumbnailsAsync(
+        IServiceScope scope,
+        AppDbContext context,
+        IStorageService storageService,
+        List<long> thumbnailedIds,
+        CancellationToken cancellationToken)
+    {
+        if (thumbnailedIds.Count == 0) return;
+
+        var notificationService = scope.ServiceProvider.GetService<INotificationService>();
+        if (notificationService is null) return;
+
+        // Re-read rather than trusting the entities loaded at the start of this
+        // tick. A message sent in between links its attachments with direct SQL
+        // (ExecuteUpdateAsync), which never refreshes the change tracker - so the
+        // MessageId in memory is still null for exactly the attachments whose
+        // thumbnail arrived after the message, which are the only ones that need
+        // announcing at all.
+        var linked = await context.Attachments
+            .AsNoTracking()
+            .Where(a => thumbnailedIds.Contains(a.Id)
+                && a.MessageId != null
+                && a.ThumbnailS3Key != null
+                && a.ThumbnailS3Key != ""
+                && a.DeletedAt == null)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+        if (linked.Count == 0) return;
+
+        var messageIds = linked.Select(a => a.MessageId!.Value).Distinct().ToList();
+        var conversationByMessage = await context.Messages
+            .AsNoTracking()
+            .Where(m => messageIds.Contains(m.Id))
+            .Select(m => new { m.Id, m.ConversationId })
+            .ToDictionaryAsync(m => m.Id, m => m.ConversationId, cancellationToken)
+            .ConfigureAwait(false);
+
+        foreach (var group in linked.GroupBy(a => a.MessageId!.Value))
+        {
+            if (!conversationByMessage.TryGetValue(group.Key, out var conversationId)) continue;
+
+            var attachments = new List<object>();
+            foreach (var attachment in group)
+            {
+                attachments.Add(new
+                {
+                    id = attachment.Id,
+                    fileName = attachment.FileName,
+                    contentType = attachment.ContentType,
+                    fileSize = attachment.FileSize,
+                    width = attachment.Width,
+                    height = attachment.Height,
+                    downloadUrl = await storageService
+                        .GenerateDownloadUrlAsync(attachment.S3Key, TimeSpan.FromHours(1))
+                        .ConfigureAwait(false),
+                    thumbnailUrl = await storageService
+                        .GenerateDownloadUrlAsync(attachment.ThumbnailS3Key!, TimeSpan.FromHours(1))
+                        .ConfigureAwait(false),
+                });
+            }
+
+            try
+            {
+                await notificationService.NotifyConversationAsync(
+                    conversationId,
+                    "Chat_AttachmentsUpdated",
+                    new { conversationId, messageId = group.Key, attachments },
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                // A picture that arrives late is better than a poller that dies.
+                _logger.LogWarning(ex,
+                    "Failed to announce thumbnails for message {MessageId}", group.Key);
+            }
+        }
     }
 }

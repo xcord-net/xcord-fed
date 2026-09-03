@@ -4,6 +4,7 @@ import { useAuth } from '../stores/auth.store';
 import { api } from '../api/client';
 import Captcha from '../components/Captcha';
 import styles from './Register.module.css';
+import { getErrorMessage } from '../utils/errors';
 
 export default function Register() {
   const [username, setUsername] = createSignal('');
@@ -20,7 +21,7 @@ export default function Register() {
   const inviteCode = () => searchParams.invite ?? '';
 
   onMount(async () => {
-    document.title = 'Register - Xcord';
+    document.title = 'Create your account - Xcord';
     try {
       const data = await api.get<{ registrationEnabled: boolean }>('/api/v1/config');
       // An invite is its own authorisation: the instance may have public
@@ -55,7 +56,7 @@ export default function Register() {
           : '/confirm-email',
       );
     } catch (err: unknown) {
-      setError((err as Error)?.message || 'Registration failed');
+      setError(getErrorMessage(err, 'Could not create the account. Check the details above and try again.'));
     } finally {
       setLoading(false);
     }
@@ -117,7 +118,7 @@ export default function Register() {
           disabled={loading() || (captchaAnswer() === '' && captchaId() !== 'disabled')}
           class={styles.submitButton}
         >
-          {loading() ? 'Creating account...' : 'Register'}
+          {loading() ? 'Creating account...' : 'Create account'}
         </button>
         <p class={styles.footerText}>
           Already have an account?{' '}

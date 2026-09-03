@@ -3,45 +3,59 @@ import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import ConfirmationButton from './ui/ConfirmationButton';
 import styles from './WebhookManager.module.css';
+import EmptyState from './ui/EmptyState';
+import { Webhook } from 'lucide-solid';
 
+/**
+ * The events a webhook can subscribe to.
+ *
+ * These are the names the server validates against, and it rejects anything
+ * else outright - the dotted forms this used to send ("message.created") were
+ * refused with "Invalid event types", so no webhook could be created at all.
+ * Four is the whole set the server supports today.
+ */
 export type WebhookEvent =
-  | 'message.created'
-  | 'message.deleted'
-  | 'member.joined'
-  | 'member.left'
-  | 'channel.created'
-  | 'channel.deleted'
-  | 'group.updated';
+  | 'MessageCreated'
+  | 'MemberJoined'
+  | 'MemberLeft'
+  | 'MemberBanned';
 
 export const WEBHOOK_EVENT_LABELS: Record<WebhookEvent, string> = {
-  'message.created': 'Message Created',
-  'message.deleted': 'Message Deleted',
-  'member.joined': 'Member Joined',
-  'member.left': 'Member Left',
-  'channel.created': 'Channel Created',
-  'channel.deleted': 'Channel Deleted',
-  'group.updated': 'Group Updated',
+  MessageCreated: 'Message Created',
+  MemberJoined: 'Member Joined',
+  MemberLeft: 'Member Left',
+  MemberBanned: 'Member Banned',
 };
 
 export const ALL_WEBHOOK_EVENTS: WebhookEvent[] = [
-  'message.created',
-  'message.deleted',
-  'member.joined',
-  'member.left',
-  'channel.created',
-  'channel.deleted',
-  'group.updated',
+  'MessageCreated',
+  'MemberJoined',
+  'MemberLeft',
+  'MemberBanned',
 ];
 
+/**
+ * An outgoing webhook, as the server actually describes it.
+ *
+ * There is no name and no secret in this contract, and the fields are
+ * `eventTypes` and `isActive` - this type previously claimed otherwise, against
+ * a URL that did not exist either, so nothing here could load, create or delete.
+ * A webhook is identified by where it points.
+ */
 export interface OutgoingWebhook {
   id: string;
   serverId: string;
-  name: string;
   targetUrl: string;
-  events: WebhookEvent[];
-  secret: string;
-  enabled: boolean;
+  eventTypes: WebhookEvent[];
+  isActive: boolean;
+  createdByUserId: string;
   createdAt: string;
+  /**
+   * Only present on the webhook you have just created - the listing does not
+   * carry it, so there is nothing to reveal for a webhook loaded from the
+   * server. Same shape of promise as a bot token: shown once.
+   */
+  secret?: string;
 }
 
 interface WebhookManagerProps {
@@ -62,6 +76,10 @@ export function validateWebhookUrl(url: string): string | null {
   return null;
 }
 
+/**
+ * Kept for the API surface's sake, but no longer used by the form: the server
+ * has nowhere to put a webhook's name.
+ */
 export function validateWebhookName(name: string): string | null {
   const trimmed = name.trim();
   if (!trimmed) return 'Webhook name is required.';
@@ -86,7 +104,6 @@ export default function WebhookManager(props: WebhookManagerProps) {
   const [confirmingDelete, setConfirmingDelete] = createSignal<string | null>(null);
 
   // Form state
-  const [formName, setFormName] = createSignal('');
   const [formUrl, setFormUrl] = createSignal('');
   const [formEvents, setFormEvents] = createSignal<WebhookEvent[]>([]);
   const [formError, setFormError] = createSignal<string | null>(null);
@@ -96,7 +113,7 @@ export default function WebhookManager(props: WebhookManagerProps) {
     setError(null);
     try {
       const result = await api.get<OutgoingWebhook[]>(
-        `/api/v1/servers/${props.serverId}/webhooks/outgoing`,
+        `/api/v1/servers/${props.serverId}/outgoing-webhooks`,
       );
       setWebhooks(result);
     } catch (err: unknown) {
@@ -110,9 +127,6 @@ export default function WebhookManager(props: WebhookManagerProps) {
     e.preventDefault();
     setFormError(null);
 
-    const nameErr = validateWebhookName(formName());
-    if (nameErr) { setFormError(nameErr); return; }
-
     const urlErr = validateWebhookUrl(formUrl());
     if (urlErr) { setFormError(urlErr); return; }
 
@@ -124,12 +138,11 @@ export default function WebhookManager(props: WebhookManagerProps) {
     setIsSaving(true);
     try {
       const created = await api.post<OutgoingWebhook>(
-        `/api/v1/servers/${props.serverId}/webhooks/outgoing`,
-        { name: formName().trim(), targetUrl: formUrl().trim(), events: formEvents() },
+        `/api/v1/servers/${props.serverId}/outgoing-webhooks`,
+        { targetUrl: formUrl().trim(), eventTypes: formEvents() },
       );
       setWebhooks([...webhooks(), created]);
       setShowForm(false);
-      setFormName('');
       setFormUrl('');
       setFormEvents([]);
     } catch (err: unknown) {
@@ -142,8 +155,8 @@ export default function WebhookManager(props: WebhookManagerProps) {
   async function handleToggleEnabled(webhook: OutgoingWebhook) {
     try {
       const updated = await api.put<OutgoingWebhook>(
-        `/api/v1/servers/${props.serverId}/webhooks/outgoing/${webhook.id}`,
-        { enabled: !webhook.enabled },
+        `/api/v1/servers/${props.serverId}/outgoing-webhooks/${webhook.id}`,
+        { enabled: !webhook.isActive },
       );
       setWebhooks(webhooks().map((w) => (w.id === webhook.id ? updated : w)));
     } catch (err: unknown) {
@@ -153,7 +166,7 @@ export default function WebhookManager(props: WebhookManagerProps) {
 
   async function handleDelete(webhookId: string) {
     try {
-      await api.delete(`/api/v1/servers/${props.serverId}/webhooks/outgoing/${webhookId}`);
+      await api.delete(`/api/v1/servers/${props.serverId}/outgoing-webhooks/${webhookId}`);
       setWebhooks(webhooks().filter((w) => w.id !== webhookId));
       if (revealedSecret() === webhookId) setRevealedSecret(null);
     } catch (err: unknown) {
@@ -184,15 +197,9 @@ export default function WebhookManager(props: WebhookManagerProps) {
         <div class={styles.createFormSection} data-testid="webhook-create-form">
           <h3 class={styles.createFormTitle}>New Webhook</h3>
           <form onSubmit={handleCreate} class={styles.createFormFields}>
-            <input
-              type="text"
-              data-testid="webhook-name-input"
-              placeholder="Webhook name"
-              value={formName()}
-              onInput={(e) => setFormName(e.currentTarget.value)}
-              maxLength={64}
-              class={styles.textInput}
-            />
+            {/* No name field: the server stores none, so asking for one collected
+                something that was thrown away the moment it was submitted. A
+                webhook is identified by its destination. */}
             <input
               type="url"
               data-testid="webhook-url-input"
@@ -209,6 +216,7 @@ export default function WebhookManager(props: WebhookManagerProps) {
                     <label class={styles.eventCheckLabel}>
                       <input
                         type="checkbox"
+                        data-testid={`webhook-event-${evt}`}
                         checked={formEvents().includes(evt)}
                         onChange={() => setFormEvents(toggleEvent(formEvents(), evt))}
                         class={styles.eventCheckInput}
@@ -247,10 +255,12 @@ export default function WebhookManager(props: WebhookManagerProps) {
         </Show>
 
         <Show when={!isLoading() && webhooks().length === 0}>
-          <div class={styles.emptyContainer} data-testid="webhook-list-empty-state">
-            <p class={styles.emptyTitle}>No outgoing webhooks</p>
-            <p class={styles.emptySubtitle}>Create a webhook to receive server events at an external URL.</p>
-          </div>
+          <EmptyState
+            icon={Webhook}
+            title="No outgoing webhooks"
+            body="A webhook posts this community's events to a URL you control."
+            data-testid="webhook-list-empty-state"
+          />
         </Show>
 
         <For each={webhooks()}>
@@ -259,16 +269,17 @@ export default function WebhookManager(props: WebhookManagerProps) {
               <div class={styles.webhookHeader}>
                 <div class={styles.webhookInfo}>
                   <div class={styles.webhookNameRow}>
-                    <p class={styles.webhookName} data-testid={`webhook-name-${webhook.id}`}>{webhook.name}</p>
+                    {/* The destination is the identity, and it already has its
+                        own line below - no separate name to show. */}
                     <span
-                      class={webhook.enabled ? styles.statusBadgeActive : styles.statusBadgeDisabled}
+                      class={webhook.isActive ? styles.statusBadgeActive : styles.statusBadgeDisabled}
                     >
-                      {webhook.enabled ? 'Active' : 'Disabled'}
+                      {webhook.isActive ? 'Active' : 'Disabled'}
                     </span>
                   </div>
                   <p class={styles.webhookUrl} data-testid={`webhook-url-${webhook.id}`}>{webhook.targetUrl}</p>
                   <div class={styles.webhookEvents}>
-                    <For each={webhook.events}>
+                    <For each={webhook.eventTypes}>
                       {(evt) => (
                         <span class={styles.eventTag}>
                           {WEBHOOK_EVENT_LABELS[evt] ?? evt}
@@ -279,12 +290,12 @@ export default function WebhookManager(props: WebhookManagerProps) {
                 </div>
                 <div class={styles.webhookButtons}>
                   <button
-                    class={webhook.enabled ? styles.toggleButtonEnabled : styles.toggleButtonDisabled}
+                    class={webhook.isActive ? styles.toggleButtonEnabled : styles.toggleButtonDisabled}
                     data-testid={`webhook-toggle-button-${webhook.id}`}
                     onClick={() => handleToggleEnabled(webhook)}
-                    title={webhook.enabled ? 'Disable webhook' : 'Enable webhook'}
+                    title={webhook.isActive ? 'Disable webhook' : 'Enable webhook'}
                   >
-                    {webhook.enabled ? 'Disable' : 'Enable'}
+                    {webhook.isActive ? 'Disable' : 'Enable'}
                   </button>
                   <ConfirmationButton
                     isConfirming={confirmingDelete() === webhook.id}
@@ -298,6 +309,7 @@ export default function WebhookManager(props: WebhookManagerProps) {
               </div>
 
               {/* Secret key */}
+              <Show when={webhook.secret}>
               <div class={styles.secretRow} data-testid={`webhook-secret-row-${webhook.id}`}>
                 <span class={styles.secretLabel}>Secret:</span>
                 <Show
@@ -323,6 +335,7 @@ export default function WebhookManager(props: WebhookManagerProps) {
                   </button>
                 </Show>
               </div>
+              </Show>
             </div>
           )}
         </For>

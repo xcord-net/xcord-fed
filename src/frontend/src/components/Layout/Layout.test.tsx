@@ -33,6 +33,8 @@ const modalsMock = {
   closeGroupManager: vi.fn(),
   toggleMobileNav: vi.fn(),
   closeMobileNav: vi.fn(),
+  openSettings: vi.fn(),
+  closeAll: vi.fn(),
 };
 vi.mock('../../stores/modal.store', () => ({
   useModals: () => modalsMock,
@@ -72,8 +74,18 @@ vi.mock('../HubHeader', () => ({
     <div data-testid="mock-hub-header" data-hub-url={p.hubUrl} data-instance-url={p.instanceUrl} />
   ),
 }));
-vi.mock('../Sidebar', () => ({
-  default: () => <div data-testid="mock-sidebar" />,
+vi.mock('../Deck/Deck', () => ({
+  default: (p: { children?: unknown }) => (
+    <div data-testid="mock-deck">{p.children as never}</div>
+  ),
+}));
+
+// Layout now owns the version lookup that used to live in the sidebar.
+vi.mock('../../api/client', () => ({
+  api: { get: vi.fn().mockResolvedValue({ currentVersion: '1.2.3' }) },
+}));
+vi.mock('../../stores/auth.store', () => ({
+  useAuth: () => ({ user: null, logout: vi.fn() }),
 }));
 vi.mock('./ChannelHeader', () => ({
   default: (p: { channelName?: string }) => (
@@ -114,12 +126,12 @@ describe('Layout', () => {
     signalRMock.currentConversations = new Set<string>();
   });
 
-  it('renders the sidebar always', () => {
+  it('renders the deck shell always', () => {
     const { getByTestId } = renderWithRouter(
       () => <Layout />,
       { path: '/channels', routePath: '/channels' },
     );
-    expect(getByTestId('mock-sidebar')).toBeInTheDocument();
+    expect(getByTestId('mock-deck')).toBeInTheDocument();
   });
 
   it('toggles the mobile nav drawer when the hamburger is clicked', () => {

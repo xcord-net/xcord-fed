@@ -62,7 +62,8 @@ export function useTiers() {
         description: input.description ?? null,
         priceMonthly: input.priceMonthly,
         currency: input.currency ?? 'usd',
-        groupIds: (input.groupIds ?? []).map((g) => Number(g)),
+        // Group ids are snowflakes - see the note in subscription.store.ts.
+        groupIds: (input.groupIds ?? []).map((g) => String(g)),
       });
       const normalized = normalizeGroupIds(created);
       const current = store.tiersByServer()[serverId] ?? [];
@@ -75,7 +76,7 @@ export function useTiers() {
         name: input.name ?? null,
         description: input.description ?? null,
         priceMonthly: input.priceMonthly ?? null,
-        groupIds: input.groupIds != null ? input.groupIds.map((g) => Number(g)) : null,
+        groupIds: input.groupIds != null ? input.groupIds.map((g) => String(g)) : null,
         isActive: input.isActive ?? null,
       });
       const normalized = normalizeGroupIds(updated);

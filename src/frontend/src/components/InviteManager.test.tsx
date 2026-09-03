@@ -22,8 +22,8 @@ describe('InviteManager', () => {
 
   it('shows empty state when no invites', async () => {
     mockFetch({ 'GET /api/v1/servers/s-1/invites': () => ({ status: 200, body: [] }) });
-    const { findByText } = render(() => <InviteManager serverId="s-1" />);
-    expect(await findByText('No active invites')).toBeInTheDocument();
+    const { findByText, findByTestId } = render(() => <InviteManager serverId="s-1" />);
+    expect(await findByTestId('invite-manager-empty')).toBeInTheDocument();
   });
 
   it('renders invite code with usage info', async () => {

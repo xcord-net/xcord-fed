@@ -4,6 +4,7 @@ import { useAuth } from '../stores/auth.store';
 import { sanitizeRedirect } from '../utils/redirect';
 import { api } from '../api/client';
 import styles from './Login.module.css';
+import { getErrorMessage } from '../utils/errors';
 
 export default function Login() {
   const [email, setEmail] = createSignal('');
@@ -17,7 +18,7 @@ export default function Login() {
   const auth = useAuth();
 
   onMount(async () => {
-    document.title = 'Log In - Xcord';
+    document.title = 'Log in - Xcord';
     try {
       const data = await api.get<{ registrationEnabled: boolean; devLoginEnabled?: boolean }>('/api/v1/config');
       setRegistrationEnabled(data.registrationEnabled);
@@ -59,7 +60,7 @@ export default function Login() {
         doNavigate();
       }
     } catch (err: unknown) {
-      setError((err as Error)?.message || 'Login failed');
+      setError(getErrorMessage(err, 'That email and password did not match. Try again.'));
     } finally {
       setLoading(false);
     }
@@ -75,7 +76,7 @@ export default function Login() {
       await auth.validateAuth();
       doNavigate();
     } catch (err: unknown) {
-      setError((err as Error)?.message || 'Dev login failed');
+      setError(getErrorMessage(err, 'Dev login failed'));
     } finally {
       setLoading(false);
     }
@@ -89,7 +90,7 @@ export default function Login() {
       await auth.verifyTwoFactor(twoFactorCode(), twoFactorToken());
       doNavigate();
     } catch (err: unknown) {
-      setError((err as Error)?.message || 'Invalid verification code');
+      setError(getErrorMessage(err, 'That code did not match. Check the current one and try again.'));
     } finally {
       setLoading(false);
     }
@@ -99,7 +100,7 @@ export default function Login() {
     <div class={styles.pageWrapper}>
       <Show when={!twoFactorToken()}>
         <form data-testid="login-form" onSubmit={handleSubmit} class={styles.card}>
-          <h1 data-testid="login-heading" class={styles.heading}>Welcome back!</h1>
+          <h1 data-testid="login-heading" class={styles.heading}>Log in to Xcord</h1>
           {error() && <p data-testid="login-error" class={styles.errorText}>{error()}</p>}
           <div class={styles.fieldGroup}>
             <label for="login-email" class={styles.label}>Email</label>
@@ -131,7 +132,7 @@ export default function Login() {
             disabled={loading()}
             class={styles.submitButton}
           >
-            {loading() ? 'Logging in...' : 'Log In'}
+            {loading() ? 'Logging in...' : 'Log in'}
           </button>
           <Show when={devLoginEnabled()}>
             <button
@@ -146,7 +147,7 @@ export default function Login() {
           </Show>
           <Show when={registrationEnabled()}>
             <p class={styles.footerText}>
-              Need an account? <A data-testid="login-register-link" href="/register" class={styles.link}>Register</A>
+              Need an account? <A data-testid="login-register-link" href="/register" class={styles.link}>Create one</A>
             </p>
           </Show>
           <p class={styles.footerText}>

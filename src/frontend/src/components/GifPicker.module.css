@@ -79,16 +79,6 @@
   color: var(--color-xcord-text-muted);
 }
 
-.emptyTitle {
-  font-weight: 600;
-  font-size: 0.875rem;
-}
-
-.emptySubtitle {
-  font-size: 0.75rem;
-  margin-top: 0.25rem;
-}
-
 .gifGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

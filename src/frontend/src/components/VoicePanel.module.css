@@ -6,8 +6,23 @@
   padding: 0.75rem 1rem;
 }
 
+/* It is a button now - the way back to the room - so it has to reset the
+   button chrome and still read as the block of text it was. */
 .channelInfo {
-  margin-bottom: 0.5rem;
+  display: block;
+  width: 100%;
+  margin: 0 0 0.5rem;
+  padding: 0.25rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.channelInfo:hover {
+  background-color: var(--color-xcord-bg-accent);
 }
 
 .voiceLabel {

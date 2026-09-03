@@ -156,12 +156,19 @@ export default function InviteModal(props: InviteModalProps) {
             Invite Link
           </label>
           <div class={styles.linkRow}>
+            {/* The field holds the link and nothing else. It used to show
+                "Generating..." and "Failed to generate" as its *value*, which
+                is what a person copies and what a script reads - so a link
+                copied a moment too early was the word "Generating...". Status
+                belongs beside the box, not inside it. */}
             <input
               type="text"
               readonly
               data-testid="invite-link-input"
-              value={loading() ? 'Generating...' : (inviteLink() || (error() ? 'Failed to generate' : ''))}
+              value={inviteLink()}
+              placeholder={loading() ? 'Generating...' : ''}
               aria-label="Invite link"
+              aria-busy={loading()}
               class={styles.linkInput}
               onClick={(e) => e.currentTarget.select()}
             />

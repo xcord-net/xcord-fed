@@ -149,23 +149,13 @@ export async function joinVoice(channelId: string): Promise<void> {
 export async function leaveVoice(): Promise<void> {
   const channelId = voiceState.currentChannelId();
   voiceRefs.serverSideJoined = false;
+  voiceRefs.intentionalLeave = true;
 
-  // Disconnect from LiveKit first so audio stops immediately.
-  if (voiceRefs.room && voiceRefs.room.state !== ConnectionState.Disconnected) {
-    voiceRefs.intentionalLeave = true;
-    await voiceRefs.room.disconnect();
-    // intentionalLeave is reset inside the Disconnected handler
-  }
-
-  // Notify the backend.
-  if (channelId && voiceRefs.signalrConnection) {
-    try {
-      await voiceRefs.signalrConnection.invoke('LeaveVoiceChannel', channelId);
-    } catch (err) {
-      console.error('Failed to notify server of voice leave:', err);
-    }
-  }
-
+  // Leaving is a decision, not a request that can be refused, so the room closes
+  // on screen at once. Joining has always been optimistic in the same way; doing
+  // the opposite here left the panel and the participant grid sitting there
+  // through a LiveKit disconnect and a round trip to the server, which reads as
+  // a click that did nothing.
   voiceState.setCurrentChannelId(null);
   voiceState.setParticipants(new Map());
   voiceState.setIsMuted(false);
@@ -173,6 +163,23 @@ export async function leaveVoice(): Promise<void> {
   voiceState.setIsScreenSharing(false);
   voiceState.setScreenShareParticipantId(null);
   voiceState.setIsSpeaking(false);
+
+  // Then actually go: audio stops when LiveKit disconnects.
+  if (voiceRefs.room && voiceRefs.room.state !== ConnectionState.Disconnected) {
+    await voiceRefs.room.disconnect();
+    // intentionalLeave is reset inside the Disconnected handler
+  } else {
+    voiceRefs.intentionalLeave = false;
+  }
+
+  // Notify the backend so everyone else's roster loses you.
+  if (channelId && voiceRefs.signalrConnection) {
+    try {
+      await voiceRefs.signalrConnection.invoke('LeaveVoiceChannel', channelId);
+    } catch (err) {
+      console.error('Failed to notify server of voice leave:', err);
+    }
+  }
 }
 
 /**

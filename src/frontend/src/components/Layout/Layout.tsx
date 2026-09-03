@@ -1,25 +1,30 @@
-import { Show, createMemo, createEffect, onCleanup } from 'solid-js';
+import { Show, createMemo, createEffect, createSignal, onCleanup, onMount } from 'solid-js';
 import { useParams } from '@solidjs/router';
 import ChannelDirectory from '../ChannelDirectory';
-import ChannelSettings from '../ChannelSettings';
 import GroupManager from '../GroupManager';
 import HubHeader from '../HubHeader';
 import Modal from '../ui/Modal';
+import Deck from '../Deck/Deck';
 import Sidebar from '../Sidebar';
-// Note: `ServerSettings` is rendered by `Sidebar`, not here.
+// Note: `ServerSettings` and the rest of the community menu's modals are
+// rendered by `Sidebar`, which the Deck hosts as its community bar.
 import { useChannels } from '../../stores/channel.store';
 import { useDms } from '../../stores/dm.store';
 import { useModals } from '../../stores/modal.store';
 import { useServers } from '../../stores/server.store';
+import { useAuth } from '../../stores/auth.store';
+import { api } from '../../api/client';
 import { useSignalR } from '../../stores/signalr.store';
 import ChannelHeader from './ChannelHeader';
 import DmView from './DmView';
 import MessagesArea from './MessagesArea';
 import RightPanels from './RightPanels';
-import SettingsModal from './SettingsModal';
 import { useLayoutWiring } from './useLayoutWiring';
 import Flexbox from '../ui/Flexbox';
+import { MenuIcon } from '../ui/icons';
 import styles from './Layout.module.css';
+import EmptyState from '../ui/EmptyState';
+import { Hash } from 'lucide-solid';
 
 export default function Layout() {
   const params = useParams<{ serverId?: string; channelId?: string }>();
@@ -29,7 +34,21 @@ export default function Layout() {
   const modals = useModals();
   const dmStore = useDms();
 
+  const authStore = useAuth();
+  const [version, setVersion] = createSignal<string | null>(null);
+
   const { hubUrl } = useLayoutWiring();
+
+  // Version badge in the account slot. A failure here is cosmetic, so it stays
+  // silent rather than surfacing an error over the shell.
+  onMount(async () => {
+    try {
+      const data = await api.get<{ currentVersion: string }>('/api/v1/admin/system/version');
+      setVersion(data.currentVersion);
+    } catch {
+      setVersion(null);
+    }
+  });
 
   // Mobile off-canvas nav: reflect open state on <body> so the global .sidebar
   // mobile rules in index.css can slide the drawer in/out. Auto-close whenever
@@ -79,11 +98,7 @@ export default function Layout() {
         aria-expanded={modals.mobileNavOpen}
         onClick={() => modals.toggleMobileNav()}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true">
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="12" x2="21" y2="12" />
-          <line x1="3" y1="18" x2="21" y2="18" />
-        </svg>
+        <MenuIcon size={20} />
       </button>
 
       {/* Backdrop behind the open mobile drawer; tap to close. */}
@@ -97,9 +112,14 @@ export default function Layout() {
       </Show>
 
       <Flexbox class={styles.mainRow}>
-        {/* Unified sidebar - always present (off-canvas drawer on mobile) */}
-        <Sidebar />
-
+        {/* The Deck: one tab strip, one content pane. The strip replaces the
+            server rail and channel sidebar; everything the sidebar used to
+            own lives in the strip's account slot or the ⌘K switchboard. */}
+        <Deck
+          version={version()}
+          onLogout={() => { modals.closeAll(); authStore.logout(); }}
+          communityBar={<Sidebar />}
+        >
         {/* DM view, channel directory, or channel view */}
         <Show when={isDmView()}>
           <DmView channelId={params.channelId} dmConversationId={dmConversationId()} />
@@ -109,8 +129,8 @@ export default function Layout() {
             when={params.channelId}
             fallback={
               <Show when={params.serverId} fallback={
-                <Flexbox align="center" justify="center" class={styles.emptyState}>
-                  <p class={styles.emptyStateText}>Loading...</p>
+                <Flexbox align="center" justify="center" class={styles.loadingState}>
+                  <p class={styles.loadingStateText}>Loading...</p>
                 </Flexbox>
               }>
                 <ChannelDirectory serverId={params.serverId!} />
@@ -122,9 +142,12 @@ export default function Layout() {
               <Show
                 when={conversationId()}
                 fallback={
-                  <Flexbox align="center" justify="center" class={styles.emptyState}>
-                    <p class={styles.emptyStateText}>Select a channel to start chatting</p>
-                  </Flexbox>
+                  <EmptyState
+                    icon={Hash}
+                    title="No room open"
+                    body="Pick a room from the strip above, or press Cmd+K to jump to one."
+                    data-testid="layout-no-channel"
+                  />
                 }
               >
                 {(convId) => (
@@ -152,19 +175,10 @@ export default function Layout() {
             </Flexbox>
           </Show>
         </Show>
+        </Deck>
       </Flexbox>{/* end mainRow */}
 
-      {/* Settings modal */}
-      <SettingsModal />
-
-      {/* Channel Settings modal */}
-      <Show when={modals.showChannelSettings && channelStore.selectedChannelId && serverStore.selectedServerId}>
-        <ChannelSettings
-          serverId={serverStore.selectedServerId!}
-          channelId={channelStore.selectedChannelId!}
-          onClose={() => modals.closeChannelSettings()}
-        />
-      </Show>
+      {/* Account and channel settings are Deck tabs; see Deck.tsx. */}
 
       {/* Group Manager modal */}
       <Modal data-testid="group-manager-modal" open={modals.showGroupManager && !!serverStore.selectedServerId} onClose={() => modals.closeGroupManager()} aria-label="Group Manager" size="xl">

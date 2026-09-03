@@ -15,3 +15,9 @@
   border-radius: 0.25rem;
   object-fit: contain;
 }
+
+/* Wrapper so an attachment can be found regardless of which representation it
+   currently has; it must not change the layout the list already produces. */
+.attachmentItem {
+  display: contents;
+}

@@ -31,26 +31,32 @@ public class StreambotHandlerTests
     // ──────────── Helpers ────────────
 
     /// <summary>
-    /// Creates a server + channel pair and returns the channel id. The channel is
-    /// marked Streaming at the DB level because the CreateChannel API derives
-    /// capabilities from ChannelType and we need Streaming specifically.
+    /// Creates a server and a stage channel through the public API.
     /// </summary>
+    /// <remarks>
+    /// This used to write the Streaming capability straight to the database,
+    /// because no ChannelType mapped to it and the create endpoint had no way to
+    /// ask for one. ChannelType.Stage closed that gap, so the test now sets up
+    /// its fixture the same way a user would.
+    /// </remarks>
     private async Task<(long serverId, long channelId)> CreateServerAndChannelAsync(
         AuthenticatedUser owner,
-        ChannelCapability capabilities = ChannelCapability.Streaming | ChannelCapability.Chat)
+        ChannelCapability? capabilities = null)
     {
         var server = await _helper.CreateServerAsync(owner.AccessToken);
         var serverId = server.GetProperty("id").ReadLong();
-        var channel = await _helper.CreateChannelAsync(owner.AccessToken, serverId, name: null, type: 0);
+        var channel = await _helper.CreateChannelAsync(
+            owner.AccessToken, serverId, name: null, type: (int)ChannelType.Stage);
         var channelId = channel.GetProperty("id").ReadLong();
 
-        // Force the channel capabilities to whatever the test needs. The Create
-        // endpoint can't express Streaming without extra plumbing, so we adjust
-        // directly in the DB after creation.
-        await using var db = _fixture.CreateDbContext();
-        var dbChannel = await db.Channels.FirstAsync(c => c.Id == channelId);
-        dbChannel.Capabilities = capabilities;
-        await db.SaveChangesAsync();
+        // Only the cases that need a channel *without* Streaming override this.
+        if (capabilities is not null)
+        {
+            await using var db = _fixture.CreateDbContext();
+            var dbChannel = await db.Channels.FirstAsync(c => c.Id == channelId);
+            dbChannel.Capabilities = capabilities.Value;
+            await db.SaveChangesAsync();
+        }
 
         return (serverId, channelId);
     }

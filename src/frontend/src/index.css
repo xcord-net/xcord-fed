@@ -204,7 +204,7 @@ button, [type='button'], [type='reset'], [type='submit'] {
    suppress the default focus outline; this restores a visible, consistent
    indicator for keyboard users (WCAG 2.4.7) wherever a component has not
    defined its own. Pointer interactions do not trigger :focus-visible. */
-:focus-visible {
+html :focus-visible {
   outline: 2px solid var(--color-xcord-brand);
   outline-offset: 2px;
   border-radius: 2px;
@@ -273,77 +273,22 @@ img, video {
 }
 
 /* Sidebar auto-collapse transition */
-.sidebar {
-  max-width: 40px;
-  min-width: 40px;
-  transition: max-width 150ms ease, min-width 150ms ease;
-}
 
-.sidebar:hover,
-.sidebar.sidebar-locked {
-  max-width: 200px;
-  min-width: 200px;
-  transition-delay: 500ms;
-}
 
-.sidebar .expanded-only {
-  display: none;
-}
 
-.sidebar:hover .expanded-only,
-.sidebar.sidebar-locked .expanded-only {
-  display: flex;
-}
 
-.sidebar .collapsed-only {
-  display: flex;
-}
 
-.sidebar:hover .collapsed-only,
-.sidebar.sidebar-locked .collapsed-only {
-  display: none;
-}
 
-.sidebar .channel-icon-wrap {
-  justify-content: center;
-}
 
-.sidebar:hover .channel-icon-wrap,
-.sidebar.sidebar-locked .channel-icon-wrap {
-  justify-content: flex-start;
-}
 
 /* ===== Mobile navigation drawer (<= 768px) =====
    The sidebar becomes an off-canvas drawer, slid in when <body> has
    .mobile-nav-open (toggled by the Layout hamburger). It is always shown
    expanded on mobile - the desktop hover-collapse does not apply to touch. */
 @media (max-width: 768px) {
-  .sidebar {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    max-width: 80vw;
-    min-width: 80vw;
-    transform: translateX(-100%);
-    transition: transform 200ms ease;
-    z-index: var(--z-modal);
-  }
 
-  body.mobile-nav-open .sidebar {
-    transform: translateX(0);
-  }
 
   /* Always render the expanded content inside the mobile drawer. */
-  .sidebar .expanded-only {
-    display: flex;
-  }
 
-  .sidebar .collapsed-only {
-    display: none;
-  }
 
-  .sidebar .channel-icon-wrap {
-    justify-content: flex-start;
-  }
 }

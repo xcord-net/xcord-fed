@@ -33,6 +33,18 @@ public sealed class FakeLiveKitService : ILiveKitService
     public Task RemoveParticipantAsync(string roomName, string participantIdentity)
         => Task.CompletedTask;
 
+    /// <summary>
+    /// Every control message published to a room, so a test can assert that a
+    /// stage or layout change reached the compositor without restarting egress.
+    /// </summary>
+    public ConcurrentBag<(string Room, string Topic, string Payload)> SentData { get; } = new();
+
+    public Task SendDataAsync(string roomName, string topic, string payload, CancellationToken ct)
+    {
+        SentData.Add((roomName, topic, payload));
+        return Task.CompletedTask;
+    }
+
     public Task<string> StartRoomCompositeEgressAsync(
         string roomName,
         string templateUrl,

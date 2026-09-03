@@ -95,7 +95,12 @@ export default function BroadcastHostPanel(props: Props) {
 
       // Connect to LiveKit as publisher.
       try {
-        await room.connect({ livekitUrl: res.livekitUrl, publishToken: res.publishToken });
+        await room.connect({
+          livekitUrl: res.livekitUrl,
+          publishToken: res.publishToken,
+          // Lets the hook keep the token current for the life of the broadcast.
+          broadcastId: res.broadcastId,
+        });
       } catch (err) {
         console.warn('LiveKit publisher connection failed:', err);
         setError('Broadcast started but unable to connect local camera.');

@@ -21,12 +21,6 @@
   color: var(--color-xcord-text-muted);
 }
 
-.emptyText {
-  font-size: 0.75rem;
-  color: var(--color-xcord-text-muted);
-  margin: 0;
-}
-
 .list {
   list-style: none;
   padding: 0;

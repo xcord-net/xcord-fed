@@ -24,6 +24,7 @@ import UpdatesTab from './UpdatesTab';
 import TierManager from './TierManager';
 import ChannelReorder from './ChannelReorder';
 import Modal from './ui/Modal';
+import Surface from './ui/Surface';
 import { getErrorMessage } from '../utils/errors';
 import styles from './ServerSettings.module.css';
 
@@ -31,6 +32,8 @@ interface ServerSettingsProps {
   serverId: string;
   onClose: () => void;
   initialTab?: SettingsTab;
+  /** Render as a Deck pane instead of a dialog. */
+  inline?: boolean;
 }
 
 type NotificationLevel = 'AllMessages' | 'OnlyMentions' | 'Nothing';
@@ -150,7 +153,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
 
   return (
     <>
-      <Modal data-testid="server-settings-dialog" open={true} onClose={props.onClose} aria-label="Server Settings" size="xl">
+      <Surface data-testid="server-settings-dialog" inline={props.inline} onClose={props.onClose} aria-label="Server Settings" size="xl">
         {/* Header */}
         <div class={styles.header}>
           <h2 class={styles.headerTitle}>Server Settings</h2>
@@ -433,7 +436,7 @@ export default function ServerSettings(props: ServerSettingsProps) {
         <Show when={activeTab() === 'tiers'}>
           <TierManager serverId={props.serverId} />
         </Show>
-      </Modal>
+      </Surface>
 
       {/* Delete server confirmation */}
       <Modal data-testid="delete-server-dialog" open={showDeleteConfirm()} onClose={() => setShowDeleteConfirm(false)} title="Delete Server" size="sm" role="alertdialog">

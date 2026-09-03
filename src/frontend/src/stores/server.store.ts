@@ -4,7 +4,7 @@ import { normalizeIds } from '../utils/snowflake';
 import type { Server } from '../types/server';
 
 function normalizeServer(s: Server): Server {
-  return normalizeIds(s, 'id', 'ownerId');
+  return normalizeIds(s, 'id', 'ownerId', 'systemChannelId');
 }
 
 const store = createRoot(() => {

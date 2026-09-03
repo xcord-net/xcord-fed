@@ -3,6 +3,8 @@ import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import Flexbox from './ui/Flexbox';
 import styles from './AuditLogViewer.module.css';
+import EmptyState from './ui/EmptyState';
+import { ScrollText } from 'lucide-solid';
 
 export interface AuditLogEntry {
   id: string;
@@ -155,10 +157,14 @@ export default function AuditLogViewer(props: AuditLogViewerProps) {
 
       <div class={styles.scrollArea}>
         <Show when={!isLoading() && entries().length === 0}>
-          <Flexbox direction="vertical" align="center" justify="center" class={styles.emptyState}>
-            <p class={styles.emptyStateTitle}>No audit log entries</p>
-            <p class={styles.emptyStateSubtitle}>No actions recorded yet{actionFilter() ? ' for this filter.' : '.'}</p>
-          </Flexbox>
+          <EmptyState
+            icon={ScrollText}
+            title={actionFilter() ? 'No entries match that action' : 'No audit log entries yet'}
+            body={actionFilter()
+              ? 'Clear the filter to see everything recorded so far.'
+              : 'Moderation and settings changes are recorded here as they happen.'}
+            data-testid="audit-log-empty"
+          />
         </Show>
 
         <For each={entries()}>

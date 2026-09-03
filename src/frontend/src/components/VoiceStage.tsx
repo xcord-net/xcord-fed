@@ -1,9 +1,11 @@
-import { For, Show } from 'solid-js';
+import { For, Show, createEffect } from 'solid-js';
 import { useVoice } from '../stores/voice.store';
 import { useMembers } from '../stores/member.store';
 import { useAuth } from '../stores/auth.store';
 import { useChannels } from '../stores/channel.store';
+import { MutedIcon } from './ui/icons';
 import styles from './VoiceStage.module.css';
+import EmptyState from './ui/EmptyState';
 
 /** Resting heights for the level meter, as a percentage of its track. The
  *  shape is fixed rather than driven by audio: LiveKit reports who is
@@ -32,6 +34,24 @@ export default function VoiceStage() {
   const members = useMembers();
   const auth = useAuth();
   const channels = useChannels();
+
+  /**
+   * The roster is what turns a voice participant into a person.
+   *
+   * Nothing else on a voice channel loads it - the member list is opened on
+   * demand from the compose bar, and the Deck fetches it only for a community
+   * view - so anyone who went straight into a room saw raw user IDs on the
+   * tiles instead of names. Fetching it here makes the stage responsible for
+   * the data it renders.
+   */
+  createEffect(() => {
+    const channelId = voice.currentChannelId;
+    if (!channelId) return;
+    const serverId = channels.channels.find((c) => c.id === channelId)?.serverId;
+    if (!serverId) return;
+    if (members.members.length > 0) return;
+    void members.fetchMembers(serverId).catch(() => undefined);
+  });
 
   const nameFor = (userId: string): { name: string; avatarUrl?: string } => {
     const member = members.members.find((m) => m.userId === userId);
@@ -85,7 +105,12 @@ export default function VoiceStage() {
       <Show
         when={isConnectedHere()}
         fallback={
-          <p class={styles.empty}>Join this channel to see who is here.</p>
+          <EmptyState
+            title="Join to see who is here"
+            body="Connect to this room and the people in it appear on the stage."
+            dense
+            data-testid="voice-stage-empty"
+          />
         }
       >
         <div class={styles.grid}>
@@ -118,25 +143,7 @@ export default function VoiceStage() {
                     </Show>
                   </span>
                   <Show when={tile.isMuted}>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      class={styles.mutedIcon}
-                      role="img"
-                      aria-label="Muted"
-                    >
-                      <line x1="2" y1="2" x2="22" y2="22" />
-                      <path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2" />
-                      <path d="M5 10v2a7 7 0 0 0 12 5" />
-                      <path d="M15 9.34V5a3 3 0 0 0-5.68-1.33" />
-                      <path d="M9 9v3a3 3 0 0 0 5.12 2.12" />
-                      <line x1="12" y1="19" x2="12" y2="22" />
-                    </svg>
+                    <MutedIcon class={styles.mutedIcon} label="Muted" />
                   </Show>
                 </div>
 

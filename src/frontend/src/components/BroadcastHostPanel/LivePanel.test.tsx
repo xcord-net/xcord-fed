@@ -116,6 +116,61 @@ describe('LivePanel', () => {
 
   it('renders the empty-state when no streambots are configured', () => {
     const { container } = render(() => <LivePanel {...baseProps()} />);
-    expect(container.textContent).toContain('No streambots configured');
+    expect(container.querySelector('[data-testid="live-panel-streambots-empty"]')).not.toBeNull();
+  });
+});
+
+describe('LivePanel audio show', () => {
+  const audioProps = (over = {}) => ({
+    ...baseProps({ selectedLayout: 'AudioShow' as const, ...over }),
+  });
+
+  // Showing a camera preview during an audio show would be the panel telling the
+  // host something is going out that is not.
+  it('replaces the camera preview with what is actually going out', () => {
+    const { getByTestId, container } = render(() => <LivePanel {...audioProps()} />);
+    expect(getByTestId('broadcast-audio-preview')).toBeInTheDocument();
+    expect(container.querySelector('video')).toBeNull();
+  });
+
+  it('hides the camera control, which would change nothing', () => {
+    const { queryByTestId } = render(() => <LivePanel {...audioProps()} />);
+    expect(queryByTestId('broadcast-camera-button')).toBeNull();
+  });
+
+  it('keeps the microphone control, which is the whole broadcast', () => {
+    const { getByTestId } = render(() => <LivePanel {...audioProps()} />);
+    expect(getByTestId('broadcast-mute-button')).toBeInTheDocument();
+  });
+
+  it('shows the camera preview and control for every other preset', () => {
+    const { container, getByTestId, queryByTestId } = render(() => (
+      <LivePanel {...baseProps({ selectedLayout: 'Grid' as const })} />
+    ));
+    expect(container.querySelector('video')).not.toBeNull();
+    expect(getByTestId('broadcast-camera-button')).toBeInTheDocument();
+    expect(queryByTestId('broadcast-audio-preview')).toBeNull();
+  });
+
+  it('offers the audio show as a layout', () => {
+    const { getByTestId } = render(() => <LivePanel {...baseProps()} />);
+    expect(getByTestId('broadcast-layout-pill-audioshow')).toBeInTheDocument();
+  });
+
+  it('switches to it', () => {
+    const props = baseProps();
+    const { getByTestId } = render(() => <LivePanel {...props} />);
+    fireEvent.click(getByTestId('broadcast-layout-pill-audioshow'));
+    expect(props.onLayoutChange).toHaveBeenCalledWith('AudioShow');
+  });
+});
+
+describe('LivePanel change cost', () => {
+  // Stage and layout changes reach the compositor over the control channel and
+  // do not interrupt the stream; changing destinations restarts the egress and
+  // every relay sees the stream drop. The panel has to say which is which.
+  it('warns that changing destinations interrupts the stream', () => {
+    const { getByTestId } = render(() => <LivePanel {...baseProps()} />);
+    expect(getByTestId('destinations-warning')).toBeInTheDocument();
   });
 });

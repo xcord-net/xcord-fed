@@ -5,17 +5,19 @@ import { usePins } from '../../stores/pin.store';
 import { useAuth } from '../../stores/auth.store';
 import { useServers } from '../../stores/server.store';
 import { useThreads } from '../../stores/thread.store';
+import { useModals } from '../../stores/modal.store';
 import { useToasts } from '../../stores/toast.store';
 import { api } from '../../api/client';
 import type { Message } from '../../types/message';
 import MessageRow from './MessageRow';
 import DeleteMessageModal from './DeleteMessageModal';
-import { MANAGE_MESSAGES_BIT, shouldGroupWithPrevious } from './helpers';
+import { MANAGE_MESSAGES_BIT, shouldGroupWithPrevious, startsNewDay, formatDayLabel } from './helpers';
 import { buildLanes } from './lanes';
 import { createLaneHeat, prefersMotion } from './lane-heat';
 import Flexbox from '../ui/Flexbox';
 import styles from './MessageList.module.css';
 import rowStyles from './MessageRow.module.css';
+import EmptyState from '../ui/EmptyState';
 
 /** How often heat is recomputed while a lane is lit. Fast enough to read as a
  *  smooth falloff, slow enough to be invisible in a profile. */
@@ -38,6 +40,7 @@ export default function MessageList(props: MessageListProps) {
   const serverStore = useServers();
   const threadStore = useThreads();
   const toasts = useToasts();
+  const modals = useModals();
   const params = useParams();
   const [createThreadMessageId, setCreateThreadMessageId] = createSignal<string | null>(null);
   const [threadNameInput, setThreadNameInput] = createSignal('');
@@ -250,7 +253,8 @@ export default function MessageList(props: MessageListProps) {
         `/api/v1/conversations/${props.conversationId}/messages/${messageId}/reactions/${encodeURIComponent(emoji)}`,
       );
       // Patch just this message so the user's scroll position is preserved.
-      await messageStore.refreshMessage(props.conversationId, messageId);
+      // The server announces the new reaction set to the conversation, so there
+      // is nothing to fetch here - and fetching raced that announcement.
     } catch (e) {
       console.error('Failed to add reaction', e);
       toasts.error('Could not add reaction. Please try again.');
@@ -263,9 +267,14 @@ export default function MessageList(props: MessageListProps) {
     const channelId = params.channelId;
     if (!channelId) return;
     try {
-      await threadStore.createThread(channelId, parentMessageId, name);
+      const thread = await threadStore.createThread(channelId, parentMessageId, name);
       setCreateThreadMessageId(null);
       setThreadNameInput('');
+      // Land in the thread that was just made. Without this the form simply
+      // vanished: the thread existed, but nothing opened it and nothing said it
+      // had been created, so naming one looked like a button that did nothing.
+      threadStore.setActiveThread(thread.id);
+      modals.openThreads();
     } catch (e) {
       console.error('Failed to create thread', e);
       toasts.error('Could not create the thread. Please try again.');
@@ -313,10 +322,11 @@ export default function MessageList(props: MessageListProps) {
       {/* Empty channel: give the start of the conversation a clear marker instead
           of a blank void. */}
       <Show when={!messageStore.isLoading && messageStore.messages.length === 0}>
-        <Flexbox direction="vertical" align="center" justify="center" gap={0.5} class={styles.emptyState}>
-          <p data-testid="messages-empty" class={styles.emptyTitle}>This is the start of the conversation</p>
-          <p class={styles.emptyBody}>Send a message below to get things going.</p>
-        </Flexbox>
+        <EmptyState
+          title="This is the start of the conversation"
+          body="Send a message below and it lands here."
+          data-testid="messages-empty"
+        />
       </Show>
 
       {/* Message list. Rendered in normal document flow (no windowing) so each
@@ -329,9 +339,17 @@ export default function MessageList(props: MessageListProps) {
             {(message, index) => {
               const grouped = () =>
                 shouldGroupWithPrevious(messageStore.messages, message, index());
+              const newDay = () =>
+                startsNewDay(messageStore.messages, message, index());
               const lane = () => lanes().get(message.id);
 
               return (
+                <>
+                <Show when={newDay()}>
+                  <div class={styles.dayDivider} data-testid="message-day-divider">
+                    <span class={styles.dayLabel}>{formatDayLabel(message.createdAt)}</span>
+                  </div>
+                </Show>
                 <MessageRow
                   message={message}
                   conversationId={props.conversationId}
@@ -369,6 +387,7 @@ export default function MessageList(props: MessageListProps) {
                   onThreadCreateSubmit={() => handleSubmitThreadCreate(message.id)}
                   onThreadCreateCancel={() => setCreateThreadMessageId(null)}
                 />
+                </>
               );
             }}
           </For>

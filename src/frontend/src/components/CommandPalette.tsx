@@ -2,6 +2,7 @@ import { For, Show, createSignal, createEffect, onCleanup } from 'solid-js';
 import { api } from '../api/client';
 import Flexbox from './ui/Flexbox';
 import styles from './CommandPalette.module.css';
+import EmptyState from './ui/EmptyState';
 
 // ---- Types ----
 
@@ -238,9 +239,7 @@ export default function CommandPalette(props: CommandPaletteProps) {
       {/* Command list */}
       <Show when={!isLoading() && !selectedCommand()}>
         <Show when={filtered().length === 0}>
-          <div class={styles.emptyState}>
-            No commands found
-          </div>
+          <EmptyState title="No commands match that" dense data-testid="command-palette-empty" />
         </Show>
 
         <Show when={filtered().length > 0}>

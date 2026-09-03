@@ -3,6 +3,7 @@ import { useProfiles } from '../stores/profile.store';
 import PasswordChangeForm from './PasswordChangeForm';
 import TwoFactorSetup from './TwoFactorSetup';
 import AccountDeletion from './AccountDeletion';
+import AvatarUpload from './AvatarUpload';
 import styles from './UserProfileEditor.module.css';
 import { formatDate } from '../utils/datetime';
 
@@ -81,16 +82,14 @@ export default function UserProfileEditor(props: UserProfileEditorProps) {
               </Show>
             </div>
 
+            {/* The avatar is editable here, which is the only place it can be.
+                AvatarUpload was written and then never mounted anywhere, so a
+                user could see their picture and had no way to change it. */}
             <div class={styles.avatarRow}>
-              <div class={styles.avatar}>
-                <Show when={profileStore.userProfile!.avatarUrl} fallback={profileStore.userProfile!.username.charAt(0).toUpperCase()}>
-                  <img
-                    src={profileStore.userProfile!.avatarUrl}
-                    alt={profileStore.userProfile!.username}
-                    class={styles.avatarImage}
-                  />
-                </Show>
-              </div>
+              <AvatarUpload
+                profile={profileStore.userProfile!}
+                onUpdated={(updated) => profileStore.setUserProfile(updated)}
+              />
             </div>
 
             <div class={styles.infoBlockSpaced}>

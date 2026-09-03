@@ -2,6 +2,8 @@ import { For, Show, createSignal, createEffect } from 'solid-js';
 import { api } from '../api/client';
 import Flexbox from './ui/Flexbox';
 import styles from './AppDirectory.module.css';
+import EmptyState from './ui/EmptyState';
+import { Bot } from 'lucide-solid';
 
 // ---- Types ----
 
@@ -360,23 +362,33 @@ export default function AppDirectory(props: AppDirectoryProps) {
           </Flexbox>
         </Show>
 
-        {/* Empty state */}
+        {/* Empty state. Filtered-to-nothing and nothing-at-all are different
+            situations, so they say different things and offer different exits. */}
         <Show when={!isLoading() && displayedBots().length === 0}>
-          <Flexbox id="app-directory-empty" direction="vertical" align="center" justify="center" gap={0.75} class={styles.emptyState}>
-            <div class={styles.emptyIcon}>🤖</div>
-            <p class={styles.emptyText}>No bots found</p>
-            <Show when={searchQuery() || selectedCategory()}>
-              <button
-                class={styles.clearFiltersBtn}
-                onClick={() => {
-                  setSearchQuery('');
-                  setSelectedCategory('');
+          <div id="app-directory-empty">
+            <Show
+              when={searchQuery() || selectedCategory()}
+              fallback={
+                <EmptyState
+                  icon={Bot}
+                  title="No bots in the directory yet"
+                  body="Bots published to this server show up here."
+                />
+              }
+            >
+              <EmptyState
+                icon={Bot}
+                title="No bots match those filters"
+                action={{
+                  label: 'Clear filters',
+                  onClick: () => {
+                    setSearchQuery('');
+                    setSelectedCategory('');
+                  },
                 }}
-              >
-                Clear filters
-              </button>
+              />
             </Show>
-          </Flexbox>
+          </div>
         </Show>
 
         {/* Bot grid */}

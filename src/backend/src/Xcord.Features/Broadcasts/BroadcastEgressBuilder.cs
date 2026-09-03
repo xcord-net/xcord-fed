@@ -104,6 +104,35 @@ public sealed class BroadcastEgressBuilder
     }
 
     /// <summary>
+    /// Tells the running compositor what the stage looks like now.
+    /// </summary>
+    /// <remarks>
+    /// This is the reason a stage or layout change no longer interrupts the
+    /// stream. The compositor is already connected and rendering; it needs the
+    /// new arrangement, not a new page. The whole state goes over the wire each
+    /// time so a missed message cannot leave the render permanently wrong.
+    /// </remarks>
+    public Task PublishLayoutAsync(
+        long channelId,
+        BroadcastLayoutPreset preset,
+        IEnumerable<BroadcastStageSlot> slots,
+        CancellationToken ct)
+    {
+        var state = new BroadcastControl.LayoutState(
+            PresetSlug(preset),
+            slots
+                .OrderBy(s => s.SlotIndex)
+                .Select(s => new BroadcastControl.SlotAssignment(s.UserId.ToString(), s.SlotIndex))
+                .ToArray());
+
+        return _livekit.SendDataAsync(
+            BuildRoomName(channelId),
+            BroadcastControl.Topic,
+            BroadcastControl.Serialize(state),
+            ct);
+    }
+
+    /// <summary>
     /// Builds the full set of egress outputs for a broadcast: one HLS segment output
     /// (S3/MinIO) plus one RTMP stream output per active streambot. Stream keys are
     /// decrypted at call time and never retained after the outputs are returned.
@@ -159,6 +188,7 @@ public sealed class BroadcastEgressBuilder
         BroadcastLayoutPreset.Spotlight => "spotlight",
         BroadcastLayoutPreset.Pip => "pip",
         BroadcastLayoutPreset.SideBySide => "side-by-side",
+        BroadcastLayoutPreset.AudioShow => "audio-show",
         _ => "grid"
     };
 

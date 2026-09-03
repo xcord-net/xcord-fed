@@ -164,16 +164,6 @@
   gap: 0.5rem;
 }
 
-.emptyText {
-  font-size: 0.875rem;
-  color: var(--color-xcord-text-muted);
-  margin: 0;
-  padding: 1rem;
-  text-align: center;
-  background-color: var(--color-xcord-bg-secondary);
-  border-radius: 0.375rem;
-}
-
 .botRow {
   display: flex;
   align-items: center;

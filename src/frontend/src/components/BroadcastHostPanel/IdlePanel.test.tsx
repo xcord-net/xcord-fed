@@ -30,7 +30,7 @@ describe('IdlePanel', () => {
 
   it('renders an empty-state when no streambots are configured', () => {
     const { container } = render(() => <IdlePanel {...baseProps()} />);
-    expect(container.textContent).toContain('No streambots configured');
+    expect(container.querySelector('[data-testid="idle-panel-streambots-empty"]')).not.toBeNull();
   });
 
   it('renders streambot rows with checkboxes when streambots are provided', () => {

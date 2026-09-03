@@ -1,0 +1,162 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 60;
+}
+
+.panel {
+  position: fixed;
+  top: 12vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(620px, 92vw);
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-xcord-bg-floating);
+  border: 1px solid var(--color-xcord-border);
+  border-radius: var(--radius-lg, 14px);
+  box-shadow: var(--shadow-3, 0 24px 70px rgba(0, 0, 0, 0.55));
+  z-index: 61;
+  overflow: hidden;
+}
+
+.input {
+  width: 100%;
+  padding: 1rem 1.1rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--color-xcord-border);
+  color: var(--color-xcord-text-primary);
+  font-family: inherit;
+  font-size: 1rem;
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--color-xcord-text-faint);
+}
+
+.results {
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+
+.group {
+  padding: 0.35rem 0;
+}
+
+.groupLabel {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-xcord-text-faint);
+  margin: 0.4rem 1.1rem 0.3rem;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.6rem;
+}
+
+.rowActive {
+  background: var(--color-xcord-bg-accent);
+}
+
+.rowMain {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--color-xcord-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.rowName {
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowKind {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.62rem;
+  color: var(--color-xcord-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.rowUnread {
+  margin-left: auto;
+  color: var(--color-xcord-brand);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.pin {
+  background: none;
+  border: 1px solid var(--color-xcord-line, #2c272c);
+  border-radius: var(--radius-pill, 999px);
+  color: var(--color-xcord-text-muted);
+  font: inherit;
+  font-size: 0.68rem;
+  padding: 0.15rem 0.7rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.pin[aria-pressed='true'] {
+  color: var(--color-xcord-brand);
+  border-color: rgba(212, 148, 58, 0.45);
+}
+
+.empty {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.85rem;
+  padding: 1.2rem 1.1rem;
+  margin: 0;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 1.1rem;
+  border-top: 1px solid var(--color-xcord-border);
+}
+
+.createServer {
+  background: none;
+  border: none;
+  color: var(--color-xcord-brand);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hint {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.62rem;
+  color: var(--color-xcord-text-faint);
+}
+
+.rowMain:focus-visible,
+.pin:focus-visible,
+.createServer:focus-visible,
+.input:focus-visible {
+  outline: 2px solid var(--color-xcord-brand);
+  outline-offset: 2px;
+}

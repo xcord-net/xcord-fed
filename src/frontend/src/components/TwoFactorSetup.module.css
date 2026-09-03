@@ -192,7 +192,7 @@
 }
 
 .warningTitle {
-  color: #fde047;
+  color: var(--color-xcord-yellow);
   font-weight: 600;
   font-size: 0.875rem;
   margin-bottom: 0.25rem;

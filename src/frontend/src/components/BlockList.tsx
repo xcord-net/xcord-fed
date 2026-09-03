@@ -4,6 +4,8 @@ import { getErrorMessage } from '../utils/errors';
 import Flexbox from './ui/Flexbox';
 import styles from './BlockList.module.css';
 import { formatDate } from '../utils/datetime';
+import EmptyState from './ui/EmptyState';
+import { UserX } from 'lucide-solid';
 
 export default function BlockList() {
   const blockStore = useBlocks();
@@ -66,9 +68,14 @@ export default function BlockList() {
         </Show>
 
         <Show when={!blockStore.isLoading && blockStore.blockedUsers.length === 0}>
-          <Flexbox align="center" justify="center" id="blocked-users-empty" data-testid="block-list-empty-state" class={styles.emptyState}>
-            <p class={styles.mutedText}>No blocked users</p>
-          </Flexbox>
+          <div id="blocked-users-empty">
+            <EmptyState
+              icon={UserX}
+              title="You have not blocked anyone"
+              body="Blocked people cannot message you, and you stop seeing what they post."
+              data-testid="block-list-empty-state"
+            />
+          </div>
         </Show>
 
         <For each={blockStore.blockedUsers}>

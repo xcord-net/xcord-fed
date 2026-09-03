@@ -91,7 +91,7 @@ describe('account-deletion', () => {
     it('should return generic error when API returns no message', async () => {
       api.setAuthenticated(true);
       // Simulate a server error response with no parseable JSON body (e.g. empty 500 response).
-      // The client's .catch(() => ({ error: 'Request failed' })) fallback must activate
+      // The client's .catch(() => ({ error: 'Something went wrong on our end. Try again.' })) fallback must activate
       // so the rejection always carries a non-empty error string.
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: false,

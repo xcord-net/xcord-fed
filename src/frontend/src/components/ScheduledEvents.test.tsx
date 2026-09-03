@@ -63,8 +63,8 @@ describe('ScheduledEvents', () => {
     mockFetch({
       'GET /api/v1/servers/s-1/events': () => ({ status: 200, body: [] }),
     });
-    const { findByText } = render(() => <ScheduledEvents serverId="s-1" />);
-    expect(await findByText('No upcoming events')).toBeInTheDocument();
+    const { findByText, findByTestId } = render(() => <ScheduledEvents serverId="s-1" />);
+    expect(await findByTestId('scheduled-events-empty')).toBeInTheDocument();
   });
 
   it('renders an event item with name and interested count', async () => {

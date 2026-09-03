@@ -1,5 +1,14 @@
 namespace Xcord.Features.Servers;
 
+/// <param name="SystemChannelId">
+///   The general channel created alongside the server - where a client should
+///   land the owner.
+///
+///   Creating a server used to answer without it, so the only way to open the
+///   thing you had just made was to fetch its channel list and look for one
+///   named "general". That second round trip sat between the click and any
+///   visible change, and the handler knew the id the whole time.
+/// </param>
 public sealed record CreateServerResponse(
     long Id,
     string Name,
@@ -9,7 +18,8 @@ public sealed record CreateServerResponse(
     long OwnerId,
     int MemberCount,
     string? PreferredLocale,
-    DateTimeOffset CreatedAt
+    DateTimeOffset CreatedAt,
+    long SystemChannelId
 );
 
 public sealed record ServerDto(

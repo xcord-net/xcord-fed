@@ -27,7 +27,7 @@ describe('Login', () => {
       'GET /api/v1/config': () => ({ status: 200, body: { registrationEnabled: false } }),
     });
     const { findByTestId } = renderWithRouter(() => <Login />);
-    expect(await findByTestId('login-heading')).toHaveTextContent('Welcome back!');
+    expect(await findByTestId('login-heading')).toHaveTextContent('Log in to Xcord');
     expect(await findByTestId('login-email-input')).toBeInTheDocument();
     expect(await findByTestId('login-password-input')).toBeInTheDocument();
     expect(await findByTestId('login-submit-button')).toBeInTheDocument();

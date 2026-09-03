@@ -2,7 +2,7 @@ import { createSignal, createRoot } from 'solid-js';
 import { api } from '../api/client';
 
 export type BroadcastStatus = 'Starting' | 'Live' | 'Ended' | 'Failed';
-export type BroadcastLayoutPreset = 'Grid' | 'Spotlight' | 'Pip' | 'SideBySide';
+export type BroadcastLayoutPreset = 'Grid' | 'Spotlight' | 'Pip' | 'SideBySide' | 'AudioShow';
 export type BroadcastStreambotStatus = 'Connecting' | 'Active' | 'Failed' | 'Ended';
 
 export interface StageSlot {

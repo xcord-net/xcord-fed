@@ -67,13 +67,28 @@
   padding: 2rem;
 }
 
-.emptyTitle {
-  color: var(--color-xcord-text-secondary);
-  font-size: 1rem;
-  font-weight: 600;
+/* Day divider. A hairline carrying the date, so a wall of messages has a
+   structure you can scan instead of one continuous column. */
+.dayDivider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.1rem 0 0.6rem;
 }
 
-.emptyBody {
-  color: var(--color-xcord-text-muted);
-  font-size: 0.875rem;
+.dayDivider::before,
+.dayDivider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-xcord-border);
+}
+
+.dayLabel {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-xcord-text-faint);
+  white-space: nowrap;
 }

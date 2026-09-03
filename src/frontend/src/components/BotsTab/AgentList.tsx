@@ -2,6 +2,8 @@ import { For, Show } from 'solid-js';
 import type { Bot, BotAgent } from './types';
 import Flexbox from '../ui/Flexbox';
 import styles from './AgentList.module.css';
+import EmptyState from '../ui/EmptyState';
+import { Bot as BotGlyph } from 'lucide-solid';
 
 export interface AgentListProps {
   agents: BotAgent[];
@@ -33,9 +35,12 @@ export function AgentList(props: AgentListProps) {
       </Show>
 
       <Show when={!props.isLoading && props.agents.length === 0}>
-        <div data-testid="agents-empty-state" class={styles.emptyState}>
-          No agents available.
-        </div>
+        <EmptyState
+          icon={BotGlyph}
+          title="No agents available"
+          body="Agents you install show up here, ready to add to a channel."
+          data-testid="agents-empty-state"
+        />
       </Show>
 
       <Show when={!props.isLoading && props.agents.length > 0}>

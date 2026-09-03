@@ -17,7 +17,7 @@ export default function JoinInvite() {
   const [joined, setJoined] = createSignal(false);
   let joinAttempted = false;
 
-  onMount(() => { document.title = 'Join Server - Xcord'; });
+  onMount(() => { document.title = 'Join a community - Xcord'; });
 
   // Wait for auth validation to complete before checking authentication
   createEffect(() => {
@@ -68,7 +68,7 @@ export default function JoinInvite() {
         setJoined(true);
         navigateToServer(serverId);
       } catch (err2: unknown) {
-        setError(getErrorMessage(err2, 'Failed to join server'));
+        setError(getErrorMessage(err2, 'Could not join. The invite may have expired.'));
       }
     } finally {
       setJoining(false);

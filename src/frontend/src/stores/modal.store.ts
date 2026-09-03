@@ -1,7 +1,7 @@
 import { createSignal, createRoot } from 'solid-js';
 import type { ForumPost } from '../types/forum';
 
-export type SettingsTab = 'profile' | 'blocks' | 'notifications' | 'notes';
+export type SettingsTab = 'profile' | 'people' | 'blocks' | 'notifications' | 'notes';
 export type ServerSettingsTab = 'overview' | 'channels-admin' | 'automod' | 'bans' | 'audit-log' | 'emoji' | 'stickers' | 'vanity-url' | 'templates' | 'insights' | 'invites' | 'app-directory' | 'bots' | 'welcome-screen' | 'updates' | 'tiers';
 
 const store = createRoot(() => {
@@ -64,6 +64,7 @@ export function useModals() {
     toggleSearch() { store.setShowSearch(!store.showSearch()); },
     togglePins() { store.setShowPins(!store.showPins()); },
     toggleThreads() { store.setShowThreads(!store.showThreads()); },
+    openThreads() { store.setShowThreads(true); },
     toggleChannelSettings() { store.setShowChannelSettings(!store.showChannelSettings()); },
     toggleGroupManager() { store.setShowGroupManager(!store.showGroupManager()); },
     toggleEvents() { store.setShowEvents(!store.showEvents()); },

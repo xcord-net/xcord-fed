@@ -1,4 +1,5 @@
-import { For, createSignal } from 'solid-js';
+import { For, Show, createSignal } from 'solid-js';
+import { useEmojis } from '../stores/emoji.store';
 import styles from './MarkdownRenderer.module.css';
 
 interface MarkdownRendererProps {
@@ -18,7 +19,8 @@ type RenderedToken =
   | { type: 'mention_user'; value: string }
   | { type: 'mention_group'; value: string }
   | { type: 'mention_everyone' }
-  | { type: 'mention_here' };
+  | { type: 'mention_here' }
+  | { type: 'custom_emoji'; value: string };
 
 /** Turn a numeric character reference's code point into its character.
  *  Returns the original reference unchanged if the code point is not valid. */
@@ -99,6 +101,19 @@ export function parseMarkdown(content: string): RenderedToken[] {
       if (userMentionMatch) {
         result.push({ type: 'mention_user', value: userMentionMatch[1] });
         remaining = remaining.slice(userMentionMatch[0].length);
+        continue;
+      }
+
+      // :name: - a server's custom emoji. The picker inserts this form, and
+      // until now nothing turned it back into a picture: the emoji existed in
+      // the uploader, the manager and the picker, and arrived in the message as
+      // the literal text ":name:". Resolution against the server's emoji list
+      // happens at render time, so an unknown name stays as plain text rather
+      // than becoming a broken image.
+      const customEmojiMatch = remaining.match(/^:([a-zA-Z0-9_]{2,32}):/);
+      if (customEmojiMatch) {
+        result.push({ type: 'custom_emoji', value: customEmojiMatch[1] });
+        remaining = remaining.slice(customEmojiMatch[0].length);
         continue;
       }
 
@@ -313,10 +328,37 @@ function renderToken(token: RenderedToken) {
           @here
         </span>
       );
+    case 'custom_emoji':
+      return <CustomEmoji name={token.value} />;
     case 'text':
     default:
       return token.value;
   }
+}
+
+/**
+ * One custom emoji, or the text that named it.
+ *
+ * A message can be read by someone whose emoji list has not loaded, or who is
+ * looking at a message from a community they have since left - so a name that
+ * resolves to nothing renders as it was typed rather than as a broken image.
+ */
+function CustomEmoji(props: { name: string }) {
+  const emojiStore = useEmojis();
+  const emoji = () => emojiStore.customEmojis.find((e) => e.name === props.name);
+
+  return (
+    <Show when={emoji()} fallback={<>:{props.name}:</>}>
+      {(found) => (
+        <img
+          src={found().imageUrl}
+          alt={props.name}
+          title={`:${props.name}:`}
+          class={styles.customEmoji}
+        />
+      )}
+    </Show>
+  );
 }
 
 export default function MarkdownRenderer(props: MarkdownRendererProps) {

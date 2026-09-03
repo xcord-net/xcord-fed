@@ -18,6 +18,11 @@ vi.mock('../stores/voice.store', () => ({
   useVoice: () => voiceState,
 }));
 
+const navigate = vi.fn();
+vi.mock('@solidjs/router', () => ({
+  useNavigate: () => navigate,
+}));
+
 import VoicePanel from './VoicePanel';
 import { useChannels } from '../stores/channel.store';
 import { Capability, type Channel } from '../types/channel';
@@ -33,6 +38,7 @@ function makeChannel(over: Partial<Channel> = {}): Channel {
 describe('VoicePanel', () => {
   beforeEach(() => {
     useChannels().reset();
+    navigate.mockClear();
     voiceState.currentChannelId = null;
     voiceState.isMuted = false;
     voiceState.isDeafened = false;
@@ -88,5 +94,39 @@ describe('VoicePanel', () => {
     voiceState.screenShareParticipantId = 'remote-user';
     const { getByText } = render(() => <VoicePanel />);
     expect(getByText('Someone is sharing their screen')).toBeInTheDocument();
+  });
+});
+
+describe('VoicePanel return-to-room', () => {
+  beforeEach(() => {
+    useChannels().reset();
+    navigate.mockClear();
+    voiceState.currentChannelId = null;
+  });
+
+  // Voice survives navigating away, so the pill is the only route back to the
+  // room you are actually connected to.
+  it('routes back to the room it is connected to', () => {
+    useChannels().addChannel(makeChannel());
+    voiceState.currentChannelId = 'voice-1';
+
+    const { getByTestId } = render(() => <VoicePanel />);
+    fireEvent.click(getByTestId('voice-return-to-room'));
+
+    expect(navigate).toHaveBeenCalledWith('/channels/s-1/voice-1');
+  });
+
+  it('names the room it goes back to', () => {
+    useChannels().addChannel(makeChannel({ name: 'Forge Floor' }));
+    voiceState.currentChannelId = 'voice-1';
+
+    const { getByTestId } = render(() => <VoicePanel />);
+    expect(getByTestId('voice-return-to-room').getAttribute('aria-label'))
+      .toBe('Back to Forge Floor');
+  });
+
+  it('offers nothing to go back to when not connected', () => {
+    const { queryByTestId } = render(() => <VoicePanel />);
+    expect(queryByTestId('voice-return-to-room')).toBeNull();
   });
 });

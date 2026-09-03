@@ -40,6 +40,21 @@ public interface ILiveKitService
     Task RemoveParticipantAsync(string roomName, string participantIdentity);
 
     /// <summary>
+    /// Publishes a reliable data message to every participant in a room, including the
+    /// headless browser that renders a broadcast's layout.
+    /// </summary>
+    /// <remarks>
+    /// This is how a broadcast's stage and layout change without interrupting the stream.
+    /// Restarting the egress to pick up a new stage would tear down and re-establish every
+    /// RTMP push, which viewers on the downstream platforms see as the stream dropping.
+    /// </remarks>
+    /// <param name="roomName">LiveKit room name.</param>
+    /// <param name="topic">Topic the receiver filters on.</param>
+    /// <param name="payload">UTF-8 message body.</param>
+    /// <param name="ct">Cancellation token.</param>
+    Task SendDataAsync(string roomName, string topic, string payload, CancellationToken ct);
+
+    /// <summary>
     /// Starts a RoomCompositeEgress that renders <paramref name="templateUrl"/> and publishes
     /// the composited stream to the supplied <paramref name="outputs"/> (HLS segments,
     /// RTMP destinations, or both).

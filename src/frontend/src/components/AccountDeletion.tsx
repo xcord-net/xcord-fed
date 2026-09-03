@@ -81,7 +81,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
       </h3>
 
       <Show when={error()}>
-        <div class={styles.errorBanner}>{error()}</div>
+        <div data-testid="danger-zone-error" class={styles.errorBanner}>{error()}</div>
       </Show>
 
       <Show when={props.scheduledDeletionAt}>
@@ -136,7 +136,7 @@ export default function AccountDeletion(props: AccountDeletionProps) {
           </p>
 
           <Show when={error()}>
-            <div class={styles.errorBanner}>{error()}</div>
+            <div data-testid="delete-account-error" class={styles.errorBanner}>{error()}</div>
           </Show>
 
           <div class={styles.fieldGroup}>

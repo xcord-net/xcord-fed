@@ -3,6 +3,7 @@ import { useBroadcast, type Broadcast } from '../stores/broadcast.store';
 import { useMembers } from '../stores/member.store';
 import Flexbox from './ui/Flexbox';
 import styles from './BroadcastGreenRoom.module.css';
+import EmptyState from './ui/EmptyState';
 
 interface Props {
   broadcast: Broadcast;
@@ -47,7 +48,14 @@ export default function BroadcastGreenRoom(props: Props) {
       </Flexbox>
       <Show
         when={onStage().length > 0}
-        fallback={<p class={styles.emptyText}>No one is on stage yet.</p>}
+        fallback={
+          <EmptyState
+            title="Nobody is on stage yet"
+            body="Invite a listener up and they appear here."
+            dense
+            data-testid="green-room-empty"
+          />
+        }
       >
         <Flexbox as="ul" direction="vertical" gap={0.25} class={styles.list}>
           <For each={onStage()}>

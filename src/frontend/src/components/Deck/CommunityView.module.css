@@ -1,0 +1,309 @@
+.view {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.6rem 0 3rem;
+  background: var(--color-xcord-bg-primary);
+}
+
+.masthead,
+.section {
+  width: min(760px, 92%);
+  margin: 0 auto;
+}
+
+.masthead {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mark {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-lg, 14px);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display, inherit);
+  font-weight: 800;
+  font-size: 1.3rem;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.mastheadBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  font-family: var(--font-display, inherit);
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+  color: var(--color-xcord-text-primary);
+  margin: 0;
+}
+
+.meta {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  color: var(--color-xcord-text-muted);
+  font-size: 0.82rem;
+  margin-top: 0.15rem;
+}
+
+.domain {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.72rem;
+  color: var(--color-xcord-text-faint);
+}
+
+.manage {
+  background: none;
+  border: 1px solid var(--color-xcord-line, #2c272c);
+  border-radius: var(--radius-pill, 999px);
+  color: var(--color-xcord-text-secondary);
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.9rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.manage:hover {
+  color: var(--color-xcord-text-primary);
+}
+
+.section {
+  margin-top: 2rem;
+}
+
+.sectionLabel {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  color: var(--color-xcord-text-faint);
+  font-weight: 400;
+  margin: 0 0 0.6rem;
+}
+
+.empty {
+  color: var(--color-xcord-text-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.rooms {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.room {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-top: 1px solid var(--color-xcord-border);
+}
+
+.room:last-child {
+  border-bottom: 1px solid var(--color-xcord-border);
+}
+
+.roomOpen {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.6rem 0.2rem;
+  background: none;
+  border: none;
+  color: var(--color-xcord-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.roomName {
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roomKind,
+.gate {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-xcord-text-faint);
+}
+
+.gate {
+  color: var(--color-xcord-warning-glow, #d6b56b);
+}
+
+.live {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--color-xcord-brand);
+  background: rgba(212, 148, 58, 0.1);
+  border-radius: var(--radius-pill, 999px);
+  padding: 0.1rem 0.55rem;
+}
+
+.unread {
+  margin-left: auto;
+  color: var(--color-xcord-brand);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.pin {
+  background: none;
+  border: 1px solid var(--color-xcord-line, #2c272c);
+  border-radius: var(--radius-pill, 999px);
+  color: var(--color-xcord-text-muted);
+  font: inherit;
+  font-size: 0.68rem;
+  padding: 0.15rem 0.7rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.pin[aria-pressed='true'] {
+  color: var(--color-xcord-brand);
+  border-color: rgba(212, 148, 58, 0.45);
+}
+
+.people {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--color-xcord-bg-accent);
+  border-radius: var(--radius-pill, 999px);
+  padding: 0.2rem 0.7rem 0.2rem 0.2rem;
+}
+
+.avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-xcord-bg-floating);
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.personName {
+  font-size: 0.8rem;
+  color: var(--color-xcord-text-secondary);
+}
+
+.emblem {
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.morePeople {
+  color: var(--color-xcord-text-faint);
+  font-size: 0.78rem;
+}
+
+.tiers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.7rem;
+}
+
+.tier {
+  background: var(--color-xcord-bg-accent);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md, 10px);
+  padding: 0.85rem 1rem;
+}
+
+.tierCurrent {
+  border-color: rgba(212, 148, 58, 0.45);
+}
+
+.tierHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.tierName {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--color-xcord-text-primary);
+}
+
+.tierPrice {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.72rem;
+  color: var(--color-xcord-text-muted);
+}
+
+.tierBody {
+  color: var(--color-xcord-text-secondary);
+  font-size: 0.8rem;
+  margin: 0.4rem 0 0;
+  line-height: 1.45;
+}
+
+.tierCta {
+  margin-top: 0.7rem;
+  background: var(--color-xcord-brand);
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  color: var(--color-xcord-bg-tertiary);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.35rem 0.9rem;
+  cursor: pointer;
+}
+
+.tierCta:hover {
+  background: var(--color-xcord-brand-hover);
+}
+
+.tierCurrentLabel {
+  display: inline-block;
+  margin-top: 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-xcord-brand);
+}
+
+.roomOpen:focus-visible,
+.pin:focus-visible,
+.manage:focus-visible,
+.tierCta:focus-visible {
+  outline: 2px solid var(--color-xcord-brand);
+  outline-offset: 2px;
+}

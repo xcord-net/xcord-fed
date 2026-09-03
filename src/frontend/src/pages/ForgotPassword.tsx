@@ -9,7 +9,7 @@ export default function ForgotPassword() {
   const [error, setError] = createSignal('');
   const [submitted, setSubmitted] = createSignal(false);
 
-  onMount(() => { document.title = 'Forgot Password - Xcord'; });
+  onMount(() => { document.title = 'Reset your password - Xcord'; });
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
@@ -23,7 +23,7 @@ export default function ForgotPassword() {
     } catch {
       // Show a generic error only for network failures; the endpoint itself
       // always returns 204 so this path means the server was unreachable.
-      setError('Network error. Please try again.');
+      setError('Could not reach Xcord. Check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -68,7 +68,7 @@ export default function ForgotPassword() {
               disabled={loading()}
               class={styles.submitButton}
             >
-              {loading() ? 'Sending...' : 'Send Reset Link'}
+              {loading() ? 'Sending...' : 'Send reset link'}
             </button>
             <p class={styles.footerText}>
               Remembered it? <A href="/login" class={styles.link}>Back to Login</A>

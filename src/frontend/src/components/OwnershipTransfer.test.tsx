@@ -54,9 +54,9 @@ describe('OwnershipTransfer', () => {
     mockFetch({
       'GET /api/v1/servers/s-1/members': () => ({ status: 200, body: [{ userId: 'owner-1', username: 'me' }] }),
     });
-    const { getByTestId, findByText } = render(() => <OwnershipTransfer {...baseProps} />);
+    const { getByTestId, findByText, findByTestId } = render(() => <OwnershipTransfer {...baseProps} />);
     fireEvent.click(getByTestId('transfer-ownership-open-button'));
-    expect(await findByText('No other members to transfer to.')).toBeInTheDocument();
+    expect(await findByTestId('ownership-transfer-empty')).toBeInTheDocument();
   });
 
   it('advances to confirmation step after selecting a member', async () => {

@@ -13,9 +13,9 @@
 
 .stripeBanner {
   padding: 0.75rem 1rem;
-  background-color: var(--color-xcord-warn-bg, #3a2e0a);
-  color: var(--color-xcord-warn-text, #f0c674);
-  border: 1px solid var(--color-xcord-warn-border, #6e5418);
+  background-color: var(--color-xcord-warning-bg);
+  color: var(--color-xcord-warning-glow);
+  border: 1px solid var(--color-xcord-warning-border);
   border-radius: 4px;
   font-size: 0.875rem;
 }
@@ -94,7 +94,7 @@
 }
 
 .tierStatusActive {
-  color: var(--color-xcord-success, #43b581);
+  color: var(--color-xcord-success);
 }
 
 .tierStatusInactive {

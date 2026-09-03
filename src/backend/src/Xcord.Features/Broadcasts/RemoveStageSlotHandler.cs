@@ -17,7 +17,6 @@ public sealed class RemoveStageSlotHandler(
     AppDbContext dbContext,
     ICurrentUserService currentUserService,
     IRoleService roleService,
-    ILiveKitService livekitService,
     INotificationService notificationService,
     BroadcastEgressBuilder egressBuilder,
     ILogger<RemoveStageSlotHandler> logger)
@@ -61,33 +60,24 @@ public sealed class RemoveStageSlotHandler(
             .OrderBy(s => s.SlotIndex)
             .ToList();
 
-        var roomName = egressBuilder.BuildRoomName(broadcast.ChannelId);
-        var templateUrl = egressBuilder.BuildTemplateUrl(
-            broadcast.Id, broadcast.LayoutPreset, remainingSlots, roomName);
-        var outputs = await egressBuilder.BuildOutputsAsync(broadcast.Id, cancellationToken).ConfigureAwait(false);
-
-        string newEgressId;
+        // Stage changes go over the room's control channel: the compositor
+        // rearranges itself in place. Restarting the egress instead would drop
+        // and re-establish every RTMP relay, so putting one person on stage
+        // would break the stream on every platform it is being sent to.
         try
         {
-            newEgressId = await livekitService.RestartEgressWithNewOutputsAsync(
-                oldEgressId: broadcast.EgressJobId,
-                roomName: roomName,
-                templateUrl: templateUrl,
-                outputs: outputs,
-                ct: cancellationToken);
+            await egressBuilder.PublishLayoutAsync(
+                broadcast.ChannelId, broadcast.LayoutPreset, remainingSlots, cancellationToken);
         }
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "Failed to restart egress for broadcast {BroadcastId} on stage remove",
+                "Failed to publish stage change for broadcast {BroadcastId}",
                 broadcast.Id);
             return Error.Failure(
-                "EGRESS_RESTART_FAILED",
-                "Failed to apply stage change to the egress pipeline");
+                "STAGE_PUBLISH_FAILED",
+                "Failed to apply the stage change to the live stream");
         }
-
-        broadcast.EgressJobId = newEgressId;
-        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         await notificationService.NotifyConversationAsync(
             broadcast.Channel.ConversationId,

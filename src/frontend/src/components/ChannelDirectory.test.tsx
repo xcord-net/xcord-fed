@@ -35,8 +35,8 @@ describe('ChannelDirectory', () => {
   });
 
   it('renders empty state when no channels', () => {
-    const { getByText } = renderWithRouter(() => <ChannelDirectory serverId="s-1" />);
-    expect(getByText('No channels yet')).toBeInTheDocument();
+    const { getByText, getByTestId } = renderWithRouter(() => <ChannelDirectory serverId="s-1" />);
+    expect(getByTestId('channel-directory-empty')).toBeInTheDocument();
   });
 
   it('renders uncategorized channel cards sorted by position', () => {

@@ -2,6 +2,8 @@ import { createSignal, For, Show, onMount, onCleanup, createMemo } from 'solid-j
 import { api } from '../api/client';
 import { getErrorMessage } from '../utils/errors';
 import styles from './StickerPicker.module.css';
+import EmptyState from './ui/EmptyState';
+import { Sticker } from 'lucide-solid';
 
 export interface Sticker {
   id: string;
@@ -391,12 +393,13 @@ export default function StickerPicker(props: StickerPickerProps) {
         </Show>
 
         <Show when={!isLoading() && filteredStickers().length === 0}>
-          <div class={styles.emptyState} data-testid="sticker-picker-empty-state">
-            <p class={styles.emptyTitle}>No stickers found</p>
-            <Show when={searchQuery()}>
-              <p class={styles.emptySubtitle}>Try a different search term.</p>
-            </Show>
-          </div>
+          <EmptyState
+            icon={Sticker}
+            title={searchQuery() ? 'No stickers match that search' : 'No stickers yet'}
+            body={searchQuery() ? 'Try a different word.' : 'Stickers added to your communities show up here.'}
+            dense
+            data-testid="sticker-picker-empty-state"
+          />
         </Show>
 
         <For each={stickerPacks()}>

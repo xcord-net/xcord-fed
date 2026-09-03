@@ -218,7 +218,7 @@
 
 .groupAssignError {
   font-size: 0.75rem;
-  color: var(--color-xcord-red, #ed4245);
+  color: var(--color-xcord-red);
   padding: 0.25rem;
 }
 

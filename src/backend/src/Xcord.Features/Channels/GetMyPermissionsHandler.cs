@@ -14,8 +14,14 @@ namespace Xcord.Features.Channels;
 /// </summary>
 public sealed record GetMyPermissionsQuery(long ChannelId);
 
-public sealed record MyChannelPermissionsDto(
-    [property: System.Text.Json.Serialization.JsonConverter(typeof(LongAsNumberConverter))] long Permissions);
+/// <remarks>
+/// Serialized as a string, like every other 64-bit value the API returns. It was
+/// forced to a JSON number, and a permission bitfield is exactly the kind of long
+/// that must not be: an owner's value is long.MaxValue, which JavaScript rounds
+/// to 2^63 on parse - collapsing every permission bit to a single one and
+/// denying the owner everything the UI gates on it.
+/// </remarks>
+public sealed record MyChannelPermissionsDto(long Permissions);
 
 public sealed class GetMyPermissionsHandler(
     ICurrentUserService currentUserService,

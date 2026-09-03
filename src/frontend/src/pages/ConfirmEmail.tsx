@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from '@solidjs/router';
 import { api } from '../api/client';
 import { sanitizeRedirect } from '../utils/redirect';
 import styles from './ConfirmEmail.module.css';
+import { getErrorMessage } from '../utils/errors';
 
 export default function ConfirmEmail() {
   const [code, setCode] = createSignal('');
@@ -13,7 +14,7 @@ export default function ConfirmEmail() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams<{ redirect?: string }>();
 
-  onMount(() => { document.title = 'Confirm Email - Xcord'; });
+  onMount(() => { document.title = 'Confirm your email - Xcord'; });
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
@@ -28,7 +29,7 @@ export default function ConfirmEmail() {
       // has to wait for this step rather than be forgotten by it.
       navigate(sanitizeRedirect(searchParams.redirect));
     } catch (err: unknown) {
-      setError((err as Error)?.message || 'Invalid confirmation code');
+      setError(getErrorMessage(err, 'That code did not match. Check the email and try again.'));
     } finally {
       setLoading(false);
     }
@@ -44,7 +45,7 @@ export default function ConfirmEmail() {
       await api.post('/api/v1/auth/resend-confirmation');
       setResent(true);
     } catch (err: unknown) {
-      setError((err as Error)?.message || 'Could not resend the code');
+      setError(getErrorMessage(err, 'Could not send another code. Try again in a moment.'));
     } finally {
       setResending(false);
     }

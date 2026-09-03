@@ -19,12 +19,14 @@
   min-height: 0;
 }
 
-/* ===== Loading / empty state ===== */
-.emptyState {
+/* ===== Loading state ===== */
+/* Empty states come from ui/EmptyState now; this is only the brief moment
+   before the route knows which community it is showing. */
+.loadingState {
   flex: 1;
 }
 
-.emptyStateText {
+.loadingStateText {
   color: var(--color-xcord-text-muted);
 }
 

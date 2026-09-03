@@ -13,7 +13,8 @@ public sealed record AddReactionCommand(long ConversationId, long MessageId, str
 public sealed record ReactionResponse(long MessageId, long UserId, string Emoji, DateTimeOffset CreatedAt);
 
 public sealed class AddReactionHandler(
-    AppDbContext dbContext, ICurrentUserService currentUserService)
+    AppDbContext dbContext, ICurrentUserService currentUserService,
+    INotificationService notificationService)
     : IRequestHandler<AddReactionCommand, Result<ReactionResponse>>
 {
     public async Task<Result<ReactionResponse>> Handle(AddReactionCommand request, CancellationToken ct)
@@ -42,6 +43,10 @@ public sealed class AddReactionHandler(
         };
         dbContext.Reactions.Add(reaction);
         await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+
+        await ReactionBroadcast.PublishAsync(
+            dbContext, notificationService, request.ConversationId, request.MessageId, ct)
+            .ConfigureAwait(false);
 
         return new ReactionResponse(reaction.MessageId, userId, reaction.Emoji, now);
     }

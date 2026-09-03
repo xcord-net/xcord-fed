@@ -35,9 +35,9 @@ describe('StreambotManager', () => {
     mockFetch({
       'GET /api/v1/channels/c-1/streambots': () => ({ status: 200, body: [] }),
     });
-    const { findByText } = render(() => <StreambotManager channelId="c-1" />);
+    const { findByText, findByTestId } = render(() => <StreambotManager channelId="c-1" />);
     expect(
-      await findByText(/No streambots configured for this channel/i),
+      await findByTestId('streambot-manager-empty'),
     ).toBeInTheDocument();
   });
 

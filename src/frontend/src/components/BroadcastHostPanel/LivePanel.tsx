@@ -5,6 +5,7 @@ import StreambotStatusBadge from '../StreambotStatusBadge';
 import { LAYOUTS } from './constants';
 import Flexbox from '../ui/Flexbox';
 import styles from './LivePanel.module.css';
+import EmptyState from '../ui/EmptyState';
 
 interface Streambot {
   id: string;
@@ -44,6 +45,8 @@ interface LivePanelProps {
 }
 
 export default function LivePanel(props: LivePanelProps) {
+  const isAudioOnly = () => props.selectedLayout === 'AudioShow';
+
   return (
     <Flexbox direction="vertical" class={styles.liveWrap}>
       <Flexbox align="center" justify="between" class={styles.liveHeader}>
@@ -65,13 +68,25 @@ export default function LivePanel(props: LivePanelProps) {
       <div class={styles.liveBody}>
         <Flexbox direction="vertical" gap={0.75} class={styles.previewCol}>
           <div class={styles.previewWrap}>
-            <video
-              ref={(el) => props.setPreviewRef(el)}
-              autoplay
-              muted
-              playsinline
-              class={styles.previewVideo}
-            />
+            <Show
+              when={!isAudioOnly()}
+              fallback={
+                <div class={styles.audioPreview} data-testid="broadcast-audio-preview">
+                  <div class={styles.audioWave} aria-hidden="true">
+                    <i /><i /><i /><i /><i />
+                  </div>
+                  <p class={styles.audioPreviewText}>Voices only. No camera is going out.</p>
+                </div>
+              }
+            >
+              <video
+                ref={(el) => props.setPreviewRef(el)}
+                autoplay
+                muted
+                playsinline
+                class={styles.previewVideo}
+              />
+            </Show>
             <Flexbox gap={0.5} class={styles.previewControls}>
               <button
                 type="button"
@@ -82,15 +97,17 @@ export default function LivePanel(props: LivePanelProps) {
               >
                 {props.isMuted ? 'Unmute' : 'Mute'}
               </button>
-              <button
-                type="button"
-                class={`${styles.controlButton} ${props.isCameraOff ? styles.controlButtonActive : ''}`}
-                onClick={props.onToggleCamera}
-                aria-label={props.isCameraOff ? 'Turn camera on' : 'Turn camera off'}
-                data-testid="broadcast-camera-button"
-              >
-                {props.isCameraOff ? 'Camera On' : 'Camera Off'}
-              </button>
+              <Show when={!isAudioOnly()}>
+                <button
+                  type="button"
+                  class={`${styles.controlButton} ${props.isCameraOff ? styles.controlButtonActive : ''}`}
+                  onClick={props.onToggleCamera}
+                  aria-label={props.isCameraOff ? 'Turn camera on' : 'Turn camera off'}
+                  data-testid="broadcast-camera-button"
+                >
+                  {props.isCameraOff ? 'Camera On' : 'Camera Off'}
+                </button>
+              </Show>
             </Flexbox>
           </div>
 
@@ -112,6 +129,7 @@ export default function LivePanel(props: LivePanelProps) {
         <Flexbox direction="vertical" gap={1} class={styles.controlCol}>
           <Flexbox as="section" direction="vertical" gap={0.75} class={styles.section}>
             <h3 class={styles.sectionHeading}>Layout</h3>
+            <p class={styles.sectionNote}>Changes appear on the stream immediately.</p>
             <Flexbox wrap="wrap" gap={0.375} class={styles.layoutRow}>
               <For each={LAYOUTS}>
                 {(layout) => (
@@ -130,6 +148,7 @@ export default function LivePanel(props: LivePanelProps) {
 
           <Flexbox as="section" direction="vertical" gap={0.75} class={styles.section}>
             <h3 class={styles.sectionHeading}>Stage</h3>
+            <p class={styles.sectionNote}>Add or remove people freely; the stream keeps running.</p>
             <div class={styles.stageGrid}>
               <For each={props.slots}>
                 {(slot) => {
@@ -150,10 +169,21 @@ export default function LivePanel(props: LivePanelProps) {
           </Flexbox>
 
           <Flexbox as="section" direction="vertical" gap={0.75} class={styles.section}>
-            <h3 class={styles.sectionHeading}>Active Streambots</h3>
+            <h3 class={styles.sectionHeading}>Destinations</h3>
+            <p class={`${styles.sectionNote} ${styles.sectionNoteWarn}`} data-testid="destinations-warning">
+              Changing where the broadcast goes reconnects it. Viewers on every
+              destination see the stream stop and start.
+            </p>
             <Show
               when={props.streambots.length > 0}
-              fallback={<p class={styles.emptyText}>No streambots configured.</p>}
+              fallback={
+                <EmptyState
+                  title="No restream destinations"
+                  body="Add a streambot in channel settings to restream this broadcast."
+                  dense
+                  data-testid="live-panel-streambots-empty"
+                />
+              }
             >
               <Flexbox direction="vertical" gap={0.375} class={styles.streambotList}>
                 <For each={props.streambots}>

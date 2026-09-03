@@ -147,4 +147,43 @@ public partial class MainHub
 
         _logger.LogDebug("User {UserId} typing broadcast to conversation {ConversationId}", userId, conversationId);
     }
+
+    /// <summary>
+    /// Withdraw a typing notice, when someone clears what they were composing.
+    /// </summary>
+    /// <remarks>
+    /// Without this the notice only ever expired: someone who typed a word and
+    /// deleted it went on "typing" on every other screen for the full eight
+    /// seconds. Deliberately cheaper than <see cref="StartTyping"/> - it does not
+    /// re-check SendMessages, because withdrawing a claim about yourself needs no
+    /// permission, and someone whose permission was revoked mid-compose must
+    /// still be able to stop appearing to type. Clearing the rate-limit key is
+    /// what lets the next keystroke broadcast again immediately.
+    /// </remarks>
+    public async Task StopTyping(long conversationId)
+    {
+        if (conversationId <= 0)
+        {
+            throw new HubException("Invalid id");
+        }
+
+        var userId = GetUserId();
+        if (userId == null)
+        {
+            throw new HubException("Unauthorized");
+        }
+
+        var db = _redis.GetDatabase();
+        await db.KeyDeleteAsync($"{_channelPrefix}:typing:{conversationId}:{userId}");
+
+        await Clients.Group($"conversation:{conversationId}")
+            .SendAsync("Chat_TypingStopped", new
+            {
+                userId = userId.Value,
+                conversationId,
+                timestamp = DateTimeOffset.UtcNow,
+            });
+
+        _logger.LogDebug("User {UserId} stopped typing in conversation {ConversationId}", userId, conversationId);
+    }
 }
